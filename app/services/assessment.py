@@ -412,6 +412,9 @@ class AssessmentService:
         # Generate AI narratives (uses fallback if LLM disabled)
         narratives = generate_narrative(narrative_payload)
         
+        # Build LLM metadata (informational only - does NOT affect scoring)
+        llm_metadata = self._get_llm_metadata()
+        
         return {
             "api_version": "1.0",
             "id": assessment.id,
@@ -432,7 +435,43 @@ class AssessmentService:
             "executive_summary_text": narratives.get("executive_summary_text"),
             "roadmap_narrative_text": narratives.get("roadmap_narrative_text"),
             "baselines_available": baselines_available,
-            "baseline_profiles": baseline_profiles
+            "baseline_profiles": baseline_profiles,
+            # LLM metadata (informational only)
+            "llm_enabled": llm_metadata["llm_enabled"],
+            "llm_provider": llm_metadata["llm_provider"],
+            "llm_model": llm_metadata["llm_model"],
+            "llm_mode": llm_metadata["llm_mode"],
+        }
+    
+    def _get_llm_metadata(self) -> Dict[str, Any]:
+        """
+        Get LLM configuration metadata (informational only).
+        
+        This metadata indicates the current LLM status for the frontend.
+        It does NOT affect scoring, findings, or any assessment data.
+        """
+        from app.core.config import settings
+        
+        # Determine LLM mode
+        if not settings.AIRS_USE_LLM:
+            llm_mode = "disabled"
+        elif settings.is_demo_mode:
+            llm_mode = "demo"
+        else:
+            llm_mode = "prod"
+        
+        # Check if LLM is actually enabled (considers demo mode)
+        llm_enabled = settings.is_llm_enabled
+        
+        # Provider and model (only if enabled)
+        llm_provider = "google" if llm_enabled else None
+        llm_model = settings.LLM_MODEL if llm_enabled else None
+        
+        return {
+            "llm_enabled": llm_enabled,
+            "llm_provider": llm_provider,
+            "llm_model": llm_model,
+            "llm_mode": llm_mode,
         }
     
     def _get_readiness_tier(self, score: float) -> Dict[str, Any]:

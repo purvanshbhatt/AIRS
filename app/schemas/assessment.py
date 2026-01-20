@@ -32,6 +32,13 @@ class FindingStatus(str, Enum):
     ACCEPTED = "accepted"
 
 
+class LLMMode(str, Enum):
+    """LLM operation mode (informational only, does not affect scoring)."""
+    DEMO = "demo"      # Demo mode - LLM enabled for presentations
+    PROD = "prod"      # Production mode - LLM with strict validation
+    DISABLED = "disabled"  # LLM features disabled
+
+
 # ----- Answer Schemas -----
 
 class AnswerInput(BaseModel):
@@ -272,3 +279,10 @@ class AssessmentSummaryResponse(BaseModel):
     # Baseline profiles for comparison
     baselines_available: List[str] = []
     baseline_profiles: Dict[str, Dict[str, float]] = {}
+    
+    # LLM metadata (informational only - does NOT affect scoring)
+    # These fields indicate the current LLM configuration status
+    llm_enabled: bool = False
+    llm_provider: Optional[str] = None  # e.g., "google", "openai"
+    llm_model: Optional[str] = None     # e.g., "gemini-2.0-flash"
+    llm_mode: LLMMode = LLMMode.DISABLED  # "demo" | "prod" | "disabled"
