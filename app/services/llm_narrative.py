@@ -5,8 +5,26 @@ AI-assisted narrative generation for executive summaries and roadmaps.
 The LLM CANNOT modify scores - it only generates human-readable narratives
 from deterministic scores and findings.
 
-Feature flag: AIRS_USE_LLM (default: False)
-Uses Google Gemini API for generation.
+IMPORTANT - LLM Scope Limitations:
+  The LLM is strictly limited to generating narrative text:
+    ✓ Executive summary paragraph
+    ✓ 30/60/90 day roadmap narrative  
+    ✓ Finding rewrites in business tone
+  
+  The LLM does NOT and CANNOT modify:
+    ✗ Numeric scores (overall_score, domain_scores)
+    ✗ Maturity tier/level
+    ✗ Findings (count, severity, recommendations)
+    ✗ Any structured assessment data
+
+Demo Mode:
+  When DEMO_MODE=true, LLM can run without strict API key validation.
+  Falls back to deterministic text if LLM fails.
+
+Feature flags:
+  - AIRS_USE_LLM: Enable/disable LLM (default: False)
+  - DEMO_MODE: Allow LLM without strict validation (default: False)
+  - GEMINI_API_KEY: Optional in demo mode (uses ADC on Cloud Run)
 """
 
 import json
@@ -87,22 +105,32 @@ class LLMNarrativeGenerator:
     It only generates human-readable narratives from immutable data.
     
     Uses Google Gemini API for generation.
+    In demo mode, can use ADC without explicit API key.
     """
     
     def __init__(self):
-        self.enabled = settings.AIRS_USE_LLM
+        # Use the is_llm_enabled property which handles demo mode
+        self.enabled = settings.is_llm_enabled
+        self.demo_mode = settings.is_demo_mode
         self.api_key = settings.GEMINI_API_KEY
         self.model = settings.LLM_MODEL
         self.max_tokens = settings.LLM_MAX_TOKENS
         self.temperature = settings.LLM_TEMPERATURE
         self._client = None
         
+        # Log demo mode warning
+        if self.enabled and self.demo_mode:
+            logger.warning("LLM running in demo mode - generates narratives only, no score modification")
+        
     def _get_client(self):
         """Lazy-load Google Gemini client."""
-        if not self._client and self.enabled and self.api_key:
+        if not self._client and self.enabled:
             try:
                 import google.generativeai as genai
-                genai.configure(api_key=self.api_key)
+                # Configure with API key if available, otherwise ADC
+                if self.api_key:
+                    genai.configure(api_key=self.api_key)
+                # ADC is used automatically on Cloud Run if no API key
                 self._client = genai.GenerativeModel(self.model)
             except ImportError:
                 logger.warning("Google GenerativeAI package not installed. Run: pip install google-generativeai")
@@ -114,6 +142,9 @@ class LLMNarrativeGenerator:
     
     def is_available(self) -> bool:
         """Check if LLM features are available."""
+        # In demo mode, try without strict API key check
+        if self.demo_mode:
+            return self.enabled and self._get_client() is not None
         return self.enabled and bool(self.api_key) and self._get_client() is not None
     
     def _generate_content(self, prompt: str, max_tokens: int = None) -> tuple[str, Optional[int]]:

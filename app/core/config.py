@@ -65,8 +65,26 @@ class Settings(BaseSettings):
     AUTH_REQUIRED: bool = False  # Set to true to require Firebase auth
     
     # ===========================================
+    # Demo Mode
+    # ===========================================
+    # DEMO_MODE allows LLM features without strict production validation.
+    # Use for CISO demos, sales presentations, and testing.
+    # In demo mode:
+    #   - AIRS_USE_LLM=true works without GEMINI_API_KEY validation
+    #   - LLM generates narratives only (no score modification)
+    #   - Falls back to deterministic text if LLM fails
+    DEMO_MODE: bool = False
+    
+    # ===========================================
     # LLM Feature Flags
     # ===========================================
+    # LLM is ONLY used for narrative text generation:
+    #   - Executive summary paragraph
+    #   - 30/60/90 day roadmap narrative
+    # LLM does NOT modify:
+    #   - Numeric scores (overall_score, domain_scores)
+    #   - Maturity tier/level
+    #   - Findings (severity, count, recommendations)
     AIRS_USE_LLM: bool = False
     GEMINI_API_KEY: Optional[str] = None
     LLM_MODEL: str = "gemini-3-pro-preview"
@@ -93,10 +111,22 @@ class Settings(BaseSettings):
                     file=sys.stderr
                 )
             
-            # In production with LLM enabled, API key is recommended but ADC can be used
-            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY:
+            # In production with LLM enabled (not demo mode), API key is recommended
+            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY and not self.DEMO_MODE:
                 print(
                     "INFO: GEMINI_API_KEY not set. Using Application Default Credentials for Gemini.",
+                    file=sys.stderr
+                )
+        
+        # Demo mode warnings
+        if self.DEMO_MODE:
+            print(
+                "WARNING: DEMO_MODE=true. LLM features enabled for demonstration purposes.",
+                file=sys.stderr
+            )
+            if self.AIRS_USE_LLM:
+                print(
+                    "INFO: LLM running in demo mode - generates narratives only, no score modification.",
                     file=sys.stderr
                 )
         
@@ -151,6 +181,35 @@ class Settings(BaseSettings):
     def is_auth_required(self) -> bool:
         """Check if authentication is required for protected endpoints."""
         return self.AUTH_REQUIRED or self.ENV == Environment.PROD
+
+    @property
+    def is_llm_enabled(self) -> bool:
+        """
+        Check if LLM narrative generation is enabled.
+        
+        LLM is enabled when:
+          - AIRS_USE_LLM=true AND (GEMINI_API_KEY is set OR DEMO_MODE=true)
+        
+        In demo mode, LLM can run without strict API key validation,
+        using ADC (Application Default Credentials) on Cloud Run.
+        
+        Note: LLM only generates narrative text. It does NOT modify:
+          - Numeric scores (overall_score, domain_scores)
+          - Maturity tier/level  
+          - Findings (severity, recommendations)
+        """
+        if not self.AIRS_USE_LLM:
+            return False
+        # In demo mode, allow LLM even without explicit API key (use ADC)
+        if self.DEMO_MODE:
+            return True
+        # Otherwise require API key
+        return bool(self.GEMINI_API_KEY)
+
+    @property
+    def is_demo_mode(self) -> bool:
+        """Check if running in demo mode for presentations/testing."""
+        return self.DEMO_MODE
 
 
 def _load_env_file() -> Optional[str]:

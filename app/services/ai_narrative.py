@@ -5,9 +5,26 @@ Generates consultant-grade text narratives (executive summary + roadmap)
 from deterministic assessment data. The AI ONLY generates text - it does 
 NOT compute or alter any numeric scores.
 
+IMPORTANT - LLM Scope Limitations:
+  The LLM is strictly limited to generating narrative text:
+    ✓ Executive summary paragraph
+    ✓ 30/60/90 day roadmap narrative
+  
+  The LLM does NOT modify:
+    ✗ Numeric scores (overall_score, domain_scores)
+    ✗ Maturity tier/level
+    ✗ Findings (count, severity, recommendations)
+    ✗ Any structured data
+
+Demo Mode:
+  When DEMO_MODE=true, LLM can run without strict API key validation.
+  This is useful for CISO demos and sales presentations.
+  Falls back to deterministic text if LLM fails.
+
 Feature flags:
   - AIRS_USE_LLM: Enable/disable LLM features (default: False)
-  - GEMINI_API_KEY: API key for Google Gemini
+  - DEMO_MODE: Allow LLM without strict validation (default: False)
+  - GEMINI_API_KEY: API key for Google Gemini (optional in demo mode)
   - LLM_MODEL: Model to use (default: gemini-3-pro-preview)
 """
 
@@ -41,17 +58,25 @@ def generate_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
             - executive_summary_text: str - AI-generated executive summary
             - roadmap_narrative_text: str - AI-generated 30/60/90 day roadmap narrative
             - llm_generated: bool - whether LLM was used or fallback
+    
+    Note: This function NEVER modifies scores, tiers, or findings.
+    All numeric data passes through unchanged.
     """
-    # Check if LLM is enabled and API key is available
-    use_llm = settings.AIRS_USE_LLM and bool(settings.GEMINI_API_KEY)
+    # Use the is_llm_enabled property which handles demo mode logic
+    use_llm = settings.is_llm_enabled
     
     if not use_llm:
+        logger.debug("LLM disabled - using deterministic fallback narratives")
         return _generate_fallback_narrative(summary_payload)
+    
+    # Log demo mode warning
+    if settings.is_demo_mode:
+        logger.warning("LLM running in demo mode - generates narratives only, no score modification")
     
     try:
         return _generate_llm_narrative(summary_payload)
     except Exception as e:
-        logger.error(f"LLM narrative generation failed: {e}")
+        logger.error(f"LLM narrative generation failed: {e}. Falling back to deterministic text.")
         return _generate_fallback_narrative(summary_payload)
 
 
