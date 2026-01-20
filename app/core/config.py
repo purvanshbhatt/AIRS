@@ -1,0 +1,198 @@
+"""
+AIRS Configuration Module
+
+Uses pydantic-settings for type-safe configuration with validation.
+Loads .env file only in local environment mode.
+"""
+
+import os
+import sys
+from enum import Enum
+from typing import Optional, List
+from functools import lru_cache
+
+from pydantic import field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Environment(str, Enum):
+    """Application environment."""
+    LOCAL = "local"
+    PROD = "prod"
+
+
+class Settings(BaseSettings):
+    """
+    Application settings with validation.
+    
+    Environment variables take precedence over .env file.
+    The .env file is only loaded in local environment.
+    """
+    
+    # ===========================================
+    # Core Settings
+    # ===========================================
+    ENV: Environment = Environment.LOCAL
+    APP_NAME: str = "AIRS"
+    DEBUG: bool = False
+    
+    # ===========================================
+    # Server Settings
+    # ===========================================
+    PORT: int = 8000
+    
+    # ===========================================
+    # Database
+    # ===========================================
+    DATABASE_URL: str = "sqlite:///./airs.db"
+    
+    # ===========================================
+    # CORS Configuration
+    # ===========================================
+    # Comma-separated list of allowed origins
+    # Example: "http://localhost:3000,https://myapp.com"
+    # Use "*" to allow all origins (not recommended for production)
+    CORS_ALLOW_ORIGINS: str = "*"
+    
+    # ===========================================
+    # GCP Settings (Optional)
+    # ===========================================
+    GCP_PROJECT_ID: Optional[str] = None
+    
+    # ===========================================
+    # Authentication
+    # ===========================================
+    AUTH_REQUIRED: bool = False  # Set to true to require Firebase auth
+    
+    # ===========================================
+    # LLM Feature Flags
+    # ===========================================
+    AIRS_USE_LLM: bool = False
+    GEMINI_API_KEY: Optional[str] = None
+    LLM_MODEL: str = "gemini-3-pro-preview"
+    LLM_MAX_TOKENS: int = 1000
+    LLM_TEMPERATURE: float = 0.7
+
+    model_config = SettingsConfigDict(
+        case_sensitive=True,
+        # env_file is set dynamically in settings_customise_sources
+    )
+
+    @model_validator(mode="after")
+    def validate_production_settings(self) -> "Settings":
+        """Validate that production environment has required settings."""
+        errors = []
+        
+        if self.ENV == Environment.PROD:
+            # In production, CORS should not be wildcard
+            if self.CORS_ALLOW_ORIGINS == "*":
+                # Warning but not error - allow for initial setup
+                print(
+                    "WARNING: CORS_ALLOW_ORIGINS is set to '*' in production. "
+                    "Consider restricting to specific origins.",
+                    file=sys.stderr
+                )
+            
+            # In production with LLM enabled, API key is required
+            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY:
+                errors.append(
+                    "GEMINI_API_KEY is required when AIRS_USE_LLM=true in production"
+                )
+        
+        if errors:
+            raise ValueError(
+                "Configuration validation failed:\n" + 
+                "\n".join(f"  - {e}" for e in errors)
+            )
+        
+        return self
+
+    @field_validator("CORS_ALLOW_ORIGINS")
+    @classmethod
+    def validate_cors_origins(cls, v: str) -> str:
+        """Validate CORS origins format."""
+        if not v or not v.strip():
+            raise ValueError("CORS_ALLOW_ORIGINS cannot be empty")
+        return v.strip()
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        """Validate database URL is provided."""
+        if not v or not v.strip():
+            raise ValueError("DATABASE_URL is required")
+        return v.strip()
+
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Parse CORS origins string into a list."""
+        if self.CORS_ALLOW_ORIGINS == "*":
+            return ["*"]
+        return [
+            origin.strip()
+            for origin in self.CORS_ALLOW_ORIGINS.split(",")
+            if origin.strip()
+        ]
+
+    @property
+    def is_local(self) -> bool:
+        """Check if running in local environment."""
+        return self.ENV == Environment.LOCAL
+
+    @property
+    def is_prod(self) -> bool:
+        """Check if running in production environment."""
+        return self.ENV == Environment.PROD
+
+    @property
+    def is_auth_required(self) -> bool:
+        """Check if authentication is required for protected endpoints."""
+        return self.AUTH_REQUIRED or self.ENV == Environment.PROD
+
+
+def _load_env_file() -> Optional[str]:
+    """
+    Determine if .env file should be loaded.
+    
+    Only loads .env in local mode or if ENV is not set.
+    """
+    # Check ENV from environment first
+    env_value = os.environ.get("ENV", "local").lower()
+    
+    if env_value == "local" and os.path.exists(".env"):
+        return ".env"
+    return None
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """
+    Get cached settings instance.
+    
+    Uses lru_cache to ensure settings are only loaded once.
+    """
+    env_file = _load_env_file()
+    
+    if env_file:
+        # Load .env file for local development
+        try:
+            from dotenv import load_dotenv
+            load_dotenv(env_file)
+        except ImportError:
+            # python-dotenv not installed, rely on pydantic-settings
+            pass
+    
+    return Settings(_env_file=env_file if env_file else None)
+
+
+# Create settings instance for backward compatibility
+# Note: This will validate on import
+try:
+    settings = get_settings()
+except Exception as e:
+    print(f"ERROR: Failed to load configuration: {e}", file=sys.stderr)
+    raise
+
+
+# Export environment enum for type hints
+__all__ = ["Settings", "Environment", "settings", "get_settings"]

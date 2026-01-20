@@ -1,0 +1,23 @@
+{
+  "Typical SMB": {
+    "telemetry_logging": 2.0,
+    "detection_coverage": 2.0,
+    "identity_visibility": 2.5,
+    "ir_process": 1.5,
+    "resilience": 2.0
+  },
+  "SaaS Startup": {
+    "telemetry_logging": 2.5,
+    "detection_coverage": 3.0,
+    "identity_visibility": 3.0,
+    "ir_process": 2.0,
+    "resilience": 2.5
+  },
+  "Healthcare": {
+    "telemetry_logging": 3.0,
+    "detection_coverage": 3.0,
+    "identity_visibility": 3.5,
+    "ir_process": 2.5,
+    "resilience": 3.0
+  }
+}

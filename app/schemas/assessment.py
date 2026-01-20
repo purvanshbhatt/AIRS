@@ -1,0 +1,274 @@
+"""
+Pydantic schemas for Assessment, Answer, Score, and Finding.
+"""
+
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+from enum import Enum
+
+
+class AssessmentStatus(str, Enum):
+    """Assessment status."""
+    DRAFT = "draft"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    ARCHIVED = "archived"
+
+
+class Severity(str, Enum):
+    """Finding severity."""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class FindingStatus(str, Enum):
+    """Finding status."""
+    OPEN = "open"
+    IN_PROGRESS = "in_progress"
+    RESOLVED = "resolved"
+    ACCEPTED = "accepted"
+
+
+# ----- Answer Schemas -----
+
+class AnswerInput(BaseModel):
+    """Single answer input."""
+    question_id: str = Field(..., pattern="^[a-z]{2}_\\d{2}$")
+    value: str = Field(..., min_length=1)
+    notes: Optional[str] = None
+
+
+class AnswerBulkSubmit(BaseModel):
+    """Bulk answer submission."""
+    answers: List[AnswerInput]
+
+
+class AnswerResponse(BaseModel):
+    """Answer response."""
+    id: str
+    question_id: str
+    value: str
+    notes: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+# ----- Score Schemas -----
+
+class ScoreResponse(BaseModel):
+    """Score response."""
+    id: str
+    domain_id: str
+    domain_name: str
+    score: float = Field(..., ge=0, le=5)
+    max_score: float = 5.0
+    weight: float
+    weighted_score: float
+    raw_points: Optional[float] = None
+    max_raw_points: Optional[float] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+# ----- Finding Schemas -----
+
+class FindingCreate(BaseModel):
+    """Finding creation (manual)."""
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    severity: Severity
+    domain_id: Optional[str] = None
+    question_id: Optional[str] = None
+    evidence: Optional[str] = None
+    recommendation: Optional[str] = None
+
+
+class FindingResponse(BaseModel):
+    """Finding response."""
+    id: str
+    title: str
+    description: Optional[str] = None
+    severity: Severity
+    status: FindingStatus
+    domain_id: Optional[str] = None
+    domain_name: Optional[str] = None
+    question_id: Optional[str] = None
+    evidence: Optional[str] = None
+    recommendation: Optional[str] = None
+    priority: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class FindingUpdate(BaseModel):
+    """Finding update."""
+    title: Optional[str] = None
+    description: Optional[str] = None
+    severity: Optional[Severity] = None
+    status: Optional[FindingStatus] = None
+    evidence: Optional[str] = None
+    recommendation: Optional[str] = None
+
+
+# ----- Assessment Schemas -----
+
+class AssessmentCreate(BaseModel):
+    """Assessment creation."""
+    organization_id: str
+    title: Optional[str] = None
+    version: Optional[str] = "1.0.0"
+
+
+class AssessmentUpdate(BaseModel):
+    """Assessment update."""
+    title: Optional[str] = None
+    status: Optional[AssessmentStatus] = None
+
+
+class AssessmentResponse(BaseModel):
+    """Assessment response."""
+    id: str
+    organization_id: str
+    title: Optional[str] = None
+    version: str
+    status: AssessmentStatus
+    overall_score: Optional[float] = None
+    maturity_level: Optional[int] = None
+    maturity_name: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class AssessmentDetail(AssessmentResponse):
+    """Assessment with related data."""
+    answers: List[AnswerResponse] = []
+    scores: List[ScoreResponse] = []
+    findings: List[FindingResponse] = []
+    organization_name: Optional[str] = None
+
+
+class AssessmentSummary(BaseModel):
+    """Assessment summary for lists."""
+    id: str
+    organization_id: str
+    organization_name: Optional[str] = None
+    title: Optional[str] = None
+    status: AssessmentStatus
+    overall_score: Optional[float] = None
+    maturity_level: Optional[int] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+# ----- Scoring Schemas -----
+
+class ComputeScoreResponse(BaseModel):
+    """Response after computing scores."""
+    assessment_id: str
+    overall_score: float
+    maturity_level: int
+    maturity_name: str
+    domain_scores: List[ScoreResponse]
+    findings_count: int
+    high_severity_count: int
+
+
+# ----- Summary Schema -----
+
+class RoadmapItem(BaseModel):
+    """Roadmap item for remediation."""
+    title: str
+    action: str
+    severity: str
+    domain: Optional[str] = None
+
+
+class Roadmap(BaseModel):
+    """30/60/90 day remediation roadmap."""
+    day30: List[RoadmapItem] = []
+    day60: List[RoadmapItem] = []
+    day90: List[RoadmapItem] = []
+
+
+class DomainScoreSummary(BaseModel):
+    """Domain score for summary endpoint."""
+    domain_id: str
+    domain_name: str
+    score: float
+    score_5: float  # Score on 0-5 scale
+    weight: float
+    earned_points: Optional[float] = None
+    max_points: Optional[float] = None
+
+
+class FindingSummary(BaseModel):
+    """Finding for summary endpoint."""
+    id: str
+    title: str
+    severity: str
+    domain: Optional[str] = None
+    evidence: Optional[str] = None
+    recommendation: Optional[str] = None
+    description: Optional[str] = None
+
+
+class ReadinessTier(BaseModel):
+    """Readiness tier info."""
+    label: str  # Critical, Needs Work, Good, Strong
+    min_score: int
+    max_score: int
+    color: str  # danger, warning, primary, success
+
+
+class AssessmentSummaryResponse(BaseModel):
+    """Comprehensive assessment summary for executive dashboard."""
+    # API version for forward compatibility
+    api_version: str = "1.0"
+    
+    # Metadata
+    id: str
+    title: Optional[str] = None
+    organization_id: str
+    organization_name: Optional[str] = None
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+    status: str
+    
+    # Scores
+    overall_score: float
+    tier: ReadinessTier
+    domain_scores: List[DomainScoreSummary]
+    
+    # Findings
+    findings: List[FindingSummary]
+    findings_count: int
+    critical_high_count: int
+    
+    # Roadmap
+    roadmap: Roadmap
+    
+    # Executive summary (deterministic, no LLM)
+    executive_summary: str
+    
+    # AI-generated narratives (optional, LLM-powered)
+    executive_summary_text: Optional[str] = None
+    roadmap_narrative_text: Optional[str] = None
+    
+    # Baseline profiles for comparison
+    baselines_available: List[str] = []
+    baseline_profiles: Dict[str, Dict[str, float]] = {}
