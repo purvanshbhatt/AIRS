@@ -93,10 +93,11 @@ class Settings(BaseSettings):
                     file=sys.stderr
                 )
             
-            # In production with LLM enabled, API key is required
+            # In production with LLM enabled, API key is recommended but ADC can be used
             if self.AIRS_USE_LLM and not self.GEMINI_API_KEY:
-                errors.append(
-                    "GEMINI_API_KEY is required when AIRS_USE_LLM=true in production"
+                print(
+                    "INFO: GEMINI_API_KEY not set. Using Application Default Credentials for Gemini.",
+                    file=sys.stderr
                 )
         
         if errors:
@@ -125,14 +126,16 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        """Parse CORS origins string into a list."""
+        """Parse CORS origins string into a list. Supports comma or semicolon separator."""
         if self.CORS_ALLOW_ORIGINS == "*":
             return ["*"]
-        return [
-            origin.strip()
-            for origin in self.CORS_ALLOW_ORIGINS.split(",")
-            if origin.strip()
-        ]
+        # Support both comma and semicolon as separators
+        origins_str = self.CORS_ALLOW_ORIGINS
+        if ";" in origins_str:
+            origins = origins_str.split(";")
+        else:
+            origins = origins_str.split(",")
+        return [origin.strip() for origin in origins if origin.strip()]
 
     @property
     def is_local(self) -> bool:

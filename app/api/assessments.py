@@ -119,7 +119,7 @@ async def get_assessment(
     "/{assessment_id}/summary",
     response_model=AssessmentSummaryResponse,
     summary="Get Assessment Summary",
-    description=\"\"\"Get comprehensive assessment summary for executive dashboard. Includes scores, 
+    description="""Get comprehensive assessment summary for executive dashboard. Includes scores, 
 findings, roadmap, baseline comparisons, and optional AI-generated narratives.
 
 Returns:
@@ -130,7 +130,7 @@ Returns:
 - Findings array (severity, title, evidence, recommendation)
 - 30/60/90 day roadmap as structured lists
 - Baseline profiles for comparison
-- Optional LLM-generated executive summary and roadmap narrative\"\"\",
+- Optional LLM-generated executive summary and roadmap narrative""",
     responses={
         200: {"description": "Complete assessment summary with all metrics and narratives"},
         400: {"description": "Assessment has not been scored yet"},

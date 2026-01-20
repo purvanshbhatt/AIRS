@@ -49,11 +49,14 @@ def init_firebase():
         logger.warning(f"Firebase Admin SDK initialization failed: {e}. Token verification will use mock mode.")
         return False
 
-# Initialize Firebase if auth is required
-if settings.is_auth_required:
-    init_firebase()
-else:
-    logger.info("AUTH_REQUIRED=false, skipping Firebase initialization")
+# Try to initialize Firebase (non-blocking - app will work with mock auth if it fails)
+try:
+    if settings.is_auth_required:
+        init_firebase()
+    else:
+        logger.info("AUTH_REQUIRED=false, skipping Firebase initialization")
+except Exception as e:
+    logger.warning(f"Firebase initialization error (non-fatal): {e}")
 
 # Create database tables
 Base.metadata.create_all(bind=engine)

@@ -34,17 +34,24 @@ if (-not (Test-Path $EnvFilePath)) {
 
 # Read environment variables from file
 Write-Host "Reading environment variables from: $EnvFile" -ForegroundColor Green
-$envVars = @()
+$envVars = @{}
 Get-Content $EnvFilePath | ForEach-Object {
     $line = $_.Trim()
     # Skip empty lines and comments
     if ($line -and -not $line.StartsWith("#")) {
-        $envVars += $line
+        $parts = $line -split "=", 2
+        if ($parts.Count -eq 2) {
+            $envVars[$parts[0]] = $parts[1]
+        }
     }
 }
 
-# Build env vars string for gcloud
-$envVarsString = $envVars -join ","
+# Build env vars string for gcloud (each key=value pair separately quoted)
+$envVarsList = @()
+foreach ($key in $envVars.Keys) {
+    $envVarsList += "$key=$($envVars[$key])"
+}
+$envVarsString = $envVarsList -join ","
 
 Write-Host ""
 Write-Host "Deployment Configuration:" -ForegroundColor Yellow
@@ -55,6 +62,16 @@ if ($CloudSqlInstance) {
     Write-Host "  Cloud SQL: $CloudSqlInstance" -ForegroundColor Cyan
 }
 Write-Host ""
+
+# Create temp YAML env file for gcloud (handles special characters properly)
+$tempEnvFile = [System.IO.Path]::GetTempFileName() -replace '\.tmp$', '.yaml'
+$yamlContent = ""
+foreach ($key in $envVars.Keys) {
+    $value = $envVars[$key]
+    # Quote values with special characters
+    $yamlContent += "$key`: `"$value`"`n"
+}
+Set-Content -Path $tempEnvFile -Value $yamlContent -NoNewline
 
 # Build gcloud command
 $deployArgs = @(
@@ -75,9 +92,10 @@ if ($CloudSqlInstance) {
     Write-Host "Attaching Cloud SQL instance: $CloudSqlInstance" -ForegroundColor Green
 }
 
-if ($envVarsString) {
-    $deployArgs += "--set-env-vars"
-    $deployArgs += $envVarsString
+# Use env-vars-file for proper escaping of special characters
+if ($tempEnvFile) {
+    $deployArgs += "--env-vars-file"
+    $deployArgs += $tempEnvFile
 }
 
 if ($AllowUnauthenticated) {
@@ -90,7 +108,14 @@ Write-Host ""
 # Run deployment
 & gcloud @deployArgs
 
-if ($LASTEXITCODE -ne 0) {
+$exitCode = $LASTEXITCODE
+
+# Cleanup temp file
+if ($tempEnvFile -and (Test-Path $tempEnvFile)) {
+    Remove-Item $tempEnvFile -Force
+}
+
+if ($exitCode -ne 0) {
     Write-Host ""
     Write-Host "ERROR: Deployment failed!" -ForegroundColor Red
     exit 1
