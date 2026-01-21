@@ -5,6 +5,7 @@ from app.models.assessment import Assessment, AssessmentStatus
 from app.models.answer import Answer
 from app.models.score import Score
 from app.models.finding import Finding, Severity, FindingStatus
+from app.models.report import Report
 
 __all__ = [
     "Organization",
@@ -15,4 +16,5 @@ __all__ = [
     "Finding",
     "Severity",
     "FindingStatus",
+    "Report",
 ]

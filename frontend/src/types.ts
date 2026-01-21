@@ -144,6 +144,11 @@ export interface AssessmentSummary {
   roadmap_narrative_text?: string;
   baselines_available?: string[];
   baseline_profiles?: Record<string, Record<string, number>>;
+  // LLM metadata (informational only - does NOT affect scoring)
+  llm_enabled?: boolean;
+  llm_provider?: string | null;
+  llm_model?: string | null;
+  llm_mode?: 'demo' | 'prod' | 'disabled';
 }
 
 // Standardized API error response
@@ -153,4 +158,69 @@ export interface ApiError {
     message: string;
     request_id: string;
   };
+}
+
+// Report type for saved reports library
+export interface Report {
+  id: string;
+  owner_uid: string;
+  assessment_id: string;
+  assessment_title?: string;
+  organization_id: string;
+  organization_name?: string;
+  report_type: string;
+  title: string;
+  overall_score?: number;
+  maturity_level?: number;
+  maturity_name?: string;
+  findings_count?: number;
+  created_at: string;
+}
+
+export interface ReportListResponse {
+  reports: Report[];
+  total: number;
+}
+
+export interface ReportSnapshot {
+  assessment_id: string;
+  assessment_title?: string;
+  organization_id: string;
+  organization_name?: string;
+  overall_score: number;
+  maturity_level: number;
+  maturity_name: string;
+  domain_scores: Array<{
+    domain_id: string;
+    domain_name: string;
+    score: number;
+    score_5: number;
+    weight: number;
+  }>;
+  findings: Array<{
+    id: string;
+    title: string;
+    severity: string;
+    domain?: string;
+    recommendation?: string;
+  }>;
+  findings_count: number;
+  critical_high_count: number;
+  executive_summary?: string;
+  roadmap_narrative?: string;
+  generated_at: string;
+}
+
+export interface ReportDetail extends Report {
+  snapshot: ReportSnapshot;
+}
+
+// Dashboard KPI types
+export interface DashboardStats {
+  total_organizations: number;
+  total_assessments: number;
+  completed_assessments: number;
+  draft_assessments: number;
+  average_score?: number;
+  recent_assessments: Assessment[];
 }

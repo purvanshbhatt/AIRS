@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "gen-lang-client-0384513977"
+  },
+  "targets": {
+    "gen-lang-client-0384513977": {
+      "hosting": {
+        "airs": [
+          "airs-demo"
+        ]
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { useState, ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import {
   LayoutDashboard,
@@ -11,7 +11,9 @@ import {
   X,
   ChevronRight,
   Shield,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface NavItem {
   name: string;
@@ -21,8 +23,8 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
+  { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
   { name: 'Reports', href: '/dashboard/reports', icon: FileText },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
@@ -34,6 +36,18 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut, isConfigured } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  // Display name: use displayName, email, or fallback
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'User';
+  const displayEmail = user?.email || 'Not signed in';
+  const initials = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -94,17 +108,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           })}
         </nav>
 
-        {/* Footer */}
+        {/* Footer - User info and logout */}
         <div className="p-4 border-t border-gray-200 shrink-0">
           <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50">
             <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-primary-700">A</span>
+              <span className="text-sm font-medium text-primary-700">{initials}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">Admin</p>
-              <p className="text-xs text-gray-500 truncate">admin@example.com</p>
+              <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
+              <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
             </div>
           </div>
+          
+          {/* Sign out button */}
+          {(user || isConfigured) && (
+            <button
+              onClick={handleSignOut}
+              className="mt-2 w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign out
+            </button>
+          )}
         </div>
       </aside>
 

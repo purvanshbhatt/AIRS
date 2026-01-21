@@ -1,5 +1,7 @@
 """
 Organization service - business logic for organizations.
+
+All operations are scoped by owner_uid for tenant isolation.
 """
 
 from typing import List, Optional
@@ -11,29 +13,46 @@ from app.schemas.organization import OrganizationCreate, OrganizationUpdate
 
 
 class OrganizationService:
-    """Service for organization operations."""
+    """Service for organization operations with tenant isolation."""
     
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, owner_uid: Optional[str] = None):
+        """
+        Initialize service.
+        
+        Args:
+            db: Database session
+            owner_uid: Firebase user UID for tenant isolation. If None, operations
+                      will not filter by owner (for backwards compatibility during
+                      migration period).
+        """
         self.db = db
+        self.owner_uid = owner_uid
     
     def create(self, data: OrganizationCreate) -> Organization:
-        """Create a new organization."""
-        org = Organization(**data.model_dump())
+        """Create a new organization owned by the current user."""
+        org = Organization(**data.model_dump(), owner_uid=self.owner_uid)
         self.db.add(org)
         self.db.commit()
         self.db.refresh(org)
         return org
     
+    def _base_query(self):
+        """Get base query filtered by owner_uid if set."""
+        query = self.db.query(Organization)
+        if self.owner_uid:
+            query = query.filter(Organization.owner_uid == self.owner_uid)
+        return query
+    
     def get(self, org_id: str) -> Optional[Organization]:
-        """Get organization by ID."""
-        return self.db.query(Organization).filter(Organization.id == org_id).first()
+        """Get organization by ID (scoped to current user)."""
+        return self._base_query().filter(Organization.id == org_id).first()
     
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Organization]:
-        """Get all organizations."""
-        return self.db.query(Organization).offset(skip).limit(limit).all()
+        """Get all organizations (scoped to current user)."""
+        return self._base_query().offset(skip).limit(limit).all()
     
     def update(self, org_id: str, data: OrganizationUpdate) -> Optional[Organization]:
-        """Update an organization."""
+        """Update an organization (scoped to current user)."""
         org = self.get(org_id)
         if not org:
             return None
@@ -47,7 +66,7 @@ class OrganizationService:
         return org
     
     def delete(self, org_id: str) -> bool:
-        """Delete an organization."""
+        """Delete an organization (scoped to current user)."""
         org = self.get(org_id)
         if not org:
             return False
@@ -57,14 +76,18 @@ class OrganizationService:
         return True
     
     def get_with_assessment_count(self, org_id: str) -> Optional[dict]:
-        """Get organization with assessment count."""
+        """Get organization with assessment count (scoped to current user)."""
         org = self.get(org_id)
         if not org:
             return None
         
-        count = self.db.query(func.count(Assessment.id)).filter(
+        # Also filter assessments by owner_uid for accurate count
+        count_query = self.db.query(func.count(Assessment.id)).filter(
             Assessment.organization_id == org_id
-        ).scalar()
+        )
+        if self.owner_uid:
+            count_query = count_query.filter(Assessment.owner_uid == self.owner_uid)
+        count = count_query.scalar()
         
         return {
             **org.__dict__,

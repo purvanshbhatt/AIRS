@@ -2,6 +2,24 @@
 
 A FastAPI application for AI security readiness assessments with scoring, findings, PDF reports, and optional LLM-powered narratives.
 
+## Live Demo
+
+| Resource | URL |
+|----------|-----|
+| **Web App** | [airs-demo.web.app](https://airs-demo.web.app) |
+| **API Health** | [/health](https://airs-api-knu3wsxymq-uc.a.run.app/health) |
+| **LLM Status** | [/health/llm](https://airs-api-knu3wsxymq-uc.a.run.app/health/llm) |
+
+### What AI Does (and Doesn't Do)
+
+| ✅ AI Generates | ❌ AI Does NOT Modify |
+|----------------|----------------------|
+| Executive summary narrative | Assessment scores |
+| Roadmap narrative text | Finding severity/priority |
+| Natural language insights | Compliance mappings |
+
+> **Demo Mode Notice:** The live demo uses AI to generate narrative insights based on assessment results. Scores and findings are computed deterministically and are not modified by AI.
+
 ## Features
 
 - **Security Assessment Questionnaire** - Structured assessment across multiple domains
@@ -279,6 +297,50 @@ cp gcp/env.prod.example gcp/env.prod
 # - Set GEMINI_API_KEY if using LLM features
 ```
 
+### How to Get Real Deployment URLs for CORS
+
+Before updating CORS configuration, use the helper scripts to discover your actual deployment URLs:
+
+**Windows PowerShell:**
+```powershell
+.\scripts\get_deployment_urls.ps1
+```
+
+**Linux/macOS:**
+```bash
+chmod +x scripts/get_deployment_urls.sh
+./scripts/get_deployment_urls.sh
+```
+
+**Sample Output:**
+```
+========================================
+  AIRS Deployment URLs
+========================================
+
+[Backend - Cloud Run]
+  Service URL: https://airs-api-227825933697.us-central1.run.app
+
+[Frontend - Firebase Hosting]
+  Firebase Project: gen-lang-client-0384513977
+  Hosting Sites:
+    - https://airs-demo.web.app
+    - https://airs-demo.firebaseapp.com
+
+========================================
+  Suggested CORS Origins
+========================================
+
+Copy this value for CORS_ALLOW_ORIGINS:
+
+  https://airs-demo.web.app,https://airs-demo.firebaseapp.com,http://localhost:5173
+```
+
+The script will:
+- Query Cloud Run for the active backend service URL (if `gcloud` is available)
+- Read `.firebaserc` to find Firebase Hosting site names
+- Generate a ready-to-copy CORS origins string
+
 ### Step 3: Deploy to Cloud Run
 
 ```powershell
@@ -380,7 +442,48 @@ gcloud run deploy airs \
 
 ### Health & Status
 - `GET /health` - Health check (for load balancers)
+- `GET /health/llm` - LLM configuration status
+- `GET /health/cors` - CORS configuration verification (see below)
 - `GET /` - Welcome message
+
+### CORS Verification
+
+The `/health/cors` endpoint helps debug CORS issues without exposing secrets:
+
+```bash
+# From terminal
+curl https://your-api.run.app/health/cors
+
+# Response:
+{
+  "env": "prod",
+  "localhost_allowed": false,
+  "allowed_origins": ["https://airs-demo.web.app", "https://airs-demo.firebaseapp.com"],
+  "request_origin": null,
+  "origin_allowed": false
+}
+```
+
+**From browser console** (includes Origin header):
+```javascript
+fetch('https://your-api.run.app/health/cors')
+  .then(r => r.json())
+  .then(console.log);
+
+// Response includes your origin:
+{
+  "env": "prod",
+  "localhost_allowed": false,
+  "allowed_origins": ["https://airs-demo.web.app"],
+  "request_origin": "https://airs-demo.web.app",
+  "origin_allowed": true
+}
+```
+
+Use this to verify:
+- Your frontend origin is in the allowed list
+- The environment is correct (prod vs local)
+- Localhost is enabled/disabled as expected
 
 ### Organizations
 - `POST /api/orgs/` - Create organization
