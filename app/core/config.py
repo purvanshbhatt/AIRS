@@ -86,8 +86,10 @@ class Settings(BaseSettings):
     #   - Maturity tier/level
     #   - Findings (severity, count, recommendations)
     AIRS_USE_LLM: bool = False
+    LLM_PROVIDER: str = "gemini"
     GEMINI_API_KEY: Optional[str] = None
-    LLM_MODEL: str = "gemini-3-pro-preview"
+    LLM_MODEL: str = "gemini-3.0-pro"
+    GEMINI_MODEL: str = "gemini-3.0-pro"  # Alias for backwards compatibility
     LLM_MAX_TOKENS: int = 1000
     LLM_TEMPERATURE: float = 0.7
 
@@ -102,12 +104,12 @@ class Settings(BaseSettings):
         errors = []
         
         if self.ENV == Environment.PROD:
-            # In production, CORS should not be wildcard
+            # In production, CORS wildcard is now blocked by cors.py
+            # Just log a warning here for visibility
             if self.CORS_ALLOW_ORIGINS == "*":
-                # Warning but not error - allow for initial setup
                 print(
-                    "WARNING: CORS_ALLOW_ORIGINS is set to '*' in production. "
-                    "Consider restricting to specific origins.",
+                    "ERROR: CORS_ALLOW_ORIGINS='*' is blocked in production. "
+                    "Set specific origins in CORS_ALLOW_ORIGINS.",
                     file=sys.stderr
                 )
             
@@ -156,16 +158,21 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        """Parse CORS origins string into a list. Supports comma or semicolon separator."""
-        if self.CORS_ALLOW_ORIGINS == "*":
-            return ["*"]
-        # Support both comma and semicolon as separators
-        origins_str = self.CORS_ALLOW_ORIGINS
-        if ";" in origins_str:
-            origins = origins_str.split(";")
-        else:
-            origins = origins_str.split(",")
-        return [origin.strip() for origin in origins if origin.strip()]
+        """
+        Get validated CORS origins list.
+        
+        Uses the cors module for validation:
+        - Validates scheme (http/https)
+        - Validates hostname format
+        - Rejects malformed origins with warnings
+        - Blocks wildcard '*' in production
+        """
+        from app.core.cors import get_allowed_origins
+        return get_allowed_origins(
+            env_var="CORS_ALLOW_ORIGINS",
+            default=self.CORS_ALLOW_ORIGINS,
+            is_production=self.is_prod
+        )
 
     @property
     def is_local(self) -> bool:

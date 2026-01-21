@@ -3,7 +3,7 @@ Organization model.
 """
 
 import uuid
-from sqlalchemy import Column, String, DateTime, Text
+from sqlalchemy import Column, String, DateTime, Text, Index
 from sqlalchemy.dialects.sqlite import CHAR
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -16,6 +16,7 @@ class Organization(Base):
     __tablename__ = "organizations"
     
     id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    owner_uid = Column(String(128), nullable=True, index=True)  # Firebase user UID for tenant isolation
     name = Column(String(255), nullable=False)
     industry = Column(String(100), nullable=True)
     size = Column(String(50), nullable=True)  # e.g., "1-50", "51-200", "201-1000", "1000+"
@@ -27,6 +28,7 @@ class Organization(Base):
     
     # Relationships
     assessments = relationship("Assessment", back_populates="organization", cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="organization", cascade="all, delete-orphan")
     
     def __repr__(self):
-        return f"<Organization(id={self.id}, name={self.name})>"
+        return f"<Organization(id={self.id}, name={self.name}, owner={self.owner_uid})>"

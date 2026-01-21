@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { getAssessmentSummary, downloadReport } from '../api'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { getAssessmentSummary, downloadReport, createReport, ApiRequestError } from '../api'
 import type { AssessmentSummary } from '../types'
 import {
   Card,
@@ -29,6 +29,11 @@ import {
   ChevronRight,
   Zap,
   Sparkles,
+  Lightbulb,
+  Bot,
+  ShieldX,
+  Home,
+  Save,
 } from 'lucide-react'
 
 // Map tier color to Tailwind classes
@@ -81,17 +86,33 @@ function getDomainScaleBg(score: number) {
 
 export default function Results() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [summary, setSummary] = useState<AssessmentSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
+  const [isAccessDenied, setIsAccessDenied] = useState(false)
   const [selectedBaseline, setSelectedBaseline] = useState<string>('Typical SMB')
 
   useEffect(() => {
     getAssessmentSummary(id!)
       .then(setSummary)
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        if (err instanceof ApiRequestError) {
+          // Check for 404 or 403 - these indicate access denied
+          if (err.status === 404 || err.status === 403) {
+            setIsAccessDenied(true);
+            setError("You don't have access to this assessment.");
+          } else {
+            setError(err.toDisplayMessage());
+          }
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to load assessment');
+        }
+      })
       .finally(() => setLoading(false))
   }, [id])
 
@@ -108,9 +129,30 @@ export default function Results() {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to download report')
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage())
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to download report')
+      }
     } finally {
       setDownloading(false)
+    }
+  }
+
+  const handleSaveReport = async () => {
+    setSaving(true)
+    try {
+      await createReport(id!, { report_type: 'full' })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage())
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to save report')
+      }
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -151,12 +193,51 @@ export default function Results() {
   }
 
   if (error) {
+    // Special UI for access denied (404/403)
+    if (isAccessDenied) {
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card className="max-w-md w-full">
+            <CardContent className="py-12 text-center">
+              <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShieldX className="h-8 w-8 text-danger-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Access Denied
+              </h2>
+              <p className="text-gray-600 mb-6">
+                You don't have access to this assessment. It may belong to another user or no longer exist.
+              </p>
+              <Button
+                onClick={() => navigate('/home')}
+                className="inline-flex items-center gap-2"
+              >
+                <Home className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )
+    }
+    
+    // Generic error UI
     return (
       <Card>
         <CardContent className="py-8">
-          <div className="flex items-center justify-center gap-3 text-danger-600">
-            <AlertCircle className="h-6 w-6" />
-            <p className="text-lg">{error}</p>
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="flex items-center gap-3 text-danger-600">
+              <AlertCircle className="h-6 w-6" />
+              <p className="text-lg">{error}</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/home')}
+              className="mt-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -218,6 +299,17 @@ export default function Results() {
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copied ? 'Copied!' : 'Copy Link'}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleSaveReport}
+            loading={saving}
+            className="gap-2"
+            disabled={saved}
+          >
+            {saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+            {saved ? 'Saved!' : saving ? 'Saving...' : 'Save Report'}
           </Button>
           <Button
             size="sm"
@@ -324,6 +416,81 @@ export default function Results() {
           <p className="text-gray-700 leading-relaxed">{executive_summary}</p>
         </CardContent>
       </Card>
+
+      {/* AI Insights - Only shown when LLM is enabled */}
+      {summary.llm_enabled && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-violet-500" />
+                AI Insights
+              </CardTitle>
+              {summary.llm_mode === 'demo' && (
+                <Badge variant="default" className="bg-violet-100 text-violet-700 border-violet-200">
+                  <Lightbulb className="h-3 w-3 mr-1" />
+                  AI-generated (demo)
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* AI Executive Summary */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-violet-400" />
+                Executive Summary
+              </h4>
+              {summary.executive_summary_text ? (
+                <p className="text-gray-600 leading-relaxed bg-violet-50/50 p-4 rounded-lg border border-violet-100">
+                  {summary.executive_summary_text}
+                </p>
+              ) : (
+                <p className="text-gray-400 italic text-sm bg-gray-50 p-4 rounded-lg">
+                  AI executive summary is not available for this assessment.
+                </p>
+              )}
+            </div>
+
+            {/* AI Roadmap Narrative */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-violet-400" />
+                Roadmap Narrative
+              </h4>
+              {summary.roadmap_narrative_text ? (
+                <p className="text-gray-600 leading-relaxed bg-violet-50/50 p-4 rounded-lg border border-violet-100 whitespace-pre-line">
+                  {summary.roadmap_narrative_text}
+                </p>
+              ) : (
+                <p className="text-gray-400 italic text-sm bg-gray-50 p-4 rounded-lg">
+                  AI roadmap narrative is not available for this assessment.
+                </p>
+              )}
+            </div>
+
+            {/* LLM info footer */}
+            {summary.llm_model && (
+              <div className="flex items-center gap-2 pt-3 border-t border-gray-100 text-xs text-gray-400">
+                <span>Powered by {summary.llm_provider || 'AI'}</span>
+                <span>•</span>
+                <span>{summary.llm_model}</span>
+              </div>
+            )}
+
+            {/* Demo mode disclaimer */}
+            {summary.llm_mode === 'demo' && (
+              <div className="flex items-start gap-2 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <p>
+                  This demo uses AI to generate narrative insights based on assessment results. 
+                  Scores and findings are computed deterministically and are not modified by AI.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Domain Heatmap */}
       <Card>

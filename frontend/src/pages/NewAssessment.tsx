@@ -6,6 +6,7 @@ import {
   createAssessment,
   submitAnswers,
   computeScore,
+  ApiRequestError,
 } from '../api';
 import type { Rubric, Domain } from '../types';
 import {
@@ -102,7 +103,13 @@ export default function NewAssessment() {
           }
         }
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        if (err instanceof ApiRequestError) {
+          setError(err.toDisplayMessage());
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to load data');
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -213,7 +220,11 @@ export default function NewAssessment() {
 
       navigate(`/results/${assessment.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit assessment');
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage());
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to submit assessment');
+      }
       setSubmitting(false);
     }
   };

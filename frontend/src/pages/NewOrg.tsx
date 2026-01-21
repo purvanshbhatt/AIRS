@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createOrganization } from '../api';
+import { createOrganization, ApiRequestError } from '../api';
 import { 
   Card, 
   CardHeader, 
@@ -53,7 +53,11 @@ export default function NewOrg() {
       const org = await createOrganization({ name, industry, size });
       navigate('/assessment/new', { state: { organizationId: org.id, organizationName: org.name } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create organization');
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage());
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to create organization');
+      }
     } finally {
       setLoading(false);
     }

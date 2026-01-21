@@ -1,10 +1,12 @@
 """
 Organization API routes.
 
-All endpoints in this router require authentication when AUTH_REQUIRED=true.
+All endpoints enforce tenant isolation using Firebase user UID.
+Users can only access their own organizations.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import logging
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.db.database import get_db
@@ -19,6 +21,12 @@ from app.schemas.organization import (
 from app.services.organization import OrganizationService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+
+def get_org_service(db: Session, user: User) -> OrganizationService:
+    """Get organization service with tenant isolation."""
+    return OrganizationService(db, owner_uid=user.uid if user else None)
 
 
 @router.post(
@@ -26,22 +34,36 @@ router = APIRouter()
     response_model=OrganizationResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create Organization",
-    description="Create a new organization to associate with assessments.",
+    description="Create a new organization owned by the authenticated user.",
     responses={
         201: {"description": "Organization created successfully"},
-        401: {"description": "Authentication required (when AUTH_REQUIRED=true)"}
+        401: {"description": "Authentication required"}
     }
 )
 async def create_organization(
+    request: Request,
     data: OrganizationCreate,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Create a new organization."""
-    service = OrganizationService(db)
-    org = service.create(data)
-    event_logger.organization_created(organization_id=org.id, name=org.name)
-    return org
+    """Create a new organization owned by the current user."""
+    request_id = getattr(request.state, 'request_id', 'unknown')
+    logger.info(
+        f"[{request_id}] POST /api/orgs - Creating organization: name={data.name}, "
+        f"user={user.uid}"
+    )
+    
+    try:
+        service = get_org_service(db, user)
+        org = service.create(data)
+        event_logger.organization_created(organization_id=org.id, name=org.name)
+        logger.info(f"[{request_id}] POST /api/orgs -> 201 Created: org_id={org.id}")
+        return org
+    except Exception as e:
+        logger.error(
+            f"[{request_id}] POST /api/orgs -> 500 Error: {type(e).__name__}: {str(e)}"
+        )
+        raise
 
 
 @router.get("", response_model=List[OrganizationResponse])
@@ -51,8 +73,8 @@ async def list_organizations(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """List all organizations."""
-    service = OrganizationService(db)
+    """List organizations owned by the current user."""
+    service = get_org_service(db, user)
     return service.get_all(skip=skip, limit=limit)
 
 
@@ -62,8 +84,8 @@ async def get_organization(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Get organization by ID with assessment count."""
-    service = OrganizationService(db)
+    """Get organization by ID (must be owned by current user)."""
+    service = get_org_service(db, user)
     result = service.get_with_assessment_count(org_id)
     if not result:
         raise HTTPException(
@@ -80,8 +102,8 @@ async def update_organization(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Update an organization."""
-    service = OrganizationService(db)
+    """Update an organization (must be owned by current user)."""
+    service = get_org_service(db, user)
     org = service.update(org_id, data)
     if not org:
         raise HTTPException(
@@ -97,8 +119,8 @@ async def delete_organization(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Delete an organization."""
-    service = OrganizationService(db)
+    """Delete an organization (must be owned by current user)."""
+    service = get_org_service(db, user)
     if not service.delete(org_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

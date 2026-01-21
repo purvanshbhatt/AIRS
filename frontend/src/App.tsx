@@ -1,67 +1,116 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { DashboardLayout } from './components/layout';
 import { ToastProvider } from './components/ui';
 import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
+import { setUnauthorizedHandler } from './api';
 
 // Pages
 import Landing from './pages/Landing';
-import Home from './pages/Home';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Organizations from './pages/Organizations';
+import Assessments from './pages/Assessments';
+import Reports from './pages/Reports';
 import NewOrg from './pages/NewOrg';
 import NewAssessment from './pages/NewAssessment';
 import Results from './pages/Results';
+import Settings from './pages/Settings';
 
-// Dashboard wrapper component
+// API Configuration Warning Banner (dev only when not configured)
+function ApiConfigBanner() {
+  if (isApiConfigured) return null;
+  
+  return (
+    <div className="bg-amber-500 text-white px-4 py-2 text-center text-sm font-medium">
+      ⚠️ API base URL not configured. Set VITE_API_BASE_URL in your environment.
+      <span className="ml-2 opacity-75">Currently using: {apiBaseUrl}</span>
+    </div>
+  );
+}
+
+// Dashboard wrapper component (protected)
 function DashboardRoutes() {
   return (
-    <DashboardLayout>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/organizations" element={<Home />} />
-        <Route path="/org/new" element={<NewOrg />} />
-        <Route path="/assessments" element={<Home />} />
-        <Route path="/assessment/new" element={<NewAssessment />} />
-        <Route path="/results/:id" element={<Results />} />
-        <Route path="/reports" element={<Home />} />
-        <Route path="/settings" element={<Home />} />
-      </Routes>
-    </DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/organizations" element={<Organizations />} />
+          <Route path="/org/new" element={<NewOrg />} />
+          <Route path="/assessments" element={<Assessments />} />
+          <Route path="/assessment/new" element={<NewAssessment />} />
+          <Route path="/results/:id" element={<Results />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
+}
+
+// Component to set up 401 redirect handler
+function AuthRedirectHandler() {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Register the 401 handler with the API client
+    setUnauthorizedHandler(() => {
+      if (isDevelopment) {
+        console.log('[App] Handling 401 - navigating to /login');
+      }
+      navigate('/login', { replace: true });
+    });
+  }, [navigate]);
+  
+  return null;
 }
 
 export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
+        <AuthRedirectHandler />
+        <ApiConfigBanner />
         <Routes>
-        {/* Public landing page */}
+        {/* Public routes */}
         <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
 
-        {/* Dashboard routes */}
+        {/* Protected dashboard routes */}
         <Route path="/dashboard/*" element={<DashboardRoutes />} />
 
-        {/* Assessment flow (within dashboard) */}
+        {/* Protected assessment flow routes */}
         <Route
           path="/assessment/new"
           element={
-            <DashboardLayout>
-              <NewAssessment />
-            </DashboardLayout>
+            <ProtectedRoute>
+              <DashboardLayout>
+                <NewAssessment />
+              </DashboardLayout>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/org/new"
           element={
-            <DashboardLayout>
-              <NewOrg />
-            </DashboardLayout>
+            <ProtectedRoute>
+              <DashboardLayout>
+                <NewOrg />
+              </DashboardLayout>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/results/:id"
           element={
-            <DashboardLayout>
-              <Results />
-            </DashboardLayout>
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Results />
+              </DashboardLayout>
+            </ProtectedRoute>
           }
         />
       </Routes>
