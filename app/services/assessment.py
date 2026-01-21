@@ -1,5 +1,7 @@
 """
 Assessment service - business logic for assessments, answers, scoring, and findings.
+
+All operations are scoped by owner_uid for tenant isolation.
 """
 
 import json
@@ -36,22 +38,46 @@ def load_baseline_profiles() -> Dict[str, Dict[str, float]]:
 
 
 class AssessmentService:
-    """Service for assessment operations."""
+    """Service for assessment operations with tenant isolation."""
     
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, owner_uid: Optional[str] = None):
+        """
+        Initialize service.
+        
+        Args:
+            db: Database session
+            owner_uid: Firebase user UID for tenant isolation. If None, operations
+                      will not filter by owner (for backwards compatibility during
+                      migration period).
+        """
         self.db = db
+        self.owner_uid = owner_uid
+    
+    def _base_query(self):
+        """Get base query filtered by owner_uid if set."""
+        query = self.db.query(Assessment)
+        if self.owner_uid:
+            query = query.filter(Assessment.owner_uid == self.owner_uid)
+        return query
+    
+    def _verify_org_ownership(self, org_id: str) -> Organization:
+        """Verify the organization exists and belongs to current user."""
+        query = self.db.query(Organization).filter(Organization.id == org_id)
+        if self.owner_uid:
+            query = query.filter(Organization.owner_uid == self.owner_uid)
+        org = query.first()
+        if not org:
+            raise ValueError(f"Organization not found: {org_id}")
+        return org
     
     def create(self, data: AssessmentCreate) -> Assessment:
-        """Create a new assessment."""
-        # Verify organization exists
-        org = self.db.query(Organization).filter(
-            Organization.id == data.organization_id
-        ).first()
-        if not org:
-            raise ValueError(f"Organization not found: {data.organization_id}")
+        """Create a new assessment owned by the current user."""
+        # Verify organization exists AND belongs to current user
+        org = self._verify_org_ownership(data.organization_id)
         
         assessment = Assessment(
             organization_id=data.organization_id,
+            owner_uid=self.owner_uid,  # Set owner for tenant isolation
             title=data.title or f"Assessment for {org.name}",
             version=data.version or "1.0.0",
             status=AssessmentStatus.DRAFT
@@ -62,19 +88,19 @@ class AssessmentService:
         return assessment
     
     def get(self, assessment_id: str) -> Optional[Assessment]:
-        """Get assessment by ID."""
-        return self.db.query(Assessment).filter(Assessment.id == assessment_id).first()
+        """Get assessment by ID (scoped to current user)."""
+        return self._base_query().filter(Assessment.id == assessment_id).first()
     
     def get_all(self, organization_id: Optional[str] = None, 
                 skip: int = 0, limit: int = 100) -> List[Assessment]:
-        """Get all assessments, optionally filtered by organization."""
-        query = self.db.query(Assessment)
+        """Get all assessments (scoped to current user), optionally filtered by organization."""
+        query = self._base_query()
         if organization_id:
             query = query.filter(Assessment.organization_id == organization_id)
         return query.order_by(Assessment.created_at.desc()).offset(skip).limit(limit).all()
     
     def update(self, assessment_id: str, data: AssessmentUpdate) -> Optional[Assessment]:
-        """Update an assessment."""
+        """Update an assessment (scoped to current user)."""
         assessment = self.get(assessment_id)
         if not assessment:
             return None
@@ -88,7 +114,7 @@ class AssessmentService:
         return assessment
     
     def delete(self, assessment_id: str) -> bool:
-        """Delete an assessment."""
+        """Delete an assessment (scoped to current user)."""
         assessment = self.get(assessment_id)
         if not assessment:
             return False
@@ -100,7 +126,7 @@ class AssessmentService:
     # ----- Answer Management -----
     
     def submit_answers(self, assessment_id: str, answers: List[AnswerInput]) -> List[Answer]:
-        """Submit answers for an assessment (upsert)."""
+        """Submit answers for an assessment (scoped to current user)."""
         assessment = self.get(assessment_id)
         if not assessment:
             raise ValueError(f"Assessment not found: {assessment_id}")

@@ -26,6 +26,7 @@ class Assessment(Base):
     
     id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     organization_id = Column(CHAR(36), ForeignKey("organizations.id"), nullable=False)
+    owner_uid = Column(String(128), nullable=True, index=True)  # Firebase user UID for tenant isolation
     
     # Metadata
     version = Column(String(20), default="1.0.0")
@@ -47,6 +48,7 @@ class Assessment(Base):
     answers = relationship("Answer", back_populates="assessment", cascade="all, delete-orphan")
     scores = relationship("Score", back_populates="assessment", cascade="all, delete-orphan")
     findings = relationship("Finding", back_populates="assessment", cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="assessment", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Assessment(id={self.id}, org={self.organization_id}, score={self.overall_score})>"

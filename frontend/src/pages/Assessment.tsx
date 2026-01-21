@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRubric, getAssessment, submitAnswers, computeScore } from '../api';
+import { getRubric, getAssessment, submitAnswers, computeScore, ApiRequestError } from '../api';
 import type { Rubric, Question, AssessmentDetail } from '../types';
 import { Card, CardContent, Button, Badge } from '../components/ui';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
@@ -47,7 +47,13 @@ export default function Assessment() {
           setActiveDomain(domainIds[0]);
         }
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        if (err instanceof ApiRequestError) {
+          setError(err.toDisplayMessage());
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to load assessment');
+        }
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -65,7 +71,11 @@ export default function Assessment() {
       await computeScore(id!);
       navigate('/results/' + id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit assessment');
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage());
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to submit assessment');
+      }
     } finally {
       setSubmitting(false);
     }

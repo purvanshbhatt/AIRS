@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.core.config import settings
 from app.core.logging import setup_logging, event_logger
+from app.core.cors import get_allowed_origins, log_cors_config
 from app.core.middleware import (
     RequestIdMiddleware,
     global_exception_handler,
@@ -71,13 +72,26 @@ app = FastAPI(
 # Add request ID middleware (must be first to capture all requests)
 app.add_middleware(RequestIdMiddleware)
 
-# Configure CORS using parsed origins from config
+# Get validated CORS origins - single source of truth
+# This validates scheme, hostname, and blocks wildcards in production
+cors_origins = get_allowed_origins(
+    env_var="CORS_ALLOW_ORIGINS",
+    default="http://localhost:5173",
+    is_production=settings.is_prod
+)
+
+# Log CORS configuration at startup for operator visibility
+log_cors_config(cors_origins, is_production=settings.is_prod)
+
+# Configure CORS middleware
+# Explicitly allow Authorization header for Firebase token auth
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+    expose_headers=["X-Request-ID"],
 )
 
 # Register exception handlers for consistent error format

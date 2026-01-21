@@ -1,7 +1,8 @@
 """
 Assessment API routes.
 
-All endpoints in this router require authentication when AUTH_REQUIRED=true.
+All endpoints enforce tenant isolation using Firebase user UID.
+Users can only access their own assessments and related data.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,10 +27,22 @@ from app.schemas.assessment import (
     FindingResponse,
     ScoreResponse,
 )
+from app.schemas.report import ReportCreate, ReportResponse
 from app.services.assessment import AssessmentService
+from app.services.report import ReportService
 from app.reports.pdf import ProfessionalPDFGenerator
 
 router = APIRouter()
+
+
+def get_assessment_service(db: Session, user: User) -> AssessmentService:
+    """Get assessment service with tenant isolation."""
+    return AssessmentService(db, owner_uid=user.uid if user else None)
+
+
+def get_report_service(db: Session, user: User) -> ReportService:
+    """Get report service with tenant isolation."""
+    return ReportService(db, owner_uid=user.uid)
 
 
 # ----- Assessment CRUD -----
@@ -39,11 +52,11 @@ router = APIRouter()
     response_model=AssessmentResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create Assessment",
-    description="Create a new AI readiness assessment for an organization. The assessment starts in DRAFT status.",
+    description="Create a new AI readiness assessment for an organization owned by the authenticated user.",
     responses={
         201: {"description": "Assessment created successfully"},
-        400: {"description": "Invalid request (e.g., organization not found)"},
-        401: {"description": "Authentication required (when AUTH_REQUIRED=true)"}
+        400: {"description": "Invalid request (e.g., organization not found or not owned by user)"},
+        401: {"description": "Authentication required"}
     }
 )
 async def create_assessment(
@@ -51,8 +64,8 @@ async def create_assessment(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Create a new assessment for an organization."""
-    service = AssessmentService(db)
+    """Create a new assessment for an organization owned by the current user."""
+    service = get_assessment_service(db, user)
     try:
         assessment = service.create(data)
         event_logger.assessment_created(
@@ -76,8 +89,8 @@ async def list_assessments(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """List all assessments, optionally filtered by organization."""
-    service = AssessmentService(db)
+    """List assessments owned by the current user, optionally filtered by organization."""
+    service = get_assessment_service(db, user)
     assessments = service.get_all(organization_id=organization_id, skip=skip, limit=limit)
     
     # Add organization name to summaries
@@ -104,8 +117,8 @@ async def get_assessment(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Get assessment detail with all related data."""
-    service = AssessmentService(db)
+    """Get assessment detail (must be owned by current user)."""
+    service = get_assessment_service(db, user)
     result = service.get_detail(assessment_id)
     if not result:
         raise HTTPException(
@@ -119,22 +132,12 @@ async def get_assessment(
     "/{assessment_id}/summary",
     response_model=AssessmentSummaryResponse,
     summary="Get Assessment Summary",
-    description="""Get comprehensive assessment summary for executive dashboard. Includes scores, 
-findings, roadmap, baseline comparisons, and optional AI-generated narratives.
-
-Returns:
-- api_version: API version for forward compatibility
-- Assessment metadata (title, org, created_at)
-- Overall score and readiness tier (Critical/Needs Work/Good/Strong)
-- Domain scores array (with 0-5 scale)
-- Findings array (severity, title, evidence, recommendation)
-- 30/60/90 day roadmap as structured lists
-- Baseline profiles for comparison
-- Optional LLM-generated executive summary and roadmap narrative""",
+    description="""Get comprehensive assessment summary for executive dashboard (must be owned by current user). 
+Includes scores, findings, roadmap, baseline comparisons, and optional AI-generated narratives.""",
     responses={
         200: {"description": "Complete assessment summary with all metrics and narratives"},
         400: {"description": "Assessment has not been scored yet"},
-        401: {"description": "Authentication required (when AUTH_REQUIRED=true)"},
+        401: {"description": "Authentication required"},
         404: {"description": "Assessment not found"}
     }
 )
@@ -143,8 +146,8 @@ async def get_assessment_summary(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Get comprehensive assessment summary for executive dashboard."""
-    service = AssessmentService(db)
+    """Get comprehensive assessment summary for executive dashboard (owned by current user)."""
+    service = get_assessment_service(db, user)
     result = service.get_summary(assessment_id)
     if not result:
         raise HTTPException(
@@ -175,8 +178,8 @@ async def update_assessment(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Update an assessment."""
-    service = AssessmentService(db)
+    """Update an assessment (must be owned by current user)."""
+    service = get_assessment_service(db, user)
     assessment = service.update(assessment_id, data)
     if not assessment:
         raise HTTPException(
@@ -192,8 +195,8 @@ async def delete_assessment(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Delete an assessment."""
-    service = AssessmentService(db)
+    """Delete an assessment (must be owned by current user)."""
+    service = get_assessment_service(db, user)
     if not service.delete(assessment_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -207,7 +210,7 @@ async def delete_assessment(
     "/{assessment_id}/answers",
     response_model=List[AnswerResponse],
     summary="Submit Answers",
-    description="Submit or update answers for an assessment. Uses upsert semantics - existing answers are updated, new ones are created.",
+    description="Submit or update answers for an assessment (must be owned by current user). Uses upsert semantics.",
     responses={
         200: {"description": "Answers submitted successfully"},
         404: {"description": "Assessment not found"}
@@ -219,8 +222,8 @@ async def submit_answers(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Submit answers for an assessment (upsert)."""
-    service = AssessmentService(db)
+    """Submit answers for an assessment owned by current user."""
+    service = get_assessment_service(db, user)
     try:
         answers = service.submit_answers(assessment_id, data.answers)
         event_logger.answers_submitted(
@@ -241,8 +244,8 @@ async def get_answers(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Get all answers for an assessment."""
-    service = AssessmentService(db)
+    """Get all answers for an assessment (must be owned by current user)."""
+    service = get_assessment_service(db, user)
     assessment = service.get(assessment_id)
     if not assessment:
         raise HTTPException(
@@ -258,10 +261,10 @@ async def get_answers(
     "/{assessment_id}/score",
     response_model=ComputeScoreResponse,
     summary="Compute Score",
-    description="Calculate and persist scores and findings for an assessment. Analyzes all submitted answers against the scoring rubric.",
+    description="Calculate and persist scores and findings for an assessment (must be owned by current user).",
     responses={
         200: {"description": "Scores computed and persisted successfully"},
-        401: {"description": "Authentication required (when AUTH_REQUIRED=true)"},
+        401: {"description": "Authentication required"},
         404: {"description": "Assessment not found"}
     }
 )
@@ -270,8 +273,8 @@ async def compute_score(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Compute and persist scores and findings for an assessment."""
-    service = AssessmentService(db)
+    """Compute and persist scores and findings for an assessment owned by current user."""
+    service = get_assessment_service(db, user)
     try:
         result = service.compute_score(assessment_id)
         
@@ -320,8 +323,8 @@ async def get_scores(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Get all domain scores for an assessment."""
-    service = AssessmentService(db)
+    """Get all domain scores for an assessment (must be owned by current user)."""
+    service = get_assessment_service(db, user)
     assessment = service.get(assessment_id)
     if not assessment:
         raise HTTPException(
@@ -339,8 +342,8 @@ async def get_findings(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Get all findings for an assessment."""
-    service = AssessmentService(db)
+    """Get all findings for an assessment (must be owned by current user)."""
+    service = get_assessment_service(db, user)
     assessment = service.get(assessment_id)
     if not assessment:
         raise HTTPException(
@@ -357,8 +360,8 @@ async def add_finding(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Add a manual finding to an assessment."""
-    service = AssessmentService(db)
+    """Add a manual finding to an assessment (must be owned by current user)."""
+    service = get_assessment_service(db, user)
     try:
         finding = service.add_finding(assessment_id, data)
         return finding
@@ -371,14 +374,80 @@ async def add_finding(
 
 # ----- Reports -----
 
+@router.post(
+    "/{assessment_id}/reports",
+    response_model=ReportResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Generate and Save Report",
+    description="Generate a new report for the assessment and save it persistently. The report captures a snapshot of the assessment data at generation time.",
+    responses={
+        201: {"description": "Report created successfully"},
+        400: {"description": "Assessment has not been scored yet"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Assessment not found"}
+    }
+)
+async def create_report(
+    assessment_id: str,
+    data: ReportCreate = ReportCreate(),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """Generate and save a report for an assessment owned by current user."""
+    assessment_service = get_assessment_service(db, user)
+    assessment_detail = assessment_service.get_detail(assessment_id)
+    
+    if not assessment_detail:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Assessment not found: {assessment_id}"
+        )
+    
+    # Check if assessment has been scored
+    if assessment_detail.get("overall_score") is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Assessment has not been scored yet. Call POST /assessments/{id}/score first."
+        )
+    
+    # Create persistent report
+    report_service = get_report_service(db, user)
+    try:
+        report = report_service.create(assessment_id, data)
+        
+        # Log report creation
+        event_logger.report_generated(assessment_id=assessment_id, format="pdf")
+        
+        return {
+            "id": report.id,
+            "owner_uid": report.owner_uid,
+            "organization_id": report.organization_id,
+            "organization_name": report.organization.name if report.organization else None,
+            "assessment_id": report.assessment_id,
+            "assessment_title": report.assessment.title if report.assessment else None,
+            "report_type": report.report_type,
+            "title": report.title,
+            "overall_score": report.overall_score,
+            "maturity_level": report.maturity_level,
+            "maturity_name": report.maturity_name,
+            "findings_count": report.findings_count,
+            "created_at": report.created_at,
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
 @router.get(
     "/{assessment_id}/report",
-    summary="Generate PDF Report",
-    description="Generate and download a professional PDF report for the assessment. Includes executive summary, domain scores, findings, and remediation roadmap.",
+    summary="Generate PDF Report (Legacy)",
+    description="Generate and download a professional PDF report for the assessment (must be owned by current user). Consider using POST /assessments/{id}/reports to create a persistent report.",
     responses={
         200: {"description": "PDF report file", "content": {"application/pdf": {}}},
         400: {"description": "Assessment has not been scored yet"},
-        401: {"description": "Authentication required (when AUTH_REQUIRED=true)"},
+        401: {"description": "Authentication required"},
         404: {"description": "Assessment not found"}
     }
 )
@@ -387,8 +456,8 @@ async def generate_report(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Generate PDF report for an assessment."""
-    service = AssessmentService(db)
+    """Generate PDF report for an assessment owned by current user."""
+    service = get_assessment_service(db, user)
     result = service.get_detail(assessment_id)
     
     if not result:
