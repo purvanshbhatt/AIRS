@@ -413,6 +413,11 @@ class AssessmentService:
         # Build 30/60/90 day roadmap
         roadmap = self._build_roadmap(sorted_findings)
         
+        # Generate framework mapping, analytics, and detailed roadmap
+        framework_mapping = self._build_framework_mapping(sorted_findings)
+        analytics = self._build_analytics(sorted_findings)
+        detailed_roadmap = self._build_detailed_roadmap(sorted_findings)
+        
         # Generate executive summary
         executive_summary = self._generate_executive_summary(
             tier=tier,
@@ -457,6 +462,9 @@ class AssessmentService:
             "findings_count": len(findings),
             "critical_high_count": critical_high_count,
             "roadmap": roadmap,
+            "detailed_roadmap": detailed_roadmap,
+            "framework_mapping": framework_mapping,
+            "analytics": analytics,
             "executive_summary": executive_summary,
             "executive_summary_text": narratives.get("executive_summary_text"),
             "roadmap_narrative_text": narratives.get("roadmap_narrative_text"),
@@ -552,6 +560,110 @@ class AssessmentService:
         
         return roadmap
     
+    def _build_framework_mapping(self, findings: List[Finding]) -> Dict[str, Any]:
+        """Build framework mapping data (MITRE ATT&CK, CIS Controls, OWASP)."""
+        from app.core.frameworks import (
+            get_all_framework_refs,
+            get_technique_coverage,
+            get_cis_coverage_summary,
+            MITRE_TECHNIQUES,
+            CIS_CONTROLS,
+        )
+        
+        mapped_findings = []
+        for f in findings:
+            refs = get_all_framework_refs(f.question_id) if f.question_id else {}
+            
+            mapped_findings.append({
+                "finding_id": f.id,
+                "title": f.title,
+                "severity": f.severity.value,
+                "domain": f.domain_name,
+                "mitre_refs": refs.get("mitre", []),
+                "cis_refs": refs.get("cis", []),
+                "owasp_refs": refs.get("owasp", []),
+                "impact_score": 5,  # Default impact score
+            })
+        
+        # Build coverage stats based on findings (gaps indicate missing controls)
+        question_ids = [f.question_id for f in findings if f.question_id]
+        
+        # Simple coverage calculation
+        # In a full implementation, we'd track which controls are implemented
+        mitre_coverage = get_technique_coverage(question_ids) if question_ids else {}
+        cis_coverage = get_cis_coverage_summary(question_ids) if question_ids else {}
+        
+        return {
+            "findings": mapped_findings,
+            "coverage": {
+                "mitre_techniques_enabled": mitre_coverage.get("enabled", 0),
+                "mitre_techniques_total": len(MITRE_TECHNIQUES),
+                "mitre_coverage_pct": mitre_coverage.get("coverage_pct", 0.0),
+                "cis_controls_met": cis_coverage.get("met", 0),
+                "cis_controls_total": len(CIS_CONTROLS),
+                "cis_coverage_pct": cis_coverage.get("coverage_pct", 0.0),
+                "ig1_coverage_pct": cis_coverage.get("ig1_pct", 0.0),
+                "ig2_coverage_pct": cis_coverage.get("ig2_pct", 0.0),
+                "ig3_coverage_pct": cis_coverage.get("ig3_pct", 0.0),
+            }
+        }
+    
+    def _build_analytics(self, findings: List[Finding]) -> Dict[str, Any]:
+        """Build derived analytics (attack paths, gaps)."""
+        from app.services.analytics import get_full_analytics
+        from app.services.findings import Finding as FindingData, Severity as FindingSeverity
+        
+        # Convert DB findings to service findings format
+        finding_data = []
+        for f in findings:
+            # Map DB Severity to service Severity
+            severity_map = {
+                "critical": FindingSeverity.CRITICAL,
+                "high": FindingSeverity.HIGH,
+                "medium": FindingSeverity.MEDIUM,
+                "low": FindingSeverity.LOW,
+                "info": FindingSeverity.INFO,
+            }
+            
+            finding_data.append(FindingData(
+                rule_id=f.question_id or f.id,
+                title=f.title,
+                severity=severity_map.get(f.severity.value.lower(), FindingSeverity.MEDIUM),
+                domain_id=f.domain_id,
+                domain_name=f.domain_name,                evidence=f.evidence or "",                recommendation=f.recommendation,
+            ))
+        
+        return get_full_analytics(finding_data)
+    
+    def _build_detailed_roadmap(self, findings: List[Finding]) -> Dict[str, Any]:
+        """Build detailed 30/60/90+ day roadmap with milestones."""
+        from app.services.roadmap import generate_roadmap
+        from app.services.findings import Finding as FindingData, Severity as FindingSeverity
+        
+        # Convert DB findings to service findings format
+        finding_data = []
+        for f in findings:
+            # Map DB Severity to service Severity
+            severity_map = {
+                "critical": FindingSeverity.CRITICAL,
+                "high": FindingSeverity.HIGH,
+                "medium": FindingSeverity.MEDIUM,
+                "low": FindingSeverity.LOW,
+                "info": FindingSeverity.INFO,
+            }
+            
+            finding_data.append(FindingData(
+                rule_id=f.question_id or f.id,
+                title=f.title,
+                severity=severity_map.get(f.severity.value.lower(), FindingSeverity.MEDIUM),
+                domain_id=f.domain_id,
+                domain_name=f.domain_name,
+                evidence=f.evidence or "",
+                recommendation=f.recommendation,
+            ))
+        
+        return generate_roadmap(finding_data)
+
     def _generate_executive_summary(
         self, 
         tier: Dict[str, Any], 
