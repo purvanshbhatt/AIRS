@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { checkHealth, getApiBaseUrl, ApiRequestError } from '../api';
+import { checkHealth, getApiBaseUrl, getApiCallHistory, subscribeToApiCallHistory, ApiRequestError } from '../api';
+import type { ApiCallRecord } from '../api';
 import { clearAllLocalData, getLocalDataSummary } from '../lib/userData';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -10,7 +11,7 @@ import {
   CardContent,
   Button,
 } from '../components/ui';
-import { Settings as SettingsIcon, Server, CheckCircle, XCircle, RefreshCw, Trash2, Database, User, Mail, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Server, CheckCircle, XCircle, RefreshCw, Trash2, Database, User, Mail, Shield, Activity, Clock } from 'lucide-react';
 
 interface HealthStatus {
   status: 'checking' | 'ok' | 'error';
@@ -22,6 +23,7 @@ export default function Settings() {
   const [health, setHealth] = useState<HealthStatus>({ status: 'checking' });
   const [localDataSummary, setLocalDataSummary] = useState<{ key: string; size: number }[]>([]);
   const [clearingData, setClearingData] = useState(false);
+  const [apiHistory, setApiHistory] = useState<ApiCallRecord[]>([]);
   const apiBaseUrl = getApiBaseUrl();
   const { user } = useAuth();
 
@@ -57,6 +59,13 @@ export default function Settings() {
   useEffect(() => {
     checkApiHealth();
     refreshLocalDataSummary();
+    
+    // Initialize API history
+    setApiHistory(getApiCallHistory());
+    
+    // Subscribe to updates
+    const unsubscribe = subscribeToApiCallHistory(setApiHistory);
+    return unsubscribe;
   }, []);
 
   return (
@@ -185,6 +194,74 @@ export default function Settings() {
             <p className="text-xs text-gray-400">
               Last checked: {health.lastChecked.toLocaleTimeString()}
             </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* API Call History Debug Panel */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-gray-500" />
+            <CardTitle className="text-lg">API Call History</CardTitle>
+          </div>
+          <CardDescription>Last 10 API requests for debugging</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {apiHistory.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">No API calls recorded yet</p>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {apiHistory.map((call) => (
+                <div
+                  key={call.id}
+                  className={`p-3 rounded-lg border text-sm ${
+                    call.status === 'error' || (typeof call.status === 'number' && call.status >= 400)
+                      ? 'bg-red-50 border-red-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`font-mono font-semibold ${
+                        call.method === 'GET' ? 'text-blue-600' :
+                        call.method === 'POST' ? 'text-green-600' :
+                        call.method === 'DELETE' ? 'text-red-600' :
+                        'text-gray-600'
+                      }`}>
+                        {call.method}
+                      </span>
+                      <code className="text-gray-700 truncate max-w-[200px]" title={call.endpoint}>
+                        {call.endpoint}
+                      </code>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        call.status === 'error' ? 'bg-red-200 text-red-800' :
+                        call.status >= 400 ? 'bg-red-200 text-red-800' :
+                        call.status >= 200 && call.status < 300 ? 'bg-green-200 text-green-800' :
+                        'bg-gray-200 text-gray-800'
+                      }`}>
+                        {call.status}
+                      </span>
+                      <span className="text-gray-400 text-xs">{call.duration}ms</span>
+                    </div>
+                  </div>
+                  {call.errorMessage && (
+                    <p className="text-red-700 text-xs mt-1 break-words">{call.errorMessage}</p>
+                  )}
+                  {call.requestId && (
+                    <p className="text-gray-500 text-xs mt-1">
+                      Request ID: <code className="bg-gray-200 px-1 rounded">{call.requestId}</code>
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
+                    <Clock className="h-3 w-3" />
+                    {call.timestamp.toLocaleTimeString()}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

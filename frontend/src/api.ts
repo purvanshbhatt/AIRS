@@ -56,6 +56,48 @@ export class ApiRequestError extends Error {
 }
 
 // =============================================================================
+// API CALL HISTORY (for debug panel)
+// =============================================================================
+
+export interface ApiCallRecord {
+  id: string;
+  method: string;
+  endpoint: string;
+  status: number | 'error';
+  statusText: string;
+  duration: number;
+  timestamp: Date;
+  requestId?: string;
+  errorMessage?: string;
+}
+
+const API_CALL_HISTORY_MAX = 10;
+let apiCallHistory: ApiCallRecord[] = [];
+let historyListeners: ((history: ApiCallRecord[]) => void)[] = [];
+
+/**
+ * Get the API call history (last 10 calls).
+ */
+export function getApiCallHistory(): ApiCallRecord[] {
+  return [...apiCallHistory];
+}
+
+/**
+ * Subscribe to API call history updates.
+ */
+export function subscribeToApiCallHistory(listener: (history: ApiCallRecord[]) => void): () => void {
+  historyListeners.push(listener);
+  return () => {
+    historyListeners = historyListeners.filter((l) => l !== listener);
+  };
+}
+
+function recordApiCall(record: ApiCallRecord) {
+  apiCallHistory = [record, ...apiCallHistory].slice(0, API_CALL_HISTORY_MAX);
+  historyListeners.forEach((listener) => listener(apiCallHistory));
+}
+
+// =============================================================================
 // TOKEN PROVIDER
 // =============================================================================
 
@@ -116,6 +158,8 @@ async function request<T>(
   const url = `${API_BASE_URL}${endpoint}`;
   const authHeaders = await getAuthHeaders();
   const method = options.method || 'GET';
+  const startTime = Date.now();
+  const callId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   
   // Log request
   if (isDevelopment) {
@@ -135,6 +179,19 @@ async function request<T>(
   } catch (networkError) {
     // Network error (CORS, DNS, connection refused, etc.)
     console.error(`[API] Network error for ${method} ${url}:`, networkError);
+    
+    // Record failed call
+    recordApiCall({
+      id: callId,
+      method,
+      endpoint,
+      status: 'error',
+      statusText: 'Network Error',
+      duration: Date.now() - startTime,
+      timestamp: new Date(),
+      errorMessage: 'Unable to reach API server',
+    });
+    
     throw new ApiRequestError({
       message: `Unable to reach API server. Check your connection and CORS configuration.`,
       detail: `Network request to ${API_BASE_URL} failed.`,
@@ -148,6 +205,17 @@ async function request<T>(
 
   // Handle 401 - redirect to login
   if (response.status === 401) {
+    recordApiCall({
+      id: callId,
+      method,
+      endpoint,
+      status: 401,
+      statusText: 'Unauthorized',
+      duration: Date.now() - startTime,
+      timestamp: new Date(),
+      errorMessage: 'Authentication required',
+    });
+    
     handleUnauthorized();
     throw new ApiRequestError({
       message: 'Authentication required. Please sign in.',
@@ -209,6 +277,19 @@ async function request<T>(
       errorMessage = `Server error: ${errorMessage}`;
     }
     
+    // Record failed call
+    recordApiCall({
+      id: callId,
+      method,
+      endpoint,
+      status: response.status,
+      statusText: response.statusText || 'Error',
+      duration: Date.now() - startTime,
+      timestamp: new Date(),
+      requestId,
+      errorMessage,
+    });
+    
     throw new ApiRequestError({
       message: errorMessage,
       status: response.status,
@@ -216,6 +297,17 @@ async function request<T>(
       detail,
     });
   }
+
+  // Record successful call
+  recordApiCall({
+    id: callId,
+    method,
+    endpoint,
+    status: response.status,
+    statusText: response.statusText || 'OK',
+    duration: Date.now() - startTime,
+    timestamp: new Date(),
+  });
 
   return response.json();
 }
