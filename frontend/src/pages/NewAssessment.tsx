@@ -218,7 +218,7 @@ export default function NewAssessment() {
         message: 'Redirecting to results...',
       });
 
-      navigate(`/results/${assessment.id}`);
+      navigate(`/dashboard/results/${assessment.id}`);
     } catch (err) {
       if (err instanceof ApiRequestError) {
         setError(err.toDisplayMessage());

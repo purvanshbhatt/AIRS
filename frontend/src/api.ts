@@ -396,6 +396,10 @@ export const deleteReport = (reportId: string) =>
     method: 'DELETE',
   });
 
+// Get reports for a specific assessment
+export const getReportsForAssessment = (assessmentId: string) =>
+  request<import('./types').ReportListResponse>(`/api/reports?assessment_id=${assessmentId}`);
+
 // Health check (no auth required)
 export const checkHealth = async (): Promise<{ status: string }> => {
   const url = `${API_BASE_URL}/health`;
