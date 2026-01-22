@@ -6,7 +6,7 @@ All operations are scoped by owner_uid for tenant isolation.
 
 import json
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.models.assessment import Assessment, AssessmentStatus
@@ -23,6 +23,21 @@ from app.schemas.assessment import (
 from app.services.scoring import calculate_scores, get_recommendations
 from app.core.rubric import get_rubric, get_question
 from app.services.ai_narrative import generate_narrative
+
+
+def get_severity_value(severity: Union[Severity, str]) -> str:
+    """
+    Get severity value as a string, handling both Enum and string types.
+    
+    This handles the schema mismatch where:
+    - Model uses SQLEnum(Severity) 
+    - Migration uses String(20)
+    
+    SQLAlchemy may return either type depending on database backend.
+    """
+    if isinstance(severity, str):
+        return severity.lower()
+    return severity.value.lower() if hasattr(severity, 'value') else str(severity).lower()
 
 
 def load_baseline_profiles() -> Dict[str, Dict[str, float]]:
@@ -389,7 +404,7 @@ class AssessmentService:
         severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
         sorted_findings = sorted(
             assessment.findings,
-            key=lambda f: severity_order.get(f.severity.value.lower(), 4)
+            key=lambda f: severity_order.get(get_severity_value(f.severity), 4)
         )
         
         findings = []
@@ -397,7 +412,7 @@ class AssessmentService:
             findings.append({
                 "id": f.id,
                 "title": f.title,
-                "severity": f.severity.value,
+                "severity": get_severity_value(f.severity),
                 "domain": f.domain_name,
                 "evidence": f.evidence,
                 "recommendation": f.recommendation,
@@ -407,7 +422,7 @@ class AssessmentService:
         # Count critical + high
         critical_high_count = sum(
             1 for f in assessment.findings 
-            if f.severity.value.lower() in ("critical", "high")
+            if get_severity_value(f.severity) in ("critical", "high")
         )
         
         # Build 30/60/90 day roadmap
@@ -525,17 +540,17 @@ class AssessmentService:
         """Build 30/60/90 day roadmap from findings by severity."""
         roadmap = {"day30": [], "day60": [], "day90": []}
         
-        critical = [f for f in sorted_findings if f.severity.value.lower() == "critical"]
-        high = [f for f in sorted_findings if f.severity.value.lower() == "high"]
-        medium = [f for f in sorted_findings if f.severity.value.lower() == "medium"]
-        low = [f for f in sorted_findings if f.severity.value.lower() == "low"]
+        critical = [f for f in sorted_findings if get_severity_value(f.severity) == "critical"]
+        high = [f for f in sorted_findings if get_severity_value(f.severity) == "high"]
+        medium = [f for f in sorted_findings if get_severity_value(f.severity) == "medium"]
+        low = [f for f in sorted_findings if get_severity_value(f.severity) == "low"]
         
         # 30-day: Critical findings (up to 3)
         for f in critical[:3]:
             roadmap["day30"].append({
                 "title": f.title,
                 "action": f.recommendation or "Address immediately",
-                "severity": f.severity.value,
+                "severity": get_severity_value(f.severity),
                 "domain": f.domain_name
             })
         
@@ -544,7 +559,7 @@ class AssessmentService:
             roadmap["day60"].append({
                 "title": f.title,
                 "action": f.recommendation or "Remediate within 60 days",
-                "severity": f.severity.value,
+                "severity": get_severity_value(f.severity),
                 "domain": f.domain_name
             })
         
@@ -554,7 +569,7 @@ class AssessmentService:
             roadmap["day90"].append({
                 "title": f.title,
                 "action": f.recommendation or "Plan for remediation",
-                "severity": f.severity.value,
+                "severity": get_severity_value(f.severity),
                 "domain": f.domain_name
             })
         
@@ -577,7 +592,7 @@ class AssessmentService:
             mapped_findings.append({
                 "finding_id": f.id,
                 "title": f.title,
-                "severity": f.severity.value,
+                "severity": get_severity_value(f.severity),
                 "domain": f.domain_name,
                 "mitre_refs": refs.get("mitre", []),
                 "cis_refs": refs.get("cis", []),
@@ -628,7 +643,7 @@ class AssessmentService:
             finding_data.append(FindingData(
                 rule_id=f.question_id or f.id,
                 title=f.title,
-                severity=severity_map.get(f.severity.value.lower(), FindingSeverity.MEDIUM),
+                severity=severity_map.get(get_severity_value(f.severity), FindingSeverity.MEDIUM),
                 domain_id=f.domain_id,
                 domain_name=f.domain_name,                evidence=f.evidence or "",                recommendation=f.recommendation,
             ))
@@ -655,7 +670,7 @@ class AssessmentService:
             finding_data.append(FindingData(
                 rule_id=f.question_id or f.id,
                 title=f.title,
-                severity=severity_map.get(f.severity.value.lower(), FindingSeverity.MEDIUM),
+                severity=severity_map.get(get_severity_value(f.severity), FindingSeverity.MEDIUM),
                 domain_id=f.domain_id,
                 domain_name=f.domain_name,
                 evidence=f.evidence or "",

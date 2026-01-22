@@ -51,6 +51,9 @@ frontend/.env.*
 gcp/env.prod
 gcp/env.staging
 
+# Generated Reports (local storage mode)
+generated_reports/
+
 # Logs
 *.log
 

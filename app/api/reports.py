@@ -121,7 +121,8 @@ async def get_report(
 @router.get(
     "/{report_id}/download",
     summary="Download Report PDF",
-    description="Download the PDF file for a report (must be owned by current user).",
+    description="Download the PDF file for a report (must be owned by current user). "
+                "Returns stored PDF if available, otherwise regenerates on-the-fly.",
     responses={
         200: {"description": "PDF report file", "content": {"application/pdf": {}}},
         401: {"description": "Authentication required"},
@@ -143,7 +144,25 @@ async def download_report(
             detail=f"Report not found: {report_id}"
         )
     
-    # Get assessment detail for PDF generation
+    # Create filename
+    org_name = (result.get("organization_name") or "unknown").replace(" ", "_")
+    filename = f"AIRS_Report_{org_name}_{report_id[:8]}.pdf"
+    
+    # Try to get stored PDF first
+    pdf_content = service.get_pdf_content(report_id)
+    
+    if pdf_content:
+        # Use stored PDF
+        event_logger.report_generated(assessment_id=result["assessment_id"], format="pdf")
+        return StreamingResponse(
+            BytesIO(pdf_content),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    
+    # Fall back to on-the-fly generation
     assessment_service = AssessmentService(db, owner_uid=user.uid)
     assessment_detail = assessment_service.get_detail(result["assessment_id"])
     
@@ -159,10 +178,6 @@ async def download_report(
     
     # Log download
     event_logger.report_generated(assessment_id=result["assessment_id"], format="pdf")
-    
-    # Create filename
-    org_name = (result.get("organization_name") or "unknown").replace(" ", "_")
-    filename = f"AIRS_Report_{org_name}_{report_id[:8]}.pdf"
     
     return StreamingResponse(
         BytesIO(pdf_content),

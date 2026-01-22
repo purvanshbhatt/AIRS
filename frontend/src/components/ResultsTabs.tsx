@@ -1,0 +1,1211 @@
+/**
+ * Results Tab Components for AIRS Assessment Results
+ * 
+ * Tab structure:
+ * - Overview: Score ring, tier, executive summary, domain heatmap
+ * - Findings: All findings with filtering and severity badges
+ * - Framework Mapping: MITRE ATT&CK, CIS Controls, OWASP references
+ * - Roadmap: Detailed 30/60/90 day remediation plan
+ * - Analytics: Attack paths, detection gaps, response gaps
+ */
+
+import { 
+  AlertTriangle, 
+  CheckCircle, 
+  Shield, 
+  Target, 
+  TrendingUp,
+  Calendar,
+  Clock,
+  ChevronRight,
+  Zap,
+  Sparkles,
+  Lightbulb,
+  Bot,
+  ExternalLink,
+  Route,
+  Eye,
+  Radio,
+  Users,
+  Lock,
+  FileWarning,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, Badge } from '../components/ui'
+import type { 
+  AssessmentSummary, 
+  AttackPath, 
+  GapCategory,
+  DetailedRoadmapItem,
+  FrameworkMappedFinding,
+  MitreRef,
+  CISRef,
+} from '../types'
+
+// Helper functions
+function getTierBg(color: string) {
+  const map: Record<string, string> = {
+    danger: 'bg-danger-500',
+    warning: 'bg-warning-500',
+    primary: 'bg-primary-500',
+    success: 'bg-success-500',
+  }
+  return map[color] || 'bg-gray-500'
+}
+
+function getTierStroke(color: string) {
+  const map: Record<string, string> = {
+    danger: 'stroke-danger-500',
+    warning: 'stroke-warning-500',
+    primary: 'stroke-primary-500',
+    success: 'stroke-success-500',
+  }
+  return map[color] || 'stroke-gray-500'
+}
+
+function getTierText(color: string) {
+  const map: Record<string, string> = {
+    danger: 'text-danger-600',
+    warning: 'text-warning-600',
+    primary: 'text-primary-600',
+    success: 'text-success-600',
+  }
+  return map[color] || 'text-gray-600'
+}
+
+function getDomainScaleColor(score: number) {
+  if (score >= 4) return 'bg-success-500'
+  if (score >= 3) return 'bg-success-400'
+  if (score >= 2) return 'bg-warning-400'
+  if (score >= 1) return 'bg-warning-500'
+  return 'bg-danger-500'
+}
+
+function getDomainScaleBg(score: number) {
+  if (score >= 4) return 'bg-success-50 text-success-700 border-success-200'
+  if (score >= 3) return 'bg-success-50/50 text-success-600 border-success-100'
+  if (score >= 2) return 'bg-warning-50 text-warning-700 border-warning-200'
+  if (score >= 1) return 'bg-warning-50/50 text-orange-600 border-orange-200'
+  return 'bg-danger-50 text-danger-700 border-danger-200'
+}
+
+function getSeverityVariant(severity: string): 'danger' | 'warning' | 'default' | 'outline' | 'success' | 'primary' {
+  const s = severity.toUpperCase()
+  if (s === 'CRITICAL') return 'danger'
+  if (s === 'HIGH') return 'warning'
+  if (s === 'MEDIUM') return 'default'
+  return 'outline'
+}
+
+function getLikelihoodColor(likelihood: string) {
+  if (likelihood === 'high') return 'text-danger-600 bg-danger-50'
+  if (likelihood === 'medium') return 'text-warning-600 bg-warning-50'
+  return 'text-gray-600 bg-gray-50'
+}
+
+// ============================================================================
+// OVERVIEW TAB
+// ============================================================================
+interface OverviewTabProps {
+  summary: AssessmentSummary;
+  selectedBaseline: string;
+  setSelectedBaseline: (baseline: string) => void;
+}
+
+export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline }: OverviewTabProps) {
+  const { tier, domain_scores, findings, executive_summary } = summary
+  const topFailures = findings.slice(0, 5)
+
+  return (
+    <div className="space-y-6">
+      {/* Hero Card - Overall Score */}
+      <Card className="overflow-hidden">
+        <div className={`h-2 ${getTierBg(tier.color)}`} />
+        <CardContent className="py-8">
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
+            {/* Score Ring */}
+            <div className="relative w-48 h-48">
+              <svg viewBox="0 0 100 100" className="-rotate-90">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  className="stroke-gray-100"
+                  strokeWidth="12"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  className={getTierStroke(tier.color)}
+                  strokeWidth="12"
+                  strokeDasharray={2 * Math.PI * 42}
+                  strokeDashoffset={2 * Math.PI * 42 * (1 - summary.overall_score / 100)}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className={`text-5xl font-bold ${getTierText(tier.color)}`}>
+                  {Math.round(summary.overall_score)}
+                </span>
+                <span className="text-gray-500 text-sm mt-1">out of 100</span>
+              </div>
+            </div>
+            
+            {/* Tier & Stats */}
+            <div className="text-center lg:text-left space-y-4">
+              <div>
+                <div className="text-gray-500 uppercase text-xs tracking-wider mb-1">Readiness Tier</div>
+                <div className={`text-4xl font-bold ${getTierText(tier.color)}`}>
+                  {tier.label}
+                </div>
+              </div>
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg">
+                  <Target className="h-5 w-5 text-primary-500" />
+                  <div>
+                    <div className="text-lg font-semibold">{summary.findings_count}</div>
+                    <div className="text-xs text-gray-500">Total Findings</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-danger-50 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-danger-500" />
+                  <div>
+                    <div className="text-lg font-semibold text-danger-600">{summary.critical_high_count}</div>
+                    <div className="text-xs text-gray-500">Critical + High</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-success-50 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-success-500" />
+                  <div>
+                    <div className="text-lg font-semibold text-success-600">
+                      {5 - (summary.findings_count > 0 ? Math.min(5, summary.findings_count) : 0)}/5
+                    </div>
+                    <div className="text-xs text-gray-500">Domains OK</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Executive Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileWarning className="h-5 w-5 text-primary-500" />
+            Executive Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-700 leading-relaxed">{executive_summary}</p>
+        </CardContent>
+      </Card>
+
+      {/* AI Insights - Only shown when LLM is enabled */}
+      {summary.llm_enabled && summary.executive_summary_text && (
+        <Card className="border-primary-100 bg-gradient-to-br from-primary-50/50 to-white">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary-700">
+              <Sparkles className="h-5 w-5" />
+              AI-Generated Insights
+              <Badge variant="outline" className="ml-2 text-xs">
+                <Bot className="h-3 w-3 mr-1" />
+                {summary.llm_model || 'AI'}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* AI Executive Summary */}
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                <Lightbulb className="h-4 w-4" />
+                AI Executive Analysis
+              </div>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                {summary.executive_summary_text}
+              </p>
+            </div>
+            
+            {/* AI Roadmap Narrative */}
+            {summary.roadmap_narrative_text && (
+              <div className="pt-4 border-t border-primary-100">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                  <TrendingUp className="h-4 w-4" />
+                  AI Remediation Strategy
+                </div>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {summary.roadmap_narrative_text}
+                </p>
+              </div>
+            )}
+            
+            {/* LLM info footer */}
+            <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-100">
+              <span>Powered by {summary.llm_provider || 'AI'}</span>
+              {summary.llm_mode === 'demo' && (
+                <span className="text-warning-500 font-medium">Demo Mode</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Domain Heatmap */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary-500" />
+            Domain Scores
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {domain_scores.map((ds) => {
+              const score5 = ds.score_5 || ds.score / 20
+              return (
+                <div
+                  key={ds.domain_id}
+                  className={`p-4 rounded-xl border ${getDomainScaleBg(score5)} transition-all hover:scale-[1.02]`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-semibold truncate pr-2">{ds.domain_name}</div>
+                    <div className={`w-10 h-10 rounded-full ${getDomainScaleColor(score5)} flex items-center justify-center text-white font-bold`}>
+                      {score5.toFixed(1)}
+                    </div>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${getDomainScaleColor(score5)} transition-all duration-500`}
+                      style={{ width: `${(score5 / 5) * 100}%` }}
+                    />
+                  </div>
+                  <div className="text-xs mt-2 opacity-75">
+                    Weight: {Math.round(ds.weight * 100)}%
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          
+          {/* Legend */}
+          <div className="flex flex-wrap justify-center gap-4 mt-6 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-3 h-3 rounded-full bg-success-500"></div>
+              <span>Excellent (4-5)</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-3 h-3 rounded-full bg-success-400"></div>
+              <span>Good (3-4)</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-3 h-3 rounded-full bg-warning-400"></div>
+              <span>Needs Work (2-3)</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-3 h-3 rounded-full bg-warning-500"></div>
+              <span>Poor (1-2)</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-3 h-3 rounded-full bg-danger-500"></div>
+              <span>Critical (0-1)</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top 5 Findings */}
+      {topFailures.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-danger-500" />
+              Top Priority Findings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {topFailures.map((f, i) => (
+                <div
+                  key={f.id || i}
+                  className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-danger-100 flex items-center justify-center text-danger-600 font-bold text-sm">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-medium text-gray-900">{f.title}</h4>
+                      <Badge variant={getSeverityVariant(f.severity)}>{f.severity}</Badge>
+                    </div>
+                    {f.recommendation && (
+                      <p className="text-sm text-gray-600 mt-1">{f.recommendation}</p>
+                    )}
+                    {f.domain && (
+                      <div className="text-xs text-gray-400 mt-2">{f.domain}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Benchmark Comparison */}
+      {summary.baseline_profiles && Object.keys(summary.baseline_profiles).length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary-500" />
+                Benchmark Comparison
+              </CardTitle>
+              <select
+                value={selectedBaseline}
+                onChange={(e) => setSelectedBaseline(e.target.value)}
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
+              >
+                {summary.baselines_available?.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {domain_scores.map((ds) => {
+                const baselineScore = summary.baseline_profiles?.[selectedBaseline]?.[ds.domain_id] || 0
+                const score5 = ds.score_5 || ds.score / 20
+                const diff = score5 - baselineScore
+                const isAbove = diff >= 0
+
+                return (
+                  <div key={ds.domain_id} className="flex items-center gap-4">
+                    <div className="w-40 text-sm font-medium truncate">{ds.domain_name}</div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="flex-1 h-3 bg-gray-100 rounded-full relative overflow-hidden">
+                        {/* Baseline marker */}
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-gray-400 z-10"
+                          style={{ left: `${(baselineScore / 5) * 100}%` }}
+                        />
+                        {/* Actual score */}
+                        <div
+                          className={`h-full rounded-full ${getDomainScaleColor(score5)}`}
+                          style={{ width: `${(score5 / 5) * 100}%` }}
+                        />
+                      </div>
+                      <div className={`w-16 text-right text-sm font-medium ${isAbove ? 'text-success-600' : 'text-danger-600'}`}>
+                        {isAbove ? '+' : ''}{diff.toFixed(1)}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-0.5 bg-gray-400"></div>
+                <span>Baseline ({selectedBaseline})</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
+// FINDINGS TAB
+// ============================================================================
+interface FindingsTabProps {
+  summary: AssessmentSummary;
+}
+
+export function FindingsTab({ summary }: FindingsTabProps) {
+  const { findings } = summary
+
+  if (findings.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <CheckCircle className="h-16 w-16 text-success-500 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Findings</h3>
+          <p className="text-gray-600">
+            Excellent! The assessment did not identify any gaps in your security posture.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Group findings by severity
+  const findingsBySeverity: Record<string, typeof findings> = {
+    critical: findings.filter(f => f.severity.toLowerCase() === 'critical'),
+    high: findings.filter(f => f.severity.toLowerCase() === 'high'),
+    medium: findings.filter(f => f.severity.toLowerCase() === 'medium'),
+    low: findings.filter(f => f.severity.toLowerCase() === 'low'),
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 bg-danger-50 rounded-lg border border-danger-200">
+          <div className="text-3xl font-bold text-danger-600">{findingsBySeverity.critical.length}</div>
+          <div className="text-sm text-danger-700">Critical</div>
+        </div>
+        <div className="p-4 bg-warning-50 rounded-lg border border-warning-200">
+          <div className="text-3xl font-bold text-warning-600">{findingsBySeverity.high.length}</div>
+          <div className="text-sm text-warning-700">High</div>
+        </div>
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-3xl font-bold text-gray-600">{findingsBySeverity.medium.length}</div>
+          <div className="text-sm text-gray-700">Medium</div>
+        </div>
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-3xl font-bold text-gray-600">{findingsBySeverity.low.length}</div>
+          <div className="text-sm text-gray-700">Low</div>
+        </div>
+      </div>
+
+      {/* All Findings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Findings ({findings.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {findings.map((f, i) => (
+              <div
+                key={f.id || i}
+                className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant={getSeverityVariant(f.severity)}>{f.severity}</Badge>
+                      {f.domain && (
+                        <span className="text-xs text-gray-500">{f.domain}</span>
+                      )}
+                    </div>
+                    <h4 className="font-medium text-gray-900">{f.title}</h4>
+                    {f.description && (
+                      <p className="text-sm text-gray-600 mt-2">{f.description}</p>
+                    )}
+                    {f.recommendation && (
+                      <div className="mt-3 p-3 bg-primary-50 rounded-lg">
+                        <div className="text-xs font-medium text-primary-700 mb-1">Recommendation</div>
+                        <p className="text-sm text-primary-900">{f.recommendation}</p>
+                      </div>
+                    )}
+                    {f.evidence && (
+                      <div className="mt-2 text-xs text-gray-500">
+                        <strong>Evidence:</strong> {f.evidence}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// ============================================================================
+// FRAMEWORK MAPPING TAB
+// ============================================================================
+interface FrameworkTabProps {
+  summary: AssessmentSummary;
+}
+
+export function FrameworkTab({ summary }: FrameworkTabProps) {
+  const mapping = summary.framework_mapping
+
+  if (!mapping || mapping.findings.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Framework Mappings</h3>
+          <p className="text-gray-600">
+            Framework mappings will appear here once the assessment is scored.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const { findings, coverage } = mapping
+
+  return (
+    <div className="space-y-6">
+      {/* Coverage Summary */}
+      {coverage && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* MITRE Coverage */}
+          <Card>
+            <CardContent className="py-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <Target className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">MITRE ATT&CK</div>
+                  <div className="text-2xl font-bold">{coverage.mitre_coverage_pct.toFixed(0)}%</div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">
+                {coverage.mitre_techniques_enabled} of {coverage.mitre_techniques_total} techniques addressed
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* CIS Controls Coverage */}
+          <Card>
+            <CardContent className="py-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">CIS Controls v8</div>
+                  <div className="text-2xl font-bold">{coverage.cis_coverage_pct.toFixed(0)}%</div>
+                </div>
+              </div>
+              <div className="space-y-1 text-xs text-gray-500">
+                <div>IG1: {coverage.ig1_coverage_pct.toFixed(0)}%</div>
+                <div>IG2: {coverage.ig2_coverage_pct.toFixed(0)}%</div>
+                <div>IG3: {coverage.ig3_coverage_pct.toFixed(0)}%</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* OWASP */}
+          <Card>
+            <CardContent className="py-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Lock className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">OWASP Top 10</div>
+                  <div className="text-2xl font-bold">Referenced</div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">
+                Application security considerations mapped
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Findings with Framework References */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Findings with Framework References</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {findings.map((f: FrameworkMappedFinding, i: number) => (
+              <div key={f.finding_id || i} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant={getSeverityVariant(f.severity)}>{f.severity}</Badge>
+                      <span className="text-xs text-gray-500">{f.domain}</span>
+                    </div>
+                    <h4 className="font-medium text-gray-900">{f.title}</h4>
+                  </div>
+                </div>
+
+                {/* MITRE ATT&CK References */}
+                {f.mitre_refs && f.mitre_refs.length > 0 && (
+                  <div className="mb-3">
+                    <div className="text-xs font-medium text-red-700 mb-2 flex items-center gap-1">
+                      <Target className="h-3 w-3" />
+                      MITRE ATT&CK
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {f.mitre_refs.map((ref: MitreRef) => (
+                        <a
+                          key={ref.id}
+                          href={ref.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs hover:bg-red-100 transition-colors"
+                        >
+                          {ref.id}: {ref.name}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* CIS Controls References */}
+                {f.cis_refs && f.cis_refs.length > 0 && (
+                  <div className="mb-3">
+                    <div className="text-xs font-medium text-blue-700 mb-2 flex items-center gap-1">
+                      <Shield className="h-3 w-3" />
+                      CIS Controls v8
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {f.cis_refs.map((ref: CISRef) => (
+                        <span
+                          key={ref.id}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
+                        >
+                          {ref.id} (IG{ref.ig_level})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* OWASP References */}
+                {f.owasp_refs && f.owasp_refs.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium text-purple-700 mb-2 flex items-center gap-1">
+                      <Lock className="h-3 w-3" />
+                      OWASP Top 10
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {f.owasp_refs.map((ref) => (
+                        <span
+                          key={ref.id}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs"
+                        >
+                          {ref.id}: {ref.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// ============================================================================
+// ROADMAP TAB
+// ============================================================================
+interface RoadmapTabProps {
+  summary: AssessmentSummary;
+}
+
+export function RoadmapTab({ summary }: RoadmapTabProps) {
+  const detailedRoadmap = summary.detailed_roadmap
+  const basicRoadmap = summary.roadmap
+
+  // If we have detailed roadmap, show that
+  if (detailedRoadmap && detailedRoadmap.phases) {
+    const { summary: stats, phases } = detailedRoadmap
+
+    return (
+      <div className="space-y-6">
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
+            <div className="text-3xl font-bold text-primary-600">{stats.total_items}</div>
+            <div className="text-sm text-primary-700">Total Items</div>
+          </div>
+          <div className="p-4 bg-danger-50 rounded-lg border border-danger-200">
+            <div className="text-3xl font-bold text-danger-600">{stats.critical_items}</div>
+            <div className="text-sm text-danger-700">Critical</div>
+          </div>
+          <div className="p-4 bg-success-50 rounded-lg border border-success-200">
+            <div className="text-3xl font-bold text-success-600">{stats.quick_wins}</div>
+            <div className="text-sm text-success-700">Quick Wins</div>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="text-3xl font-bold text-gray-600">{stats.total_effort_hours}h</div>
+            <div className="text-sm text-gray-700">Est. Effort</div>
+          </div>
+          <div className="p-4 bg-warning-50 rounded-lg border border-warning-200">
+            <div className="text-3xl font-bold text-warning-600">{stats.total_risk_reduction}</div>
+            <div className="text-sm text-warning-700">Risk Reduction</div>
+          </div>
+        </div>
+
+        {/* Phase Cards */}
+        {['day30', 'day60', 'day90', 'beyond'].map((phaseKey) => {
+          const phase = phases[phaseKey as keyof typeof phases]
+          if (!phase || phase.items.length === 0) return null
+
+          const phaseColors: Record<string, string> = {
+            day30: 'border-danger-200 bg-danger-50/30',
+            day60: 'border-warning-200 bg-warning-50/30',
+            day90: 'border-primary-200 bg-primary-50/30',
+            beyond: 'border-gray-200 bg-gray-50/30',
+          }
+
+          const headerColors: Record<string, string> = {
+            day30: 'bg-danger-100 text-danger-800',
+            day60: 'bg-warning-100 text-warning-800',
+            day90: 'bg-primary-100 text-primary-800',
+            beyond: 'bg-gray-100 text-gray-800',
+          }
+
+          return (
+            <Card key={phaseKey} className={`overflow-hidden ${phaseColors[phaseKey]}`}>
+              <div className={`px-6 py-3 ${headerColors[phaseKey]} flex items-center justify-between`}>
+                <div className="flex items-center gap-2 font-semibold">
+                  <Calendar className="h-4 w-4" />
+                  {phase.name}
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <span>{phase.item_count} items</span>
+                  <span>{phase.effort_hours}h effort</span>
+                </div>
+              </div>
+              <CardContent className="pt-4">
+                <p className="text-sm text-gray-600 mb-4">{phase.description}</p>
+                <div className="space-y-3">
+                  {phase.items.map((item: DetailedRoadmapItem, i: number) => (
+                    <div
+                      key={item.finding_id || i}
+                      className="p-4 bg-white rounded-lg border border-gray-200"
+                    >
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant={getSeverityVariant(item.severity)}>{item.severity}</Badge>
+                            <Badge variant="outline">{item.effort} effort</Badge>
+                            <span className="text-xs text-gray-500">{item.domain}</span>
+                          </div>
+                          <h4 className="font-medium text-gray-900">{item.title}</h4>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">{item.action}</p>
+                      
+                      {item.milestones && item.milestones.length > 0 && (
+                        <div className="mb-3">
+                          <div className="text-xs font-medium text-gray-700 mb-2">Milestones:</div>
+                          <ul className="space-y-1">
+                            {item.milestones.map((m, mi) => (
+                              <li key={mi} className="flex items-start gap-2 text-xs text-gray-600">
+                                <ChevronRight className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                {m}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {item.success_criteria && (
+                        <div className="text-xs text-success-700 bg-success-50 rounded p-2">
+                          <strong>Success:</strong> {item.success_criteria}
+                        </div>
+                      )}
+                      
+                      <div className="mt-2 text-xs text-gray-400">
+                        Owner: {item.owner}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Fallback to basic roadmap
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary-500" />
+            30/60/90 Day Remediation Roadmap
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* 30 Days */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-danger-200">
+                <div className="w-10 h-10 rounded-full bg-danger-100 flex items-center justify-center">
+                  <Zap className="h-5 w-5 text-danger-600" />
+                </div>
+                <div>
+                  <div className="font-semibold text-danger-700">Day 30</div>
+                  <div className="text-xs text-gray-500">Critical Actions</div>
+                </div>
+              </div>
+              {basicRoadmap.day30.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No critical items</p>
+              ) : (
+                basicRoadmap.day30.map((item, i) => (
+                  <div key={i} className="p-3 bg-danger-50 rounded-lg border border-danger-100">
+                    <div className="font-medium text-sm text-gray-900">{item.title}</div>
+                    <p className="text-xs text-gray-600 mt-1">{item.action}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* 60 Days */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-warning-200">
+                <div className="w-10 h-10 rounded-full bg-warning-100 flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-warning-600" />
+                </div>
+                <div>
+                  <div className="font-semibold text-warning-700">Day 60</div>
+                  <div className="text-xs text-gray-500">High Priority</div>
+                </div>
+              </div>
+              {basicRoadmap.day60.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No high priority items</p>
+              ) : (
+                basicRoadmap.day60.map((item, i) => (
+                  <div key={i} className="p-3 bg-warning-50 rounded-lg border border-warning-100">
+                    <div className="font-medium text-sm text-gray-900">{item.title}</div>
+                    <p className="text-xs text-gray-600 mt-1">{item.action}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* 90 Days */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-primary-200">
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-primary-600" />
+                </div>
+                <div>
+                  <div className="font-semibold text-primary-700">Day 90</div>
+                  <div className="text-xs text-gray-500">Medium Priority</div>
+                </div>
+              </div>
+              {basicRoadmap.day90.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No medium priority items</p>
+              ) : (
+                basicRoadmap.day90.map((item, i) => (
+                  <div key={i} className="p-3 bg-primary-50 rounded-lg border border-primary-100">
+                    <div className="font-medium text-sm text-gray-900">{item.title}</div>
+                    <p className="text-xs text-gray-600 mt-1">{item.action}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// ============================================================================
+// ANALYTICS TAB
+// ============================================================================
+interface AnalyticsTabProps {
+  summary: AssessmentSummary;
+}
+
+export function AnalyticsTab({ summary }: AnalyticsTabProps) {
+  const analytics = summary.analytics
+
+  if (!analytics) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Route className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Analytics Available</h3>
+          <p className="text-gray-600">
+            Advanced analytics will appear here once the assessment is scored.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const { attack_paths, detection_gaps, response_gaps, identity_gaps } = analytics
+
+  return (
+    <div className="space-y-6">
+      {/* Attack Paths */}
+      {attack_paths && attack_paths.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Route className="h-5 w-5 text-danger-500" />
+              Top Attack Paths Enabled
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              Based on the identified gaps, the following attack paths may be exploitable:
+            </p>
+            <div className="space-y-4">
+              {attack_paths.map((path: AttackPath) => (
+                <div
+                  key={path.id}
+                  className="p-4 border border-gray-200 rounded-lg hover:border-danger-200 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-gray-900">{path.name}</h4>
+                        <Badge className={getLikelihoodColor(path.likelihood)}>
+                          {path.likelihood} likelihood
+                        </Badge>
+                        <Badge className={getLikelihoodColor(path.impact)}>
+                          {path.impact} impact
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">{path.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Attack Steps */}
+                  {path.steps && path.steps.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-xs font-medium text-gray-700 mb-2">Attack Progression:</div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {path.steps.map((step, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <div className="px-2 py-1 bg-danger-50 text-danger-700 rounded text-xs">
+                              {step.step}. {step.action}
+                            </div>
+                            {i < path.steps.length - 1 && (
+                              <ChevronRight className="h-4 w-4 text-gray-400" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Enabling Gaps */}
+                  {path.enabling_gaps && path.enabling_gaps.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-xs font-medium text-gray-700 mb-2">Enabled by these gaps:</div>
+                      <div className="flex flex-wrap gap-2">
+                        {path.enabling_gaps.map((gap, i) => (
+                          <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                            {gap}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mitigations */}
+                  {path.mitigations && path.mitigations.length > 0 && (
+                    <div>
+                      <div className="text-xs font-medium text-success-700 mb-2">Mitigations:</div>
+                      <ul className="space-y-1">
+                        {path.mitigations.map((m, i) => (
+                          <li key={i} className="flex items-start gap-2 text-xs text-success-600">
+                            <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                            {m}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Detection Gaps */}
+      {detection_gaps && detection_gaps.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-warning-500" />
+              Detection Gaps
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {detection_gaps.map((cat: GapCategory) => (
+                <div
+                  key={cat.category}
+                  className={`p-4 rounded-lg border ${
+                    cat.status === 'gap'
+                      ? 'border-danger-200 bg-danger-50'
+                      : cat.status === 'partial'
+                      ? 'border-warning-200 bg-warning-50'
+                      : 'border-success-200 bg-success-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-gray-900">{cat.category_name}</div>
+                    <Badge
+                      variant={
+                        cat.status === 'gap' ? 'danger' : cat.status === 'partial' ? 'warning' : 'success'
+                      }
+                    >
+                      {cat.status}
+                    </Badge>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                    <div
+                      className={`h-full ${
+                        cat.coverage_score >= 80
+                          ? 'bg-success-500'
+                          : cat.coverage_score >= 50
+                          ? 'bg-warning-500'
+                          : 'bg-danger-500'
+                      }`}
+                      style={{ width: `${cat.coverage_score}%` }}
+                    />
+                  </div>
+                  {cat.gaps && cat.gaps.length > 0 && (
+                    <div className="text-xs text-gray-600">
+                      {cat.gaps.length} issue{cat.gaps.length > 1 ? 's' : ''} identified
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Response Gaps */}
+      {response_gaps && response_gaps.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Radio className="h-5 w-5 text-primary-500" />
+              Response Gaps
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {response_gaps.map((cat: GapCategory) => (
+                <div
+                  key={cat.category}
+                  className={`p-4 rounded-lg border ${
+                    cat.status === 'gap'
+                      ? 'border-danger-200 bg-danger-50'
+                      : cat.status === 'partial'
+                      ? 'border-warning-200 bg-warning-50'
+                      : 'border-success-200 bg-success-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-gray-900">{cat.category_name}</div>
+                    <Badge
+                      variant={
+                        cat.status === 'gap' ? 'danger' : cat.status === 'partial' ? 'warning' : 'success'
+                      }
+                    >
+                      {cat.status}
+                    </Badge>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                    <div
+                      className={`h-full ${
+                        cat.coverage_score >= 80
+                          ? 'bg-success-500'
+                          : cat.coverage_score >= 50
+                          ? 'bg-warning-500'
+                          : 'bg-danger-500'
+                      }`}
+                      style={{ width: `${cat.coverage_score}%` }}
+                    />
+                  </div>
+                  {cat.gaps && cat.gaps.length > 0 && (
+                    <div className="text-xs text-gray-600">
+                      {cat.gaps.length} issue{cat.gaps.length > 1 ? 's' : ''} identified
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Identity Gaps */}
+      {identity_gaps && identity_gaps.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-purple-500" />
+              Identity & Access Gaps
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {identity_gaps.map((cat: GapCategory) => (
+                <div
+                  key={cat.category}
+                  className={`p-4 rounded-lg border ${
+                    cat.status === 'gap'
+                      ? 'border-danger-200 bg-danger-50'
+                      : cat.status === 'partial'
+                      ? 'border-warning-200 bg-warning-50'
+                      : 'border-success-200 bg-success-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-gray-900">{cat.category_name}</div>
+                    <Badge
+                      variant={
+                        cat.status === 'gap' ? 'danger' : cat.status === 'partial' ? 'warning' : 'success'
+                      }
+                    >
+                      {cat.status}
+                    </Badge>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                    <div
+                      className={`h-full ${
+                        cat.coverage_score >= 80
+                          ? 'bg-success-500'
+                          : cat.coverage_score >= 50
+                          ? 'bg-warning-500'
+                          : 'bg-danger-500'
+                      }`}
+                      style={{ width: `${cat.coverage_score}%` }}
+                    />
+                  </div>
+                  {cat.gaps && cat.gaps.length > 0 && (
+                    <div className="text-xs text-gray-600">
+                      {cat.gaps.length} issue{cat.gaps.length > 1 ? 's' : ''} identified
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+// Export tab names for use in Results page
+export const RESULT_TABS = [
+  { id: 'overview', label: 'Overview', icon: Target },
+  { id: 'findings', label: 'Findings', icon: AlertTriangle },
+  { id: 'framework', label: 'Framework Mapping', icon: Shield },
+  { id: 'roadmap', label: 'Roadmap', icon: Calendar },
+  { id: 'analytics', label: 'Analytics', icon: Route },
+] as const
+
+export type ResultTabId = typeof RESULT_TABS[number]['id']

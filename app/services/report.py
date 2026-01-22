@@ -3,9 +3,11 @@ Report service - business logic for persistent report generation and management.
 
 All operations are scoped by owner_uid for tenant isolation.
 Reports store a snapshot of assessment data at generation time for consistency.
+PDF files are stored using the configured storage backend (local or GCS).
 """
 
 import json
+import logging
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -21,6 +23,15 @@ from app.schemas.report import (
     FindingSnapshot,
 )
 from app.services.assessment import AssessmentService
+from app.services.storage import (
+    get_storage,
+    generate_storage_path,
+    StorageError,
+    ObjectNotFoundError,
+)
+from app.reports.pdf import ProfessionalPDFGenerator
+
+logger = logging.getLogger(__name__)
 
 
 class ReportService:
@@ -82,7 +93,7 @@ class ReportService:
         # Generate title if not provided
         title = data.title or f"{org.name} - {assessment.title or 'Assessment'} Report"
         
-        # Create report record
+        # Create report record (initially without storage_path)
         report = Report(
             owner_uid=self.owner_uid,
             organization_id=assessment.organization_id,
@@ -97,6 +108,28 @@ class ReportService:
         )
         
         self.db.add(report)
+        self.db.flush()  # Get the report ID without committing
+        
+        # Generate PDF and store it
+        try:
+            # Get assessment detail for PDF generation
+            assessment_detail = assessment_service.get_detail(assessment_id)
+            if assessment_detail:
+                # Generate PDF
+                generator = ProfessionalPDFGenerator()
+                pdf_content = generator.generate(assessment_detail)
+                
+                # Store PDF using configured backend
+                storage = get_storage()
+                storage_path = generate_storage_path(report.id, org.name)
+                report.storage_path = storage.store(pdf_content, storage_path)
+                logger.info(f"Stored report PDF: {report.storage_path}")
+        except StorageError as e:
+            # Log but don't fail - report can still be downloaded via regeneration
+            logger.warning(f"Failed to store PDF for report {report.id}: {e}")
+        except Exception as e:
+            logger.warning(f"Failed to generate/store PDF for report {report.id}: {e}")
+        
         self.db.commit()
         self.db.refresh(report)
         return report
@@ -246,13 +279,75 @@ class ReportService:
         return reports, total
     
     def delete(self, report_id: str) -> bool:
-        """Delete a report (scoped to current user)."""
+        """Delete a report and its stored PDF (scoped to current user)."""
         report = self.get(report_id)
         if not report:
             return False
         
-        # TODO: If storage_path exists, delete the stored file
+        # Delete stored PDF if it exists
+        if report.storage_path:
+            try:
+                storage = get_storage()
+                if storage.delete(report.storage_path):
+                    logger.info(f"Deleted stored PDF: {report.storage_path}")
+            except Exception as e:
+                # Log but continue with database deletion
+                logger.warning(f"Failed to delete stored PDF {report.storage_path}: {e}")
         
         self.db.delete(report)
         self.db.commit()
         return True
+    
+    def get_pdf_content(self, report_id: str) -> Optional[bytes]:
+        """
+        Get PDF content for a report.
+        
+        Retrieves from storage if available, otherwise returns None
+        (caller should regenerate on-the-fly).
+        
+        Args:
+            report_id: Report ID
+            
+        Returns:
+            PDF bytes or None if not stored
+        """
+        report = self.get(report_id)
+        if not report:
+            return None
+        
+        if not report.storage_path:
+            return None
+        
+        try:
+            storage = get_storage()
+            return storage.retrieve(report.storage_path)
+        except ObjectNotFoundError:
+            logger.warning(f"Stored PDF not found for report {report_id}")
+            return None
+        except StorageError as e:
+            logger.error(f"Failed to retrieve PDF for report {report_id}: {e}")
+            return None
+    
+    def get_signed_url(self, report_id: str, expiration_minutes: int = 15) -> Optional[str]:
+        """
+        Get a signed download URL for a report PDF.
+        
+        Only works with GCS storage backend.
+        
+        Args:
+            report_id: Report ID
+            expiration_minutes: URL validity duration
+            
+        Returns:
+            Signed URL or None if not available
+        """
+        report = self.get(report_id)
+        if not report or not report.storage_path:
+            return None
+        
+        try:
+            storage = get_storage()
+            return storage.get_download_url(report.storage_path, expiration_minutes)
+        except Exception as e:
+            logger.warning(f"Failed to generate signed URL for report {report_id}: {e}")
+            return None

@@ -93,6 +93,16 @@ class Settings(BaseSettings):
     LLM_MAX_TOKENS: int = 1000
     LLM_TEMPERATURE: float = 0.7
 
+    # ===========================================
+    # Report Storage Configuration
+    # ===========================================
+    # Storage mode: "local" for development, "gcs" for production (Google Cloud Storage)
+    REPORTS_STORAGE_MODE: str = "local"
+    # GCS bucket name (required when REPORTS_STORAGE_MODE=gcs)
+    GCS_BUCKET_NAME: Optional[str] = None
+    # Local directory for PDF storage (when REPORTS_STORAGE_MODE=local)
+    LOCAL_REPORTS_DIR: str = "./generated_reports"
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         # env_file is set dynamically in settings_customise_sources
@@ -119,6 +129,14 @@ class Settings(BaseSettings):
                     "INFO: GEMINI_API_KEY not set. Using Application Default Credentials for Gemini.",
                     file=sys.stderr
                 )
+            
+            # Validate GCS configuration in production
+            if self.REPORTS_STORAGE_MODE == "gcs" and not self.GCS_BUCKET_NAME:
+                errors.append("GCS_BUCKET_NAME is required when REPORTS_STORAGE_MODE=gcs")
+        
+        # Validate storage mode value
+        if self.REPORTS_STORAGE_MODE not in ("local", "gcs"):
+            errors.append(f"REPORTS_STORAGE_MODE must be 'local' or 'gcs', got: {self.REPORTS_STORAGE_MODE}")
         
         # Demo mode warnings
         if self.DEMO_MODE:
@@ -217,6 +235,11 @@ class Settings(BaseSettings):
     def is_demo_mode(self) -> bool:
         """Check if running in demo mode for presentations/testing."""
         return self.DEMO_MODE
+
+    @property
+    def is_gcs_storage(self) -> bool:
+        """Check if using GCS for report storage."""
+        return self.REPORTS_STORAGE_MODE == "gcs"
 
 
 def _load_env_file() -> Optional[str]:

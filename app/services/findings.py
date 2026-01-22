@@ -35,6 +35,7 @@ class FindingRule:
     recommendation: str
     reference: Optional[str] = None  # NIST, CIS, etc.
     remediation_effort: str = "medium"  # low, medium, high
+    impact_score: int = 5  # 1-10 scale for prioritization
     
 
 @dataclass
@@ -50,6 +51,11 @@ class Finding:
     reference: Optional[str] = None
     remediation_effort: str = "medium"
     question_ids: List[str] = None
+    impact_score: int = 5
+    # Framework mappings (populated dynamically)
+    mitre_refs: List[Dict] = None
+    cis_refs: List[Dict] = None
+    owasp_refs: List[Dict] = None
 
 
 def get_answer(answers: Dict[str, Any], question_id: str, default=None):
@@ -612,6 +618,10 @@ class FindingsEngine:
             try:
                 # Check if rule condition is met
                 if rule.condition(answers, scores):
+                    # Get framework mappings
+                    from app.core.frameworks import get_all_framework_refs
+                    framework_refs = get_all_framework_refs(rule.rule_id)
+                    
                     # Generate finding
                     finding = Finding(
                         rule_id=rule.rule_id,
@@ -623,7 +633,11 @@ class FindingsEngine:
                         recommendation=rule.recommendation,
                         reference=rule.reference,
                         remediation_effort=rule.remediation_effort,
-                        question_ids=self._get_related_questions(rule.rule_id)
+                        question_ids=self._get_related_questions(rule.rule_id),
+                        impact_score=getattr(rule, 'impact_score', 5),
+                        mitre_refs=framework_refs.get("mitre", []),
+                        cis_refs=framework_refs.get("cis", []),
+                        owasp_refs=framework_refs.get("owasp", []),
                     )
                     findings.append(finding)
             except Exception as e:

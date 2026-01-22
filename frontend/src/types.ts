@@ -96,6 +96,135 @@ export interface Roadmap {
   day90: RoadmapItem[];
 }
 
+// ----- Framework Mapping Types -----
+
+export interface MitreRef {
+  id: string;      // e.g., "T1566"
+  name: string;    // e.g., "Phishing"
+  tactic: string;  // e.g., "Initial Access"
+  url: string;
+}
+
+export interface CISRef {
+  id: string;      // e.g., "CIS-4.1"
+  name: string;    // e.g., "Establish and Maintain a Secure Configuration Process"
+  ig_level: number; // Implementation Group: 1, 2, or 3
+}
+
+export interface OWASPRef {
+  id: string;      // e.g., "A01:2021"
+  name: string;    // e.g., "Broken Access Control"
+}
+
+export interface FrameworkMappedFinding {
+  finding_id: string;
+  title: string;
+  severity: string;
+  domain: string;
+  mitre_refs: MitreRef[];
+  cis_refs: CISRef[];
+  owasp_refs: OWASPRef[];
+  impact_score: number;
+}
+
+export interface FrameworkCoverage {
+  mitre_techniques_enabled: number;
+  mitre_techniques_total: number;
+  mitre_coverage_pct: number;
+  cis_controls_met: number;
+  cis_controls_total: number;
+  cis_coverage_pct: number;
+  ig1_coverage_pct: number;
+  ig2_coverage_pct: number;
+  ig3_coverage_pct: number;
+}
+
+export interface FrameworkMapping {
+  findings: FrameworkMappedFinding[];
+  coverage?: FrameworkCoverage;
+}
+
+// ----- Analytics Types -----
+
+export interface AttackPathStep {
+  step: number;
+  action: string;
+  mitre_technique?: string;
+}
+
+export interface AttackPath {
+  id: string;
+  name: string;
+  likelihood: 'high' | 'medium' | 'low';
+  impact: 'high' | 'medium' | 'low';
+  description: string;
+  enabling_gaps: string[];
+  steps: AttackPathStep[];
+  mitigations: string[];
+}
+
+export interface GapItem {
+  id: string;
+  title: string;
+  severity: string;
+}
+
+export interface GapCategory {
+  category: string;
+  category_name: string;
+  status: 'gap' | 'partial' | 'covered';
+  gaps: GapItem[];
+  coverage_score: number;
+}
+
+export interface Analytics {
+  attack_paths: AttackPath[];
+  detection_gaps: GapCategory[];
+  response_gaps: GapCategory[];
+  identity_gaps: GapCategory[];
+  top_risks: string[];
+  recommended_priorities: string[];
+}
+
+// ----- Detailed Roadmap Types -----
+
+export interface DetailedRoadmapItem {
+  finding_id: string;
+  title: string;
+  action: string;
+  effort: 'low' | 'medium' | 'high';
+  severity: string;
+  domain: string;
+  owner: string;
+  milestones: string[];
+  success_criteria: string;
+}
+
+export interface RoadmapPhase {
+  name: string;
+  description: string;
+  item_count: number;
+  effort_hours: number;
+  risk_reduction: number;
+  items: DetailedRoadmapItem[];
+}
+
+export interface DetailedRoadmap {
+  summary: {
+    total_items: number;
+    total_effort_hours: number;
+    total_risk_reduction: number;
+    critical_items: number;
+    quick_wins: number;
+  };
+  phases: {
+    day30: RoadmapPhase;
+    day60: RoadmapPhase;
+    day90: RoadmapPhase;
+    beyond: RoadmapPhase;
+  };
+}
+
 export interface ReadinessTier {
   label: 'Critical' | 'Needs Work' | 'Good' | 'Strong';
   min_score: number;
@@ -139,6 +268,12 @@ export interface AssessmentSummary {
   findings_count: number;
   critical_high_count: number;
   roadmap: Roadmap;
+  // New: Detailed roadmap with milestones
+  detailed_roadmap?: DetailedRoadmap;
+  // New: Framework mapping (MITRE/CIS/OWASP)
+  framework_mapping?: FrameworkMapping;
+  // New: Derived analytics (attack paths, gaps)
+  analytics?: Analytics;
   executive_summary: string;
   executive_summary_text?: string;
   roadmap_narrative_text?: string;

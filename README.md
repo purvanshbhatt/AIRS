@@ -6,9 +6,10 @@ A FastAPI application for AI security readiness assessments with scoring, findin
 
 | Resource | URL |
 |----------|-----|
-| **Web App** | [airs-demo.web.app](https://airs-demo.web.app) |
-| **API Health** | [/health](https://airs-api-knu3wsxymq-uc.a.run.app/health) |
-| **LLM Status** | [/health/llm](https://airs-api-knu3wsxymq-uc.a.run.app/health/llm) |
+| **Web App** | [gen-lang-client-0384513977.web.app](https://gen-lang-client-0384513977.web.app) |
+| **API** | [airs-api-227825933697.us-central1.run.app](https://airs-api-227825933697.us-central1.run.app) |
+| **API Health** | [/health](https://airs-api-227825933697.us-central1.run.app/health) |
+| **LLM Status** | [/health/llm](https://airs-api-227825933697.us-central1.run.app/health/llm) |
 
 ### What AI Does (and Doesn't Do)
 
@@ -159,6 +160,111 @@ make run
 | `LLM_MODEL` | Gemini model to use | `gemini-3-pro-preview` |
 | `GUNICORN_WORKERS` | Number of gunicorn workers | `2` |
 | `LOG_LEVEL` | Logging level | `info` |
+| `REPORTS_STORAGE_MODE` | Report PDF storage: `local` or `gcs` | `local` |
+| `GCS_BUCKET_NAME` | GCS bucket for reports (required when mode=gcs) | - |
+| `LOCAL_REPORTS_DIR` | Local directory for PDFs (when mode=local) | `./generated_reports` |
+
+## Report Storage Configuration
+
+AIRS stores generated PDF reports persistently. In production, reports are stored in Google Cloud Storage for reliability and scalability.
+
+### Local Development (Default)
+
+PDF files are stored in a local directory:
+
+```bash
+REPORTS_STORAGE_MODE=local
+LOCAL_REPORTS_DIR=./generated_reports
+```
+
+### Production (Google Cloud Storage)
+
+PDF files are stored in a private GCS bucket with signed URLs for secure downloads.
+
+#### Step 1: Create GCS Bucket
+
+```bash
+# Set your project ID
+PROJECT_ID="gen-lang-client-0384513977"
+
+# Create a private bucket (do NOT make it public)
+gsutil mb -p $PROJECT_ID -l us-central1 gs://airs-reports-$PROJECT_ID
+
+# Verify bucket exists
+gsutil ls gs://airs-reports-$PROJECT_ID
+```
+
+#### Step 2: Set IAM Permissions for Cloud Run
+
+Grant the Cloud Run service account access to the bucket:
+
+```bash
+# Get Cloud Run service account (usually project-number-compute@developer.gserviceaccount.com)
+SERVICE_ACCOUNT=$(gcloud run services describe airs-api --region=us-central1 \
+    --format="value(spec.template.spec.serviceAccountName)")
+
+# If blank, use the default compute service account
+if [ -z "$SERVICE_ACCOUNT" ]; then
+    PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+    SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+fi
+
+echo "Service Account: $SERVICE_ACCOUNT"
+
+# Grant Storage Object Admin role (create, read, delete)
+gsutil iam ch serviceAccount:$SERVICE_ACCOUNT:roles/storage.objectAdmin \
+    gs://airs-reports-$PROJECT_ID
+```
+
+#### Step 3: Configure Environment Variables
+
+Add to your `gcp/env.prod.yaml`:
+
+```yaml
+REPORTS_STORAGE_MODE: "gcs"
+GCS_BUCKET_NAME: "airs-reports-gen-lang-client-0384513977"
+```
+
+Or set via `gcloud run deploy`:
+
+```bash
+gcloud run deploy airs-api \
+    --set-env-vars REPORTS_STORAGE_MODE=gcs,GCS_BUCKET_NAME=airs-reports-$PROJECT_ID
+```
+
+#### Security Best Practices
+
+- **Do NOT make the bucket public** - Access is controlled via IAM
+- **Use signed URLs** - Downloads use short-lived signed URLs (15 min default)
+- **Principle of least privilege** - Cloud Run only has `storage.objectAdmin` on the reports bucket
+- **Lifecycle policies** - Consider adding lifecycle rules to delete old reports
+
+```bash
+# Example: Delete reports older than 365 days
+cat > /tmp/lifecycle.json << 'EOF'
+{
+  "lifecycle": {
+    "rule": [
+      {
+        "action": {"type": "Delete"},
+        "condition": {"age": 365}
+      }
+    ]
+  }
+}
+EOF
+
+gsutil lifecycle set /tmp/lifecycle.json gs://airs-reports-$PROJECT_ID
+```
+
+#### Error Handling
+
+If the GCS bucket is missing or inaccessible, the application will:
+1. Log a warning when report creation is attempted
+2. Fall back to generating PDFs on-the-fly for downloads
+3. Continue functioning without persistent storage
+
+Check logs for `BucketNotFoundError` if reports aren't being stored.
 
 ## Database Configuration
 
