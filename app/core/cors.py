@@ -147,8 +147,12 @@ def get_allowed_origins(
             )
             return ["*"]
     
-    # Split on commas and validate each origin
-    raw_origins = raw_value.split(",") if raw_value else []
+    # Split on commas or semicolons and validate each origin
+    # Support both separators for flexibility (semicolons needed for Cloud Run env vars)
+    if ";" in raw_value:
+        raw_origins = raw_value.split(";") if raw_value else []
+    else:
+        raw_origins = raw_value.split(",") if raw_value else []
     valid_origins: List[str] = []
     invalid_origins: List[Tuple[str, str]] = []
     rejected_localhost: List[str] = []
