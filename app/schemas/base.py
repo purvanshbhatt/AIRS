@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -6,8 +6,7 @@ from typing import Optional
 class BaseSchema(BaseModel):
     """Base schema with common configuration."""
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TimestampSchema(BaseSchema):

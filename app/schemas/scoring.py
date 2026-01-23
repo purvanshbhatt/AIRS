@@ -13,7 +13,7 @@ class AssessmentAnswers(BaseModel):
     answers: Dict[str, Any] = Field(
         ...,
         description="Mapping of question_id to answer value",
-        example={
+        json_schema_extra={"example": {
             "tl_01": True,
             "tl_02": True,
             "tl_03": False,
@@ -44,7 +44,7 @@ class AssessmentAnswers(BaseModel):
             "rs_04": True,
             "rs_05": 24,
             "rs_06": True
-        }
+        }}
     )
 
 

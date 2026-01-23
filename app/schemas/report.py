@@ -2,7 +2,7 @@
 Pydantic schemas for Report.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -104,8 +104,7 @@ class ReportResponse(BaseModel):
     findings_count: Optional[int] = None
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ReportDetailResponse(ReportResponse):

@@ -2,7 +2,7 @@
 Pydantic schemas for Organization.
 """
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -44,8 +44,7 @@ class OrganizationResponse(OrganizationBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrganizationWithAssessments(OrganizationResponse):

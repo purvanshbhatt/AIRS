@@ -2,7 +2,7 @@
 Pydantic schemas for Assessment, Answer, Score, and Finding.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -61,8 +61,7 @@ class AnswerResponse(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ----- Score Schemas -----
@@ -80,8 +79,7 @@ class ScoreResponse(BaseModel):
     max_raw_points: Optional[float] = None
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ----- Finding Schemas -----
@@ -112,8 +110,7 @@ class FindingResponse(BaseModel):
     priority: Optional[str] = None
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FindingUpdate(BaseModel):
@@ -155,8 +152,7 @@ class AssessmentResponse(BaseModel):
     updated_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AssessmentDetail(AssessmentResponse):
@@ -178,8 +174,7 @@ class AssessmentSummary(BaseModel):
     maturity_level: Optional[int] = None
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ----- Scoring Schemas -----
