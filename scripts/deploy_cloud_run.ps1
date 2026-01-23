@@ -73,11 +73,12 @@ foreach ($key in $envVars.Keys) {
 }
 Set-Content -Path $tempEnvFile -Value $yamlContent -NoNewline
 
-# Build gcloud command
+# Build gcloud command - use beta for --clear-base-image flag
 $deployArgs = @(
-    "run", "deploy", $ServiceName,
+    "beta", "run", "deploy", $ServiceName,
     "--source", ".",
     "--region", $Region,
+    "--clear-base-image",
     "--memory", "512Mi",
     "--cpu", "1",
     "--min-instances", "0",
