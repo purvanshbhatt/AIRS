@@ -6,6 +6,45 @@ export interface Organization {
   industry?: string;
   size?: string;
   created_at: string;
+  website_url?: string;
+  org_profile?: string; // JSON string
+  baseline_suggestion?: string;
+  enriched_at?: string;
+}
+
+export interface ScoreTrendPoint {
+  date: string;
+  score: number;
+  assessment_id: string;
+  name: string;
+}
+
+export interface TrackerItem {
+  id: string;
+  organization_id: string;
+  assessment_id?: string;
+  title: string;
+  description?: string;
+  status: 'todo' | 'in_progress' | 'done';
+  priority: 'high' | 'medium' | 'low';
+  effort: 'high' | 'medium' | 'low';
+  due_date?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface RoadmapListResponse {
+  items: TrackerItem[];
+  total: number;
+}
+
+export interface EnrichmentResult {
+  title?: string;
+  description?: string;
+  keywords: string[];
+  baseline_suggestion?: string;
+  confidence: number;
+  source_url: string;
 }
 
 export interface Assessment {
@@ -128,9 +167,10 @@ export interface FrameworkMappedFinding {
 }
 
 export interface FrameworkCoverage {
-  mitre_techniques_enabled: number;
+  mitre_techniques_referenced: number;
   mitre_techniques_total: number;
   mitre_coverage_pct: number;
+  mitre_techniques_referenced_list: string[];
   cis_controls_met: number;
   cis_controls_total: number;
   cis_coverage_pct: number;
@@ -164,24 +204,41 @@ export interface AttackPath {
 }
 
 export interface GapItem {
-  id: string;
+  rule_id: string; // Backend sends rule_id
   title: string;
   severity: string;
 }
 
 export interface GapCategory {
-  category: string;
-  category_name: string;
-  status: 'gap' | 'partial' | 'covered';
-  gaps: GapItem[];
-  coverage_score: number;
+  category: string; // Backend sends "category" as the name
+  description: string;
+  gap_count: number;
+  is_critical: boolean;
+  findings: GapItem[];
+  status?: 'gap' | 'partial' | 'covered'; // Still useful if backend sends it, but backend currently sends is_critical
+}
+
+export interface GapsSummary {
+  total_gaps: number;
+  critical_categories?: number;
+  categories: GapCategory[];
+  coverage_score?: number; // for detection
+  readiness_score?: number; // for response
+}
+
+export interface RiskSummary {
+  severity_counts: Record<string, number>;
+  top_risks: string[];
+  total_risk_score: number;
+  findings_count: number;
 }
 
 export interface Analytics {
   attack_paths: AttackPath[];
-  detection_gaps: GapCategory[];
-  response_gaps: GapCategory[];
-  identity_gaps: GapCategory[];
+  detection_gaps: GapsSummary;
+  response_gaps: GapsSummary;
+  identity_gaps: GapsSummary;
+  risk_summary?: RiskSummary;
   top_risks: string[];
   recommended_priorities: string[];
 }

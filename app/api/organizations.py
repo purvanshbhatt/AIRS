@@ -16,9 +16,14 @@ from app.schemas.organization import (
     OrganizationCreate,
     OrganizationUpdate,
     OrganizationResponse,
-    OrganizationWithAssessments
+    OrganizationWithAssessments,
+    EnrichmentRequest,
+    EnrichmentResponse
 )
 from app.services.organization import OrganizationService
+from app.services.enrichment import EnrichmentService
+from datetime import datetime
+import json
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -126,3 +131,102 @@ async def delete_organization(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Organization not found: {org_id}"
         )
+
+
+@router.post("/{org_id}/enrich", response_model=EnrichmentResponse)
+async def enrich_organization(
+    org_id: str,
+    request: EnrichmentRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """
+    Enrich organization profile from website URL.
+    
+    Fetches the URL safely (SSRF protected), extracts metadata,
+    and infers a suggested baseline profile.
+    """
+    # 1. Verify ownership/existence
+    org_service = get_org_service(db, user)
+    org = org_service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Organization not found: {org_id}"
+        )
+    
+    # 2. Perform enrichment
+    enrichment_service = EnrichmentService()
+    result = enrichment_service.enrich_from_url(request.website_url)
+    
+    # 3. Update organization
+    # Create profile JSON
+    profile_data = {
+        "title": result.title,
+        "description": result.description,
+        "keywords": result.keywords,
+        "confidence": result.confidence,
+        "source_url": result.source_url
+    }
+    
+    org_data = OrganizationUpdate(
+        website_url=request.website_url,
+        baseline_suggestion=result.baseline_suggestion,
+        # We manually update plain fields that are not in Schema or special types
+    )
+    
+    # Apply regular updates
+    updated_org = org_service.update(org_id, org_data)
+    
+    # Apply special fields (JSON and datetime)
+    # Re-fetch or attach to session if needed, but update() commits.
+    # We can just manually update the ORM object and commit again using service generic approach?
+    # No, OrganizationUpdate schema doesn't have enriched_at or org_profile as input fields usually.
+    # Let's manually update the DB object since we are in the API layer and have the DB session via service or dependency.
+    # Actually simpler: Add org_profile to OrganizationUpdate? No, it's internal logic.
+    # Let's use the DB session directly or extend service.
+    
+    # Direct DB update for fields not in OrganizationUpdate public schema
+    org.org_profile = json.dumps(profile_data)
+    org.enriched_at = datetime.utcnow()
+    db.commit()
+    db.refresh(org)
+    
+    return result
+
+
+@router.get("/{org_id}/trend")
+async def get_organization_score_trend(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """
+    Get score trend history for an organization.
+    Returns list of data points with date and overall score.
+    """
+    from app.models.assessment import Assessment, AssessmentStatus
+    
+    # Verify access
+    service = get_org_service(db, user)
+    if not service.get(org_id):
+        raise HTTPException(status_code=404, detail="Organization not found")
+        
+    # Fetch completed assessments
+    assessments = db.query(Assessment).filter(
+        Assessment.organization_id == org_id,
+        Assessment.status == AssessmentStatus.COMPLETED,
+        Assessment.overall_score.isnot(None)
+    ).order_by(Assessment.created_at.asc()).all()
+    
+    trend_data = []
+    for a in assessments:
+        trend_data.append({
+            "date": a.created_at.isoformat(),
+            "score": a.overall_score,
+            "assessment_id": a.id,
+            "name": a.title or "Untitled Assessment"
+        })
+        
+    return trend_data
+

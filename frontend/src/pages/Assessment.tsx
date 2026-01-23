@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRubric, getAssessment, submitAnswers, computeScore, ApiRequestError } from '../api';
+import { getRubric, getAssessmentEdit, updateAssessmentEdit, computeScore, ApiRequestError } from '../api';
 import type { Rubric, Question, AssessmentDetail } from '../types';
 import { Card, CardContent, Button, Badge } from '../components/ui';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
@@ -26,22 +26,26 @@ export default function Assessment() {
   const [activeDomain, setActiveDomain] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([getRubric(), getAssessment(id!)])
-      .then(([r, a]) => {
+    Promise.all([getRubric(), getAssessmentEdit(id!)])
+      .then(([r, editContext]) => {
         setRubric(r);
-        setAssessment(a);
-        // Pre-fill answers from existing assessment answers
-        const existing: Record<string, boolean | number> = {};
-        a.answers?.forEach((ans) => {
-          if (typeof ans.value === 'boolean' || typeof ans.value === 'number') {
-            existing[ans.question_id] = ans.value;
-          } else if (ans.value === 'true' || ans.value === 'false') {
-            existing[ans.question_id] = ans.value === 'true';
-          } else {
-            existing[ans.question_id] = parseFloat(String(ans.value)) || 0;
-          }
-        });
-        setAnswers(existing);
+        setAssessment(editContext.assessment);
+        // Pre-fill answers from optimized answers_map
+        if (editContext.answers_map) {
+          const normalized = { ...editContext.answers_map };
+          // Normalize legacy boolean values that might come as strings
+          Object.keys(normalized).forEach(k => {
+            const val = normalized[k];
+            if (val === 'yes' || val === 'true') normalized[k] = true;
+            if (val === 'no' || val === 'false') normalized[k] = false;
+            // Ensure numbers are numbers
+            if (typeof val === 'string' && !isNaN(Number(val)) && val !== '' && val !== 'yes' && val !== 'no' && val !== 'true' && val !== 'false') {
+              normalized[k] = Number(val);
+            }
+          });
+          setAnswers(normalized);
+        }
+
         const domainIds = Object.keys(r.domains);
         if (domainIds.length > 0) {
           setActiveDomain(domainIds[0]);
@@ -67,7 +71,10 @@ export default function Assessment() {
 
     try {
       const formattedAnswers: Record<string, boolean | number> = { ...answers };
-      await submitAnswers(id!, formattedAnswers);
+
+      // Use efficient bulk update endpoint
+      await updateAssessmentEdit(id!, formattedAnswers);
+
       await computeScore(id!);
       navigate('/results/' + id);
     } catch (err) {
@@ -178,6 +185,7 @@ export default function Assessment() {
   const domains = getDomains();
   const currentDomain = domains.find((d) => d.id === activeDomain);
   const progress = getProgress();
+  const isUpdate = assessment.answers && assessment.answers.length > 0;
 
   return (
     <div className="space-y-6">
@@ -186,9 +194,12 @@ export default function Assessment() {
         <CardContent className="py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{assessment.title}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-gray-900">{assessment.title}</h1>
+                {isUpdate && <Badge variant="warning">Editing</Badge>}
+              </div>
               <p className="text-sm text-gray-500">
-                Answer all questions to complete the assessment
+                {isUpdate ? 'Update answers to re-calculate score' : 'Answer all questions to complete the assessment'}
               </p>
             </div>
             <div className="text-right">
@@ -261,19 +272,25 @@ export default function Assessment() {
 
       {/* Submit */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          {progress < 100
-            ? `Complete all questions to submit (${100 - progress}% remaining)`
-            : 'All questions answered!'}
-        </p>
-        <Button
-          onClick={handleSubmit}
-          disabled={progress < 100 || submitting}
-          loading={submitting}
-        >
-          {submitting ? 'Submitting...' : 'Submit Assessment'}
+        <Button variant="outline" onClick={() => navigate('/results/' + id)}>
+          Cancel
         </Button>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-gray-500 text-right">
+            {progress < 100
+              ? `Complete all questions to submit (${100 - progress}% remaining)`
+              : 'All questions answered!'}
+          </p>
+          <Button
+            onClick={handleSubmit}
+            disabled={progress < 100 || submitting}
+            loading={submitting}
+          >
+            {submitting ? 'Processing...' : (isUpdate ? 'Save & Re-calculate' : 'Submit Assessment')}
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
+

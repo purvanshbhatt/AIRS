@@ -238,6 +238,26 @@ async def submit_answers(
         )
 
 
+@router.put(
+    "/{assessment_id}/answers",
+    response_model=List[AnswerResponse],
+    summary="Update Answers",
+    description="Update answers for an assessment (must be owned by current user). Same as POST but with PUT semantics.",
+    responses={
+        200: {"description": "Answers updated successfully"},
+        404: {"description": "Assessment not found"}
+    }
+)
+async def update_answers(
+    assessment_id: str,
+    data: AnswerBulkSubmit,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """Update answers for an assessment owned by current user."""
+    return await submit_answers(assessment_id, data, db, user)
+
+
 @router.get("/{assessment_id}/answers", response_model=List[AnswerResponse])
 async def get_answers(
     assessment_id: str,
@@ -253,6 +273,42 @@ async def get_answers(
             detail=f"Assessment not found: {assessment_id}"
         )
     return service.get_answers(assessment_id)
+
+
+# ----- Edit Mode -----
+
+@router.get("/{assessment_id}/edit")
+async def get_assessment_edit_context(
+    assessment_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """
+    Get context for editing an assessment (simple answer map).
+    """
+    service = get_assessment_service(db, user)
+    result = service.get_edit_context(assessment_id)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Assessment not found: {assessment_id}"
+        )
+    return result
+
+
+@router.put("/{assessment_id}/edit")
+async def update_assessment_answers(
+    assessment_id: str,
+    data: AnswerBulkSubmit,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """
+    Update answers for an assessment (Edit Mode). 
+    Effectively alias to submit_answers but semantically distinct for UI.
+    """
+    return await submit_answers(assessment_id, data, db, user)
+
 
 
 # ----- Scoring -----

@@ -1,7 +1,9 @@
 @import "tailwindcss";
-
-/* Import Inter font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 
 /* Custom theme configuration */
 @theme {
@@ -50,7 +52,7 @@
   --color-danger-900: #7f1d1d;
 
   --font-family-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  
+
   --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
   --shadow-medium: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
@@ -66,6 +68,13 @@ body {
   font-family: var(--font-family-sans);
   background-color: var(--color-gray-50);
   color: var(--color-gray-900);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark mode base styles */
+.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
 }
 
 /* Animation keyframes */
@@ -74,6 +83,7 @@ body {
     opacity: 0;
     transform: translateX(var(--tw-enter-translate-x, 0));
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -84,4 +94,17 @@ body {
 .focus-ring:focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-primary-500), 0 0 0 4px rgba(14, 165, 233, 0.2);
+}
+
+/* Dark mode shadows */
+.dark .shadow-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.2), 0 10px 20px -2px rgba(0, 0, 0, 0.15);
+}
+
+.dark .shadow-medium {
+  box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }

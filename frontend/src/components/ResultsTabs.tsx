@@ -9,11 +9,11 @@
  * - Analytics: Attack paths, detection gaps, response gaps
  */
 
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  Shield, 
-  Target, 
+import {
+  AlertTriangle,
+  CheckCircle,
+  Shield,
+  Target,
   TrendingUp,
   Calendar,
   Clock,
@@ -24,22 +24,22 @@ import {
   Bot,
   ExternalLink,
   Route,
-  Eye,
-  Radio,
-  Users,
   Lock,
   FileWarning,
+  Plus,
+  ShieldAlert,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '../components/ui'
-import type { 
-  AssessmentSummary, 
-  AttackPath, 
-  GapCategory,
+import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '../components/ui'
+import type {
+  AssessmentSummary,
+  AttackPath,
   DetailedRoadmapItem,
   FrameworkMappedFinding,
   MitreRef,
   CISRef,
 } from '../types'
+import { createRoadmapItem } from '../api'
 
 // Helper functions
 function getTierBg(color: string) {
@@ -109,9 +109,10 @@ interface OverviewTabProps {
   summary: AssessmentSummary;
   selectedBaseline: string;
   setSelectedBaseline: (baseline: string) => void;
+  suggestedBaseline?: string;
 }
 
-export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline }: OverviewTabProps) {
+export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, suggestedBaseline }: OverviewTabProps) {
   const { tier, domain_scores, findings, executive_summary } = summary
   const topFailures = findings.slice(0, 5)
 
@@ -152,7 +153,7 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline }: 
                 <span className="text-gray-500 text-sm mt-1">out of 100</span>
               </div>
             </div>
-            
+
             {/* Tier & Stats */}
             <div className="text-center lg:text-left space-y-4">
               <div>
@@ -228,7 +229,7 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline }: 
                 {summary.executive_summary_text}
               </p>
             </div>
-            
+
             {/* AI Roadmap Narrative */}
             {summary.roadmap_narrative_text && (
               <div className="pt-4 border-t border-primary-100">
@@ -241,7 +242,7 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline }: 
                 </p>
               </div>
             )}
-            
+
             {/* LLM info footer */}
             <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-100">
               <span>Powered by {summary.llm_provider || 'AI'}</span>
@@ -289,7 +290,7 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline }: 
               )
             })}
           </div>
-          
+
           {/* Legend */}
           <div className="flex flex-wrap justify-center gap-4 mt-6 pt-4 border-t border-gray-100">
             <div className="flex items-center gap-2 text-xs">
@@ -363,15 +364,27 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline }: 
                 <TrendingUp className="h-5 w-5 text-primary-500" />
                 Benchmark Comparison
               </CardTitle>
-              <select
-                value={selectedBaseline}
-                onChange={(e) => setSelectedBaseline(e.target.value)}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
-              >
-                {summary.baselines_available?.map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
+              <div className="flex items-center gap-2">
+                {suggestedBaseline && suggestedBaseline !== selectedBaseline && (
+                  <button
+                    onClick={() => setSelectedBaseline(suggestedBaseline)}
+                    className="text-xs flex items-center gap-1 px-2 py-1.5 rounded-lg bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
+                    title={`Apply suggested baseline: ${suggestedBaseline}`}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    Apply Suggested
+                  </button>
+                )}
+                <select
+                  value={selectedBaseline}
+                  onChange={(e) => setSelectedBaseline(e.target.value)}
+                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
+                >
+                  {summary.baselines_available?.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -551,6 +564,7 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
       {coverage && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* MITRE Coverage */}
+          {/* MITRE Coverage */}
           <Card>
             <CardContent className="py-6">
               <div className="flex items-center gap-3 mb-4">
@@ -562,9 +576,28 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
                   <div className="text-2xl font-bold">{coverage.mitre_coverage_pct.toFixed(0)}%</div>
                 </div>
               </div>
-              <div className="text-xs text-gray-500">
-                {coverage.mitre_techniques_enabled} of {coverage.mitre_techniques_total} techniques addressed
+
+              {/* Count logic */}
+              <div className="text-xs text-gray-500 mt-2">
+                <span className="font-medium text-gray-700">{coverage.mitre_techniques_referenced || 0}</span> of <span className="font-medium text-gray-700">{coverage.mitre_techniques_total || 40}</span> techniques referenced
               </div>
+
+              {/* Top Techniques List */}
+              {coverage.mitre_techniques_referenced_list && coverage.mitre_techniques_referenced_list.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Top Referenced</p>
+                  <div className="flex flex-wrap gap-1">
+                    {coverage.mitre_techniques_referenced_list.slice(0, 5).map((tid: string) => (
+                      <Badge key={tid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white">
+                        {tid}
+                      </Badge>
+                    ))}
+                    {coverage.mitre_techniques_referenced_list.length > 5 && (
+                      <span className="text-[10px] text-gray-400 flex items-center">+{coverage.mitre_techniques_referenced_list.length - 5} more</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -761,7 +794,9 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
 
           return (
             <Card key={phaseKey} className={`overflow-hidden ${phaseColors[phaseKey]}`}>
-              <div className={`px-6 py-3 ${headerColors[phaseKey]} flex items-center justify-between`}>
+              <div
+                className={`px-6 py-3 ${headerColors[phaseKey]} flex items-center justify-between`}
+              >
                 <div className="flex items-center gap-2 font-semibold">
                   <Calendar className="h-4 w-4" />
                   {phase.name}
@@ -774,48 +809,96 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
               <CardContent className="pt-4">
                 <p className="text-sm text-gray-600 mb-4">{phase.description}</p>
                 <div className="space-y-3">
-                  {phase.items.map((item: DetailedRoadmapItem, i: number) => (
-                    <div
-                      key={item.finding_id || i}
-                      className="p-4 bg-white rounded-lg border border-gray-200"
-                    >
-                      <div className="flex items-start justify-between gap-4 mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant={getSeverityVariant(item.severity)}>{item.severity}</Badge>
-                            <Badge variant="outline">{item.effort} effort</Badge>
-                            <span className="text-xs text-gray-500">{item.domain}</span>
+                  {phase.items.map((item: DetailedRoadmapItem, i: number) => {
+                    // Tracking state
+                    const [added, setAdded] = React.useState(false)
+                    const [tracking, setTracking] = React.useState(false)
+
+                    const handleAddToTracker = async () => {
+                      if (added || tracking) return
+                      setTracking(true)
+                      try {
+                        await createRoadmapItem(summary.organization_id, {
+                          title: item.title,
+                          description: item.action,
+                          status: 'todo',
+                          priority: ['critical', 'high'].includes(
+                            item.severity.toLowerCase()
+                          )
+                            ? 'high'
+                            : 'medium',
+                          effort: item.effort.toLowerCase() as any,
+                        })
+                        setAdded(true)
+                      } catch (e) {
+                        console.error('Failed to add roadmap item', e)
+                      } finally {
+                        setTracking(false)
+                      }
+                    }
+
+                    return (
+                      <div
+                        key={item.finding_id || i}
+                        className="p-4 bg-white rounded-lg border border-gray-200"
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant={getSeverityVariant(item.severity)}>
+                                {item.severity}
+                              </Badge>
+                              <Badge variant="outline">{item.effort} effort</Badge>
+                              <span className="text-xs text-gray-500">{item.domain}</span>
+                            </div>
+                            <h4 className="font-medium text-gray-900">{item.title}</h4>
                           </div>
-                          <h4 className="font-medium text-gray-900">{item.title}</h4>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 gap-1"
+                            onClick={handleAddToTracker}
+                            disabled={added || tracking}
+                          >
+                            {added ? (
+                              <CheckCircle className="w-3 h-3 text-green-600" />
+                            ) : (
+                              <Plus className="w-3 h-3" />
+                            )}
+                            {added ? 'Tracked' : 'Track'}
+                          </Button>
                         </div>
+                        <p className="text-sm text-gray-600 mb-3">{item.action}</p>
+
+                        {item.milestones && item.milestones.length > 0 && (
+                          <div className="mb-3">
+                            <div className="text-xs font-medium text-gray-700 mb-2">
+                              Milestones:
+                            </div>
+                            <ul className="space-y-1">
+                              {item.milestones.map((m, mi) => (
+                                <li
+                                  key={mi}
+                                  className="flex items-start gap-2 text-xs text-gray-600"
+                                >
+                                  <ChevronRight className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                                  {m}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {item.success_criteria && (
+                          <div className="text-xs text-success-700 bg-success-50 rounded p-2">
+                            <strong>Success:</strong> {item.success_criteria}
+                          </div>
+                        )}
+
+                        <div className="mt-2 text-xs text-gray-400">Owner: {item.owner}</div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{item.action}</p>
-                      
-                      {item.milestones && item.milestones.length > 0 && (
-                        <div className="mb-3">
-                          <div className="text-xs font-medium text-gray-700 mb-2">Milestones:</div>
-                          <ul className="space-y-1">
-                            {item.milestones.map((m, mi) => (
-                              <li key={mi} className="flex items-start gap-2 text-xs text-gray-600">
-                                <ChevronRight className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                                {m}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      {item.success_criteria && (
-                        <div className="text-xs text-success-700 bg-success-50 rounded p-2">
-                          <strong>Success:</strong> {item.success_criteria}
-                        </div>
-                      )}
-                      
-                      <div className="mt-2 text-xs text-gray-400">
-                        Owner: {item.owner}
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -929,19 +1012,72 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
           <Route className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No Analytics Available</h3>
           <p className="text-gray-600">
-            Advanced analytics will appear here once the assessment is scored.
+            Advanced analytics will appear here once the assessment is scored and findings are generated.
           </p>
         </CardContent>
       </Card>
     )
   }
 
-  const { attack_paths, detection_gaps, response_gaps, identity_gaps } = analytics
+  const { attack_paths, detection_gaps, response_gaps, identity_gaps, risk_summary } = analytics
+
+  // Safe checks for empty lists
+  const hasAttackPaths = attack_paths && attack_paths.length > 0
+  const hasDetectionGaps = detection_gaps && detection_gaps.categories && detection_gaps.categories.length > 0
+  const hasResponseGaps = response_gaps && response_gaps.categories && response_gaps.categories.length > 0
+  const hasIdentityGaps = identity_gaps && identity_gaps.categories && identity_gaps.categories.length > 0
+
+  const hasAnyContent = hasAttackPaths || hasDetectionGaps || hasResponseGaps || hasIdentityGaps
+
+  if (!hasAnyContent) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Critical Risks Detected</h3>
+          <p className="text-gray-600 max-w-lg mx-auto">
+            Great job! Our analysis did not identify any major attack paths or critical security gaps based on the current assessment findings.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+
+      {/* Risk Summary Cards */}
+      {risk_summary && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-red-50 border-red-100">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium text-red-800">Critical Risks</div>
+              <div className="text-2xl font-bold text-red-900">{risk_summary.severity_counts?.critical || 0}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-orange-50 border-orange-100">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium text-orange-800">High Risks</div>
+              <div className="text-2xl font-bold text-orange-900">{risk_summary.severity_counts?.high || 0}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-50 border-gray-200">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium text-gray-600">Total Findings</div>
+              <div className="text-2xl font-bold text-gray-900">{risk_summary.findings_count || 0}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-blue-50 border-blue-100">
+            <CardContent className="p-4">
+              <div className="text-sm font-medium text-blue-800">Risk Score</div>
+              <div className="text-2xl font-bold text-blue-900">{risk_summary.total_risk_score || 0}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Attack Paths */}
-      {attack_paths && attack_paths.length > 0 && (
+      {hasAttackPaths && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -964,17 +1100,17 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-gray-900">{path.name}</h4>
                         <Badge className={getLikelihoodColor(path.likelihood)}>
-                          {path.likelihood} likelihood
+                          {path.likelihood || 'Medium'} likelihood
                         </Badge>
                         <Badge className={getLikelihoodColor(path.impact)}>
-                          {path.impact} impact
+                          {path.impact || 'High'} impact
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">{path.description}</p>
                     </div>
                   </div>
 
-                  {/* Attack Steps */}
+                  {/* Attack Steps (Techniques) */}
                   {path.steps && path.steps.length > 0 && (
                     <div className="mb-3">
                       <div className="text-xs font-medium text-gray-700 mb-2">Attack Progression:</div>
@@ -982,11 +1118,27 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
                         {path.steps.map((step, i) => (
                           <div key={i} className="flex items-center gap-2">
                             <div className="px-2 py-1 bg-danger-50 text-danger-700 rounded text-xs">
-                              {step.step}. {step.action}
+                              {step.step ? `${step.step}. ` : ''}{step.action}
                             </div>
                             {i < path.steps.length - 1 && (
                               <ChevronRight className="h-4 w-4 text-gray-400" />
                             )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Techniques (if steps not available but techniques list is) */}
+                  {/* @ts-ignore - handling backend payload variation */}
+                  {path.techniques && path.techniques.length > 0 && !path.steps && (
+                    <div className="mb-3">
+                      <div className="text-xs font-medium text-gray-700 mb-2">Techniques Used:</div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* @ts-ignore */}
+                        {path.techniques.map((tech, i) => (
+                          <div key={i} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs border border-gray-200">
+                            {tech.name || tech.id}
                           </div>
                         ))}
                       </div>
@@ -999,28 +1151,13 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
                       <div className="text-xs font-medium text-gray-700 mb-2">Enabled by these gaps:</div>
                       <div className="flex flex-wrap gap-2">
                         {path.enabling_gaps.map((gap, i) => (
-                          <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                          <span key={i} className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs border border-red-100">
                             {gap}
                           </span>
                         ))}
                       </div>
                     </div>
                   )}
-
-                  {/* Mitigations */}
-                  {path.mitigations && path.mitigations.length > 0 && (
-                    <div>
-                      <div className="text-xs font-medium text-success-700 mb-2">Mitigations:</div>
-                      <ul className="space-y-1">
-                        {path.mitigations.map((m, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-success-600">
-                            <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                            {m}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -1028,174 +1165,74 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
         </Card>
       )}
 
-      {/* Detection Gaps */}
-      {detection_gaps && detection_gaps.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5 text-warning-500" />
-              Detection Gaps
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {detection_gaps.map((cat: GapCategory) => (
-                <div
-                  key={cat.category}
-                  className={`p-4 rounded-lg border ${
-                    cat.status === 'gap'
-                      ? 'border-danger-200 bg-danger-50'
-                      : cat.status === 'partial'
-                      ? 'border-warning-200 bg-warning-50'
-                      : 'border-success-200 bg-success-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium text-gray-900">{cat.category_name}</div>
-                    <Badge
-                      variant={
-                        cat.status === 'gap' ? 'danger' : cat.status === 'partial' ? 'warning' : 'success'
-                      }
-                    >
-                      {cat.status}
-                    </Badge>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-                    <div
-                      className={`h-full ${
-                        cat.coverage_score >= 80
-                          ? 'bg-success-500'
-                          : cat.coverage_score >= 50
-                          ? 'bg-warning-500'
-                          : 'bg-danger-500'
-                      }`}
-                      style={{ width: `${cat.coverage_score}%` }}
-                    />
-                  </div>
-                  {cat.gaps && cat.gaps.length > 0 && (
-                    <div className="text-xs text-gray-600">
-                      {cat.gaps.length} issue{cat.gaps.length > 1 ? 's' : ''} identified
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Gap Analysis Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Detection Gaps */}
+        {hasDetectionGaps && (
+          <GapAnalysisCard
+            title="Detection Gaps"
+            icon={<ShieldAlert className="h-5 w-5 text-orange-500" />}
+            categories={detection_gaps.categories}
+          />
+        )}
 
-      {/* Response Gaps */}
-      {response_gaps && response_gaps.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Radio className="h-5 w-5 text-primary-500" />
-              Response Gaps
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {response_gaps.map((cat: GapCategory) => (
-                <div
-                  key={cat.category}
-                  className={`p-4 rounded-lg border ${
-                    cat.status === 'gap'
-                      ? 'border-danger-200 bg-danger-50'
-                      : cat.status === 'partial'
-                      ? 'border-warning-200 bg-warning-50'
-                      : 'border-success-200 bg-success-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium text-gray-900">{cat.category_name}</div>
-                    <Badge
-                      variant={
-                        cat.status === 'gap' ? 'danger' : cat.status === 'partial' ? 'warning' : 'success'
-                      }
-                    >
-                      {cat.status}
-                    </Badge>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-                    <div
-                      className={`h-full ${
-                        cat.coverage_score >= 80
-                          ? 'bg-success-500'
-                          : cat.coverage_score >= 50
-                          ? 'bg-warning-500'
-                          : 'bg-danger-500'
-                      }`}
-                      style={{ width: `${cat.coverage_score}%` }}
-                    />
-                  </div>
-                  {cat.gaps && cat.gaps.length > 0 && (
-                    <div className="text-xs text-gray-600">
-                      {cat.gaps.length} issue{cat.gaps.length > 1 ? 's' : ''} identified
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {/* Response Gaps */}
+        {hasResponseGaps && (
+          <GapAnalysisCard
+            title="Response Gaps"
+            icon={<Zap className="h-5 w-5 text-blue-500" />}
+            categories={response_gaps.categories}
+          />
+        )}
 
-      {/* Identity Gaps */}
-      {identity_gaps && identity_gaps.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-500" />
-              Identity & Access Gaps
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {identity_gaps.map((cat: GapCategory) => (
-                <div
-                  key={cat.category}
-                  className={`p-4 rounded-lg border ${
-                    cat.status === 'gap'
-                      ? 'border-danger-200 bg-danger-50'
-                      : cat.status === 'partial'
-                      ? 'border-warning-200 bg-warning-50'
-                      : 'border-success-200 bg-success-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium text-gray-900">{cat.category_name}</div>
-                    <Badge
-                      variant={
-                        cat.status === 'gap' ? 'danger' : cat.status === 'partial' ? 'warning' : 'success'
-                      }
-                    >
-                      {cat.status}
-                    </Badge>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
-                    <div
-                      className={`h-full ${
-                        cat.coverage_score >= 80
-                          ? 'bg-success-500'
-                          : cat.coverage_score >= 50
-                          ? 'bg-warning-500'
-                          : 'bg-danger-500'
-                      }`}
-                      style={{ width: `${cat.coverage_score}%` }}
-                    />
-                  </div>
-                  {cat.gaps && cat.gaps.length > 0 && (
-                    <div className="text-xs text-gray-600">
-                      {cat.gaps.length} issue{cat.gaps.length > 1 ? 's' : ''} identified
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {/* Identity Gaps */}
+        {hasIdentityGaps && (
+          <GapAnalysisCard
+            title="Identity & Access Gaps"
+            icon={<AlertTriangle className="h-5 w-5 text-purple-500" />}
+            categories={identity_gaps.categories}
+          />
+        )}
+      </div>
     </div>
+  )
+}
+
+function GapAnalysisCard({ title, icon, categories }: { title: string, icon: React.ReactNode, categories: any[] }) {
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          {icon}
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {categories.map((cat, i) => (
+            <div key={i} className="p-3 bg-gray-50 rounded border border-gray-100">
+              <div className="flex justify-between items-start mb-1">
+                <div className="font-medium text-sm text-gray-900">{cat.category}</div>
+                <Badge variant="outline" className={cat.is_critical ? "bg-red-50 text-red-700 border-red-200" : "bg-gray-100 text-gray-600"}>
+                  {cat.gap_count} gaps
+                </Badge>
+              </div>
+              <p className="text-xs text-gray-500 mb-2">{cat.description}</p>
+
+              {cat.findings && cat.findings.length > 0 && (
+                <div className="space-y-1 pl-2 border-l-2 border-gray-200">
+                  {cat.findings.map((f: any, j: number) => (
+                    <div key={j} className="text-xs text-gray-700 truncate" title={f.title}>
+                      • {f.title}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

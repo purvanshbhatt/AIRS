@@ -25,6 +25,9 @@ A FastAPI application for AI security readiness assessments with scoring, findin
 
 - **Security Assessment Questionnaire** - Structured assessment across multiple domains
 - **Deterministic Scoring Engine** - Consistent, reproducible scoring rubric
+- **Analytics & Attack Paths** - Visual analysis of top risks and potential attack paths
+- **Remediation Roadmap** - Track and manage remediation tasks over time
+- **Edit & Re-score** - Update existing assessments and recalculate scores instantly
 - **Automated Findings** - Rule-based findings generation with recommendations
 - **PDF Reports** - Professional assessment reports with charts
 - **LLM Narratives** (Optional) - AI-generated executive summaries using Google Gemini

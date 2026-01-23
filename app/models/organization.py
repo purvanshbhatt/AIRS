@@ -23,6 +23,13 @@ class Organization(Base):
     contact_email = Column(String(255), nullable=True)
     contact_name = Column(String(255), nullable=True)
     notes = Column(Text, nullable=True)
+    
+    # Enrichment fields
+    website_url = Column(String(512), nullable=True)
+    org_profile = Column(Text, nullable=True)  # JSON string
+    baseline_suggestion = Column(String(50), nullable=True)
+    enriched_at = Column(DateTime(timezone=True), nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

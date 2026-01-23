@@ -325,12 +325,21 @@ class IdentityGaps(BaseModel):
     categories: List[GapCategoryItem] = []
 
 
+class RiskSummary(BaseModel):
+    """Risk summary metrics."""
+    severity_counts: Dict[str, int]
+    top_risks: List[str]
+    total_risk_score: int
+    findings_count: int
+
+
 class Analytics(BaseModel):
     """Full analytics for an assessment."""
     attack_paths: List[AttackPath] = []
     detection_gaps: Optional[DetectionGaps] = None
     response_gaps: Optional[ResponseGaps] = None
     identity_gaps: Optional[IdentityGaps] = None
+    risk_summary: Optional[RiskSummary] = None
     framework_summary: Optional[Dict[str, Any]] = None
     top_risks: List[str] = []
     recommended_priorities: List[str] = []

@@ -687,8 +687,47 @@ class FindingsEngine:
             "RS-004": ["rs_05"],
             "RS-005": ["rs_04"],
             "RS-006": ["rs_06"],
+            "AGG-001": ["telemetry_logging"], # Domain mapping
+            "AGG-002": ["identity_visibility"],
+            "AGG-003": ["overall_score"],
         }
         return rule_question_map.get(rule_id, [])
+
+    def get_rule_id_for_question(self, question_id: str) -> Optional[str]:
+        """
+        Reverse lookup: Find primary rule ID for a question ID.
+        Used for mapping DB findings back to rules for analytics.
+        """
+        # Manual reverse map for common questions to primary rules
+        # Prioritizes the most specific/relevant rule for analytics
+        reverse_map = {
+            "tl_05": "TL-001",
+            "tl_04": "TL-002",
+            "tl_02": "TL-003",
+            "tl_03": "TL-004",
+            "tl_06": "TL-005",
+            "dc_01": "DC-001", # Default to warning, not critical
+            "dc_02": "DC-003",
+            "dc_03": "DC-004",
+            "dc_05": "DC-005",
+            "dc_06": "DC-006",
+            "iv_02": "IV-001",
+            "iv_01": "IV-002",
+            "iv_03": "IV-003",
+            "iv_04": "IV-004",
+            "iv_05": "IV-005",
+            "ir_01": "IR-001",
+            "ir_02": "IR-002",
+            "ir_06": "IR-003",
+            "ir_03": "IR-004",
+            "rs_03": "RS-001",
+            "rs_01": "RS-003", # Critical backup gap
+            "rs_02": "RS-002",
+            "rs_05": "RS-004",
+            "rs_04": "RS-005",
+            "rs_06": "RS-006",
+        }
+        return reverse_map.get(question_id)
     
     def get_summary(self, findings: List[Finding]) -> Dict[str, Any]:
         """
@@ -774,3 +813,9 @@ def get_findings_summary(findings: List[Finding]) -> Dict[str, Any]:
     """
     engine = FindingsEngine()
     return engine.get_summary(findings)
+
+
+def get_rule_id_for_question(question_id: str) -> Optional[str]:
+    """Convenience access to engine helper."""
+    engine = FindingsEngine()
+    return engine.get_rule_id_for_question(question_id)

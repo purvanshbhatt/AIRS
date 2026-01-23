@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { getAssessmentSummary, downloadReport, downloadReportById, createReport, getReportsForAssessment, ApiRequestError } from '../api'
+import { getAssessmentSummary, getOrganization, downloadReport, downloadReportById, createReport, getReportsForAssessment, ApiRequestError } from '../api'
 import type { AssessmentSummary, Report } from '../types'
 import {
   Card,
@@ -56,6 +56,7 @@ export default function Results() {
   const [error, setError] = useState('')
   const [isAccessDenied, setIsAccessDenied] = useState(false)
   const [selectedBaseline, setSelectedBaseline] = useState<string>('Typical SMB')
+  const [suggestedBaseline, setSuggestedBaseline] = useState<string | undefined>()
   const [activeTab, setActiveTab] = useState<ResultTabId>('overview')
 
   // Load saved reports for this assessment
@@ -75,7 +76,21 @@ export default function Results() {
 
   useEffect(() => {
     getAssessmentSummary(id!)
-      .then(setSummary)
+      .then(async (data) => {
+        setSummary(data)
+
+        // Fetch organization to check for suggested baseline
+        if (data.organization_id) {
+          try {
+            const org = await getOrganization(data.organization_id);
+            if (org.baseline_suggestion) {
+              setSuggestedBaseline(org.baseline_suggestion.replace('_', ' ')); // Normalize
+            }
+          } catch (err) {
+            console.log('Could not load organization details');
+          }
+        }
+      })
       .catch((err) => {
         if (err instanceof ApiRequestError) {
           if (err.status === 404 || err.status === 403) {
@@ -89,7 +104,7 @@ export default function Results() {
         }
       })
       .finally(() => setLoading(false))
-    
+
     // Also load saved reports
     loadSavedReports()
   }, [id, loadSavedReports])
@@ -99,7 +114,7 @@ export default function Results() {
     try {
       let blob: Blob
       let filename: string
-      
+
       // If we have a saved report, download it; otherwise generate on the fly
       if (savedReports.length > 0) {
         const latestReport = savedReports[0]
@@ -110,7 +125,7 @@ export default function Results() {
         blob = await downloadReport(id!)
         filename = `AIRS_Report_${id}.pdf`
       }
-      
+
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -135,17 +150,17 @@ export default function Results() {
     try {
       const newReport = await createReport(id!, { report_type: 'full' })
       setSaved(true)
-      
+
       // Add to local state immediately
       setSavedReports(prev => [newReport, ...prev])
-      
+
       // Show success toast
       addToast({
         type: 'success',
         title: 'Report Saved!',
         message: 'Your report has been saved and is available in Reports.',
       })
-      
+
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
       if (err instanceof ApiRequestError) {
@@ -324,7 +339,7 @@ export default function Results() {
           </h1>
           <p className="text-gray-600">Assessment ID: {id?.slice(0, 8)}...</p>
         </div>
-        
+
         <div className="flex flex-wrap gap-3">
           <Button
             variant="secondary"
@@ -375,10 +390,11 @@ export default function Results() {
         {/* Tab Content */}
         <div className="mt-6">
           <TabsContent value="overview">
-            <OverviewTab 
-              summary={summary} 
+            <OverviewTab
+              summary={summary}
               selectedBaseline={selectedBaseline}
               setSelectedBaseline={setSelectedBaseline}
+              suggestedBaseline={suggestedBaseline}
             />
           </TabsContent>
 

@@ -1,12 +1,12 @@
 """
 Security Framework Mappings for AIRS Findings.
 
-Maps findings to industry-standard frameworks:
+Maps findings (Question IDs) to industry-standard frameworks:
 - MITRE ATT&CK: Tactics and techniques
 - CIS Controls v8: Control references
 - OWASP: Web/Auth security references
 
-Each mapping links a finding rule ID to relevant framework references.
+Each mapping links a finding rule ID (Question ID) to relevant framework references.
 """
 
 from dataclasses import dataclass
@@ -151,6 +151,10 @@ MITRE_TECHNIQUES: Dict[str, MitreReference] = {
                             "https://attack.mitre.org/techniques/T1204"),
 }
 
+# The number of unique techniques in MITRE ATT&CK Enterprise (approximate, for coverage calc)
+# We use the count of our catalog as a baseline or a standard "Top 40" set.
+TOTAL_MITRE_TECHNIQUES = 40
+
 
 # =============================================================================
 # CIS CONTROLS v8 MAPPINGS
@@ -253,151 +257,167 @@ OWASP_REFS: Dict[str, OWASPReference] = {
 # =============================================================================
 # FINDING RULE TO FRAMEWORK MAPPINGS
 # =============================================================================
+# Keys MUST match Question IDs from rubric.py (e.g., tl_01, iv_02)
 
 FINDING_FRAMEWORK_MAPPINGS: Dict[str, Dict[str, List[str]]] = {
-    # Telemetry & Logging Rules
-    "TL-001": {  # Insufficient Log Retention
-        "mitre": ["T1070", "T1070.001", "T1562"],
+    # Telemetry & Logging
+    "tl_01": {  # Network Logs
+        "mitre": ["T1059", "T1071"],
+        "cis": ["13.6", "12.1"],
+        "owasp": ["A09"],
+    },
+    "tl_02": {  # Endpoint Logs
+        "mitre": ["T1059", "T1204"],
+        "cis": ["8.2", "8.5"],
+        "owasp": ["A09"],
+    },
+    "tl_03": {  # Cloud Logs
+        "mitre": ["T1530", "T1078"],
+        "cis": ["8.2", "8.9"],
+        "owasp": ["A09"],
+    },
+    "tl_04": {  # Centralized Logging
+        "mitre": ["T1070", "T1562"],
+        "cis": ["8.9", "8.11", "13.1"],
+        "owasp": ["A09"],
+    },
+    "tl_05": {  # Log Retention
+        "mitre": ["T1070", "T1070.001", "T1562"],  # Indicator Removal
         "cis": ["8.3", "3.4"],
         "owasp": ["A09"],
     },
-    "TL-002": {  # Missing Centralized Log Management
-        "mitre": ["T1070", "T1562", "T1562.001"],
-        "cis": ["8.2", "8.9", "8.11"],
-        "owasp": ["A09"],
-    },
-    "TL-003": {  # Incomplete Endpoint Logging
-        "mitre": ["T1059", "T1562.001", "T1070"],
-        "cis": ["8.5", "8.2"],
-        "owasp": ["A09"],
-    },
-    "TL-004": {  # No Cloud Service Logging
-        "mitre": ["T1530", "T1078", "T1562"],
-        "cis": ["8.2", "8.11"],
-        "owasp": ["A09"],
-    },
-    "TL-005": {  # Authentication Events Not Logged
-        "mitre": ["T1078", "T1110", "T1136", "T1098"],
-        "cis": ["8.5", "8.11"],
+    "tl_06": {  # Auth Logging
+        "mitre": ["T1078", "T1078.001", "T1078.002"],
+        "cis": ["8.5", "5.1"],
         "owasp": ["A07", "A09"],
     },
-    
-    # Detection Coverage Rules
-    "DC-001": {  # Inadequate EDR Coverage
-        "mitre": ["T1059", "T1562.001", "T1204"],
-        "cis": ["10.1", "10.7"],
+
+    # Detection Coverage
+    "dc_01": {  # EDR Coverage
+        "mitre": ["T1059", "T1204", "T1562.001"],
+        "cis": ["10.1", "10.4", "10.7"],
         "owasp": [],
     },
-    "DC-002": {  # Critical EDR Gap (<50%)
-        "mitre": ["T1059", "T1562.001", "T1204", "T1486"],
-        "cis": ["10.1", "10.7"],
-        "owasp": [],
-    },
-    "DC-003": {  # No Network Traffic Monitoring
-        "mitre": ["T1021", "T1048", "T1071", "T1095"],
+    "dc_02": {  # Network Monitoring
+        "mitre": ["T1071", "T1048", "T1095"],
         "cis": ["13.3", "13.6"],
         "owasp": [],
     },
-    "DC-004": {  # Stale Detection Rules
-        "mitre": ["T1562", "T1204"],
-        "cis": ["10.4"],
+    "dc_03": {  # Rule Updates
+        "mitre": ["T1562", "T1562.001"],
+        "cis": ["10.2", "7.1"],
         "owasp": ["A06"],
     },
-    "DC-005": {  # No Email Security
-        "mitre": ["T1566", "T1566.001", "T1566.002", "T1204"],
-        "cis": ["9.6"],
+    "dc_04": {  # Custom Rules
+        "mitre": ["T1048", "T1021"],
+        "cis": ["13.3"],
         "owasp": [],
     },
-    "DC-006": {  # Slow Alert Triage
-        "mitre": ["T1562"],
+    "dc_05": {  # Email Security
+        "mitre": ["T1566", "T1566.001", "T1566.002"],
+        "cis": ["9.1", "14.2"],
+        "owasp": [],
+    },
+    "dc_06": {  # Alert Triage
+        "mitre": ["T1562", "T1021"],
         "cis": ["13.1", "17.4"],
         "owasp": [],
     },
-    
-    # Identity Visibility Rules
-    "IV-001": {  # MFA Not Enforced for Admins
-        "mitre": ["T1078", "T1078.002", "T1110", "T1110.003"],
+
+    # Identity Visibility
+    "iv_01": {  # MFA Users
+        "mitre": ["T1078", "T1110", "T1110.001"],
+        "cis": ["6.3", "6.4", "5.2"],
+        "owasp": ["A07"],
+    },
+    "iv_02": {  # MFA Admins
+        "mitre": ["T1078.002", "T1110", "T1555"],
         "cis": ["6.5", "5.4"],
         "owasp": ["A07"],
     },
-    "IV-002": {  # Low MFA Coverage for All Users
-        "mitre": ["T1078", "T1110", "T1110.001"],
-        "cis": ["6.3", "6.4"],
-        "owasp": ["A07"],
-    },
-    "IV-003": {  # No Privileged Account Inventory
-        "mitre": ["T1078.002", "T1087", "T1069"],
+    "iv_03": {  # Privileged Inventory
+        "mitre": ["T1087", "T1078.002"],
         "cis": ["5.1", "5.4"],
         "owasp": ["A01"],
     },
-    "IV-004": {  # Service Accounts Not Reviewed
+    "iv_04": {  # Service Accounts
         "mitre": ["T1078.001", "T1098"],
         "cis": ["5.1", "5.3"],
-        "owasp": ["A01", "A07"],
-    },
-    "IV-005": {  # No PAM Solution
-        "mitre": ["T1078.002", "T1550.002", "T1021"],
-        "cis": ["5.4", "6.1", "6.2"],
-        "owasp": ["A01"],
-    },
-    "IV-006": {  # No Login Anomaly Monitoring
-        "mitre": ["T1110", "T1078", "T1136"],
-        "cis": ["8.11"],
         "owasp": ["A07"],
     },
-    
-    # IR Process Rules
-    "IR-001": {  # No IR Playbooks
+    "iv_05": {  # PAM
+        "mitre": ["T1548", "T1550", "T1550.002"],
+        "cis": ["6.1", "6.2", "5.4"],
+        "owasp": ["A01"],
+    },
+    "iv_06": {  # Anomaly Monitoring
+        "mitre": ["T1078", "T1110", "T1136"],
+        "cis": ["8.11", "5.1"],
+        "owasp": ["A07"],
+    },
+
+    # IR Process
+    "ir_01": {  # Playbooks
         "mitre": [],
-        "cis": ["17.4"],
+        "cis": ["17.1", "17.4"],
         "owasp": [],
     },
-    "IR-002": {  # Untested IR Playbooks
+    "ir_02": {  # Tested Playbooks
+        "mitre": [],
+        "cis": ["17.7", "17.8"],
+        "owasp": [],
+    },
+    "ir_03": {  # IR Team
+        "mitre": [],
+        "cis": ["17.1", "17.2"],
+        "owasp": [],
+    },
+    "ir_04": {  # Comms Templates
+        "mitre": [],
+        "cis": ["17.6"],
+        "owasp": [],
+    },
+    "ir_05": {  # Escalation Matrix
+        "mitre": [],
+        "cis": ["17.3"],
+        "owasp": [],
+    },
+    "ir_06": {  # Tabletop
         "mitre": [],
         "cis": ["17.7"],
         "owasp": [],
     },
-    "IR-003": {  # No Tabletop Exercises
-        "mitre": [],
-        "cis": ["17.7"],
+
+    # Resilience
+    "rs_01": {  # Backups
+        "mitre": ["T1485", "T1486"],
+        "cis": ["11.2", "11.1"],
         "owasp": [],
     },
-    "IR-004": {  # No Defined IR Team
-        "mitre": [],
-        "cis": ["17.1", "17.2", "17.6"],
-        "owasp": [],
+    "rs_02": {  # Immutable Backups
+        "mitre": ["T1486", "T1490", "T1485"],
+        "cis": ["11.3", "11.4"],
+        "owasp": ["A05"],
     },
-    
-    # Resilience Rules
-    "RS-001": {  # Backups Not Tested
-        "mitre": ["T1486", "T1490"],
+    "rs_03": {  # Restore Tested
+        "mitre": ["T1490"],
         "cis": ["11.5"],
         "owasp": [],
     },
-    "RS-002": {  # Backups Not Immutable
-        "mitre": ["T1486", "T1490", "T1485"],
-        "cis": ["11.3", "11.4"],
-        "owasp": [],
-    },
-    "RS-003": {  # Critical Systems Not Backed Up
-        "mitre": ["T1486", "T1485", "T1489"],
-        "cis": ["11.1", "11.2"],
-        "owasp": [],
-    },
-    "RS-004": {  # Excessive RTO
-        "mitre": ["T1486"],
-        "cis": ["11.1"],
-        "owasp": [],
-    },
-    "RS-005": {  # No DR Plan
+    "rs_04": {  # DR Plan
         "mitre": ["T1486", "T1489"],
         "cis": ["11.1"],
         "owasp": [],
     },
-    "RS-006": {  # No Asset Classification
+    "rs_05": {  # RTO
         "mitre": ["T1486"],
-        "cis": ["1.1", "3.1"],
+        "cis": ["11.1"],
         "owasp": [],
+    },
+    "rs_06": {  # Seprate Backup Creds
+        "mitre": ["T1078", "T1098"],
+        "cis": ["5.4", "11.3"],
+        "owasp": ["A07"],
     },
 }
 
@@ -428,8 +448,8 @@ def get_all_framework_refs(rule_id: str) -> Dict[str, List]:
     return {
         "mitre": [
             {
-                "technique_id": m.technique_id,
-                "technique_name": m.technique_name,
+                "id": m.technique_id,
+                "name": m.technique_name,
                 "tactic": m.tactic,
                 "url": m.url,
             }
@@ -437,10 +457,9 @@ def get_all_framework_refs(rule_id: str) -> Dict[str, List]:
         ],
         "cis": [
             {
-                "control_id": c.control_id,
-                "control_name": c.control_name,
-                "implementation_group": c.implementation_group,
-                "asset_type": c.asset_type,
+                "id": c.control_id,
+                "name": c.control_name,
+                "ig_level": c.implementation_group,
             }
             for c in get_cis_refs(rule_id)
         ],
@@ -448,8 +467,6 @@ def get_all_framework_refs(rule_id: str) -> Dict[str, List]:
             {
                 "id": o.id,
                 "name": o.name,
-                "category": o.category,
-                "url": o.url,
             }
             for o in get_owasp_refs(rule_id)
         ],
@@ -459,27 +476,19 @@ def get_all_framework_refs(rule_id: str) -> Dict[str, List]:
 def get_technique_coverage(finding_rules: List[str]) -> Dict[str, any]:
     """
     Analyze which MITRE tactics have coverage gaps based on triggered findings.
-    
-    Returns a summary of tactics and techniques that could be exploited.
     """
     enabled_techniques = set()
-    tactics_affected = {}
     
     for rule_id in finding_rules:
         for ref in get_mitre_refs(rule_id):
             enabled_techniques.add(ref.technique_id)
-            tactic = ref.tactic
-            if tactic not in tactics_affected:
-                tactics_affected[tactic] = []
-            tactics_affected[tactic].append({
-                "technique_id": ref.technique_id,
-                "technique_name": ref.technique_name,
-                "finding_rule": rule_id,
-            })
+    
+    count = len(enabled_techniques)
     
     return {
-        "techniques_enabled": len(enabled_techniques),
-        "tactics_affected": tactics_affected,
+        "enabled": count,
+        "total": TOTAL_MITRE_TECHNIQUES,
+        "coverage_pct": (count / TOTAL_MITRE_TECHNIQUES) * 100 if TOTAL_MITRE_TECHNIQUES > 0 else 0,
         "technique_list": list(enabled_techniques),
     }
 
@@ -488,25 +497,23 @@ def get_cis_coverage_summary(finding_rules: List[str]) -> Dict[str, any]:
     """
     Analyze CIS Controls coverage gaps based on triggered findings.
     """
-    missing_controls = {}
+    missing_controls = set()
     ig_counts = {1: 0, 2: 0, 3: 0}
     
     for rule_id in finding_rules:
         for ref in get_cis_refs(rule_id):
             if ref.control_id not in missing_controls:
-                missing_controls[ref.control_id] = {
-                    "control_id": ref.control_id,
-                    "control_name": ref.control_name,
-                    "implementation_group": ref.implementation_group,
-                    "finding_rules": [],
-                }
+                missing_controls.add(ref.control_id)
                 ig_counts[ref.implementation_group] += 1
-            missing_controls[ref.control_id]["finding_rules"].append(rule_id)
+    
+    total_found = len(missing_controls)
+    total_controls = len(CIS_CONTROLS)
     
     return {
-        "missing_controls_count": len(missing_controls),
-        "ig1_missing": ig_counts[1],
-        "ig2_missing": ig_counts[2],
-        "ig3_missing": ig_counts[3],
-        "controls": list(missing_controls.values()),
+        "met": total_controls - total_found,  # Approx: total - missing
+        "missing": total_found,
+        "coverage_pct": ((total_controls - total_found) / total_controls) * 100 if total_controls > 0 else 0,
+        "ig1_pct": (1 - (ig_counts[1] / 56)) * 100, # Approx denominator
+        "ig2_pct": (1 - (ig_counts[2] / 74)) * 100, # Approx denominator
+        "ig3_pct": (1 - (ig_counts[3] / 23)) * 100, # Approx denominator
     }

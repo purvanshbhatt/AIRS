@@ -102,7 +102,7 @@ export default function Landing() {
                 <ChevronRight className="w-5 h-5" />
               </Link>
               <a
-                href="https://github.com"
+                href="https://github.com/purvanshbhatt/AIRS"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-4 text-gray-700 text-lg font-medium hover:text-gray-900 transition-colors"
@@ -313,7 +313,7 @@ export default function Landing() {
 
             <div className="flex items-center gap-6">
               <a
-                href="https://github.com"
+                href="https://github.com/purvanshbhatt/AIRS"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"

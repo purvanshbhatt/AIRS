@@ -1,8 +1,8 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { DashboardLayout } from './components/layout';
+import { DashboardLayout, DocsLayout } from './components/layout';
 import { ToastProvider } from './components/ui';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, ThemeProvider } from './contexts';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
 import { setUnauthorizedHandler } from './api';
@@ -13,16 +13,20 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Organizations from './pages/Organizations';
 import Assessments from './pages/Assessments';
+import Assessment from './pages/Assessment';
 import Reports from './pages/Reports';
 import NewOrg from './pages/NewOrg';
 import NewAssessment from './pages/NewAssessment';
 import Results from './pages/Results';
 import Settings from './pages/Settings';
 
+// Docs Pages
+import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
+
 // API Configuration Warning Banner (dev only when not configured)
 function ApiConfigBanner() {
   if (isApiConfigured) return null;
-  
+
   return (
     <div className="bg-amber-500 text-white px-4 py-2 text-center text-sm font-medium">
       ⚠️ API base URL not configured. Set VITE_API_BASE_URL in your environment.
@@ -54,7 +58,7 @@ function DashboardRoutes() {
 // Component to set up 401 redirect handler
 function AuthRedirectHandler() {
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     // Register the 401 handler with the API client
     setUnauthorizedHandler(() => {
@@ -64,57 +68,78 @@ function AuthRedirectHandler() {
       navigate('/login', { replace: true });
     });
   }, [navigate]);
-  
+
   return null;
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AuthRedirectHandler />
-        <ApiConfigBanner />
-        <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <AuthRedirectHandler />
+          <ApiConfigBanner />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
 
-        {/* Protected dashboard routes */}
-        <Route path="/dashboard/*" element={<DashboardRoutes />} />
+            {/* Public docs routes */}
+            <Route path="/docs" element={<DocsLayout />}>
+              <Route index element={<DocsOverview />} />
+              <Route path="methodology" element={<DocsMethodology />} />
+              <Route path="frameworks" element={<DocsFrameworks />} />
+              <Route path="security" element={<DocsSecurity />} />
+              <Route path="api" element={<DocsApi />} />
+            </Route>
 
-        {/* Protected assessment flow routes */}
-        <Route
-          path="/assessment/new"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <NewAssessment />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/org/new"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <NewOrg />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/results/:id"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <Results />
-              </DashboardLayout>
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </ToastProvider>
-  </AuthProvider>
+            {/* Protected dashboard routes */}
+            <Route path="/dashboard/*" element={<DashboardRoutes />} />
+
+            {/* Protected assessment flow routes */}
+            <Route
+              path="/assessment/new"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <NewAssessment />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessment/:id"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Assessment />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/org/new"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <NewOrg />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/results/:id"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Results />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

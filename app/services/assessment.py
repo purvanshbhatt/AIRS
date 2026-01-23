@@ -582,6 +582,7 @@ class AssessmentService:
             get_technique_coverage,
             get_cis_coverage_summary,
             MITRE_TECHNIQUES,
+            TOTAL_MITRE_TECHNIQUES,
             CIS_CONTROLS,
         )
         
@@ -611,9 +612,10 @@ class AssessmentService:
         return {
             "findings": mapped_findings,
             "coverage": {
-                "mitre_techniques_enabled": mitre_coverage.get("enabled", 0),
-                "mitre_techniques_total": len(MITRE_TECHNIQUES),
-                "mitre_coverage_pct": mitre_coverage.get("coverage_pct", 0.0),
+                "mitre_techniques_referenced": mitre_coverage.get("enabled", 0),
+                "mitre_techniques_total": TOTAL_MITRE_TECHNIQUES,
+                "mitre_coverage_pct": (mitre_coverage.get("enabled", 0) / TOTAL_MITRE_TECHNIQUES * 100) if TOTAL_MITRE_TECHNIQUES > 0 else 0,
+                "mitre_techniques_referenced_list": mitre_coverage.get("technique_list", []),
                 "cis_controls_met": cis_coverage.get("met", 0),
                 "cis_controls_total": len(CIS_CONTROLS),
                 "cis_coverage_pct": cis_coverage.get("coverage_pct", 0.0),
@@ -626,7 +628,7 @@ class AssessmentService:
     def _build_analytics(self, findings: List[Finding]) -> Dict[str, Any]:
         """Build derived analytics (attack paths, gaps)."""
         from app.services.analytics import get_full_analytics
-        from app.services.findings import Finding as FindingData, Severity as FindingSeverity
+        from app.services.findings import Finding as FindingData, Severity as FindingSeverity, get_rule_id_for_question
         
         # Convert DB findings to service findings format
         finding_data = []
@@ -640,16 +642,53 @@ class AssessmentService:
                 "info": FindingSeverity.INFO,
             }
             
+            # Map question_id to rule_id if possible, otherwise use question_id
+            rule_id = f.question_id or f.id
+            if f.question_id:
+                mapped_rule_id = get_rule_id_for_question(f.question_id)
+                if mapped_rule_id:
+                    rule_id = mapped_rule_id
+            
             finding_data.append(FindingData(
-                rule_id=f.question_id or f.id,
+                rule_id=rule_id,
                 title=f.title,
                 severity=severity_map.get(get_severity_value(f.severity), FindingSeverity.MEDIUM),
                 domain_id=f.domain_id,
-                domain_name=f.domain_name,                evidence=f.evidence or "",                recommendation=f.recommendation,
+                domain_name=f.domain_name,
+                evidence=f.evidence or "",
+                recommendation=f.recommendation,
             ))
         
         return get_full_analytics(finding_data)
     
+    def get_edit_context(self, assessment_id: str) -> Dict[str, Any]:
+        """
+        Get assessment context for editing (details + simple answers map).
+        """
+        assessment = self.get(assessment_id)
+        if not assessment:
+            return None
+            
+        answers = self.get_answers(assessment_id)
+        
+        # Convert list of answers to simplified map {question_id: value}
+        answers_map = {}
+        for a in answers:
+            # Handle type conversion if needed, though schema likely handles it
+             answers_map[a.question_id] = a.value_boolean if a.value_boolean is not None else (
+                a.value_numeric if a.value_numeric is not None else a.value_text
+            )
+
+        return {
+            "assessment": {
+                "id": assessment.id,
+                "title": assessment.title,
+                "organization_id": assessment.organization_id,
+                "status": assessment.status
+            },
+            "answers_map": answers_map
+        }
+
     def _build_detailed_roadmap(self, findings: List[Finding]) -> Dict[str, Any]:
         """Build detailed 30/60/90+ day roadmap with milestones."""
         from app.services.roadmap import generate_roadmap

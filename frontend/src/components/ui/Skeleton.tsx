@@ -16,7 +16,7 @@ export function Skeleton({
   return (
     <div
       className={clsx(
-        'animate-pulse bg-gray-200',
+        'animate-pulse bg-gray-200 dark:bg-gray-700',
         variant === 'text' && 'h-4 rounded',
         variant === 'circular' && 'rounded-full',
         variant === 'rectangular' && 'rounded-lg',
@@ -33,7 +33,7 @@ export function Skeleton({
 // Pre-built skeleton patterns for common use cases
 export function CardSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4">
       <div className="flex items-center gap-3">
         <Skeleton variant="circular" width={40} height={40} />
         <div className="flex-1 space-y-2">
@@ -49,7 +49,7 @@ export function CardSkeleton() {
 
 export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
   return (
-    <tr className="border-b border-gray-100">
+    <tr className="border-b border-gray-100 dark:border-gray-700">
       {Array.from({ length: columns }).map((_, i) => (
         <td key={i} className="py-4 px-4">
           <Skeleton width={i === 0 ? '80%' : '60%'} height={14} />
@@ -71,7 +71,7 @@ export function ListSkeleton({ count = 3 }: { count?: number }) {
 
 export function StatCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
       <Skeleton width={80} height={12} className="mb-2" />
       <Skeleton width={60} height={32} className="mb-1" />
       <Skeleton width={100} height={10} />

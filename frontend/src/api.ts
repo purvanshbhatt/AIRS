@@ -11,6 +11,8 @@
 
 import { API_BASE_URL, isDevelopment } from './config';
 
+export const getApiBaseUrl = () => API_BASE_URL;
+
 // =============================================================================
 // ERROR TYPES
 // =============================================================================
@@ -40,17 +42,17 @@ export class ApiRequestError extends Error {
    */
   toDisplayMessage(): string {
     const parts: string[] = [];
-    
+
     if (this.status) {
       parts.push(`[${this.status}]`);
     }
-    
+
     parts.push(this.message);
-    
+
     if (this.requestId) {
       parts.push(`(Request ID: ${this.requestId})`);
     }
-    
+
     return parts.join(' ');
   }
 }
@@ -117,10 +119,10 @@ export function setTokenProvider(provider: () => Promise<string | null>) {
  */
 async function getAuthHeaders(): Promise<Record<string, string>> {
   if (!tokenProvider) return {};
-  
+
   const token = await tokenProvider();
   if (!token) return {};
-  
+
   return { Authorization: `Bearer ${token}` };
 }
 
@@ -160,12 +162,12 @@ async function request<T>(
   const method = options.method || 'GET';
   const startTime = Date.now();
   const callId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  
+
   // Log request
   if (isDevelopment) {
     console.log(`[API] ${method} ${url}`);
   }
-  
+
   let response: Response;
   try {
     response = await fetch(url, {
@@ -179,7 +181,7 @@ async function request<T>(
   } catch (networkError) {
     // Network error (CORS, DNS, connection refused, etc.)
     console.error(`[API] Network error for ${method} ${url}:`, networkError);
-    
+
     // Record failed call
     recordApiCall({
       id: callId,
@@ -191,7 +193,7 @@ async function request<T>(
       timestamp: new Date(),
       errorMessage: 'Unable to reach API server',
     });
-    
+
     throw new ApiRequestError({
       message: `Unable to reach API server. Check your connection and CORS configuration.`,
       detail: `Network request to ${API_BASE_URL} failed.`,
@@ -215,7 +217,7 @@ async function request<T>(
       timestamp: new Date(),
       errorMessage: 'Authentication required',
     });
-    
+
     handleUnauthorized();
     throw new ApiRequestError({
       message: 'Authentication required. Please sign in.',
@@ -227,17 +229,17 @@ async function request<T>(
     let errorMessage = `Request failed`;
     let requestId: string | undefined;
     let detail: string | undefined;
-    
+
     try {
       const errorBody = await response.json();
       if (isDevelopment) {
         console.error(`[API] Error response for ${method} ${url}:`, errorBody);
       }
-      
+
       // Handle structured error response from backend
       if (typeof errorBody === 'object' && errorBody !== null) {
         const err = errorBody as Record<string, unknown>;
-        
+
         // Check for nested error structure
         if (err.error && typeof err.error === 'object') {
           const nested = err.error as Record<string, unknown>;
@@ -267,7 +269,7 @@ async function request<T>(
         detail = text.slice(0, 200);
       }
     }
-    
+
     // Add status-specific context
     if (response.status === 403) {
       errorMessage = `Access denied: ${errorMessage}`;
@@ -276,7 +278,7 @@ async function request<T>(
     } else if (response.status >= 500) {
       errorMessage = `Server error: ${errorMessage}`;
     }
-    
+
     // Record failed call
     recordApiCall({
       id: callId,
@@ -289,7 +291,7 @@ async function request<T>(
       requestId,
       errorMessage,
     });
-    
+
     throw new ApiRequestError({
       message: errorMessage,
       status: response.status,
@@ -313,10 +315,23 @@ async function request<T>(
 }
 
 // Organizations
-export const createOrganization = (data: { name: string; industry?: string; size?: string }) =>
+export const createOrganization = (data: { name: string; industry?: string; size?: string; website_url?: string }) =>
   request<{ id: string; name: string }>('/api/orgs', {
     method: 'POST',
     body: JSON.stringify(data),
+  });
+
+export const enrichOrganization = (orgId: string, websiteUrl: string) =>
+  request<{
+    title?: string;
+    description?: string;
+    keywords: string[];
+    baseline_suggestion?: string;
+    confidence: number;
+    source_url: string;
+  }>(`/api/orgs/${orgId}/enrich`, {
+    method: 'POST',
+    body: JSON.stringify({ website_url: websiteUrl }),
   });
 
 export const getOrganizations = () =>
@@ -352,6 +367,39 @@ export const submitAnswers = (assessmentId: string, answers: Record<string, stri
   });
 };
 
+export const updateAnswers = (assessmentId: string, answers: Record<string, string | number | boolean>) => {
+  // Transform object format to array format expected by backend
+  // Backend expects: { answers: [{ question_id: "tl_01", value: "yes" }, ...] }
+  const answersList = Object.entries(answers).map(([questionId, value]) => ({
+    question_id: questionId,
+    value: String(value), // Backend expects string values
+  }));
+
+  return request<{ count: number }>(`/api/assessments/${assessmentId}/answers`, {
+    method: 'PUT',
+    body: JSON.stringify({ answers: answersList }),
+  });
+};
+
+// Edit Mode specific endpoints
+export const getAssessmentEdit = (assessmentId: string) =>
+  request<{ assessment: import('./types').AssessmentDetail; answers_map: Record<string, any> }>(
+    `/api/assessments/${assessmentId}/edit`
+  );
+
+export const updateAssessmentEdit = (assessmentId: string, answers: Record<string, any>) => {
+  // Same transformation as submitAnswers
+  const answersList = Object.entries(answers).map(([questionId, value]) => ({
+    question_id: questionId,
+    value: String(value),
+  }));
+
+  return request<{ count: number }>(`/api/assessments/${assessmentId}/edit`, {
+    method: 'PUT',
+    body: JSON.stringify({ answers: answersList }),
+  });
+};
+
 export const computeScore = (assessmentId: string) =>
   request<import('./types').ScoreResult>(`/api/assessments/${assessmentId}/score`, {
     method: 'POST',
@@ -372,11 +420,11 @@ export const getAssessmentSummary = (assessmentId: string) =>
 export const downloadReport = async (assessmentId: string): Promise<Blob> => {
   const authHeaders = await getAuthHeaders();
   const url = `${API_BASE_URL}/api/assessments/${assessmentId}/report`;
-  
+
   if (isDevelopment) {
     console.log(`[API] GET ${url} (blob)`);
   }
-  
+
   let response: Response;
   try {
     response = await fetch(url, {
@@ -387,7 +435,7 @@ export const downloadReport = async (assessmentId: string): Promise<Blob> => {
       message: 'Unable to download report. Check your connection.',
     });
   }
-  
+
   if (response.status === 401) {
     handleUnauthorized();
     throw new ApiRequestError({
@@ -395,7 +443,7 @@ export const downloadReport = async (assessmentId: string): Promise<Blob> => {
       status: 401,
     });
   }
-  
+
   if (!response.ok) {
     throw new ApiRequestError({
       message: 'Failed to download report',
@@ -429,7 +477,7 @@ export const getReports = (filters?: ReportFilters) => {
   if (filters?.end_date) params.set('end_date', filters.end_date);
   if (filters?.limit) params.set('limit', String(filters.limit));
   if (filters?.offset) params.set('offset', String(filters.offset));
-  
+
   const query = params.toString();
   return request<import('./types').ReportListResponse>(`/api/reports${query ? `?${query}` : ''}`);
 };
@@ -449,11 +497,11 @@ export const createReport = (assessmentId: string, data?: { report_type?: string
 export const downloadReportById = async (reportId: string): Promise<Blob> => {
   const authHeaders = await getAuthHeaders();
   const url = `${API_BASE_URL}/api/reports/${reportId}/download`;
-  
+
   if (isDevelopment) {
     console.log(`[API] GET ${url} (blob)`);
   }
-  
+
   let response: Response;
   try {
     response = await fetch(url, {
@@ -464,7 +512,7 @@ export const downloadReportById = async (reportId: string): Promise<Blob> => {
       message: 'Unable to download report. Check your connection.',
     });
   }
-  
+
   if (response.status === 401) {
     handleUnauthorized();
     throw new ApiRequestError({
@@ -472,7 +520,7 @@ export const downloadReportById = async (reportId: string): Promise<Blob> => {
       status: 401,
     });
   }
-  
+
   if (!response.ok) {
     throw new ApiRequestError({
       message: 'Failed to download report',
@@ -498,7 +546,7 @@ export const checkHealth = async (): Promise<{ status: string }> => {
   if (isDevelopment) {
     console.log(`[API] GET ${url}`);
   }
-  
+
   let response: Response;
   try {
     response = await fetch(url);
@@ -507,7 +555,7 @@ export const checkHealth = async (): Promise<{ status: string }> => {
       message: `Unable to reach API at ${API_BASE_URL}`,
     });
   }
-  
+
   if (!response.ok) {
     throw new ApiRequestError({
       message: `Health check failed`,
@@ -529,7 +577,7 @@ export const checkCors = async (): Promise<{
   if (isDevelopment) {
     console.log(`[API] GET ${url}`);
   }
-  
+
   const response = await fetch(url);
   if (!response.ok) {
     throw new ApiRequestError({
@@ -540,5 +588,31 @@ export const checkCors = async (): Promise<{
   return response.json();
 };
 
-// Get current API base URL (for debugging)
-export const getApiBaseUrl = (): string => API_BASE_URL;
+// =============================================================================
+// ROADMAP & TREND API
+// =============================================================================
+
+export const getOrganizationTrend = (orgId: string) =>
+  request<import('./types').ScoreTrendPoint[]>(`/api/orgs/${orgId}/trend`);
+
+export const getRoadmap = (orgId: string, status?: string) => {
+  const query = status ? `?status=${status}` : '';
+  return request<import('./types').RoadmapListResponse>(`/api/orgs/${orgId}/roadmap${query}`);
+};
+
+export const createRoadmapItem = (orgId: string, data: Omit<import('./types').TrackerItem, 'id' | 'organization_id' | 'created_at' | 'updated_at'>) =>
+  request<import('./types').TrackerItem>(`/api/orgs/${orgId}/roadmap`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const updateRoadmapItem = (itemId: string, data: Partial<import('./types').TrackerItem>) =>
+  request<import('./types').TrackerItem>(`/api/roadmap/${itemId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+
+export const deleteRoadmapItem = (itemId: string) =>
+  request<void>(`/api/roadmap/${itemId}`, {
+    method: 'DELETE',
+  });

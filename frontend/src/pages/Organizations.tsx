@@ -17,8 +17,11 @@ import {
   ClipboardList,
   ChevronRight,
 } from 'lucide-react';
-import { getOrganizations, getAssessments, ApiRequestError } from '../api';
-import type { Organization, Assessment } from '../types';
+import { getOrganizations, getAssessments, getOrganizationTrend, ApiRequestError } from '../api';
+import type { Organization, Assessment, ScoreTrendPoint } from '../types';
+import { OrgEnrichmentCard } from '../components/OrgEnrichmentCard';
+import { ScoreTrendChart } from '../components/ScoreTrendChart';
+import { RoadmapTracker } from '../components/RoadmapTracker';
 
 export default function Organizations() {
   const [loading, setLoading] = useState(true);
@@ -27,6 +30,15 @@ export default function Organizations() {
   const [assessmentsByOrg, setAssessmentsByOrg] = useState<Record<string, Assessment[]>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [trendData, setTrendData] = useState<ScoreTrendPoint[]>([]);
+
+  useEffect(() => {
+    if (selectedOrg) {
+      getOrganizationTrend(selectedOrg.id).then(setTrendData).catch(console.error);
+    } else {
+      setTrendData([]);
+    }
+  }, [selectedOrg]);
 
   useEffect(() => {
     async function loadData() {
@@ -159,11 +171,10 @@ export default function Organizations() {
                   <button
                     key={org.id}
                     onClick={() => setSelectedOrg(org)}
-                    className={`w-full text-left p-4 rounded-lg border transition-colors ${
-                      isSelected
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
+                    className={`w-full text-left p-4 rounded-lg border transition-colors ${isSelected
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -192,76 +203,105 @@ export default function Organizations() {
           </div>
 
           {/* Organization Detail Panel */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             {selectedOrg ? (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-xl">{selectedOrg.name}</CardTitle>
-                      <CardDescription>
-                        {selectedOrg.industry || 'No industry'} •{' '}
-                        {selectedOrg.size || 'Size not set'} • Created{' '}
-                        {new Date(selectedOrg.created_at).toLocaleDateString()}
-                      </CardDescription>
+              <>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-xl">{selectedOrg.name}</CardTitle>
+                        <CardDescription>
+                          {selectedOrg.industry || 'No industry'} •{' '}
+                          {selectedOrg.size || 'Size not set'} • Created{' '}
+                          {new Date(selectedOrg.created_at).toLocaleDateString()}
+                        </CardDescription>
+                      </div>
+                      <Link to={`/dashboard/assessment/new?org=${selectedOrg.id}`}>
+                        <Button size="sm" className="gap-2">
+                          <ClipboardList className="w-4 h-4" />
+                          New Assessment
+                        </Button>
+                      </Link>
                     </div>
-                    <Link to={`/dashboard/assessment/new?org=${selectedOrg.id}`}>
-                      <Button size="sm" className="gap-2">
-                        <ClipboardList className="w-4 h-4" />
-                        New Assessment
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Assessment History</h4>
-                  {(assessmentsByOrg[selectedOrg.id] || []).length === 0 ? (
-                    <p className="text-sm text-gray-500 italic py-4">
-                      No assessments yet for this organization
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {(assessmentsByOrg[selectedOrg.id] || [])
-                        .sort(
-                          (a, b) =>
-                            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-                        )
-                        .map((assessment) => (
-                          <Link
-                            key={assessment.id}
-                            to={
-                              assessment.status === 'completed'
-                                ? `/dashboard/results/${assessment.id}`
-                                : `/dashboard/assessment/new?resume=${assessment.id}`
-                            }
-                            className="block p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-colors"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-medium text-gray-900">{assessment.title}</p>
-                                <p className="text-xs text-gray-500">
-                                  {new Date(assessment.created_at).toLocaleDateString()}
-                                  {assessment.overall_score != null && (
-                                    <> • Score: {Math.round(assessment.overall_score)}%</>
-                                  )}
-                                </p>
-                              </div>
-                              <span
-                                className={`text-xs px-2 py-1 rounded-full ${
-                                  assessment.status === 'completed'
+                  </CardHeader>
+                  <CardContent>
+                    {/* Trend Chart */}
+                    {trendData.length > 1 && (
+                      <div className="mb-6 h-64">
+                        <ScoreTrendChart data={trendData} height={200} />
+                      </div>
+                    )}
+
+                    {/* Roadmap Tracker */}
+                    <div className="mb-6">
+                      <RoadmapTracker organizationId={selectedOrg.id} />
+                    </div>
+
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Assessment History</h4>
+                    {(assessmentsByOrg[selectedOrg.id] || []).length === 0 ? (
+                      <p className="text-sm text-gray-500 italic py-4">
+                        No assessments yet for this organization
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {(assessmentsByOrg[selectedOrg.id] || [])
+                          .sort(
+                            (a, b) =>
+                              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                          )
+                          .map((assessment) => (
+                            <Link
+                              key={assessment.id}
+                              to={
+                                assessment.status === 'completed'
+                                  ? `/dashboard/results/${assessment.id}`
+                                  : `/dashboard/assessment/new?resume=${assessment.id}`
+                              }
+                              className="block p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-colors"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium text-gray-900">{assessment.title}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(assessment.created_at).toLocaleDateString()}
+                                    {assessment.overall_score != null && (
+                                      <> • Score: {Math.round(assessment.overall_score)}%</>
+                                    )}
+                                  </p>
+                                </div>
+                                <span
+                                  className={`text-xs px-2 py-1 rounded-full ${assessment.status === 'completed'
                                     ? 'bg-green-100 text-green-700'
                                     : 'bg-yellow-100 text-yellow-700'
-                                }`}
-                              >
-                                {assessment.status === 'completed' ? 'Completed' : 'Draft'}
-                              </span>
-                            </div>
-                          </Link>
-                        ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                                    }`}
+                                >
+                                  {assessment.status === 'completed' ? 'Completed' : 'Draft'}
+                                </span>
+                              </div>
+                            </Link>
+                          ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <OrgEnrichmentCard
+                  organization={selectedOrg}
+                  onEnrichmentComplete={(result) => {
+                    const updatedOrg = {
+                      ...selectedOrg,
+                      website_url: result.source_url,
+                      baseline_suggestion: result.baseline_suggestion,
+                      org_profile: JSON.stringify(result),
+                    };
+                    setSelectedOrg(updatedOrg);
+                    setOrganizations((prev) =>
+                      prev.map((o) => (o.id === selectedOrg.id ? updatedOrg : o))
+                    );
+                  }}
+                />
+              </>
             ) : (
               <Card className="h-full flex items-center justify-center">
                 <EmptyState

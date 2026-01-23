@@ -2,7 +2,7 @@ import { HTMLAttributes, ThHTMLAttributes, TdHTMLAttributes, forwardRef } from '
 import { clsx } from 'clsx';
 
 // Table Root
-export interface TableProps extends HTMLAttributes<HTMLTableElement> {}
+export interface TableProps extends HTMLAttributes<HTMLTableElement> { }
 
 const Table = forwardRef<HTMLTableElement, TableProps>(
   ({ className, children, ...props }, ref) => (
@@ -21,11 +21,11 @@ const Table = forwardRef<HTMLTableElement, TableProps>(
 Table.displayName = 'Table';
 
 // Table Header
-export interface TableHeaderProps extends HTMLAttributes<HTMLTableSectionElement> {}
+export interface TableHeaderProps extends HTMLAttributes<HTMLTableSectionElement> { }
 
 export const TableHeader = forwardRef<HTMLTableSectionElement, TableHeaderProps>(
   ({ className, children, ...props }, ref) => (
-    <thead ref={ref} className={clsx('bg-gray-50', className)} {...props}>
+    <thead ref={ref} className={clsx('bg-gray-50 dark:bg-gray-800', className)} {...props}>
       {children}
     </thead>
   )
@@ -34,7 +34,7 @@ export const TableHeader = forwardRef<HTMLTableSectionElement, TableHeaderProps>
 TableHeader.displayName = 'TableHeader';
 
 // Table Body
-export interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {}
+export interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> { }
 
 export const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
   ({ className, children, ...props }, ref) => (
@@ -47,13 +47,13 @@ export const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
 TableBody.displayName = 'TableBody';
 
 // Table Row
-export interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {}
+export interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> { }
 
 export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
   ({ className, children, ...props }, ref) => (
     <tr
       ref={ref}
-      className={clsx('border-b border-gray-100 transition-colors hover:bg-gray-50/50', className)}
+      className={clsx('border-b border-gray-100 dark:border-gray-700 transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-800/50', className)}
       {...props}
     >
       {children}
@@ -64,14 +64,14 @@ export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
 TableRow.displayName = 'TableRow';
 
 // Table Head Cell
-export interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {}
+export interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> { }
 
 export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
   ({ className, children, ...props }, ref) => (
     <th
       ref={ref}
       className={clsx(
-        'h-11 px-4 text-left align-middle font-medium text-gray-500 text-xs uppercase tracking-wider',
+        'h-11 px-4 text-left align-middle font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider',
         className
       )}
       {...props}
@@ -84,11 +84,11 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
 TableHead.displayName = 'TableHead';
 
 // Table Cell
-export interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {}
+export interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> { }
 
 export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
   ({ className, children, ...props }, ref) => (
-    <td ref={ref} className={clsx('px-4 py-3 align-middle text-gray-900', className)} {...props}>
+    <td ref={ref} className={clsx('px-4 py-3 align-middle text-gray-900 dark:text-gray-100', className)} {...props}>
       {children}
     </td>
   )

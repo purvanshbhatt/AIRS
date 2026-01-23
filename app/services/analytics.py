@@ -376,13 +376,60 @@ def analyze_identity_gaps(findings: List[Finding]) -> Dict[str, Any]:
     }
 
 
+def analyze_risk_summary(findings: List[Finding]) -> Dict[str, Any]:
+    """
+    Generate high-level risk metrics.
+    """
+    severity_counts = {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 0
+    }
+    
+    for f in findings:
+        sev = f.severity.value.lower()
+        if sev in severity_counts:
+            severity_counts[sev] += 1
+            
+    # Identify top risks (Critical/High findings)
+    # Sort by severity (Critical > High)
+    priority_map = {
+        "critical": 0,
+        "high": 1,
+        "medium": 2,
+        "low": 3,
+        "info": 4
+    }
+    
+    sorted_findings = sorted(
+        findings,
+        key=lambda x: priority_map.get(x.severity.value.lower(), 5)
+    )
+    
+    top_risks = [f.title for f in sorted_findings[:3]]
+    
+    # Calculate an aggregate risk score (0-100, lower is better)
+    # Simple weighted sum
+    weights = {"critical": 10, "high": 5, "medium": 2, "low": 1}
+    total_risk_points = sum(weights.get(f.severity.value.lower(), 0) for f in findings)
+    
+    return {
+        "severity_counts": severity_counts,
+        "top_risks": top_risks,
+        "total_risk_score": total_risk_points,
+        "findings_count": len(findings)
+    }
+
+
 def get_full_analytics(findings: List[Finding]) -> Dict[str, Any]:
     """
     Generate complete analytics package for an assessment.
     
     Returns:
         Dict with attack_paths, detection_gaps, response_gaps, identity_gaps,
-        and framework coverage summary.
+        framework_summary, and risk_summary.
     """
     # Get rule IDs for framework analysis
     rule_ids = [f.rule_id for f in findings]
@@ -398,17 +445,21 @@ def get_full_analytics(findings: List[Finding]) -> Dict[str, Any]:
         "detection_gaps": analyze_detection_gaps(findings),
         "response_gaps": analyze_response_gaps(findings),
         "identity_gaps": analyze_identity_gaps(findings),
+        "risk_summary": analyze_risk_summary(findings),
         "framework_summary": {
             "mitre": {
-                "techniques_enabled": technique_coverage["techniques_enabled"],
-                "tactics_affected_count": len(technique_coverage["tactics_affected"]),
-                "tactics_affected": list(technique_coverage["tactics_affected"].keys()),
+                "techniques_enabled": technique_coverage["enabled"],
+                "total_techniques": technique_coverage["total"],
+                "coverage_pct": technique_coverage["coverage_pct"],
+                "technique_list": technique_coverage["technique_list"],
             },
             "cis": {
-                "controls_missing": cis_coverage["missing_controls_count"],
-                "ig1_missing": cis_coverage["ig1_missing"],
-                "ig2_missing": cis_coverage["ig2_missing"],
-                "ig3_missing": cis_coverage["ig3_missing"],
+                "controls_missing": cis_coverage["missing"],
+                "controls_met": cis_coverage["met"],
+                "coverage_pct": cis_coverage["coverage_pct"],
+                "ig1_pct": cis_coverage["ig1_pct"],
+                "ig2_pct": cis_coverage["ig2_pct"],
+                "ig3_pct": cis_coverage["ig3_pct"],
             },
         },
     }
