@@ -110,9 +110,11 @@ interface OverviewTabProps {
   selectedBaseline: string;
   setSelectedBaseline: (baseline: string) => void;
   suggestedBaseline?: string;
+  onRefreshNarrative?: () => void;
+  isRefreshingNarrative?: boolean;
 }
 
-export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, suggestedBaseline }: OverviewTabProps) {
+export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, suggestedBaseline, onRefreshNarrative, isRefreshingNarrative }: OverviewTabProps) {
   const { tier, domain_scores, findings, executive_summary } = summary
   const topFailures = findings.slice(0, 5)
 
@@ -206,7 +208,7 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
       </Card>
 
       {/* AI Insights - Only shown when LLM is enabled */}
-      {summary.llm_enabled && summary.executive_summary_text && (
+      {summary.llm_enabled && (summary.executive_summary_text || summary.llm_status === 'pending') && (
         <Card className="border-primary-100 bg-gradient-to-br from-primary-50/50 to-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary-700">
@@ -219,16 +221,46 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* AI Executive Summary */}
-            <div>
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
-                <Lightbulb className="h-4 w-4" />
-                AI Executive Analysis
+            {/* Show pending state */}
+            {summary.llm_status === 'pending' && !summary.executive_summary_text && (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                {isRefreshingNarrative ? (
+                  <>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
+                    <p className="text-gray-600 font-medium">Generating AI insights...</p>
+                    <p className="text-sm text-gray-400 mt-1">This may take a few seconds</p>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-8 w-8 text-primary-400 mb-4 animate-pulse" />
+                    <p className="text-gray-600 font-medium">AI insights are being generated</p>
+                    <p className="text-sm text-gray-400 mt-1 mb-4">Click refresh to check if they're ready</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onRefreshNarrative}
+                      className="gap-2"
+                    >
+                      <TrendingUp className="h-4 w-4" />
+                      Refresh AI Insights
+                    </Button>
+                  </>
+                )}
               </div>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                {summary.executive_summary_text}
-              </p>
-            </div>
+            )}
+
+            {/* AI Executive Summary */}
+            {summary.executive_summary_text && (
+              <div>
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                  <Lightbulb className="h-4 w-4" />
+                  AI Executive Analysis
+                </div>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {summary.executive_summary_text}
+                </p>
+              </div>
+            )}
 
             {/* AI Roadmap Narrative */}
             {summary.roadmap_narrative_text && (

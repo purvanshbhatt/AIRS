@@ -382,6 +382,55 @@ async def compute_score(
         )
 
 
+@router.post(
+    "/{assessment_id}/refresh-narrative",
+    summary="Refresh AI Narrative",
+    description="Force regenerate AI-generated narratives for an assessment. Use this when llm_status is 'pending' to get fresh AI insights.",
+    responses={
+        200: {"description": "Narratives regenerated successfully"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Assessment not found"},
+        503: {"description": "LLM service unavailable"}
+    }
+)
+async def refresh_narrative(
+    assessment_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """
+    Regenerate AI narratives for an assessment.
+    
+    Called when the frontend detects llm_status='pending' and the user
+    clicks "Refresh" to generate AI insights.
+    """
+    service = get_assessment_service(db, user)
+    try:
+        result = service.refresh_narratives(assessment_id)
+        
+        event_logger.custom_event("narrative_refreshed", {
+            "assessment_id": assessment_id,
+            "llm_status": result.get("llm_status", "unknown")
+        })
+        
+        return {
+            "assessment_id": assessment_id,
+            "llm_status": result.get("llm_status", "disabled"),
+            "executive_summary_text": result.get("executive_summary_text"),
+            "roadmap_narrative_text": result.get("roadmap_narrative_text"),
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Failed to generate narratives: {str(e)}"
+        )
+
+
 @router.get("/{assessment_id}/scores", response_model=List[ScoreResponse])
 async def get_scores(
     assessment_id: str,

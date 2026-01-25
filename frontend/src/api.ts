@@ -555,6 +555,22 @@ export const prefetchAssessmentSummary = (assessmentId: string) => {
   });
 };
 
+// Refresh AI narrative (triggers LLM generation)
+export const refreshNarrative = async (assessmentId: string): Promise<{
+  assessment_id: string;
+  llm_status: 'ready' | 'pending' | 'disabled';
+  executive_summary_text: string | null;
+  roadmap_narrative_text: string | null;
+}> => {
+  // Invalidate the summary cache before refreshing
+  const { apiCache, CACHE_KEYS } = await import('./cache');
+  apiCache.invalidate(CACHE_KEYS.SUMMARY(assessmentId));
+  
+  return request(`/api/assessments/${assessmentId}/refresh-narrative`, {
+    method: 'POST',
+  });
+};
+
 // Report download
 export const downloadReport = async (assessmentId: string): Promise<Blob> => {
   const authHeaders = await getAuthHeaders();

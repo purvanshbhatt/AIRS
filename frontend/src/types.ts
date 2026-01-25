@@ -350,6 +350,11 @@ export interface AssessmentSummary {
   llm_provider?: string | null;
   llm_model?: string | null;
   llm_mode?: 'demo' | 'prod' | 'disabled';
+  // LLM narrative status: indicates if AI-generated text is available
+  // "ready": narrative is cached and available
+  // "pending": narrative is being generated in the background
+  // "disabled": LLM is disabled, no narrative will be generated
+  llm_status?: 'ready' | 'pending' | 'disabled';
 }
 
 // Standardized API error response

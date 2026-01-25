@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { getAssessmentSummary, getOrganization, downloadReport, downloadReportById, createReport, getReportsForAssessment, ApiRequestError } from '../api'
+import { getAssessmentSummary, getOrganization, downloadReport, downloadReportById, createReport, getReportsForAssessment, ApiRequestError, refreshNarrative } from '../api'
 import type { AssessmentSummary, Report } from '../types'
 import {
   Card,
@@ -66,6 +66,7 @@ export default function Results() {
   const [selectedBaseline, setSelectedBaseline] = useState<string>('Typical SMB')
   const [suggestedBaseline, setSuggestedBaseline] = useState<string | undefined>()
   const [activeTab, setActiveTab] = useState<ResultTabId>('overview')
+  const [isRefreshingNarrative, setIsRefreshingNarrative] = useState(false)
 
   // Load saved reports for this assessment
   const loadSavedReports = useCallback(async () => {
@@ -117,6 +118,46 @@ export default function Results() {
     // Also load saved reports
     loadSavedReports()
   }, [id, loadSavedReports])
+
+  // Handle refresh AI narrative
+  const handleRefreshNarrative = useCallback(async () => {
+    if (!id || isRefreshingNarrative) return
+    
+    setIsRefreshingNarrative(true)
+    try {
+      const result = await refreshNarrative(id)
+      
+      // Update the summary with the new narratives
+      if (summary && result.llm_status === 'ready') {
+        setSummary({
+          ...summary,
+          executive_summary_text: result.executive_summary_text || undefined,
+          roadmap_narrative_text: result.roadmap_narrative_text || undefined,
+          llm_status: result.llm_status,
+        })
+        addToast({
+          title: 'AI Insights Ready',
+          message: 'AI-generated insights have been loaded.',
+          type: 'success',
+        })
+      } else if (result.llm_status === 'pending') {
+        // Still pending, show toast
+        addToast({
+          title: 'Still Generating',
+          message: 'AI insights are still being generated. Try again in a few seconds.',
+          type: 'info',
+        })
+      }
+    } catch (err) {
+      addToast({
+        title: 'Refresh Failed',
+        message: 'Could not refresh AI insights. Please try again.',
+        type: 'error',
+      })
+    } finally {
+      setIsRefreshingNarrative(false)
+    }
+  }, [id, isRefreshingNarrative, summary, addToast])
 
   const handleDownload = async () => {
     setDownloading(true)
@@ -422,6 +463,8 @@ export default function Results() {
               selectedBaseline={selectedBaseline}
               setSelectedBaseline={setSelectedBaseline}
               suggestedBaseline={suggestedBaseline}
+              onRefreshNarrative={handleRefreshNarrative}
+              isRefreshingNarrative={isRefreshingNarrative}
             />
           </TabsContent>
 

@@ -550,6 +550,8 @@ class AssessmentService:
             "llm_provider": llm_metadata["llm_provider"],
             "llm_model": llm_metadata["llm_model"],
             "llm_mode": llm_metadata["llm_mode"],
+            # LLM narrative status: "ready" | "pending" | "disabled"
+            "llm_status": narratives.get("llm_status", "disabled"),
         }
     
     def _get_llm_metadata(self) -> Dict[str, Any]:
@@ -583,16 +585,34 @@ class AssessmentService:
             "llm_mode": llm_mode,
         }
     
-    def _get_or_generate_narratives(self, assessment: Assessment, payload: Dict[str, Any]) -> Dict[str, str]:
+    def _get_or_generate_narratives(self, assessment: Assessment, payload: Dict[str, Any], blocking: bool = False) -> Dict[str, Any]:
         """
-        Get cached LLM narratives or generate new ones.
+        Get cached LLM narratives or return pending status.
         
-        Narratives are only regenerated when:
-        - No cached narratives exist
-        - assessment.summary_version > assessment.narrative_version
+        Non-blocking by default: If narratives aren't cached, returns immediately
+        with llm_status="pending" and the caller should trigger background generation.
         
-        This avoids expensive LLM calls on every summary request.
+        Args:
+            assessment: The assessment to get narratives for
+            payload: Data for narrative generation
+            blocking: If True, wait for narrative generation (legacy behavior)
+        
+        Returns:
+            Dict with narrative texts and llm_status:
+            - llm_status: "ready" | "pending" | "disabled"
+            - executive_summary_text: str | None
+            - roadmap_narrative_text: str | None
         """
+        from app.core.config import settings
+        
+        # Check if LLM is disabled
+        if not settings.is_llm_enabled:
+            return {
+                "executive_summary_text": None,
+                "roadmap_narrative_text": None,
+                "llm_status": "disabled",
+            }
+        
         current_version = assessment.summary_version or 0
         cached_version = assessment.narrative_version or 0
         
@@ -602,11 +622,32 @@ class AssessmentService:
             return {
                 "executive_summary_text": assessment.narrative_executive,
                 "roadmap_narrative_text": assessment.narrative_roadmap,
+                "llm_status": "ready",
             }
         
-        logger.info(f"Narrative cache MISS for {assessment.id[:8]} (cached v{cached_version}, current v{current_version}), generating fresh narratives")
+        logger.info(f"Narrative cache MISS for {assessment.id[:8]} (cached v{cached_version}, current v{current_version})")
         
-        # Generate fresh narratives
+        # Non-blocking mode: return pending status immediately
+        if not blocking:
+            logger.info(f"Non-blocking mode: returning pending status for {assessment.id[:8]}")
+            return {
+                "executive_summary_text": None,
+                "roadmap_narrative_text": None,
+                "llm_status": "pending",
+            }
+        
+        # Blocking mode: generate synchronously (legacy/refresh behavior)
+        return self._generate_narratives_sync(assessment, payload)
+    
+    def _generate_narratives_sync(self, assessment: Assessment, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Generate narratives synchronously and cache them.
+        
+        Used for blocking refresh requests.
+        """
+        current_version = assessment.summary_version or 0
+        
+        logger.info(f"Generating narratives synchronously for {assessment.id[:8]}")
         start_time = time.perf_counter()
         narratives = generate_narrative(payload)
         elapsed_ms = (time.perf_counter() - start_time) * 1000
@@ -623,7 +664,61 @@ class AssessmentService:
         except Exception as e:
             logger.warning(f"Failed to cache narratives for {assessment.id[:8]}: {e}")
         
-        return narratives
+        return {
+            "executive_summary_text": narratives.get("executive_summary_text"),
+            "roadmap_narrative_text": narratives.get("roadmap_narrative_text"),
+            "llm_status": "ready",
+        }
+    
+    def refresh_narratives(self, assessment_id: str) -> Dict[str, Any]:
+        """
+        Force refresh narratives for an assessment.
+        
+        Called by POST /assessments/{id}/refresh-narrative endpoint.
+        Generates narratives synchronously and returns the result.
+        """
+        assessment = self.get(assessment_id)
+        if not assessment:
+            raise ValueError(f"Assessment not found: {assessment_id}")
+        
+        # Build payload for narrative generation
+        org = self.db.query(Organization).filter(
+            Organization.id == assessment.organization_id
+        ).first()
+        
+        overall_score = assessment.overall_score or 0
+        tier = self._get_readiness_tier(overall_score)
+        
+        domain_scores = []
+        for score in assessment.scores:
+            domain_scores.append({
+                "domain_id": score.domain_id,
+                "domain_name": score.domain_name,
+                "score": score.score * 20,
+                "score_5": score.score,
+                "weight": score.weight,
+            })
+        
+        findings = []
+        for f in assessment.findings[:5]:
+            findings.append({
+                "id": f.id,
+                "title": f.title,
+                "severity": get_severity_value(f.severity),
+                "domain": f.domain_name,
+            })
+        
+        payload = {
+            "overall_score": overall_score,
+            "tier": tier,
+            "domain_scores": domain_scores,
+            "findings": findings,
+            "organization_name": org.name if org else "the organization",
+            "baseline_profiles": load_baseline_profiles(),
+        }
+        
+        # Generate synchronously
+        return self._generate_narratives_sync(assessment, payload)
     
     def _get_readiness_tier(self, score: float) -> Dict[str, Any]:
         """Determine readiness tier based on overall score."""

@@ -39,6 +39,13 @@ class LLMMode(str, Enum):
     DISABLED = "disabled"  # LLM features disabled
 
 
+class LLMStatus(str, Enum):
+    """LLM narrative generation status."""
+    READY = "ready"        # Narrative is available (cached or freshly generated)
+    PENDING = "pending"    # Narrative is being generated in background
+    DISABLED = "disabled"  # LLM is disabled, no narrative will be generated
+
+
 # ----- Answer Schemas -----
 
 class AnswerInput(BaseModel):
@@ -464,3 +471,9 @@ class AssessmentSummaryResponse(BaseModel):
     llm_provider: Optional[str] = None  # e.g., "google", "openai"
     llm_model: Optional[str] = None     # e.g., "gemini-2.0-flash"
     llm_mode: LLMMode = LLMMode.DISABLED  # "demo" | "prod" | "disabled"
+    
+    # LLM narrative status - indicates if AI-generated text is available
+    # "ready": narrative is cached and available
+    # "pending": narrative is being generated in the background
+    # "disabled": LLM is disabled, no narrative will be generated
+    llm_status: LLMStatus = LLMStatus.DISABLED
