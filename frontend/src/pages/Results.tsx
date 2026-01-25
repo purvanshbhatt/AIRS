@@ -36,17 +36,20 @@ import {
   Route,
   FolderOpen,
 } from 'lucide-react'
-import {
-  OverviewTab,
-  FindingsTab,
-  RESULT_TABS,
-  type ResultTabId,
-} from '../components/ResultsTabs'
+// Import tab config from lightweight module (no heavy dependencies)
+import { RESULT_TABS, type ResultTabId } from '../components/ResultsTabsConfig'
 
-// Lazy load heavy tabs for better initial render
+// Lazy load ALL tab components to eliminate the mixed import warning
+// OverviewTab and FindingsTab are preloaded immediately for perceived performance
+const OverviewTab = lazy(() => import('../components/ResultsTabs').then(m => ({ default: m.OverviewTab })))
+const FindingsTab = lazy(() => import('../components/ResultsTabs').then(m => ({ default: m.FindingsTab })))
 const FrameworkTab = lazy(() => import('../components/ResultsTabs').then(m => ({ default: m.FrameworkTab })))
 const RoadmapTab = lazy(() => import('../components/ResultsTabs').then(m => ({ default: m.RoadmapTab })))
 const AnalyticsTab = lazy(() => import('../components/ResultsTabs').then(m => ({ default: m.AnalyticsTab })))
+
+// Preload OverviewTab and FindingsTab as soon as this module loads
+// This eliminates the perceived delay while still allowing code-splitting
+import('../components/ResultsTabs')
 
 export default function Results() {
   const { id } = useParams<{ id: string }>()
@@ -458,18 +461,22 @@ export default function Results() {
         {/* Tab Content */}
         <div className="mt-6">
           <TabsContent value="overview">
-            <OverviewTab
-              summary={summary}
-              selectedBaseline={selectedBaseline}
-              setSelectedBaseline={setSelectedBaseline}
-              suggestedBaseline={suggestedBaseline}
-              onRefreshNarrative={handleRefreshNarrative}
-              isRefreshingNarrative={isRefreshingNarrative}
-            />
+            <Suspense fallback={<ResultsOverviewSkeleton />}>
+              <OverviewTab
+                summary={summary}
+                selectedBaseline={selectedBaseline}
+                setSelectedBaseline={setSelectedBaseline}
+                suggestedBaseline={suggestedBaseline}
+                onRefreshNarrative={handleRefreshNarrative}
+                isRefreshingNarrative={isRefreshingNarrative}
+              />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="findings">
-            <FindingsTab summary={summary} />
+            <Suspense fallback={<ResultsTabSkeleton />}>
+              <FindingsTab summary={summary} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="framework">

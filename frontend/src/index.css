@@ -108,3 +108,14 @@ body {
 .dark .shadow-medium {
   box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
+
+/* Text selection styling */
+::selection {
+  background-color: var(--color-primary-500);
+  color: white;
+}
+
+.dark ::selection {
+  background-color: var(--color-primary-400);
+  color: #0f172a;
+}
