@@ -402,11 +402,16 @@ async function requestWithRetry<T>(
 }
 
 // Organizations
-export const createOrganization = (data: { name: string; industry?: string; size?: string; website_url?: string }) =>
-  request<{ id: string; name: string }>('/api/orgs', {
+export const createOrganization = async (data: { name: string; industry?: string; size?: string; website_url?: string }) => {
+  const result = await request<{ id: string; name: string }>('/api/orgs', {
     method: 'POST',
     body: JSON.stringify(data),
   });
+  // Invalidate cache after create
+  const { invalidateAfterMutation } = await import('./cache');
+  invalidateAfterMutation('org');
+  return result;
+};
 
 export const enrichOrganization = (orgId: string, websiteUrl: string) =>
   request<{
@@ -421,26 +426,43 @@ export const enrichOrganization = (orgId: string, websiteUrl: string) =>
     body: JSON.stringify({ website_url: websiteUrl }),
   });
 
-export const getOrganizations = () =>
-  request<import('./types').Organization[]>('/api/orgs');
+export const getOrganizations = async () => {
+  const { cachedFetch, CACHE_KEYS, CACHE_TTL } = await import('./cache');
+  return cachedFetch<import('./types').Organization[]>(
+    CACHE_KEYS.ORGANIZATIONS,
+    () => request<import('./types').Organization[]>('/api/orgs'),
+    CACHE_TTL.LIST
+  );
+};
 
 export const getOrganization = (id: string) =>
   request<import('./types').Organization>(`/api/orgs/${id}`);
 
 // Assessments
-export const createAssessment = (data: { organization_id: string; title: string }) =>
-  request<{ id: string }>('/api/assessments', {
+export const createAssessment = async (data: { organization_id: string; title: string }) => {
+  const result = await request<{ id: string }>('/api/assessments', {
     method: 'POST',
     body: JSON.stringify(data),
   });
+  // Invalidate cache after create
+  const { invalidateAfterMutation } = await import('./cache');
+  invalidateAfterMutation('assessment');
+  return result;
+};
 
-export const getAssessments = () =>
-  request<import('./types').Assessment[]>('/api/assessments');
+export const getAssessments = async () => {
+  const { cachedFetch, CACHE_KEYS, CACHE_TTL } = await import('./cache');
+  return cachedFetch<import('./types').Assessment[]>(
+    CACHE_KEYS.ASSESSMENTS,
+    () => request<import('./types').Assessment[]>('/api/assessments'),
+    CACHE_TTL.LIST
+  );
+};
 
 export const getAssessment = (id: string) =>
   request<import('./types').AssessmentDetail>(`/api/assessments/${id}`);
 
-export const submitAnswers = (assessmentId: string, answers: Record<string, string | number | boolean>) => {
+export const submitAnswers = async (assessmentId: string, answers: Record<string, string | number | boolean>) => {
   // Transform object format to array format expected by backend
   // Backend expects: { answers: [{ question_id: "tl_01", value: "yes" }, ...] }
   const answersList = Object.entries(answers).map(([questionId, value]) => ({
@@ -448,10 +470,17 @@ export const submitAnswers = (assessmentId: string, answers: Record<string, stri
     value: String(value), // Backend expects string values
   }));
 
-  return request<{ count: number }>(`/api/assessments/${assessmentId}/answers`, {
+  const result = await request<{ count: number }>(`/api/assessments/${assessmentId}/answers`, {
     method: 'POST',
     body: JSON.stringify({ answers: answersList }),
   });
+  
+  // Invalidate cache after submitting answers
+  const { invalidateAfterMutation, apiCache, CACHE_KEYS } = await import('./cache');
+  invalidateAfterMutation('assessment');
+  apiCache.invalidate(CACHE_KEYS.SUMMARY(assessmentId));
+  
+  return result;
 };
 
 export const updateAnswers = (assessmentId: string, answers: Record<string, string | number | boolean>) => {
@@ -487,10 +516,18 @@ export const updateAssessmentEdit = (assessmentId: string, answers: Record<strin
   });
 };
 
-export const computeScore = (assessmentId: string) =>
-  request<import('./types').ScoreResult>(`/api/assessments/${assessmentId}/score`, {
+export const computeScore = async (assessmentId: string) => {
+  const result = await request<import('./types').ScoreResult>(`/api/assessments/${assessmentId}/score`, {
     method: 'POST',
   });
+  
+  // Invalidate cache after scoring
+  const { invalidateAfterMutation, apiCache, CACHE_KEYS } = await import('./cache');
+  invalidateAfterMutation('assessment');
+  apiCache.invalidate(CACHE_KEYS.SUMMARY(assessmentId));
+  
+  return result;
+};
 
 export const getFindings = (assessmentId: string) =>
   request<import('./types').Finding[]>(`/api/assessments/${assessmentId}/findings`);
@@ -500,8 +537,23 @@ export const getRubric = () =>
   request<import('./types').Rubric>('/api/scoring/rubric');
 
 // Summary endpoint for executive dashboard (uses retry for Cloud Run cold starts)
-export const getAssessmentSummary = (assessmentId: string) =>
-  requestWithRetry<import('./types').AssessmentSummary>(`/api/assessments/${assessmentId}/summary`, {}, 1, 2000);
+export const getAssessmentSummary = async (assessmentId: string) => {
+  const { cachedFetch, CACHE_KEYS, CACHE_TTL } = await import('./cache');
+  return cachedFetch<import('./types').AssessmentSummary>(
+    CACHE_KEYS.SUMMARY(assessmentId),
+    () => requestWithRetry<import('./types').AssessmentSummary>(`/api/assessments/${assessmentId}/summary`, {}, 1, 2000),
+    CACHE_TTL.SUMMARY
+  );
+};
+
+// Prefetch summary (non-blocking, for eager loading after scoring)
+export const prefetchAssessmentSummary = (assessmentId: string) => {
+  // Fire and forget - don't await
+  getAssessmentSummary(assessmentId).catch(() => {
+    // Silently ignore prefetch errors
+    console.log(`[Prefetch] Summary prefetch failed for ${assessmentId}`);
+  });
+};
 
 // Report download
 export const downloadReport = async (assessmentId: string): Promise<Blob> => {
@@ -555,7 +607,7 @@ export interface ReportFilters {
 }
 
 // List saved reports
-export const getReports = (filters?: ReportFilters) => {
+export const getReports = async (filters?: ReportFilters) => {
   const params = new URLSearchParams();
   if (filters?.organization_id) params.set('organization_id', filters.organization_id);
   if (filters?.assessment_id) params.set('assessment_id', filters.assessment_id);
@@ -566,7 +618,18 @@ export const getReports = (filters?: ReportFilters) => {
   if (filters?.offset) params.set('offset', String(filters.offset));
 
   const query = params.toString();
-  return request<import('./types').ReportListResponse>(`/api/reports${query ? `?${query}` : ''}`);
+  
+  // Only cache unfiltered requests
+  if (!query) {
+    const { cachedFetch, CACHE_KEYS, CACHE_TTL } = await import('./cache');
+    return cachedFetch<import('./types').ReportListResponse>(
+      CACHE_KEYS.REPORTS,
+      () => request<import('./types').ReportListResponse>('/api/reports'),
+      CACHE_TTL.LIST
+    );
+  }
+  
+  return request<import('./types').ReportListResponse>(`/api/reports?${query}`);
 };
 
 // Get report details with snapshot
@@ -574,11 +637,16 @@ export const getReport = (reportId: string) =>
   request<import('./types').ReportDetail>(`/api/reports/${reportId}`);
 
 // Create a new report for an assessment
-export const createReport = (assessmentId: string, data?: { report_type?: string; title?: string }) =>
-  request<import('./types').Report>(`/api/assessments/${assessmentId}/reports`, {
+export const createReport = async (assessmentId: string, data?: { report_type?: string; title?: string }) => {
+  const result = await request<import('./types').Report>(`/api/assessments/${assessmentId}/reports`, {
     method: 'POST',
     body: JSON.stringify(data || {}),
   });
+  // Invalidate cache after create
+  const { invalidateAfterMutation } = await import('./cache');
+  invalidateAfterMutation('report');
+  return result;
+};
 
 // Download report PDF by report ID
 export const downloadReportById = async (reportId: string): Promise<Blob> => {
@@ -618,10 +686,14 @@ export const downloadReportById = async (reportId: string): Promise<Blob> => {
 };
 
 // Delete a report
-export const deleteReport = (reportId: string) =>
-  request<void>(`/api/reports/${reportId}`, {
+export const deleteReport = async (reportId: string) => {
+  await request<void>(`/api/reports/${reportId}`, {
     method: 'DELETE',
   });
+  // Invalidate cache after delete
+  const { invalidateAfterMutation } = await import('./cache');
+  invalidateAfterMutation('report');
+};
 
 // Get reports for a specific assessment
 export const getReportsForAssessment = (assessmentId: string) =>

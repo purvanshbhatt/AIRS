@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getAssessmentSummary, getOrganization, downloadReport, downloadReportById, createReport, getReportsForAssessment, ApiRequestError } from '../api'
 import type { AssessmentSummary, Report } from '../types'
@@ -12,6 +12,10 @@ import {
   TabsContent,
   useToast,
   ApiDiagnosticsPanel,
+  ResultsOverviewSkeleton,
+  ResultsTabSkeleton,
+  ResultsFrameworkSkeleton,
+  ResultsAnalyticsSkeleton,
 } from '../components/ui'
 import {
   Download,
@@ -35,12 +39,14 @@ import {
 import {
   OverviewTab,
   FindingsTab,
-  FrameworkTab,
-  RoadmapTab,
-  AnalyticsTab,
   RESULT_TABS,
   type ResultTabId,
 } from '../components/ResultsTabs'
+
+// Lazy load heavy tabs for better initial render
+const FrameworkTab = lazy(() => import('../components/ResultsTabs').then(m => ({ default: m.FrameworkTab })))
+const RoadmapTab = lazy(() => import('../components/ResultsTabs').then(m => ({ default: m.RoadmapTab })))
+const AnalyticsTab = lazy(() => import('../components/ResultsTabs').then(m => ({ default: m.AnalyticsTab })))
 
 export default function Results() {
   const { id } = useParams<{ id: string }>()
@@ -213,14 +219,28 @@ export default function Results() {
     })
   }
 
-  // Loading state
+  // Loading state - show skeleton for better perceived performance
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Loading assessment results...</p>
+      <div className="space-y-6 max-w-6xl mx-auto">
+        {/* Header skeleton */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="animate-pulse flex items-center gap-4">
+            <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+            <div className="flex-1">
+              <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+              <div className="h-6 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
+            </div>
+          </div>
         </div>
+        {/* Tabs skeleton */}
+        <div className="flex gap-2 mb-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+          ))}
+        </div>
+        {/* Content skeleton */}
+        <ResultsOverviewSkeleton />
       </div>
     )
   }
@@ -410,15 +430,21 @@ export default function Results() {
           </TabsContent>
 
           <TabsContent value="framework">
-            <FrameworkTab summary={summary} />
+            <Suspense fallback={<ResultsFrameworkSkeleton />}>
+              <FrameworkTab summary={summary} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="roadmap">
-            <RoadmapTab summary={summary} />
+            <Suspense fallback={<ResultsTabSkeleton />}>
+              <RoadmapTab summary={summary} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="analytics">
-            <AnalyticsTab summary={summary} />
+            <Suspense fallback={<ResultsAnalyticsSkeleton />}>
+              <AnalyticsTab summary={summary} />
+            </Suspense>
           </TabsContent>
         </div>
       </Tabs>

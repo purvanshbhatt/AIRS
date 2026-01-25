@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getRubric, getAssessmentEdit, updateAssessmentEdit, computeScore, ApiRequestError } from '../api';
+import { getRubric, getAssessmentEdit, updateAssessmentEdit, computeScore, prefetchAssessmentSummary, ApiRequestError } from '../api';
 import type { Rubric, Question, AssessmentDetail } from '../types';
 import { Card, CardContent, Button, Badge, ApiDiagnosticsPanel } from '../components/ui';
 import { CheckCircle, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
@@ -78,6 +78,10 @@ export default function Assessment() {
       await updateAssessmentEdit(id!, formattedAnswers);
 
       await computeScore(id!);
+      
+      // Prefetch summary for faster Results page load
+      prefetchAssessmentSummary(id!);
+      
       navigate('/results/' + id);
     } catch (err) {
       setErrorObject(err instanceof Error ? err : new Error(String(err)));
