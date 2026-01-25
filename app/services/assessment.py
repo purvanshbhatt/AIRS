@@ -584,11 +584,25 @@ class AssessmentService:
             MITRE_TECHNIQUES,
             TOTAL_MITRE_TECHNIQUES,
             CIS_CONTROLS,
+            OWASP_REFS,
         )
         
         mapped_findings = []
+        # Track unique refs across all findings for accurate counts
+        all_mitre_ids = set()
+        all_cis_ids = set()
+        all_owasp_ids = set()
+        
         for f in findings:
             refs = get_all_framework_refs(f.question_id) if f.question_id else {}
+            
+            # Collect unique IDs
+            for m in refs.get("mitre", []):
+                all_mitre_ids.add(m["id"])
+            for c in refs.get("cis", []):
+                all_cis_ids.add(c["id"])
+            for o in refs.get("owasp", []):
+                all_owasp_ids.add(o["id"])
             
             mapped_findings.append({
                 "finding_id": f.id,
@@ -605,23 +619,36 @@ class AssessmentService:
         question_ids = [f.question_id for f in findings if f.question_id]
         
         # Simple coverage calculation
-        # In a full implementation, we'd track which controls are implemented
         mitre_coverage = get_technique_coverage(question_ids) if question_ids else {}
         cis_coverage = get_cis_coverage_summary(question_ids) if question_ids else {}
+        
+        # Get top techniques/controls for display
+        mitre_ref_list = sorted(all_mitre_ids)[:10]  # Top 10
+        cis_ref_list = sorted(all_cis_ids)[:10]
+        owasp_ref_list = sorted(all_owasp_ids)[:10]
         
         return {
             "findings": mapped_findings,
             "coverage": {
-                "mitre_techniques_referenced": mitre_coverage.get("enabled", 0),
+                # MITRE ATT&CK
+                "mitre_techniques_referenced": len(all_mitre_ids),
                 "mitre_techniques_total": TOTAL_MITRE_TECHNIQUES,
-                "mitre_coverage_pct": (mitre_coverage.get("enabled", 0) / TOTAL_MITRE_TECHNIQUES * 100) if TOTAL_MITRE_TECHNIQUES > 0 else 0,
-                "mitre_techniques_referenced_list": mitre_coverage.get("technique_list", []),
-                "cis_controls_met": cis_coverage.get("met", 0),
+                "mitre_coverage_pct": (len(all_mitre_ids) / TOTAL_MITRE_TECHNIQUES * 100) if TOTAL_MITRE_TECHNIQUES > 0 else 0,
+                "mitre_techniques_referenced_list": mitre_ref_list,
+                # CIS Controls
+                "cis_controls_referenced": len(all_cis_ids),
                 "cis_controls_total": len(CIS_CONTROLS),
+                "cis_controls_met": cis_coverage.get("met", 0),
                 "cis_coverage_pct": cis_coverage.get("coverage_pct", 0.0),
+                "cis_controls_referenced_list": cis_ref_list,
                 "ig1_coverage_pct": cis_coverage.get("ig1_pct", 0.0),
                 "ig2_coverage_pct": cis_coverage.get("ig2_pct", 0.0),
                 "ig3_coverage_pct": cis_coverage.get("ig3_pct", 0.0),
+                # OWASP
+                "owasp_referenced": len(all_owasp_ids),
+                "owasp_total": len(OWASP_REFS),
+                "owasp_coverage_pct": (len(all_owasp_ids) / len(OWASP_REFS) * 100) if len(OWASP_REFS) > 0 else 0,
+                "owasp_referenced_list": owasp_ref_list,
             }
         }
     

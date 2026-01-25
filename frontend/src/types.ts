@@ -167,16 +167,25 @@ export interface FrameworkMappedFinding {
 }
 
 export interface FrameworkCoverage {
+  // MITRE ATT&CK
   mitre_techniques_referenced: number;
   mitre_techniques_total: number;
   mitre_coverage_pct: number;
   mitre_techniques_referenced_list: string[];
+  // CIS Controls
+  cis_controls_referenced?: number;
   cis_controls_met: number;
   cis_controls_total: number;
   cis_coverage_pct: number;
+  cis_controls_referenced_list?: string[];
   ig1_coverage_pct: number;
   ig2_coverage_pct: number;
   ig3_coverage_pct: number;
+  // OWASP
+  owasp_referenced?: number;
+  owasp_total?: number;
+  owasp_coverage_pct?: number;
+  owasp_referenced_list?: string[];
 }
 
 export interface FrameworkMapping {

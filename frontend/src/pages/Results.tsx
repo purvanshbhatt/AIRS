@@ -11,6 +11,7 @@ import {
   TabsTrigger,
   TabsContent,
   useToast,
+  ApiDiagnosticsPanel,
 } from '../components/ui'
 import {
   Download,
@@ -54,6 +55,7 @@ export default function Results() {
   const [savedReports, setSavedReports] = useState<Report[]>([])
   const [reportsLoading, setReportsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [errorObject, setErrorObject] = useState<Error | null>(null)
   const [isAccessDenied, setIsAccessDenied] = useState(false)
   const [selectedBaseline, setSelectedBaseline] = useState<string>('Typical SMB')
   const [suggestedBaseline, setSuggestedBaseline] = useState<string | undefined>()
@@ -92,6 +94,7 @@ export default function Results() {
         }
       })
       .catch((err) => {
+        setErrorObject(err instanceof Error ? err : new Error(String(err)));
         if (err instanceof ApiRequestError) {
           if (err.status === 404 || err.status === 403) {
             setIsAccessDenied(true);
@@ -216,7 +219,7 @@ export default function Results() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading assessment results...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading assessment results...</p>
         </div>
       </div>
     )
@@ -228,17 +231,17 @@ export default function Results() {
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
-            <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShieldX className="h-8 w-8 text-danger-600" />
+            <div className="w-16 h-16 bg-danger-100 dark:bg-danger-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShieldX className="h-8 w-8 text-danger-600 dark:text-danger-400" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Access Denied
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               You don't have access to this assessment. It may belong to another user or no longer exist.
             </p>
             <Button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate('/dashboard')}
               className="inline-flex items-center gap-2"
             >
               <Home className="h-4 w-4" />
@@ -262,13 +265,17 @@ export default function Results() {
             </div>
             <Button
               variant="outline"
-              onClick={() => navigate('/home')}
+              onClick={() => navigate('/dashboard')}
               className="mt-2"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Button>
           </div>
+          {/* Show API Diagnostics for network/CORS errors */}
+          {errorObject && (
+            <ApiDiagnosticsPanel error={errorObject} autoRun={true} compact={false} />
+          )}
         </CardContent>
       </Card>
     )
@@ -279,10 +286,10 @@ export default function Results() {
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Assessment Not Found</h2>
-          <p className="text-gray-600 mb-6">The requested assessment could not be loaded</p>
-          <Link to="/home">
+          <FileText className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Assessment Not Found</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">The requested assessment could not be loaded</p>
+          <Link to="/dashboard">
             <Button>Back to Dashboard</Button>
           </Link>
         </CardContent>
@@ -325,19 +332,19 @@ export default function Results() {
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white rounded-xl border border-gray-200 p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <Building2 className="h-4 w-4" />
             <span>{summary.organization_name || 'Organization'}</span>
-            <span className="text-gray-300">•</span>
+            <span className="text-gray-300 dark:text-gray-600">•</span>
             <Clock className="h-4 w-4" />
             <span>{formatDate(summary.created_at)}</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {summary.title || 'AI Readiness Assessment'}
           </h1>
-          <p className="text-gray-600">Assessment ID: {id?.slice(0, 8)}...</p>
+          <p className="text-gray-600 dark:text-gray-400">Assessment ID: {id?.slice(0, 8)}...</p>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -418,7 +425,7 @@ export default function Results() {
 
       {/* Actions Footer */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-        <Button variant="outline" onClick={() => navigate('/home')}>
+        <Button variant="outline" onClick={() => navigate('/dashboard')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </Button>

@@ -557,89 +557,161 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
   }
 
   const { findings, coverage } = mapping
+  
+  // Compute unique framework refs from findings (source of truth)
+  const uniqueMitre = new Set<string>()
+  const uniqueCIS = new Set<string>()
+  const uniqueOWASP = new Set<string>()
+  const mitreTechniqueNames: Record<string, string> = {}
+  const cisTechniqueNames: Record<string, string> = {}
+  const owaspNames: Record<string, string> = {}
+  
+  findings.forEach(f => {
+    f.mitre_refs?.forEach(ref => {
+      uniqueMitre.add(ref.id)
+      mitreTechniqueNames[ref.id] = ref.name
+    })
+    f.cis_refs?.forEach(ref => {
+      uniqueCIS.add(ref.id)
+      cisTechniqueNames[ref.id] = ref.name
+    })
+    f.owasp_refs?.forEach(ref => {
+      uniqueOWASP.add(ref.id)
+      owaspNames[ref.id] = ref.name
+    })
+  })
+  
+  // Use computed values as source of truth
+  const mitreCount = uniqueMitre.size
+  const mitreTotal = coverage?.mitre_techniques_total || 40
+  const mitrePct = mitreTotal > 0 ? (mitreCount / mitreTotal * 100) : 0
+  const mitreList = Array.from(uniqueMitre).slice(0, 5)
+  
+  const cisCount = uniqueCIS.size
+  const cisTotal = coverage?.cis_controls_total || 56
+  const cisList = Array.from(uniqueCIS).slice(0, 5)
+  
+  const owaspCount = uniqueOWASP.size
+  const owaspTotal = coverage?.owasp_total || 10
+  const owaspPct = owaspTotal > 0 ? (owaspCount / owaspTotal * 100) : 0
+  const owaspList = Array.from(uniqueOWASP).slice(0, 5)
 
   return (
     <div className="space-y-6">
       {/* Coverage Summary */}
-      {coverage && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* MITRE Coverage */}
-          {/* MITRE Coverage */}
-          <Card>
-            <CardContent className="py-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <Target className="h-5 w-5 text-red-600" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">MITRE ATT&CK</div>
-                  <div className="text-2xl font-bold">{coverage.mitre_coverage_pct.toFixed(0)}%</div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* MITRE Coverage */}
+        <Card>
+          <CardContent className="py-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Target className="h-5 w-5 text-red-600" />
               </div>
+              <div>
+                <div className="text-sm text-gray-500">MITRE ATT&CK</div>
+                <div className="text-2xl font-bold">{mitrePct.toFixed(0)}%</div>
+              </div>
+            </div>
 
-              {/* Count logic */}
-              <div className="text-xs text-gray-500 mt-2">
-                <span className="font-medium text-gray-700">{coverage.mitre_techniques_referenced || 0}</span> of <span className="font-medium text-gray-700">{coverage.mitre_techniques_total || 40}</span> techniques referenced
-              </div>
+            {/* Count from computed values */}
+            <div className="text-xs text-gray-500 mt-2">
+              <span className="font-medium text-gray-700">{mitreCount}</span> of <span className="font-medium text-gray-700">{mitreTotal}</span> techniques referenced
+            </div>
 
-              {/* Top Techniques List */}
-              {coverage.mitre_techniques_referenced_list && coverage.mitre_techniques_referenced_list.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Top Referenced</p>
-                  <div className="flex flex-wrap gap-1">
-                    {coverage.mitre_techniques_referenced_list.slice(0, 5).map((tid: string) => (
-                      <Badge key={tid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white">
-                        {tid}
-                      </Badge>
-                    ))}
-                    {coverage.mitre_techniques_referenced_list.length > 5 && (
-                      <span className="text-[10px] text-gray-400 flex items-center">+{coverage.mitre_techniques_referenced_list.length - 5} more</span>
-                    )}
-                  </div>
+            {/* Top Techniques List */}
+            {mitreList.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Top Referenced</p>
+                <div className="flex flex-wrap gap-1">
+                  {mitreList.map((tid: string) => (
+                    <Badge key={tid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white" title={mitreTechniqueNames[tid]}>
+                      {tid}
+                    </Badge>
+                  ))}
+                  {uniqueMitre.size > 5 && (
+                    <span className="text-[10px] text-gray-400 flex items-center">+{uniqueMitre.size - 5} more</span>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* CIS Controls Coverage */}
-          <Card>
-            <CardContent className="py-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Shield className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">CIS Controls v8</div>
-                  <div className="text-2xl font-bold">{coverage.cis_coverage_pct.toFixed(0)}%</div>
+        {/* CIS Controls Coverage */}
+        <Card>
+          <CardContent className="py-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Shield className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">CIS Controls v8</div>
+                <div className="text-2xl font-bold">{cisCount} referenced</div>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              <span className="font-medium text-gray-700">{cisCount}</span> of <span className="font-medium text-gray-700">{cisTotal}</span> controls referenced
+            </div>
+            {coverage && (
+              <div className="space-y-1 text-xs text-gray-500 mt-2">
+                <div>IG1: {coverage.ig1_coverage_pct?.toFixed(0) || 0}%</div>
+                <div>IG2: {coverage.ig2_coverage_pct?.toFixed(0) || 0}%</div>
+                <div>IG3: {coverage.ig3_coverage_pct?.toFixed(0) || 0}%</div>
+              </div>
+            )}
+            {/* Top Controls List */}
+            {cisList.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Top Referenced</p>
+                <div className="flex flex-wrap gap-1">
+                  {cisList.map((cid: string) => (
+                    <Badge key={cid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white" title={cisTechniqueNames[cid]}>
+                      {cid}
+                    </Badge>
+                  ))}
+                  {uniqueCIS.size > 5 && (
+                    <span className="text-[10px] text-gray-400 flex items-center">+{uniqueCIS.size - 5} more</span>
+                  )}
                 </div>
               </div>
-              <div className="space-y-1 text-xs text-gray-500">
-                <div>IG1: {coverage.ig1_coverage_pct.toFixed(0)}%</div>
-                <div>IG2: {coverage.ig2_coverage_pct.toFixed(0)}%</div>
-                <div>IG3: {coverage.ig3_coverage_pct.toFixed(0)}%</div>
-              </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* OWASP */}
-          <Card>
-            <CardContent className="py-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Lock className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">OWASP Top 10</div>
-                  <div className="text-2xl font-bold">Referenced</div>
+        {/* OWASP */}
+        <Card>
+          <CardContent className="py-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Lock className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <div className="text-sm text-gray-500">OWASP Top 10</div>
+                <div className="text-2xl font-bold">{owaspCount} referenced</div>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              <span className="font-medium text-gray-700">{owaspCount}</span> of <span className="font-medium text-gray-700">{owaspTotal}</span> categories referenced ({owaspPct.toFixed(0)}%)
+            </div>
+            {/* Top OWASP List */}
+            {owaspList.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Referenced</p>
+                <div className="flex flex-wrap gap-1">
+                  {owaspList.map((oid: string) => (
+                    <Badge key={oid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white" title={owaspNames[oid]}>
+                      {oid}
+                    </Badge>
+                  ))}
+                  {uniqueOWASP.size > 5 && (
+                    <span className="text-[10px] text-gray-400 flex items-center">+{uniqueOWASP.size - 5} more</span>
+                  )}
                 </div>
               </div>
-              <div className="text-xs text-gray-500">
-                Application security considerations mapped
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Findings with Framework References */}
       <Card>

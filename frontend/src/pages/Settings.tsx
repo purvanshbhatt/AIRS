@@ -71,12 +71,12 @@ export default function Settings() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-          <SettingsIcon className="w-5 h-5 text-gray-600" />
+        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+          <SettingsIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-500 text-sm">Profile, environment, and system configuration</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Profile, environment, and system configuration</p>
         </div>
       </div>
 
@@ -84,14 +84,14 @@ export default function Settings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <User className="h-5 w-5 text-gray-500" />
+            <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             <CardTitle className="text-lg">Profile</CardTitle>
           </div>
           <CardDescription>Your account information</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
               {user?.photoURL ? (
                 <img
                   src={user.photoURL}
@@ -99,7 +99,7 @@ export default function Settings() {
                   className="w-16 h-16 rounded-full object-cover"
                 />
               ) : (
-                <span className="text-2xl font-semibold text-primary-700">
+                <span className="text-2xl font-semibold text-primary-700 dark:text-primary-300">
                   {user?.displayName?.charAt(0).toUpperCase() ||
                     user?.email?.charAt(0).toUpperCase() ||
                     'U'}
@@ -107,10 +107,10 @@ export default function Settings() {
               )}
             </div>
             <div>
-              <p className="text-lg font-semibold text-gray-900">
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {user?.displayName || 'User'}
               </p>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                 <Mail className="w-3.5 h-3.5" />
                 {user?.email || 'Not signed in'}
               </p>

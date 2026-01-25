@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { Footer } from './Footer';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface NavItem {
     name: string;
@@ -32,6 +33,10 @@ const docsNavigation: NavItem[] = [
 export default function DocsLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const location = useLocation();
+    const { theme } = useTheme();
+
+    // Use theme-aware logo
+    const logoSrc = theme === 'dark' ? '/airs-logo-dark.png' : '/airs-logo-light.png';
 
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
@@ -54,7 +59,7 @@ export default function DocsLayout() {
                 {/* Logo */}
                 <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <Link to="/" className="flex items-center gap-3">
-                        <img src="/airs-logo.png" alt="AIRS" className="h-8 w-auto" />
+                        <img src={logoSrc} alt="AIRS" className="h-8 w-auto" />
                     </Link>
                     <button
                         onClick={() => setSidebarOpen(false)}

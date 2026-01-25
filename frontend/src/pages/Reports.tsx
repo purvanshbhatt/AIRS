@@ -117,12 +117,12 @@ export default function Reports() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <FileText className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+            <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-            <p className="text-gray-500 text-sm">Download and share assessment reports</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Reports</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Download and share assessment reports</p>
           </div>
         </div>
         <ListSkeleton count={4} />
@@ -135,7 +135,12 @@ export default function Reports() {
       <Card className="max-w-lg mx-auto mt-12">
         <CardContent className="py-8 text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>Retry</Button>
+          <div className="flex flex-col items-center gap-3">
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+            <Link to="/dashboard" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+              ← Back to Dashboard
+            </Link>
+          </div>
         </CardContent>
       </Card>
     );
@@ -146,12 +151,12 @@ export default function Reports() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-            <FileText className="w-5 h-5 text-indigo-600" />
+          <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+            <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-            <p className="text-gray-500 text-sm">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Reports</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
               {totalReports} saved report{totalReports !== 1 ? 's' : ''}
             </p>
           </div>
@@ -168,6 +173,7 @@ export default function Reports() {
               label: 'Start Assessment',
               href: '/dashboard/assessment/new',
             }}
+            showBackToDashboard
           />
         </Card>
       ) : (

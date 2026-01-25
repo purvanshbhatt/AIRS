@@ -7,6 +7,8 @@
  *   - Injects Firebase ID token into Authorization header
  *   - Handles 401 errors with redirect to /login
  *   - Provides detailed error messages with status codes and request IDs
+ *   - Distinguishes network errors from HTTP errors
+ *   - Supports retry for transient failures (e.g., Cloud Run cold starts)
  */
 
 import { API_BASE_URL, isDevelopment } from './config';
@@ -17,17 +19,21 @@ export const getApiBaseUrl = () => API_BASE_URL;
 // ERROR TYPES
 // =============================================================================
 
+export type ApiErrorType = 'network' | 'http' | 'cors' | 'timeout' | 'unknown';
+
 export interface ApiError {
   message: string;
   status?: number;
   requestId?: string;
   detail?: string;
+  errorType?: ApiErrorType;
 }
 
 export class ApiRequestError extends Error {
   status?: number;
   requestId?: string;
   detail?: string;
+  errorType: ApiErrorType;
 
   constructor(error: ApiError) {
     super(error.message);
@@ -35,6 +41,21 @@ export class ApiRequestError extends Error {
     this.status = error.status;
     this.requestId = error.requestId;
     this.detail = error.detail;
+    this.errorType = error.errorType || (error.status ? 'http' : 'network');
+  }
+
+  /**
+   * Check if this is a network-level error (no response from server)
+   */
+  isNetworkError(): boolean {
+    return this.errorType === 'network' || this.errorType === 'cors';
+  }
+
+  /**
+   * Check if this is an HTTP error (server responded with error status)
+   */
+  isHttpError(): boolean {
+    return this.errorType === 'http' && this.status !== undefined;
   }
 
   /**
@@ -45,6 +66,10 @@ export class ApiRequestError extends Error {
 
     if (this.status) {
       parts.push(`[${this.status}]`);
+    } else if (this.errorType === 'network') {
+      parts.push('[Network Error]');
+    } else if (this.errorType === 'cors') {
+      parts.push('[CORS Error]');
     }
 
     parts.push(this.message);
@@ -54,6 +79,18 @@ export class ApiRequestError extends Error {
     }
 
     return parts.join(' ');
+  }
+
+  /**
+   * Get a short diagnostic summary for the error panel
+   */
+  toDiagnostic(): { type: string; status?: number; message: string; requestId?: string } {
+    return {
+      type: this.errorType,
+      status: this.status,
+      message: this.message,
+      requestId: this.requestId,
+    };
   }
 }
 
@@ -180,7 +217,13 @@ async function request<T>(
     });
   } catch (networkError) {
     // Network error (CORS, DNS, connection refused, etc.)
+    const errorMessage = networkError instanceof Error ? networkError.message : 'Unknown error';
     console.error(`[API] Network error for ${method} ${url}:`, networkError);
+
+    // Detect CORS errors (they often have no message or "Failed to fetch")
+    const isCorsLikely = errorMessage === 'Failed to fetch' || 
+                         errorMessage.includes('CORS') ||
+                         errorMessage.includes('NetworkError');
 
     // Record failed call
     recordApiCall({
@@ -188,15 +231,20 @@ async function request<T>(
       method,
       endpoint,
       status: 'error',
-      statusText: 'Network Error',
+      statusText: isCorsLikely ? 'CORS/Network Error' : 'Network Error',
       duration: Date.now() - startTime,
       timestamp: new Date(),
-      errorMessage: 'Unable to reach API server',
+      errorMessage: isCorsLikely 
+        ? 'Request blocked - possible CORS issue' 
+        : 'Unable to reach API server',
     });
 
     throw new ApiRequestError({
-      message: `Unable to reach API server. Check your connection and CORS configuration.`,
-      detail: `Network request to ${API_BASE_URL} failed.`,
+      message: isCorsLikely 
+        ? `Request blocked. This may be a CORS configuration issue.`
+        : `Unable to reach API server. Check your connection.`,
+      detail: `Network request to ${API_BASE_URL} failed: ${errorMessage}`,
+      errorType: isCorsLikely ? 'cors' : 'network',
     });
   }
 
@@ -297,6 +345,7 @@ async function request<T>(
       status: response.status,
       requestId,
       detail,
+      errorType: 'http',
     });
   }
 
@@ -312,6 +361,44 @@ async function request<T>(
   });
 
   return response.json();
+}
+
+// =============================================================================
+// RETRY WRAPPER (for transient failures like Cloud Run cold starts)
+// =============================================================================
+
+async function requestWithRetry<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  retries: number = 1,
+  delayMs: number = 1500
+): Promise<T> {
+  let lastError: Error | undefined;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await request<T>(endpoint, options);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      
+      // Only retry on network errors or 5xx server errors
+      const isRetryable = 
+        (err instanceof ApiRequestError && (err.isNetworkError() || (err.status && err.status >= 500))) ||
+        !(err instanceof ApiRequestError);
+      
+      if (!isRetryable || attempt >= retries) {
+        throw err;
+      }
+      
+      if (isDevelopment) {
+        console.log(`[API] Request failed, retrying in ${delayMs}ms (attempt ${attempt + 1}/${retries + 1})`);
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+  
+  throw lastError;
 }
 
 // Organizations
@@ -412,9 +499,9 @@ export const getFindings = (assessmentId: string) =>
 export const getRubric = () =>
   request<import('./types').Rubric>('/api/scoring/rubric');
 
-// Summary endpoint for executive dashboard
+// Summary endpoint for executive dashboard (uses retry for Cloud Run cold starts)
 export const getAssessmentSummary = (assessmentId: string) =>
-  request<import('./types').AssessmentSummary>(`/api/assessments/${assessmentId}/summary`);
+  requestWithRetry<import('./types').AssessmentSummary>(`/api/assessments/${assessmentId}/summary`, {}, 1, 2000);
 
 // Report download
 export const downloadReport = async (assessmentId: string): Promise<Blob> => {

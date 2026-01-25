@@ -1,8 +1,8 @@
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { DashboardLayout, DocsLayout } from './components/layout';
 import { ToastProvider } from './components/ui';
-import { AuthProvider, ThemeProvider } from './contexts';
+import { AuthProvider, ThemeProvider, useAuth } from './contexts';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
 import { setUnauthorizedHandler } from './api';
@@ -22,6 +22,58 @@ import Settings from './pages/Settings';
 
 // Docs Pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
+
+/**
+ * Root redirect - sends authenticated users to dashboard, others to login
+ */
+function RootRedirect() {
+  const { user, loading, isConfigured } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-gray-500 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If Firebase not configured (dev mode) or user is authenticated, go to dashboard
+  if (!isConfigured || user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Not authenticated - show landing page
+  return <Landing />;
+}
+
+/**
+ * Catch-all redirect for unknown routes
+ */
+function CatchAllRedirect() {
+  const { user, loading, isConfigured } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-gray-500 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If Firebase not configured (dev mode) or user is authenticated, go to dashboard
+  if (!isConfigured || user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Not authenticated - go to login
+  return <Navigate to="/login" replace />;
+}
 
 // API Configuration Warning Banner (dev only when not configured)
 function ApiConfigBanner() {
@@ -46,9 +98,12 @@ function DashboardRoutes() {
           <Route path="/org/new" element={<NewOrg />} />
           <Route path="/assessments" element={<Assessments />} />
           <Route path="/assessment/new" element={<NewAssessment />} />
+          <Route path="/assessment/:id" element={<Assessment />} />
           <Route path="/results/:id" element={<Results />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
+          {/* Catch unknown dashboard paths - redirect to main dashboard */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </DashboardLayout>
     </ProtectedRoute>
@@ -80,8 +135,13 @@ export default function App() {
           <AuthRedirectHandler />
           <ApiConfigBanner />
           <Routes>
+            {/* Root - redirects based on auth state */}
+            <Route path="/" element={<RootRedirect />} />
+
+            {/* /home redirects to /dashboard */}
+            <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+
             {/* Public routes */}
-            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
 
             {/* Public docs routes */}
@@ -96,7 +156,7 @@ export default function App() {
             {/* Protected dashboard routes */}
             <Route path="/dashboard/*" element={<DashboardRoutes />} />
 
-            {/* Protected assessment flow routes */}
+            {/* Protected assessment flow routes (legacy paths) */}
             <Route
               path="/assessment/new"
               element={
@@ -137,6 +197,9 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Catch-all route - redirects based on auth state */}
+            <Route path="*" element={<CatchAllRedirect />} />
           </Routes>
         </ToastProvider>
       </AuthProvider>

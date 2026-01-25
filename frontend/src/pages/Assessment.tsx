@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getRubric, getAssessmentEdit, updateAssessmentEdit, computeScore, ApiRequestError } from '../api';
 import type { Rubric, Question, AssessmentDetail } from '../types';
-import { Card, CardContent, Button, Badge } from '../components/ui';
-import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Card, CardContent, Button, Badge, ApiDiagnosticsPanel } from '../components/ui';
+import { CheckCircle, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface DomainEntry {
@@ -23,6 +23,7 @@ export default function Assessment() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [errorObject, setErrorObject] = useState<Error | null>(null);
   const [activeDomain, setActiveDomain] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function Assessment() {
         }
       })
       .catch((err) => {
+        setErrorObject(err instanceof Error ? err : new Error(String(err)));
         if (err instanceof ApiRequestError) {
           setError(err.toDisplayMessage());
         } else {
@@ -78,6 +80,7 @@ export default function Assessment() {
       await computeScore(id!);
       navigate('/results/' + id);
     } catch (err) {
+      setErrorObject(err instanceof Error ? err : new Error(String(err)));
       if (err instanceof ApiRequestError) {
         setError(err.toDisplayMessage());
       } else {
@@ -163,10 +166,22 @@ export default function Assessment() {
     return (
       <Card>
         <CardContent className="py-8">
-          <div className="flex items-center justify-center gap-3 text-danger-600">
-            <AlertCircle className="w-6 h-6" />
-            <p className="text-lg">{error}</p>
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="flex items-center gap-3 text-danger-600">
+              <AlertCircle className="w-6 h-6" />
+              <p className="text-lg">{error}</p>
+            </div>
+            <Link to="/dashboard">
+              <Button variant="outline" className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Back to Dashboard
+              </Button>
+            </Link>
           </div>
+          {/* Show API Diagnostics for network/CORS errors */}
+          {errorObject && (
+            <ApiDiagnosticsPanel error={errorObject} autoRun={true} compact={false} />
+          )}
         </CardContent>
       </Card>
     );

@@ -13,6 +13,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { Footer } from './Footer';
 
@@ -39,6 +40,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, isConfigured } = useAuth();
+  const { theme } = useTheme();
+
+  // Use theme-aware logo
+  const logoSrc = theme === 'dark' ? '/airs-logo-dark.png' : '/airs-logo-light.png';
 
   const handleSignOut = async () => {
     await signOut();
@@ -71,7 +76,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/airs-logo.png" alt="AIRS" className="h-8 w-auto" />
+            <img src={logoSrc} alt="AIRS" className="h-8 w-auto" />
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

@@ -101,12 +101,12 @@ export default function Dashboard() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+            <LayoutDashboard className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500 text-sm">Overview of your security assessments</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Overview of your security assessments</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -140,12 +140,12 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="w-5 h-5 text-primary-600" />
+          <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+            <LayoutDashboard className="w-5 h-5 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500 text-sm">Overview of your security assessments</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Overview of your security assessments</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -182,48 +182,48 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card padding="md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Organizations</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalOrgs}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Organizations</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalOrgs}</p>
                 </div>
               </div>
             </Card>
 
             <Card padding="md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <ClipboardList className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                  <ClipboardList className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Assessments</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalAssessments}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Total Assessments</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalAssessments}</p>
                 </div>
               </div>
             </Card>
 
             <Card padding="md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <FileCheck className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <FileCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.completedAssessments}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.completedAssessments}</p>
                 </div>
               </div>
             </Card>
 
             <Card padding="md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-orange-600" />
+                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Avg. Score</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Score</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     {stats.averageScore != null ? `${Math.round(stats.averageScore)}%` : '—'}
                   </p>
                 </div>
@@ -251,7 +251,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 {recentAssessments.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic py-4">No assessments yet</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic py-4">No assessments yet</p>
                 ) : (
                   <div className="space-y-3">
                     {recentAssessments.map((assessment) => (
@@ -262,12 +262,12 @@ export default function Dashboard() {
                             ? `/dashboard/results/${assessment.id}`
                             : `/dashboard/assessment/new?resume=${assessment.id}`
                         }
-                        className="block p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-colors"
+                        className="block p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-gray-900">{assessment.title}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{assessment.title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                               {assessment.organization_name || 'Unknown org'} •{' '}
                               {new Date(assessment.created_at).toLocaleDateString()}
                             </p>
@@ -307,16 +307,16 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 {recentOrgs.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic py-4">No organizations yet</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic py-4">No organizations yet</p>
                 ) : (
                   <div className="space-y-3">
                     {recentOrgs.map((org) => (
                       <div
                         key={org.id}
-                        className="p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-colors"
+                        className="p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       >
-                        <p className="font-medium text-gray-900">{org.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{org.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {org.industry || 'No industry'} •{' '}
                           {new Date(org.created_at).toLocaleDateString()}
                         </p>

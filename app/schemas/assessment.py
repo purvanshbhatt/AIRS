@@ -244,15 +244,25 @@ class FrameworkMappedFinding(BaseModel):
 
 class FrameworkCoverage(BaseModel):
     """Framework coverage summary."""
-    mitre_techniques_enabled: int
-    mitre_techniques_total: int
-    mitre_coverage_pct: float
-    cis_controls_met: int
-    cis_controls_total: int
-    cis_coverage_pct: float
-    ig1_coverage_pct: float
-    ig2_coverage_pct: float
-    ig3_coverage_pct: float
+    # MITRE ATT&CK
+    mitre_techniques_referenced: int = 0
+    mitre_techniques_total: int = 40
+    mitre_coverage_pct: float = 0.0
+    mitre_techniques_referenced_list: List[str] = []
+    # CIS Controls
+    cis_controls_referenced: int = 0
+    cis_controls_total: int = 56
+    cis_controls_met: int = 0
+    cis_coverage_pct: float = 0.0
+    cis_controls_referenced_list: List[str] = []
+    ig1_coverage_pct: float = 0.0
+    ig2_coverage_pct: float = 0.0
+    ig3_coverage_pct: float = 0.0
+    # OWASP
+    owasp_referenced: int = 0
+    owasp_total: int = 10
+    owasp_coverage_pct: float = 0.0
+    owasp_referenced_list: List[str] = []
 
 
 class FrameworkMapping(BaseModel):
