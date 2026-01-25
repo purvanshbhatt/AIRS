@@ -119,6 +119,21 @@ export default function NewAssessment() {
     if (saved) {
       try {
         const draft: DraftData = JSON.parse(saved);
+        
+        // Validate that the organization from the draft still exists and belongs to the user
+        const orgStillExists = orgs.some(org => org.id === draft.orgId);
+        if (!orgStillExists) {
+          addToast({
+            type: 'error',
+            title: 'Organization not found',
+            message: 'The organization from your saved draft no longer exists. Please select a new organization.',
+          });
+          // Clear the invalid draft
+          localStorage.removeItem(DRAFT_KEY);
+          setHasDraft(false);
+          return;
+        }
+        
         setOrgId(draft.orgId);
         setTitle(draft.title);
         setAnswers(draft.answers);
@@ -132,7 +147,7 @@ export default function NewAssessment() {
         addToast({ type: 'error', title: 'Failed to restore draft' });
       }
     }
-  }, [addToast]);
+  }, [addToast, orgs]);
 
   // Save draft
   const saveDraft = useCallback(() => {
