@@ -463,3 +463,51 @@ class TestReportDeletion:
             assert resp.status_code == 404
         
         app.dependency_overrides.clear()
+
+
+class TestPDFBranding:
+    """Test PDF report branding and content."""
+    
+    def test_pdf_generator_uses_correct_branding(self):
+        """Verify ProfessionalPDFGenerator uses 'AI Incident Readiness Score' branding.
+        
+        This is a unit test that checks the generated PDF contains the correct
+        branding by inspecting the title page builder method directly.
+        """
+        from app.reports.pdf import ProfessionalPDFGenerator
+        import inspect
+        
+        # Get the source code of _build_title_page to verify branding text
+        source = inspect.getsource(ProfessionalPDFGenerator._build_title_page)
+        
+        # Check for new branding
+        assert "AI Incident Readiness Score" in source, \
+            "PDF generator should contain 'AI Incident Readiness Score' branding"
+        
+        # Ensure old branding is NOT present
+        assert "Artificial Intelligence Readiness Score" not in source, \
+            "PDF generator should NOT contain old 'Artificial Intelligence Readiness Score' branding"
+    
+    def test_pdf_report_generates_successfully(self, db_session, setup_user_a_assessment):
+        """Verify PDF report can be generated and has correct content type."""
+        def override_get_db():
+            try:
+                yield db_session
+            finally:
+                pass
+        
+        app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[require_auth] = make_auth_override(USER_A)
+        
+        with TestClient(app) as client:
+            assessment_id = setup_user_a_assessment["assessment"]["id"]
+            
+            # Download PDF report (legacy endpoint)
+            resp = client.get(f"/api/assessments/{assessment_id}/report")
+            assert resp.status_code == 200
+            assert resp.headers["content-type"] == "application/pdf"
+            
+            # Verify it's a valid PDF (starts with %PDF-)
+            assert resp.content.startswith(b'%PDF-'), "Response should be a valid PDF"
+        
+        app.dependency_overrides.clear()

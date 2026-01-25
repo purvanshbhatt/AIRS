@@ -402,7 +402,7 @@ class ProfessionalPDFGenerator:
         # Logo placeholder / AIRS branding
         elements.append(Paragraph("AIRS", self.styles['ReportTitle']))
         elements.append(Paragraph(
-            "Artificial Intelligence Readiness Score",
+            "AI Incident Readiness Score",
             self.styles['ReportSubtitle']
         ))
         
