@@ -86,12 +86,21 @@ async def list_assessments(
     organization_id: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
+    recent: Optional[int] = None,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """List assessments owned by the current user, optionally filtered by organization."""
+    """
+    List assessments owned by the current user, optionally filtered by organization.
+    
+    Use `recent=N` for dashboard to efficiently fetch only the N most recent assessments.
+    """
     service = get_assessment_service(db, user)
-    assessments = service.get_all(organization_id=organization_id, skip=skip, limit=limit)
+    
+    # Use recent parameter for efficient dashboard queries
+    effective_limit = min(recent, 20) if recent else limit
+    
+    assessments = service.get_all(organization_id=organization_id, skip=skip, limit=effective_limit)
     
     # Add organization name to summaries
     result = []

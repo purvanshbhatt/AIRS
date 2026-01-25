@@ -6,7 +6,7 @@ Production-grade middleware for request tracking, logging, and error handling.
 
 import time
 import logging
-from typing import Callable
+from typing import Callable, Optional
 
 from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
@@ -30,11 +30,28 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
     - Generates or uses existing X-Request-ID header
     - Sets request ID in context for logging correlation
     - Adds X-Request-ID to response headers
-    - Logs request timing
+    - Logs request timing with slow request warnings
     """
     
     # Paths to skip detailed logging (health checks, etc.)
     SKIP_LOGGING_PATHS = {"/health", "/", "/favicon.ico"}
+    
+    # Paths to log with detailed timing (key API endpoints)
+    TIMED_PATHS = {
+        "/api/organizations": "org_list",
+        "/api/assessments": "assessments_list",
+        "/api/reports": "reports",
+    }
+    
+    # Patterns for dynamic paths (matched by prefix)
+    TIMED_PATTERNS = [
+        ("/api/assessments/", "summary", "/summary"),
+        ("/api/assessments/", "score", "/score"),
+        ("/api/reports/", "report_download", "/download"),
+    ]
+    
+    # Threshold for slow request warnings (ms)
+    SLOW_THRESHOLD_MS = 500
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Get or generate request ID
@@ -62,11 +79,25 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             # Add request ID to response headers
             response.headers["X-Request-ID"] = request_id
             
+            # Determine endpoint type for logging
+            endpoint_name = self._get_endpoint_name(request.url.path)
+            
             if not skip_logging:
-                logger.info(
-                    f"Request completed: {request.method} {request.url.path} "
-                    f"status={response.status_code} duration={duration_ms:.2f}ms"
-                )
+                # Log with endpoint name if it's a key endpoint
+                if endpoint_name:
+                    log_msg = (
+                        f"[TIMING] {endpoint_name}: {request.method} {request.url.path} "
+                        f"status={response.status_code} duration={duration_ms:.1f}ms"
+                    )
+                    if duration_ms > self.SLOW_THRESHOLD_MS:
+                        logger.warning(f"[SLOW] {log_msg}")
+                    else:
+                        logger.info(log_msg)
+                else:
+                    logger.info(
+                        f"Request completed: {request.method} {request.url.path} "
+                        f"status={response.status_code} duration={duration_ms:.2f}ms"
+                    )
             
             return response
             
@@ -82,6 +113,23 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             
             # Re-raise to let exception handler deal with it
             raise
+    
+    def _get_endpoint_name(self, path: str) -> Optional[str]:
+        """Get a descriptive name for key endpoints for timing logs."""
+        # Check exact matches first
+        if path in self.TIMED_PATHS:
+            return self.TIMED_PATHS[path]
+        
+        # Check pattern matches for dynamic paths
+        for prefix, name, suffix in self.TIMED_PATTERNS:
+            if path.startswith(prefix) and path.endswith(suffix):
+                return name
+        
+        # Check if it's a report create (POST to /api/reports)
+        if path == "/api/reports":
+            return "report_create"
+        
+        return None
 
 
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:

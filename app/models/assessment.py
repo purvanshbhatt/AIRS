@@ -3,7 +3,7 @@ Assessment model.
 """
 
 import uuid
-from sqlalchemy import Column, String, DateTime, Float, Integer, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, String, DateTime, Float, Integer, ForeignKey, Enum as SQLEnum, Text
 from sqlalchemy.dialects.sqlite import CHAR
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -37,6 +37,17 @@ class Assessment(Base):
     overall_score = Column(Float, nullable=True)
     maturity_level = Column(Integer, nullable=True)
     maturity_name = Column(String(50), nullable=True)
+    
+    # Cached summary (to avoid recomputing on every GET /summary)
+    summary_json = Column(Text, nullable=True)  # Cached JSON payload
+    summary_version = Column(Integer, default=0)  # Increments when answers/scoring change
+    summary_computed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Cached LLM narratives (expensive to regenerate)
+    narrative_executive = Column(Text, nullable=True)
+    narrative_roadmap = Column(Text, nullable=True)
+    narrative_version = Column(Integer, default=0)  # Version when narratives were generated
+    narrative_generated_at = Column(DateTime(timezone=True), nullable=True)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

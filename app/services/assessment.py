@@ -5,6 +5,8 @@ All operations are scoped by owner_uid for tenant isolation.
 """
 
 import json
+import logging
+import time
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
@@ -23,6 +25,8 @@ from app.schemas.assessment import (
 from app.services.scoring import calculate_scores, get_recommendations
 from app.core.rubric import get_rubric, get_question
 from app.services.ai_narrative import generate_narrative
+
+logger = logging.getLogger("airs.assessment")
 
 
 def get_severity_value(severity: Union[Severity, str]) -> str:
@@ -174,6 +178,11 @@ class AssessmentService:
                 self.db.add(answer)
                 saved_answers.append(answer)
         
+        # Invalidate cached summary when answers change
+        assessment.summary_version = (assessment.summary_version or 0) + 1
+        assessment.summary_json = None
+        assessment.summary_computed_at = None
+        
         self.db.commit()
         for answer in saved_answers:
             self.db.refresh(answer)
@@ -259,6 +268,11 @@ class AssessmentService:
         assessment.maturity_name = scoring_result["maturity_name"]
         assessment.status = AssessmentStatus.COMPLETED
         assessment.completed_at = datetime.utcnow()
+        
+        # Invalidate cached summary (force recompute on next GET /summary)
+        assessment.summary_version = (assessment.summary_version or 0) + 1
+        assessment.summary_json = None
+        assessment.summary_computed_at = None
         
         self.db.commit()
         
@@ -371,11 +385,57 @@ class AssessmentService:
     # ----- Summary View -----
     
     def get_summary(self, assessment_id: str) -> Optional[Dict[str, Any]]:
-        """Get comprehensive summary for executive dashboard."""
+        """
+        Get comprehensive summary for executive dashboard.
+        
+        Uses cached summary if available and valid. Cache is invalidated when:
+        - Answers are submitted (submit_answers)
+        - Scoring is run (compute_score)
+        
+        LLM narratives are cached separately and only regenerated when
+        assessment version changes.
+        """
+        start_time = time.perf_counter()
+        
         assessment = self.get(assessment_id)
         if not assessment:
             return None
         
+        # Check if we have a valid cached summary
+        if assessment.summary_json and assessment.summary_computed_at:
+            cache_age_ms = (time.perf_counter() - start_time) * 1000
+            logger.info(f"Summary cache HIT for {assessment_id[:8]} (computed at {assessment.summary_computed_at})")
+            try:
+                cached = json.loads(assessment.summary_json)
+                # Update LLM metadata (may change between requests based on config)
+                cached.update(self._get_llm_metadata())
+                logger.info(f"Summary returned from cache in {cache_age_ms:.1f}ms")
+                return cached
+            except json.JSONDecodeError:
+                logger.warning(f"Invalid cached summary JSON for {assessment_id[:8]}, recomputing")
+        
+        logger.info(f"Summary cache MISS for {assessment_id[:8]}, computing fresh summary")
+        
+        # Compute fresh summary
+        summary = self._compute_summary(assessment)
+        
+        # Cache the computed summary (without LLM metadata which can change)
+        cache_payload = {k: v for k, v in summary.items() if k not in ('llm_enabled', 'llm_provider', 'llm_model', 'llm_mode')}
+        try:
+            assessment.summary_json = json.dumps(cache_payload, default=str)
+            assessment.summary_computed_at = datetime.utcnow()
+            self.db.commit()
+            logger.info(f"Summary cached for {assessment_id[:8]}")
+        except Exception as e:
+            logger.warning(f"Failed to cache summary for {assessment_id[:8]}: {e}")
+        
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
+        logger.info(f"Summary computed and cached in {elapsed_ms:.1f}ms")
+        
+        return summary
+    
+    def _compute_summary(self, assessment: Assessment) -> Dict[str, Any]:
+        """Compute comprehensive summary for executive dashboard (internal)."""
         org = self.db.query(Organization).filter(
             Organization.id == assessment.organization_id
         ).first()
@@ -455,8 +515,8 @@ class AssessmentService:
             "baseline_profiles": baseline_profiles,
         }
         
-        # Generate AI narratives (uses fallback if LLM disabled)
-        narratives = generate_narrative(narrative_payload)
+        # Get narratives (cached or fresh)
+        narratives = self._get_or_generate_narratives(assessment, narrative_payload)
         
         # Build LLM metadata (informational only - does NOT affect scoring)
         llm_metadata = self._get_llm_metadata()
@@ -522,6 +582,48 @@ class AssessmentService:
             "llm_model": llm_model,
             "llm_mode": llm_mode,
         }
+    
+    def _get_or_generate_narratives(self, assessment: Assessment, payload: Dict[str, Any]) -> Dict[str, str]:
+        """
+        Get cached LLM narratives or generate new ones.
+        
+        Narratives are only regenerated when:
+        - No cached narratives exist
+        - assessment.summary_version > assessment.narrative_version
+        
+        This avoids expensive LLM calls on every summary request.
+        """
+        current_version = assessment.summary_version or 0
+        cached_version = assessment.narrative_version or 0
+        
+        # Check if we have valid cached narratives
+        if (assessment.narrative_executive or assessment.narrative_roadmap) and cached_version >= current_version:
+            logger.info(f"Narrative cache HIT for {assessment.id[:8]} (version {cached_version})")
+            return {
+                "executive_summary_text": assessment.narrative_executive,
+                "roadmap_narrative_text": assessment.narrative_roadmap,
+            }
+        
+        logger.info(f"Narrative cache MISS for {assessment.id[:8]} (cached v{cached_version}, current v{current_version}), generating fresh narratives")
+        
+        # Generate fresh narratives
+        start_time = time.perf_counter()
+        narratives = generate_narrative(payload)
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
+        logger.info(f"Narratives generated in {elapsed_ms:.1f}ms")
+        
+        # Cache the narratives
+        try:
+            assessment.narrative_executive = narratives.get("executive_summary_text")
+            assessment.narrative_roadmap = narratives.get("roadmap_narrative_text")
+            assessment.narrative_version = current_version
+            assessment.narrative_generated_at = datetime.utcnow()
+            self.db.commit()
+            logger.info(f"Narratives cached for {assessment.id[:8]} at version {current_version}")
+        except Exception as e:
+            logger.warning(f"Failed to cache narratives for {assessment.id[:8]}: {e}")
+        
+        return narratives
     
     def _get_readiness_tier(self, score: float) -> Dict[str, Any]:
         """Determine readiness tier based on overall score."""
