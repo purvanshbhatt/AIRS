@@ -1,5 +1,9 @@
 # AIRS Overview
 
+<p align="center">
+  <img src="assets/airs-logo-dark.png" alt="AIRS Logo" width="150"/>
+</p>
+
 ## What is AIRS?
 
 **AIRS (AI Incident Readiness Score)** is a comprehensive security readiness assessment platform designed for organizations preparing for AI-driven threats and incidents. It provides a structured, quantitative approach to measuring and improving your organization's security posture.

@@ -1,7 +1,7 @@
 # AIRS - AI Incident Readiness Score
 
 <p align="center">
-  <img src="docs/assets/airs-logo.png" alt="AIRS Logo" width="200"/>
+  <img src="docs/assets/airs-logo-dark.png" alt="AIRS Logo" width="180"/>
 </p>
 
 <p align="center">
