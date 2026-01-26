@@ -394,15 +394,28 @@ class ProfessionalPDFGenerator:
     
     def _build_title_page(self, data: Dict[str, Any]) -> List:
         """Build professional title page."""
+        import os
         elements = []
         
         # Top spacing
-        elements.append(Spacer(1, 1.5 * inch))
+        elements.append(Spacer(1, 1 * inch))
         
-        # Logo placeholder / AIRS branding
+        # Add AIRS logo
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
+                                  'frontend', 'public', 'favicon.png')
+        if os.path.exists(logo_path):
+            try:
+                logo = Image(logo_path, width=0.8 * inch, height=0.8 * inch)
+                logo.hAlign = 'CENTER'
+                elements.append(logo)
+                elements.append(Spacer(1, 0.2 * inch))
+            except Exception:
+                pass  # Skip logo if it fails to load
+        
+        # AIRS branding
         elements.append(Paragraph("AIRS", self.styles['ReportTitle']))
         elements.append(Paragraph(
-            "Artificial Intelligence Readiness Score",
+            "AI Incident Readiness Score",
             self.styles['ReportSubtitle']
         ))
         
