@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+env/
+.eggs/
+*.egg-info/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.db
+*.sqlite3
+*.log
+*.txt
+!requirements.txt
+
+# Frontend (not needed for API)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Generated files
+generated_reports/
+test_reports/
+
+# Firebase
+.firebase/
+.firebaserc
+
+# Local scripts and docs
+docs/
+scripts/
+
+# Cloud SQL Proxy
+cloud-sql-proxy.exe
