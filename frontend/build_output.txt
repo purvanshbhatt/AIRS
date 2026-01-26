@@ -1,0 +1,35 @@
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+src/components/OrgEnrichmentCard.tsx(3,5): error TS6133: 'Building2' is declared but its value is never read.
+src/components/OrgEnrichmentCard.tsx(9,5): error TS6133: 'ArrowRight' is declared but its value is never read.
+src/components/RoadmapTracker.tsx(9,5): error TS6133: 'MoreVertical' is declared but its value is never read.
+src/components/RoadmapTracker.tsx(10,5): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/components/RoadmapTracker.tsx(18,5): error TS6133: 'Badge' is declared but its value is never read.
+src/components/RoadmapTracker.tsx(41,22): error TS2345: Argument of type 'TrackerItem[]' is not assignable to parameter of type 'SetStateAction<RoadmapItem[]>'.
+  Type 'TrackerItem[]' is not assignable to type 'RoadmapItem[]'.
+    Type 'TrackerItem' is missing the following properties from type 'RoadmapItem': action, severity
+src/components/RoadmapTracker.tsx(58,23): error TS2739: Type 'TrackerItem' is missing the following properties from type 'RoadmapItem': action, severity
+src/components/RoadmapTracker.tsx(66,45): error TS2304: Cannot find name 'TrackerItem'.
+src/components/RoadmapTracker.tsx(70,22): error TS2345: Argument of type '(TrackerItem | RoadmapItem)[]' is not assignable to parameter of type 'SetStateAction<RoadmapItem[]>'.
+  Type '(TrackerItem | RoadmapItem)[]' is not assignable to type 'RoadmapItem[]'.
+    Type 'TrackerItem | RoadmapItem' is not assignable to type 'RoadmapItem'.
+      Type 'TrackerItem' is missing the following properties from type 'RoadmapItem': action, severity
+src/components/RoadmapTracker.tsx(70,39): error TS2339: Property 'id' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(79,42): error TS2339: Property 'id' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(85,46): error TS2339: Property 'status' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(86,48): error TS2339: Property 'status' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(135,44): error TS2339: Property 'id' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(145,137): error TS2339: Property 'priority' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(146,51): error TS2339: Property 'priority' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(148,47): error TS2339: Property 'effort' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(149,93): error TS2339: Property 'effort' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(154,70): error TS2339: Property 'id' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(169,52): error TS2339: Property 'id' does not exist on type 'RoadmapItem'.
+src/components/RoadmapTracker.tsx(177,78): error TS2339: Property 'id' does not exist on type 'RoadmapItem'.
+src/components/ScoreTrendChart.tsx(25,11): error TS6133: 'scores' is declared but its value is never read.
+src/components/ScoreTrendChart.tsx(29,11): error TS6133: 'padding' is declared but its value is never read.
+src/components/ScoreTrendChart.tsx(30,11): error TS6133: 'chartWidth' is declared but its value is never read.
+src/components/ScoreTrendChart.tsx(31,11): error TS6133: 'chartHeight' is declared but its value is never read.
+src/pages/Settings.tsx(2,23): error TS2305: Module '"../api"' has no exported member 'getApiBaseUrl'.

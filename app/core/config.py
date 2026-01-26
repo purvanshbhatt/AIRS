@@ -88,8 +88,8 @@ class Settings(BaseSettings):
     AIRS_USE_LLM: bool = False
     LLM_PROVIDER: str = "gemini"
     GEMINI_API_KEY: Optional[str] = None
-    LLM_MODEL: str = "gemini-3.0-pro"
-    GEMINI_MODEL: str = "gemini-3.0-pro"  # Alias for backwards compatibility
+    LLM_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MODEL: str = "gemini-2.0-flash"  # Alias for backwards compatibility
     LLM_MAX_TOKENS: int = 1000
     LLM_TEMPERATURE: float = 0.7
 
