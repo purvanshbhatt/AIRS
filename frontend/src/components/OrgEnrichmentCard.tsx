@@ -8,10 +8,10 @@ import {
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, Button } from './ui';
 import { enrichOrganization } from '../api';
-import type { Organization, EnrichmentResult } from '../types';
+import type { OrganizationWithEnrichment, EnrichmentResult } from '../types';
 
 interface OrgEnrichmentCardProps {
-    organization: Organization;
+    organization: OrganizationWithEnrichment;
     onEnrichmentComplete: (result: EnrichmentResult) => void;
 }
 
@@ -138,7 +138,7 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
 
                         {result.keywords && result.keywords.length > 0 && (
                             <div className="flex flex-wrap gap-1 mb-3">
-                                {result.keywords.slice(0, 5).map((kw, i) => (
+                                {result.keywords.slice(0, 5).map((kw: string, i: number) => (
                                     <span
                                         key={i}
                                         className="text-xs px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"

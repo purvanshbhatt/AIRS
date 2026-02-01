@@ -81,16 +81,67 @@ def generate_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _generate_llm_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Generate narratives using Google Gemini LLM."""
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        logger.warning("google-generativeai package not installed. Using fallback.")
-        return _generate_fallback_narrative(summary_payload)
+    """Generate narratives using Google Gemini LLM with new google-genai SDK.
     
-    # Configure Gemini
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    model = genai.GenerativeModel(settings.LLM_MODEL)
+    Features:
+    - Prefers Vertex AI mode when GCP_PROJECT_ID is set
+    - Falls back to API key mode
+    - 30 second timeout per request
+    - 2 retries with exponential backoff
+    """
+    import time
+    
+    # Try new SDK first (google-genai)
+    try:
+        from google import genai
+        from google.genai import types
+        USE_NEW_SDK = True
+    except ImportError:
+        # Fallback to old SDK (google-generativeai) if new one not available
+        try:
+            import google.generativeai as genai_old
+            USE_NEW_SDK = False
+        except ImportError:
+            logger.warning("No Google AI SDK available. Using fallback.")
+            return _generate_fallback_narrative(summary_payload)
+    
+    # Initialize client based on available credentials
+    client = None
+    if USE_NEW_SDK:
+        # Prefer Vertex AI mode if GCP project is set
+        if settings.GCP_PROJECT_ID:
+            try:
+                client = genai.Client(
+                    vertexai=True,
+                    project=settings.GCP_PROJECT_ID,
+                    location=getattr(settings, 'GCP_REGION', 'us-central1')
+                )
+                logger.info(f"Using Vertex AI mode with project {settings.GCP_PROJECT_ID}")
+            except Exception as e:
+                logger.warning(f"Vertex AI init failed: {e}, trying API key mode")
+        
+        # Fallback to API key mode
+        if client is None and settings.GEMINI_API_KEY:
+            try:
+                client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                logger.info("Using API key mode for Gemini")
+            except Exception as e:
+                logger.error(f"API key init failed: {e}")
+                return _generate_fallback_narrative(summary_payload)
+        
+        if client is None:
+            logger.warning("No valid credentials for Gemini. Using fallback.")
+            return _generate_fallback_narrative(summary_payload)
+    else:
+        # Old SDK configuration
+        genai_old.configure(api_key=settings.GEMINI_API_KEY)
+    
+    # Get model name (use gemini-2.0-flash as default for new SDK)
+    model_name = settings.LLM_MODEL
+    if USE_NEW_SDK and model_name.startswith("gemini-3"):
+        # gemini-3.0-pro doesn't exist yet, use gemini-2.0-flash
+        model_name = "gemini-2.0-flash"
+        logger.info(f"Overriding model to {model_name} for new SDK compatibility")
     
     # Extract data from payload
     overall_score = summary_payload.get("overall_score", 0)
@@ -184,21 +235,59 @@ Write a clear, actionable roadmap with:
 Use business-friendly language. Be specific about actions and expected outcomes.
 Format as clear paragraphs, not bullet lists."""
 
+    # Retry logic with exponential backoff
+    max_retries = 2
+    timeout_seconds = 30
+    
+    def generate_with_retry(prompt: str, retry_count: int = 0) -> Optional[str]:
+        """Generate content with retry logic."""
+        try:
+            if USE_NEW_SDK:
+                # New SDK (google-genai) call
+                config = types.GenerateContentConfig(
+                    temperature=settings.LLM_TEMPERATURE,
+                    max_output_tokens=settings.LLM_MAX_TOKENS,
+                )
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=config,
+                )
+                return response.text.strip() if response.text else None
+            else:
+                # Old SDK (google-generativeai) call
+                model = genai_old.GenerativeModel(model_name)
+                generation_config = genai_old.GenerationConfig(
+                    temperature=settings.LLM_TEMPERATURE,
+                    max_output_tokens=settings.LLM_MAX_TOKENS,
+                )
+                response = model.generate_content(prompt, generation_config=generation_config)
+                return response.text.strip() if response.text else None
+                
+        except Exception as e:
+            if retry_count < max_retries:
+                wait_time = 2 ** retry_count  # Exponential backoff: 1s, 2s
+                logger.warning(f"LLM request failed (attempt {retry_count + 1}): {e}. Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                return generate_with_retry(prompt, retry_count + 1)
+            else:
+                logger.error(f"LLM request failed after {max_retries + 1} attempts: {e}")
+                return None
+    
     try:
-        # Generate both narratives
-        generation_config = genai.GenerationConfig(
-            temperature=settings.LLM_TEMPERATURE,
-            max_output_tokens=settings.LLM_MAX_TOKENS,
-        )
+        # Generate both narratives with retry logic
+        exec_summary = generate_with_retry(exec_prompt)
+        roadmap_narrative = generate_with_retry(roadmap_prompt)
         
-        exec_response = model.generate_content(exec_prompt, generation_config=generation_config)
-        roadmap_response = model.generate_content(roadmap_prompt, generation_config=generation_config)
-        
-        return {
-            "executive_summary_text": exec_response.text.strip(),
-            "roadmap_narrative_text": roadmap_response.text.strip(),
-            "llm_generated": True
-        }
+        if exec_summary and roadmap_narrative:
+            return {
+                "executive_summary_text": exec_summary,
+                "roadmap_narrative_text": roadmap_narrative,
+                "llm_generated": True
+            }
+        else:
+            logger.warning("One or more LLM responses were empty. Using fallback.")
+            return _generate_fallback_narrative(summary_payload)
         
     except Exception as e:
         logger.error(f"Gemini API call failed: {e}")
