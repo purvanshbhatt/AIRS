@@ -142,7 +142,7 @@ export default function Results() {
   const handleSaveReport = async () => {
     setSaving(true)
     try {
-      await createReport(id!, { report_type: 'full' })
+      await createReport(id!, { report_type: 'executive_pdf' })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {

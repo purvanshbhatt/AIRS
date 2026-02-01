@@ -149,6 +149,10 @@ export interface AssessmentSummary {
   llm_provider?: string | null;
   llm_model?: string | null;
   llm_mode?: 'demo' | 'prod' | 'disabled';
+  llm_status?: 'pending' | 'completed' | 'failed';
+  framework_mapping?: FrameworkMapping;
+  detailed_roadmap?: DetailedRoadmap;
+  analytics?: AnalyticsSummary;
 }
 
 // Standardized API error response
@@ -223,4 +227,170 @@ export interface DashboardStats {
   draft_assessments: number;
   average_score?: number;
   recent_assessments: Assessment[];
+}
+
+// Enrichment types
+export interface EnrichmentResult {
+  company_name: string;
+  industry: string;
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  employees?: string;
+  revenue?: string;
+  location?: string;
+  source_url?: string;
+  confidence?: number;
+  baseline_suggestion?: string;
+}
+
+// Organization with enrichment fields
+export interface OrganizationWithEnrichment extends Organization {
+  website_url?: string;
+  org_profile?: string;
+}
+
+// Framework refs - unified type with id and name format (for ref.id/ref.name access)
+export interface FrameworkRef {
+  id: string;
+  name: string;
+  url?: string;
+  ig_level?: number;  // For CIS controls
+  tactic?: string;    // For MITRE ATT&CK
+}
+
+export interface FrameworkMappedFinding extends FindingSummary {
+  finding_id?: string;
+  mitre_refs?: FrameworkRef[];
+  cis_refs?: FrameworkRef[];
+  owasp_refs?: FrameworkRef[];
+}
+
+// Framework mapping structure with coverage stats
+export interface FrameworkCoverage {
+  mitre_techniques_total: number;
+  cis_controls_total: number;
+  owasp_total: number;
+  ig1_coverage_pct?: number;
+  ig2_coverage_pct?: number;
+  ig3_coverage_pct?: number;
+}
+
+export interface FrameworkMapping {
+  findings: FrameworkMappedFinding[];
+  coverage?: FrameworkCoverage;
+}
+
+// Detailed roadmap types
+export interface RoadmapMilestone {
+  week: number;
+  description: string;
+  deliverable?: string;
+}
+
+export interface DetailedRoadmapItem {
+  id?: string;
+  title: string;
+  action?: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  severity?: 'critical' | 'high' | 'medium' | 'low';
+  phase: '30' | '60' | '90';
+  status?: 'not_started' | 'in_progress' | 'completed' | 'todo';
+  owner?: string;
+  effort_estimate?: string;
+  effort?: string;
+  dependencies?: string[];
+  milestones?: string[];  // Simple strings for display
+  success_criteria?: string;
+  domain?: string;
+  finding_id?: string;
+}
+
+// Detailed roadmap wrapper with phases structure
+export interface DetailedRoadmapPhase {
+  title: string;
+  items: DetailedRoadmapItem[];
+}
+
+export interface DetailedRoadmap {
+  phases: DetailedRoadmapPhase[];
+  summary?: string;
+}
+
+// Analytics types
+export interface AttackStep {
+  step?: number;
+  action: string;
+  technique_id?: string;
+}
+
+export interface AttackPath {
+  id: string;
+  name: string;
+  description?: string;
+  risk_level: 'critical' | 'high' | 'medium' | 'low';
+  steps: AttackStep[];
+  techniques?: Array<{ id: string; name: string }>;
+  enabling_gaps: string[];
+  likelihood?: number;
+  impact?: number;
+}
+
+// Gap analysis types
+export interface GapCategory {
+  name: string;
+  gaps: string[];
+  severity?: 'critical' | 'high' | 'medium' | 'low';
+}
+
+export interface GapAnalysis {
+  categories: GapCategory[];
+  total_gaps?: number;
+}
+
+export interface RiskSummary {
+  overall_risk_level: 'critical' | 'high' | 'medium' | 'low';
+  key_risks: string[];
+  mitigating_factors?: string[];
+}
+
+export interface AnalyticsSummary {
+  attack_paths: AttackPath[];
+  risk_distribution: Record<string, number>;
+  top_risks: string[];
+  improvement_recommendations: string[];
+  detection_gaps?: GapAnalysis;
+  response_gaps?: GapAnalysis;
+  identity_gaps?: GapAnalysis;
+  risk_summary?: RiskSummary;
+}
+
+// Tracker item for roadmap tracking
+export interface TrackerItem {
+  id: string;
+  assessment_id: string;
+  title: string;
+  phase: '30' | '60' | '90';
+  status: 'not_started' | 'in_progress' | 'completed' | 'done' | 'todo';
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  owner?: string;
+  due_date?: string;
+  notes?: string;
+  effort?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// Roadmap API response wrapper
+export interface RoadmapResponse {
+  items: TrackerItem[];
+  total?: number;
+}
+
+// Score trend for historical tracking
+export interface ScoreTrendPoint {
+  date: string;
+  score: number;
+  assessment_id: string;
+  name?: string;  // Optional label for the data point
 }

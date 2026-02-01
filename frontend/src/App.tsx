@@ -1,8 +1,10 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { DashboardLayout } from './components/layout';
+import DocsLayout from './components/layout/DocsLayout';
 import { ToastProvider } from './components/ui';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
 import { setUnauthorizedHandler } from './api';
@@ -18,6 +20,9 @@ import NewOrg from './pages/NewOrg';
 import NewAssessment from './pages/NewAssessment';
 import Results from './pages/Results';
 import Settings from './pages/Settings';
+
+// Docs pages
+import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
 
 // API Configuration Warning Banner (dev only when not configured)
 function ApiConfigBanner() {
@@ -70,6 +75,7 @@ function AuthRedirectHandler() {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <ToastProvider>
         <AuthRedirectHandler />
@@ -113,8 +119,18 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Public docs routes */}
+        <Route path="/docs" element={<DocsLayout />}>
+          <Route index element={<DocsOverview />} />
+          <Route path="methodology" element={<DocsMethodology />} />
+          <Route path="frameworks" element={<DocsFrameworks />} />
+          <Route path="security" element={<DocsSecurity />} />
+          <Route path="api" element={<DocsApi />} />
+        </Route>
       </Routes>
     </ToastProvider>
   </AuthProvider>
+  </ThemeProvider>
   );
 }
