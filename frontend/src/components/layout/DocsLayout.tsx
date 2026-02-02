@@ -12,9 +12,7 @@ import {
     ChevronRight,
     ExternalLink,
 } from 'lucide-react';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import { Footer } from './Footer';
-import { useTheme } from '../../contexts/ThemeContext';
 
 interface NavItem {
     name: string;
@@ -33,13 +31,9 @@ const docsNavigation: NavItem[] = [
 export default function DocsLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const location = useLocation();
-    const { theme } = useTheme();
-
-    // Use theme-aware logo
-    const logoSrc = theme === 'dark' ? '/airs-logo-dark.png' : '/airs-logo-light.png';
 
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
+        <div className="flex min-h-screen bg-slate-50">
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
@@ -48,22 +42,25 @@ export default function DocsLayout() {
                 />
             )}
 
-            {/* Sidebar */}
+            {/* Sidebar - Off-white with blue accents */}
             <aside
                 className={clsx(
-                    'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-colors',
+                    'fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm',
                     'transform transition-transform duration-200 ease-in-out lg:translate-x-0',
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >
                 {/* Logo */}
-                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
-                    <Link to="/" className="flex items-center gap-3">
-                        <img src={logoSrc} alt="AIRS" className="h-8 w-auto" />
+                <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 shrink-0">
+                    <Link to="/" className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
+                            <Shield className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="text-lg font-semibold text-slate-800">AIRS</span>
                     </Link>
                     <button
                         onClick={() => setSidebarOpen(false)}
-                        className="lg:hidden p-1 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="lg:hidden p-1 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -72,7 +69,7 @@ export default function DocsLayout() {
                 {/* Navigation */}
                 <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                     <div className="mb-3 px-3">
-                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             Documentation
                         </span>
                     </div>
@@ -86,12 +83,12 @@ export default function DocsLayout() {
                                 className={clsx(
                                     'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                                     isActive
-                                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+                                        ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                 )}
                             >
                                 <item.icon
-                                    className={clsx('w-5 h-5', isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500')}
+                                    className={clsx('w-5 h-5', isActive ? 'text-blue-600' : 'text-slate-400')}
                                 />
                                 {item.name}
                             </Link>
@@ -99,28 +96,28 @@ export default function DocsLayout() {
                     })}
 
                     {/* Separator */}
-                    <div className="my-4 border-t border-gray-200 dark:border-gray-700" />
+                    <div className="my-4 border-t border-slate-200" />
 
                     {/* Quick links */}
                     <div className="mb-3 px-3">
-                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                             Quick Links
                         </span>
                     </div>
                     <Link
                         to="/dashboard"
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                     >
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                        <ChevronRight className="w-5 h-5 text-slate-400" />
                         Go to Dashboard
                     </Link>
                     <a
                         href="https://github.com/purvanshbhatt/AIRS"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                     >
-                        <ExternalLink className="w-5 h-5 text-gray-400" />
+                        <ExternalLink className="w-5 h-5 text-slate-400" />
                         GitHub Repository
                     </a>
                 </nav>
@@ -129,50 +126,48 @@ export default function DocsLayout() {
             {/* Main content wrapper */}
             <div className="flex-1 flex flex-col lg:ml-64">
                 {/* Top header */}
-                <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 lg:px-6 shrink-0 transition-colors">
+                <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white border-b border-slate-200 lg:px-6 shrink-0 shadow-sm">
                     <button
                         onClick={() => setSidebarOpen(true)}
-                        className="lg:hidden p-2 -ml-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="lg:hidden p-2 -ml-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                     >
                         <Menu className="w-5 h-5" />
                     </button>
 
                     {/* Breadcrumb */}
                     <div className="hidden lg:flex items-center gap-2 text-sm">
-                        <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                        <Link to="/" className="text-slate-500 hover:text-slate-700">
                             Home
                         </Link>
-                        <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <Link to="/docs" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                        <Link to="/docs" className="text-slate-500 hover:text-slate-700">
                             Docs
                         </Link>
                         {location.pathname !== '/docs' && (
                             <>
-                                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                                <span className="text-gray-900 dark:text-gray-100 font-medium">
+                                <ChevronRight className="w-4 h-4 text-slate-400" />
+                                <span className="text-slate-800 font-medium">
                                     {docsNavigation.find((n) => n.href === location.pathname)?.name || 'Page'}
                                 </span>
                             </>
                         )}
                     </div>
 
-                    {/* Spacer */}
                     <div className="flex-1" />
 
                     {/* Right side actions */}
                     <div className="flex items-center gap-4">
                         <Link
                             to="/assessment/new"
-                            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all shadow-sm"
                         >
                             Start Assessment
                         </Link>
-                        <ThemeToggle />
                     </div>
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 p-4 lg:p-8">
+                <main className="flex-1 p-4 lg:p-8 bg-slate-50">
                     <div className="max-w-4xl mx-auto">
                         <Outlet />
                     </div>

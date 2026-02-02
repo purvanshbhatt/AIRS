@@ -446,3 +446,37 @@ export const checkCors = async (): Promise<{
 
 // Get current API base URL (for debugging)
 export const getApiBaseUrl = (): string => API_BASE_URL;
+
+// =============================================================================
+// ORGANIZATION ENRICHMENT
+// =============================================================================
+
+export const enrichOrganization = (orgId: string, url: string) =>
+  request<import('./types').EnrichmentResult>(`/api/orgs/${orgId}/enrich`, {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  });
+
+// =============================================================================
+// ROADMAP TRACKER
+// =============================================================================
+
+export const getRoadmap = (assessmentId: string) =>
+  request<import('./types').RoadmapResponse>(`/api/assessments/${assessmentId}/roadmap`);
+
+export const createRoadmapItem = (assessmentId: string, data: Partial<import('./types').TrackerItem>) =>
+  request<import('./types').TrackerItem>(`/api/assessments/${assessmentId}/roadmap`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const updateRoadmapItem = (assessmentId: string, itemId: string, data: Partial<import('./types').TrackerItem>) =>
+  request<import('./types').TrackerItem>(`/api/assessments/${assessmentId}/roadmap/${itemId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+
+export const deleteRoadmapItem = (assessmentId: string, itemId: string) =>
+  request<void>(`/api/assessments/${assessmentId}/roadmap/${itemId}`, {
+    method: 'DELETE',
+  });

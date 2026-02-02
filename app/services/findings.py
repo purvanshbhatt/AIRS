@@ -9,9 +9,10 @@ evidence extraction, and specific remediation recommendations.
 """
 
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from app.core.rubric import get_rubric, get_question
+from app.core.frameworks import get_framework_refs
 
 
 class Severity(str, Enum):
@@ -21,6 +22,17 @@ class Severity(str, Enum):
     MEDIUM = "medium"
     LOW = "low"
     INFO = "info"
+
+
+@dataclass
+class FrameworkRefs:
+    """Framework references for a finding."""
+    mitre: List[Dict[str, Any]] = field(default_factory=list)
+    cis: List[Dict[str, Any]] = field(default_factory=list)
+    owasp: List[Dict[str, Any]] = field(default_factory=list)
+    
+    def to_dict(self) -> Dict[str, List[Dict]]:
+        return {"mitre": self.mitre, "cis": self.cis, "owasp": self.owasp}
 
 
 @dataclass
@@ -50,6 +62,7 @@ class Finding:
     reference: Optional[str] = None
     remediation_effort: str = "medium"
     question_ids: List[str] = None
+    framework_refs: Optional[FrameworkRefs] = None
 
 
 def get_answer(answers: Dict[str, Any], question_id: str, default=None):
@@ -612,6 +625,14 @@ class FindingsEngine:
             try:
                 # Check if rule condition is met
                 if rule.condition(answers, scores):
+                    # Get framework references for this rule
+                    fw_refs = get_framework_refs(rule.rule_id)
+                    framework_refs = FrameworkRefs(
+                        mitre=fw_refs.get("mitre", []),
+                        cis=fw_refs.get("cis", []),
+                        owasp=fw_refs.get("owasp", [])
+                    )
+                    
                     # Generate finding
                     finding = Finding(
                         rule_id=rule.rule_id,
@@ -623,7 +644,8 @@ class FindingsEngine:
                         recommendation=rule.recommendation,
                         reference=rule.reference,
                         remediation_effort=rule.remediation_effort,
-                        question_ids=self._get_related_questions(rule.rule_id)
+                        question_ids=self._get_related_questions(rule.rule_id),
+                        framework_refs=framework_refs
                     )
                     findings.append(finding)
             except Exception as e:
