@@ -242,6 +242,154 @@ class ReadinessTier(BaseModel):
     color: str  # danger, warning, primary, success
 
 
+class FrameworkRef(BaseModel):
+    """Framework reference with ID and name."""
+    id: str
+    name: str
+    url: Optional[str] = None
+    ig_level: Optional[int] = None  # For CIS
+    tactic: Optional[str] = None    # For MITRE
+
+
+class FrameworkRefs(BaseModel):
+    """Framework references for a finding."""
+    mitre: List[FrameworkRef] = []
+    cis: List[FrameworkRef] = []
+    owasp: List[FrameworkRef] = []
+
+
+class FindingSummaryWithFramework(BaseModel):
+    """Finding with framework references."""
+    id: str
+    rule_id: Optional[str] = None
+    title: str
+    severity: str
+    domain: Optional[str] = None
+    evidence: Optional[str] = None
+    recommendation: Optional[str] = None
+    description: Optional[str] = None
+    framework_refs: Optional[Dict[str, List[Dict]]] = None
+
+
+class FrameworkMappedFinding(BaseModel):
+    """Finding for framework mapping display."""
+    finding_id: str
+    title: str
+    severity: str
+    mitre_refs: List[FrameworkRef] = []
+    cis_refs: List[FrameworkRef] = []
+    owasp_refs: List[FrameworkRef] = []
+
+
+class FrameworkCoverage(BaseModel):
+    """Coverage statistics across frameworks."""
+    mitre_techniques_total: int
+    cis_controls_total: int
+    owasp_total: int
+    ig1_coverage_pct: Optional[float] = None
+    ig2_coverage_pct: Optional[float] = None
+    ig3_coverage_pct: Optional[float] = None
+
+
+class FrameworkMapping(BaseModel):
+    """Complete framework mapping with findings and coverage."""
+    findings: List[FrameworkMappedFinding] = []
+    coverage: Optional[FrameworkCoverage] = None
+
+
+class AttackStep(BaseModel):
+    """Step in an attack path."""
+    step: Optional[int] = None
+    action: str
+    technique_id: Optional[str] = None
+
+
+class AttackPath(BaseModel):
+    """Attack path enabled by missing controls."""
+    id: str
+    name: str
+    description: Optional[str] = None
+    risk_level: str
+    techniques: List[Dict[str, str]] = []
+    enabling_gaps: List[str] = []
+    likelihood: Optional[int] = None
+    impact: Optional[int] = None
+
+
+class GapCategory(BaseModel):
+    """Gap category with list of gaps."""
+    name: str
+    gaps: List[str] = []
+    severity: Optional[str] = None
+
+
+class GapAnalysis(BaseModel):
+    """Gap analysis structure."""
+    categories: List[GapCategory] = []
+    total_gaps: Optional[int] = None
+
+
+class RiskSummary(BaseModel):
+    """Risk summary with key findings."""
+    overall_risk_level: str
+    key_risks: List[str] = []
+    mitigating_factors: List[str] = []
+
+
+class AnalyticsSummary(BaseModel):
+    """Analytics with attack paths and gap analysis."""
+    attack_paths: List[AttackPath] = []
+    detection_gaps: Optional[GapAnalysis] = None
+    response_gaps: Optional[GapAnalysis] = None
+    identity_gaps: Optional[GapAnalysis] = None
+    risk_distribution: Dict[str, int] = {}
+    risk_summary: Optional[RiskSummary] = None
+    top_risks: List[str] = []
+    improvement_recommendations: List[str] = []
+
+
+class DetailedRoadmapItem(BaseModel):
+    """Detailed roadmap item with full metadata."""
+    id: str
+    title: str
+    action: str
+    priority: str
+    phase: str
+    effort: str
+    effort_estimate: Optional[str] = None
+    domain: Optional[str] = None
+    finding_id: Optional[str] = None
+    owner: Optional[str] = None
+    dependencies: List[str] = []
+    milestones: List[str] = []
+    success_criteria: Optional[str] = None
+    status: str = "not_started"
+
+
+class DetailedRoadmapPhase(BaseModel):
+    """Roadmap phase with items."""
+    title: str
+    description: Optional[str] = None
+    items: List[DetailedRoadmapItem] = []
+
+
+class DetailedRoadmapSummary(BaseModel):
+    """Summary of roadmap metrics."""
+    total_items: int
+    day30_count: int
+    day60_count: int
+    day90_count: int
+    by_priority: Dict[str, int] = {}
+    by_effort: Dict[str, int] = {}
+    generated_at: str
+
+
+class DetailedRoadmap(BaseModel):
+    """Complete detailed roadmap."""
+    phases: List[DetailedRoadmapPhase] = []
+    summary: Optional[DetailedRoadmapSummary] = None
+
+
 class AssessmentSummaryResponse(BaseModel):
     """Comprehensive assessment summary for executive dashboard."""
     # API version for forward compatibility
@@ -261,12 +409,12 @@ class AssessmentSummaryResponse(BaseModel):
     tier: ReadinessTier
     domain_scores: List[DomainScoreSummary]
     
-    # Findings
-    findings: List[FindingSummary]
+    # Findings with framework refs
+    findings: List[FindingSummaryWithFramework]
     findings_count: int
     critical_high_count: int
     
-    # Roadmap
+    # Simple roadmap (legacy)
     roadmap: Roadmap
     
     # Executive summary (deterministic, no LLM)
@@ -280,9 +428,19 @@ class AssessmentSummaryResponse(BaseModel):
     baselines_available: List[str] = []
     baseline_profiles: Dict[str, Dict[str, float]] = {}
     
+    # Framework mapping with MITRE ATT&CK, CIS, OWASP refs
+    framework_mapping: Optional[FrameworkMapping] = None
+    
+    # Analytics with attack paths and gap analysis
+    analytics: Optional[AnalyticsSummary] = None
+    
+    # Detailed 30/60/90 roadmap with effort and impact
+    detailed_roadmap: Optional[DetailedRoadmap] = None
+    
     # LLM metadata (informational only - does NOT affect scoring)
     # These fields indicate the current LLM configuration status
     llm_enabled: bool = False
     llm_provider: Optional[str] = None  # e.g., "google", "openai"
     llm_model: Optional[str] = None     # e.g., "gemini-2.0-flash"
     llm_mode: LLMMode = LLMMode.DISABLED  # "demo" | "prod" | "disabled"
+

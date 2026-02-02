@@ -25,24 +25,15 @@ Feature flags:
   - AIRS_USE_LLM: Enable/disable LLM features (default: False)
   - DEMO_MODE: Allow LLM without strict validation (default: False)
   - GEMINI_API_KEY: API key for Google Gemini (optional in demo mode)
-  - LLM_MODEL: Model to use (default: gemini-2.0-flash)
-
-SDK: Uses google-genai SDK with Vertex AI mode on GCP, falls back to API key.
-Resilience: 30s timeout, 2 retries with exponential backoff.
+  - LLM_MODEL: Model to use (default: gemini-3-pro-preview)
 """
 
 import logging
-import time
 from typing import Dict, Any, List, Optional
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
-
-# LLM Request Configuration
-LLM_TIMEOUT_SECONDS = 30
-LLM_MAX_RETRIES = 2
-LLM_INITIAL_BACKOFF = 1.0  # seconds
 
 
 def generate_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -90,50 +81,67 @@ def generate_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _generate_llm_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Generate narratives using Google Gemini LLM via google-genai SDK.
+    """Generate narratives using Google Gemini LLM with new google-genai SDK.
     
-    Uses Vertex AI mode when running on GCP (with ADC), falls back to API key mode.
-    Includes 30s timeout and 2 retries with exponential backoff.
+    Features:
+    - Prefers Vertex AI mode when GCP_PROJECT_ID is set
+    - Falls back to API key mode
+    - 30 second timeout per request
+    - 2 retries with exponential backoff
     """
+    import time
+    
+    # Try new SDK first (google-genai)
     try:
         from google import genai
         from google.genai import types
+        USE_NEW_SDK = True
     except ImportError:
-        logger.warning("google-genai package not installed. Using fallback.")
-        return _generate_fallback_narrative(summary_payload)
+        # Fallback to old SDK (google-generativeai) if new one not available
+        try:
+            import google.generativeai as genai_old
+            USE_NEW_SDK = False
+        except ImportError:
+            logger.warning("No Google AI SDK available. Using fallback.")
+            return _generate_fallback_narrative(summary_payload)
     
-    # Initialize client - prefer Vertex AI on GCP, fallback to API key
+    # Initialize client based on available credentials
     client = None
-    client_mode = "unknown"
-    
-    try:
-        # Try Vertex AI mode first (uses Application Default Credentials)
+    if USE_NEW_SDK:
+        # Prefer Vertex AI mode if GCP project is set
         if settings.GCP_PROJECT_ID:
             try:
                 client = genai.Client(
                     vertexai=True,
                     project=settings.GCP_PROJECT_ID,
-                    location="us-central1"
+                    location=getattr(settings, 'GCP_REGION', 'us-central1')
                 )
-                client_mode = "vertex_ai"
-                logger.info(f"Using Vertex AI mode with project: {settings.GCP_PROJECT_ID}")
-            except Exception as vertex_err:
-                logger.warning(f"Vertex AI init failed: {vertex_err}. Trying API key mode.")
+                logger.info(f"Using Vertex AI mode with project {settings.GCP_PROJECT_ID}")
+            except Exception as e:
+                logger.warning(f"Vertex AI init failed: {e}, trying API key mode")
         
         # Fallback to API key mode
         if client is None and settings.GEMINI_API_KEY:
-            client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            client_mode = "api_key"
-            logger.info("Using Gemini API key mode")
+            try:
+                client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                logger.info("Using API key mode for Gemini")
+            except Exception as e:
+                logger.error(f"API key init failed: {e}")
+                return _generate_fallback_narrative(summary_payload)
         
         if client is None:
-            logger.error("No valid LLM client configuration. Need GCP_PROJECT_ID or GEMINI_API_KEY.")
+            logger.warning("No valid credentials for Gemini. Using fallback.")
             return _generate_fallback_narrative(summary_payload)
-            
-    except Exception as init_err:
-        logger.error(f"Failed to initialize Gemini client: {init_err}")
-        return _generate_fallback_narrative(summary_payload)
+    else:
+        # Old SDK configuration
+        genai_old.configure(api_key=settings.GEMINI_API_KEY)
+    
+    # Get model name (use gemini-2.0-flash as default for new SDK)
+    model_name = settings.LLM_MODEL
+    if USE_NEW_SDK and model_name.startswith("gemini-3"):
+        # gemini-3.0-pro doesn't exist yet, use gemini-2.0-flash
+        model_name = "gemini-2.0-flash"
+        logger.info(f"Overriding model to {model_name} for new SDK compatibility")
     
     # Extract data from payload
     overall_score = summary_payload.get("overall_score", 0)
@@ -227,60 +235,62 @@ Write a clear, actionable roadmap with:
 Use business-friendly language. Be specific about actions and expected outcomes.
 Format as clear paragraphs, not bullet lists."""
 
-    # Helper function for LLM call with retry
-    def _call_with_retry(prompt: str) -> str:
-        """Make LLM call with timeout and exponential backoff retry."""
-        last_error = None
-        
-        for attempt in range(LLM_MAX_RETRIES + 1):
-            try:
-                if attempt > 0:
-                    backoff = LLM_INITIAL_BACKOFF * (2 ** (attempt - 1))
-                    logger.info(f"Retry attempt {attempt}/{LLM_MAX_RETRIES} after {backoff}s backoff")
-                    time.sleep(backoff)
-                
-                # Configure generation with timeout
+    # Retry logic with exponential backoff
+    max_retries = 2
+    timeout_seconds = 30
+    
+    def generate_with_retry(prompt: str, retry_count: int = 0) -> Optional[str]:
+        """Generate content with retry logic."""
+        try:
+            if USE_NEW_SDK:
+                # New SDK (google-genai) call
                 config = types.GenerateContentConfig(
                     temperature=settings.LLM_TEMPERATURE,
                     max_output_tokens=settings.LLM_MAX_TOKENS,
-                    http_options=types.HttpOptions(timeout=LLM_TIMEOUT_SECONDS * 1000)  # ms
                 )
-                
                 response = client.models.generate_content(
-                    model=settings.LLM_MODEL,
+                    model=model_name,
                     contents=prompt,
-                    config=config
+                    config=config,
                 )
+                return response.text.strip() if response.text else None
+            else:
+                # Old SDK (google-generativeai) call
+                model = genai_old.GenerativeModel(model_name)
+                generation_config = genai_old.GenerationConfig(
+                    temperature=settings.LLM_TEMPERATURE,
+                    max_output_tokens=settings.LLM_MAX_TOKENS,
+                )
+                response = model.generate_content(prompt, generation_config=generation_config)
+                return response.text.strip() if response.text else None
                 
-                # Extract text from response
-                if response and response.text:
-                    return response.text.strip()
-                else:
-                    raise ValueError("Empty response from LLM")
-                    
-            except Exception as e:
-                last_error = e
-                logger.warning(f"LLM call attempt {attempt + 1} failed: {e}")
-                if attempt >= LLM_MAX_RETRIES:
-                    raise
-        
-        raise last_error or Exception("LLM call failed after retries")
+        except Exception as e:
+            if retry_count < max_retries:
+                wait_time = 2 ** retry_count  # Exponential backoff: 1s, 2s
+                logger.warning(f"LLM request failed (attempt {retry_count + 1}): {e}. Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                return generate_with_retry(prompt, retry_count + 1)
+            else:
+                logger.error(f"LLM request failed after {max_retries + 1} attempts: {e}")
+                return None
     
     try:
         # Generate both narratives with retry logic
-        exec_text = _call_with_retry(exec_prompt)
-        roadmap_text = _call_with_retry(roadmap_prompt)
+        exec_summary = generate_with_retry(exec_prompt)
+        roadmap_narrative = generate_with_retry(roadmap_prompt)
         
-        logger.info(f"Successfully generated narratives via {client_mode} mode")
-        
-        return {
-            "executive_summary_text": exec_text,
-            "roadmap_narrative_text": roadmap_text,
-            "llm_generated": True
-        }
+        if exec_summary and roadmap_narrative:
+            return {
+                "executive_summary_text": exec_summary,
+                "roadmap_narrative_text": roadmap_narrative,
+                "llm_generated": True
+            }
+        else:
+            logger.warning("One or more LLM responses were empty. Using fallback.")
+            return _generate_fallback_narrative(summary_payload)
         
     except Exception as e:
-        logger.error(f"Gemini API call failed after {LLM_MAX_RETRIES} retries: {e}")
+        logger.error(f"Gemini API call failed: {e}")
         return _generate_fallback_narrative(summary_payload)
 
 

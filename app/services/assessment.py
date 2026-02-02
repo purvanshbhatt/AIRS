@@ -23,6 +23,9 @@ from app.schemas.assessment import (
 from app.services.scoring import calculate_scores, get_recommendations
 from app.core.rubric import get_rubric, get_question
 from app.services.ai_narrative import generate_narrative
+from app.services.analytics import generate_analytics
+from app.services.roadmap import generate_detailed_roadmap, generate_simple_roadmap
+from app.core.frameworks import get_framework_refs, get_all_unique_techniques
 
 
 def load_baseline_profiles() -> Dict[str, Dict[str, float]]:
@@ -385,7 +388,7 @@ class AssessmentService:
                 "max_points": score.max_raw_points
             })
         
-        # Build findings list sorted by severity
+        # Build findings list sorted by severity with framework refs
         severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
         sorted_findings = sorted(
             assessment.findings,
@@ -393,15 +396,31 @@ class AssessmentService:
         )
         
         findings = []
+        finding_rule_ids = []
         for f in sorted_findings:
+            # Get framework refs for this finding
+            fw_refs = get_framework_refs(f.domain_id or "")
+            # Try rule_id from description/title pattern
+            rule_id = None
+            if f.title and f.title.startswith("Gap: "):
+                # Try to extract rule from related question
+                pass
+            # Use question_id to infer rule mapping
+            rule_id = self._infer_rule_id(f)
+            if rule_id:
+                fw_refs = get_framework_refs(rule_id)
+                finding_rule_ids.append(rule_id)
+            
             findings.append({
                 "id": f.id,
+                "rule_id": rule_id,
                 "title": f.title,
                 "severity": f.severity.value,
                 "domain": f.domain_name,
                 "evidence": f.evidence,
                 "recommendation": f.recommendation,
-                "description": f.description
+                "description": f.description,
+                "framework_refs": fw_refs
             })
         
         # Count critical + high
@@ -441,6 +460,47 @@ class AssessmentService:
         # Build LLM metadata (informational only - does NOT affect scoring)
         llm_metadata = self._get_llm_metadata()
         
+        # Generate framework mapping with coverage stats
+        coverage_stats = get_all_unique_techniques(finding_rule_ids)
+        framework_mapping = {
+            "findings": [
+                {
+                    "finding_id": f["id"],
+                    "title": f["title"],
+                    "severity": f["severity"],
+                    "mitre_refs": f["framework_refs"].get("mitre", []),
+                    "cis_refs": f["framework_refs"].get("cis", []),
+                    "owasp_refs": f["framework_refs"].get("owasp", [])
+                }
+                for f in findings
+            ],
+            "coverage": {
+                "mitre_techniques_total": coverage_stats["mitre_techniques_total"],
+                "cis_controls_total": coverage_stats["cis_controls_total"],
+                "owasp_total": coverage_stats["owasp_total"],
+                "ig1_coverage_pct": coverage_stats["ig1_coverage_pct"],
+                "ig2_coverage_pct": coverage_stats["ig2_coverage_pct"],
+                "ig3_coverage_pct": coverage_stats["ig3_coverage_pct"]
+            }
+        }
+        
+        # Generate analytics (attack paths, gaps)
+        analytics = generate_analytics(finding_rule_ids)
+        
+        # Generate detailed roadmap
+        finding_dicts = [
+            {
+                "rule_id": f.get("rule_id"),
+                "title": f["title"],
+                "severity": f["severity"],
+                "domain_name": f["domain"],
+                "recommendation": f["recommendation"],
+                "remediation_effort": "medium"  # Default, could be enhanced
+            }
+            for f in findings
+        ]
+        detailed_roadmap = generate_detailed_roadmap(finding_dicts)
+        
         return {
             "api_version": "1.0",
             "id": assessment.id,
@@ -462,6 +522,12 @@ class AssessmentService:
             "roadmap_narrative_text": narratives.get("roadmap_narrative_text"),
             "baselines_available": baselines_available,
             "baseline_profiles": baseline_profiles,
+            # New: Framework mapping with MITRE, CIS, OWASP refs
+            "framework_mapping": framework_mapping,
+            # New: Analytics with attack paths and gaps
+            "analytics": analytics,
+            # New: Detailed roadmap with phases
+            "detailed_roadmap": detailed_roadmap,
             # LLM metadata (informational only)
             "llm_enabled": llm_metadata["llm_enabled"],
             "llm_provider": llm_metadata["llm_provider"],
@@ -499,6 +565,72 @@ class AssessmentService:
             "llm_model": llm_model,
             "llm_mode": llm_mode,
         }
+    
+    def _infer_rule_id(self, finding: Finding) -> Optional[str]:
+        """
+        Infer the finding rule_id from question_id or domain patterns.
+        
+        Maps question_id patterns to rule IDs for framework reference lookup.
+        Every question_id maps to a rule to ensure framework refs are always populated.
+        """
+        question_id = finding.question_id
+        domain_id = finding.domain_id
+        
+        # Complete Question ID to Rule ID mapping - all 30 questions covered
+        question_rule_map = {
+            # Telemetry & Logging (tl_01 - tl_06)
+            "tl_01": "TL-006",  # Network device logging
+            "tl_02": "TL-003",  # Endpoint logging
+            "tl_03": "TL-004",  # Cloud logging
+            "tl_04": "TL-002",  # Centralized logging
+            "tl_05": "TL-001",  # Log retention
+            "tl_06": "TL-005",  # Auth logging
+            # Detection Coverage (dc_01 - dc_06)
+            "dc_01": "DC-001",  # EDR coverage
+            "dc_02": "DC-003",  # Network monitoring
+            "dc_03": "DC-004",  # Detection rules
+            "dc_04": "DC-007",  # Custom detection rules
+            "dc_05": "DC-005",  # Email security
+            "dc_06": "DC-006",  # Alert triage
+            # Identity Visibility (iv_01 - iv_06)
+            "iv_01": "IV-002",  # Org-wide MFA
+            "iv_02": "IV-001",  # Admin MFA
+            "iv_03": "IV-003",  # Privileged account inventory
+            "iv_04": "IV-004",  # Service accounts
+            "iv_05": "IV-005",  # PAM
+            "iv_06": "IV-006",  # Failed login monitoring
+            # IR Playbooks & Process (ir_01 - ir_06)
+            "ir_01": "IR-001",  # IR playbooks
+            "ir_02": "IR-002",  # Playbook testing
+            "ir_03": "IR-004",  # IR team
+            "ir_04": "IR-005",  # Communication templates
+            "ir_05": "IR-006",  # Escalation matrix
+            "ir_06": "IR-003",  # Tabletop exercises
+            # Resilience (rs_01 - rs_06)
+            "rs_01": "RS-003",  # Critical backups
+            "rs_02": "RS-002",  # Immutable backups
+            "rs_03": "RS-001",  # Backup testing
+            "rs_04": "RS-005",  # DR plan
+            "rs_05": "RS-004",  # RTO
+            "rs_06": "RS-006",  # Backup credentials
+        }
+        
+        if question_id and question_id in question_rule_map:
+            return question_rule_map[question_id]
+        
+        # Fallback: map by domain for any unmapped questions
+        domain_default_map = {
+            "telemetry_logging": "TL-001",
+            "detection_coverage": "DC-001",
+            "identity_visibility": "IV-001",
+            "ir_process": "IR-001",
+            "resilience": "RS-001"
+        }
+        
+        if domain_id and domain_id in domain_default_map:
+            return domain_default_map[domain_id]
+        
+        return None
     
     def _get_readiness_tier(self, score: float) -> Dict[str, Any]:
         """Determine readiness tier based on overall score."""
