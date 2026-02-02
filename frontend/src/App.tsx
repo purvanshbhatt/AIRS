@@ -4,7 +4,6 @@ import { DashboardLayout } from './components/layout';
 import DocsLayout from './components/layout/DocsLayout';
 import { ToastProvider } from './components/ui';
 import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
 import { setUnauthorizedHandler } from './api';
@@ -75,7 +74,6 @@ function AuthRedirectHandler() {
 
 export default function App() {
   return (
-    <ThemeProvider>
     <AuthProvider>
       <ToastProvider>
         <AuthRedirectHandler />
@@ -131,6 +129,5 @@ export default function App() {
       </Routes>
     </ToastProvider>
   </AuthProvider>
-  </ThemeProvider>
   );
 }

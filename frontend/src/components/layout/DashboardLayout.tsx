@@ -14,7 +14,6 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ThemeToggle } from '../ui/ThemeToggle';
 
 interface NavItem {
   name: string;
@@ -165,7 +164,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Right side actions */}
           <div className="flex items-center gap-4">
-            <ThemeToggle />
+            {/* Theme toggle removed */}
           </div>
         </header>
 
