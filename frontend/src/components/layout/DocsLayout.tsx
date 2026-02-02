@@ -12,9 +12,7 @@ import {
     ChevronRight,
     ExternalLink,
 } from 'lucide-react';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import { Footer } from './Footer';
-import { useTheme } from '../../contexts/ThemeContext';
 
 interface NavItem {
     name: string;
@@ -33,13 +31,12 @@ const docsNavigation: NavItem[] = [
 export default function DocsLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const location = useLocation();
-    const { theme } = useTheme();
 
-    // Use theme-aware logo
-    const logoSrc = theme === 'dark' ? '/airs-logo-dark.png' : '/airs-logo-light.png';
+    // Use light logo by default
+    const logoSrc = '/airs-logo-light.png';
 
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
+        <div className="flex min-h-screen bg-gray-50 transition-colors">
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
@@ -167,7 +164,6 @@ export default function DocsLayout() {
                         >
                             Start Assessment
                         </Link>
-                        <ThemeToggle />
                     </div>
                 </header>
 
