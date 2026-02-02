@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Shield,
   LogOut,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -27,6 +28,7 @@ const navigation: NavItem[] = [
   { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
   { name: 'Reports', href: '/dashboard/reports', icon: FileText },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Docs', href: '/docs', icon: BookOpen },
 ];
 
 interface DashboardLayoutProps {
