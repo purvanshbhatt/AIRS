@@ -11,7 +11,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, hint, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
     
-    const baseStyles = 'block w-full rounded-lg border px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0';
+    const baseStyles = 'block w-full rounded-lg border px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white text-gray-900  ';
     
     const stateStyles = error
       ? 'border-danger-500 focus:border-danger-500 focus:ring-danger-500/20'
@@ -20,7 +20,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-900  mb-1.5">
             {label}
           </label>
         )}
@@ -34,7 +34,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           <p className="mt-1.5 text-sm text-danger-600">{error}</p>
         )}
         {hint && !error && (
-          <p className="mt-1.5 text-sm text-gray-500">{hint}</p>
+          <p className="mt-1.5 text-sm text-gray-900 ">{hint}</p>
         )}
       </div>
     );

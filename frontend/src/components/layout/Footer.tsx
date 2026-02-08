@@ -20,7 +20,7 @@ export function Footer() {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4 lg:px-6">
+        <footer className="border-t border-gray-200  bg-white  px-4 py-4 lg:px-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Links */}
                 <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
@@ -31,7 +31,7 @@ export function Footer() {
                                 href={href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                                className="flex items-center gap-1.5 text-sm text-gray-900  hover:text-gray-900  transition-colors"
                             >
                                 <Icon className="h-3.5 w-3.5" />
                                 {label}
@@ -40,7 +40,7 @@ export function Footer() {
                             <Link
                                 key={label}
                                 to={href}
-                                className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                                className="flex items-center gap-1.5 text-sm text-gray-900  hover:text-gray-900  transition-colors"
                             >
                                 <Icon className="h-3.5 w-3.5" />
                                 {label}
@@ -50,7 +50,7 @@ export function Footer() {
                 </nav>
 
                 {/* Copyright */}
-                <p className="text-xs text-gray-400 dark:text-gray-500">
+                <p className="text-xs text-gray-900 ">
                     © {currentYear} AIRS. Open source under MIT license.
                 </p>
             </div>

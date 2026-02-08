@@ -109,15 +109,15 @@ export function ApiDiagnosticsPanel({ error, autoRun = true, compact = false }: 
   };
 
   return (
-    <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg overflow-hidden">
+    <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between p-3 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+        className="w-full flex items-center justify-between p-3 hover:bg-amber-100 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-          <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+          <AlertTriangle className="w-4 h-4 text-amber-600" />
+          <span className="text-sm font-medium text-amber-800">
             API Diagnostics
           </span>
           {diagnostics.loading && (
@@ -136,7 +136,7 @@ export function ApiDiagnosticsPanel({ error, autoRun = true, compact = false }: 
         <div className="p-3 pt-0 space-y-3 text-sm">
           {/* Error Summary */}
           {error && (
-            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded text-red-800 dark:text-red-200">
+            <div className="p-2 bg-red-100 rounded text-red-800">
               <span className="font-medium">Error: </span>
               {getErrorSummary()}
             </div>
@@ -145,8 +145,8 @@ export function ApiDiagnosticsPanel({ error, autoRun = true, compact = false }: 
           {/* API Base URL */}
           <div className="flex items-center gap-2">
             <Server className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-600 dark:text-gray-400">API URL:</span>
-            <code className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+            <span className="text-gray-600">API URL:</span>
+            <code className="px-2 py-0.5 bg-gray-100 rounded text-xs font-mono">
               {diagnostics.apiBaseUrl}
             </code>
           </div>
@@ -154,7 +154,7 @@ export function ApiDiagnosticsPanel({ error, autoRun = true, compact = false }: 
           {/* Health Check */}
           <div className="flex items-center gap-2">
             <StatusIcon status={diagnostics.health.status} />
-            <span className="text-gray-600 dark:text-gray-400">/health:</span>
+            <span className="text-gray-600">/health:</span>
             <span className={diagnostics.health.status === 'ok' ? 'text-green-600' : 'text-red-600'}>
               {diagnostics.health.message || (diagnostics.health.status === 'pending' ? 'Checking...' : 'Unknown')}
             </span>
@@ -165,7 +165,7 @@ export function ApiDiagnosticsPanel({ error, autoRun = true, compact = false }: 
             <StatusIcon status={diagnostics.cors.status} />
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-gray-600 dark:text-gray-400">/health/cors:</span>
+                <span className="text-gray-600">/health/cors:</span>
                 <span className={diagnostics.cors.originAllowed ? 'text-green-600' : 'text-red-600'}>
                   {diagnostics.cors.message || (diagnostics.cors.status === 'pending' ? 'Checking...' : 'Unknown')}
                 </span>
@@ -173,7 +173,7 @@ export function ApiDiagnosticsPanel({ error, autoRun = true, compact = false }: 
               {diagnostics.cors.requestOrigin && (
                 <div className="mt-1 text-xs text-gray-500">
                   <Globe className="w-3 h-3 inline mr-1" />
-                  Your origin: <code className="px-1 bg-gray-100 dark:bg-gray-800 rounded">{diagnostics.cors.requestOrigin}</code>
+                  Your origin: <code className="px-1 bg-gray-100 rounded">{diagnostics.cors.requestOrigin}</code>
                 </div>
               )}
             </div>
@@ -183,7 +183,7 @@ export function ApiDiagnosticsPanel({ error, autoRun = true, compact = false }: 
           <button
             onClick={runDiagnostics}
             disabled={diagnostics.loading}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs bg-amber-100 dark:bg-amber-800 hover:bg-amber-200 dark:hover:bg-amber-700 text-amber-800 dark:text-amber-200 rounded transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 rounded transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-3 h-3 ${diagnostics.loading ? 'animate-spin' : ''}`} />
             Re-run Diagnostics

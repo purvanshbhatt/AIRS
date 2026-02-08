@@ -82,11 +82,11 @@ function getDomainScaleColor(score: number) {
 }
 
 function getDomainScaleBg(score: number) {
-  if (score >= 4) return 'bg-success-50 dark:bg-success-900/30 text-success-700 dark:text-success-300 border-success-200 dark:border-success-800'
-  if (score >= 3) return 'bg-success-50/50 dark:bg-success-900/20 text-success-600 dark:text-success-400 border-success-100 dark:border-success-800/50'
-  if (score >= 2) return 'bg-warning-50 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300 border-warning-200 dark:border-warning-800'
-  if (score >= 1) return 'bg-warning-50/50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800'
-  return 'bg-danger-50 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 border-danger-200 dark:border-danger-800'
+  if (score >= 4) return 'bg-success-50 text-success-700 border-success-200'
+  if (score >= 3) return 'bg-success-50/50 text-success-600 border-success-100'
+  if (score >= 2) return 'bg-warning-50 text-warning-700 border-warning-200'
+  if (score >= 1) return 'bg-warning-50/50 text-orange-600 border-orange-200'
+  return 'bg-danger-50 text-danger-700 border-danger-200'
 }
 
 function getSeverityVariant(severity: string): 'danger' | 'warning' | 'default' | 'outline' | 'success' | 'primary' {
@@ -98,9 +98,9 @@ function getSeverityVariant(severity: string): 'danger' | 'warning' | 'default' 
 }
 
 function getLikelihoodColor(likelihood: string) {
-  if (likelihood === 'high' || likelihood === 'High') return 'text-danger-700 dark:text-danger-300 bg-danger-50 dark:bg-danger-900/30'
-  if (likelihood === 'medium' || likelihood === 'Medium') return 'text-warning-700 dark:text-warning-300 bg-warning-50 dark:bg-warning-900/30'
-  return 'text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700'
+  if (likelihood === 'high' || likelihood === 'High') return 'text-danger-700 bg-danger-50'
+  if (likelihood === 'medium' || likelihood === 'Medium') return 'text-warning-700 bg-warning-50'
+  return 'text-gray-700 bg-gray-100'
 }
 
 // ============================================================================
@@ -153,40 +153,40 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
                 <span className={`text-5xl font-bold ${getTierText(tier.color)}`}>
                   {Math.round(summary.overall_score)}
                 </span>
-                <span className="text-gray-500 dark:text-gray-400 text-sm mt-1">out of 100</span>
+                <span className="text-gray-500 text-sm mt-1">out of 100</span>
               </div>
             </div>
 
             {/* Tier & Stats */}
             <div className="text-center lg:text-left space-y-4">
               <div>
-                <div className="text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wider mb-1">Readiness Tier</div>
+                <div className="text-gray-500 uppercase text-xs tracking-wider mb-1">Readiness Tier</div>
                 <div className={`text-4xl font-bold ${getTierText(tier.color)}`}>
                   {tier.label}
                 </div>
               </div>
               <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg">
                   <Target className="h-5 w-5 text-primary-500" />
                   <div>
-                    <div className="text-lg font-semibold dark:text-gray-100">{summary.findings_count}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Total Findings</div>
+                    <div className="text-lg font-semibold">{summary.findings_count}</div>
+                    <div className="text-xs text-gray-500">Total Findings</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-danger-50 dark:bg-danger-900/30 rounded-lg">
+                <div className="flex items-center gap-2 px-4 py-2 bg-danger-50 rounded-lg">
                   <AlertTriangle className="h-5 w-5 text-danger-500" />
                   <div>
-                    <div className="text-lg font-semibold text-danger-600 dark:text-danger-400">{summary.critical_high_count}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Critical + High</div>
+                    <div className="text-lg font-semibold text-danger-600">{summary.critical_high_count}</div>
+                    <div className="text-xs text-gray-500">Critical + High</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-success-50 dark:bg-success-900/30 rounded-lg">
+                <div className="flex items-center gap-2 px-4 py-2 bg-success-50 rounded-lg">
                   <CheckCircle className="h-5 w-5 text-success-500" />
                   <div>
-                    <div className="text-lg font-semibold text-success-600 dark:text-success-400">
+                    <div className="text-lg font-semibold text-success-600">
                       {5 - (summary.findings_count > 0 ? Math.min(5, summary.findings_count) : 0)}/5
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Domains OK</div>
+                    <div className="text-xs text-gray-500">Domains OK</div>
                   </div>
                 </div>
               </div>
@@ -204,13 +204,13 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{executive_summary}</p>
+          <p className="text-gray-700 leading-relaxed">{executive_summary}</p>
         </CardContent>
       </Card>
 
       {/* AI Insights - Only shown when LLM is enabled */}
       {summary.llm_enabled && (summary.executive_summary_text || summary.llm_status === 'pending') && (
-        <Card className="border-primary-100 dark:border-primary-800 bg-gradient-to-br from-primary-50/50 dark:from-primary-900/20 to-white dark:to-gray-900">
+        <Card className="border-primary-100 bg-gradient-to-br from-primary-50/50 to-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary-700">
               <Sparkles className="h-5 w-5" />
@@ -228,14 +228,14 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
                 {isRefreshingNarrative ? (
                   <>
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-300 font-medium">Generating AI insights...</p>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">This may take a few seconds</p>
+                    <p className="text-gray-600 font-medium">Generating AI insights...</p>
+                    <p className="text-sm text-gray-400 mt-1">This may take a few seconds</p>
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-8 w-8 text-primary-400 mb-4 animate-pulse" />
-                    <p className="text-gray-600 dark:text-gray-300 font-medium">AI insights are being generated</p>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 mb-4">Click refresh to check if they're ready</p>
+                    <p className="text-gray-600 font-medium">AI insights are being generated</p>
+                    <p className="text-sm text-gray-400 mt-1 mb-4">Click refresh to check if they're ready</p>
                     <Button
                       variant="outline"
                       size="sm"
@@ -253,11 +253,11 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
             {/* AI Executive Summary */}
             {summary.executive_summary_text && (
               <div>
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
                   <Lightbulb className="h-4 w-4" />
                   AI Executive Analysis
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                   {summary.executive_summary_text}
                 </p>
               </div>
@@ -265,19 +265,19 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
 
             {/* AI Roadmap Narrative */}
             {summary.roadmap_narrative_text && (
-              <div className="pt-4 border-t border-primary-100 dark:border-primary-800">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+              <div className="pt-4 border-t border-primary-100">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
                   <TrendingUp className="h-4 w-4" />
                   AI Remediation Strategy
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                   {summary.roadmap_narrative_text}
                 </p>
               </div>
             )}
 
             {/* LLM info footer */}
-            <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-100">
               <span>Powered by {summary.llm_provider || 'AI'}</span>
               {summary.llm_mode === 'demo' && (
                 <span className="text-warning-500 font-medium">Demo Mode</span>
@@ -364,21 +364,21 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
               {topFailures.map((f, i) => (
                 <div
                   key={f.id || i}
-                  className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center text-danger-600 dark:text-danger-400 font-bold text-sm">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-danger-100 flex items-center justify-center text-danger-600 font-bold text-sm">
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100">{f.title}</h4>
+                      <h4 className="font-medium text-gray-900">{f.title}</h4>
                       <Badge variant={getSeverityVariant(f.severity)}>{f.severity}</Badge>
                     </div>
                     {f.recommendation && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{f.recommendation}</p>
+                      <p className="text-sm text-gray-600 mt-1">{f.recommendation}</p>
                     )}
                     {f.domain && (
-                      <div className="text-xs text-gray-400 dark:text-gray-500 mt-2">{f.domain}</div>
+                      <div className="text-xs text-gray-400 mt-2">{f.domain}</div>
                     )}
                   </div>
                 </div>
@@ -401,7 +401,7 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
                 {suggestedBaseline && suggestedBaseline !== selectedBaseline && (
                   <button
                     onClick={() => setSelectedBaseline(suggestedBaseline)}
-                    className="text-xs flex items-center gap-1 px-2 py-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800/30 transition-colors"
+                    className="text-xs flex items-center gap-1 px-2 py-1.5 rounded-lg bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
                     title={`Apply suggested baseline: ${suggestedBaseline}`}
                   >
                     <Sparkles className="w-3 h-3" />
@@ -411,7 +411,7 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
                 <select
                   value={selectedBaseline}
                   onChange={(e) => setSelectedBaseline(e.target.value)}
-                  className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-100"
+                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
                 >
                   {summary.baselines_available?.map((b) => (
                     <option key={b} value={b}>{b}</option>
@@ -452,9 +452,9 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
                 )
               })}
             </div>
-            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-0.5 bg-gray-400 dark:bg-gray-500"></div>
+                <div className="w-8 h-0.5 bg-gray-400"></div>
                 <span>Baseline ({selectedBaseline})</span>
               </div>
             </div>
@@ -480,8 +480,8 @@ export function FindingsTab({ summary }: FindingsTabProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <CheckCircle className="h-16 w-16 text-success-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Findings</h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Findings</h3>
+          <p className="text-gray-600">
             Excellent! The assessment did not identify any gaps in your security posture.
           </p>
         </CardContent>
@@ -501,21 +501,21 @@ export function FindingsTab({ summary }: FindingsTabProps) {
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 bg-danger-50 dark:bg-danger-900/30 rounded-lg border border-danger-200 dark:border-danger-800">
-          <div className="text-3xl font-bold text-danger-600 dark:text-danger-400">{findingsBySeverity.critical.length}</div>
-          <div className="text-sm text-danger-700 dark:text-danger-300">Critical</div>
+        <div className="p-4 bg-danger-50 rounded-lg border border-danger-200">
+          <div className="text-3xl font-bold text-danger-600">{findingsBySeverity.critical.length}</div>
+          <div className="text-sm text-danger-700">Critical</div>
         </div>
-        <div className="p-4 bg-warning-50 dark:bg-warning-900/30 rounded-lg border border-warning-200 dark:border-warning-800">
-          <div className="text-3xl font-bold text-warning-600 dark:text-warning-400">{findingsBySeverity.high.length}</div>
-          <div className="text-sm text-warning-700 dark:text-warning-300">High</div>
+        <div className="p-4 bg-warning-50 rounded-lg border border-warning-200">
+          <div className="text-3xl font-bold text-warning-600">{findingsBySeverity.high.length}</div>
+          <div className="text-sm text-warning-700">High</div>
         </div>
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-3xl font-bold text-gray-600 dark:text-gray-300">{findingsBySeverity.medium.length}</div>
-          <div className="text-sm text-gray-700 dark:text-gray-400">Medium</div>
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-3xl font-bold text-gray-600">{findingsBySeverity.medium.length}</div>
+          <div className="text-sm text-gray-700">Medium</div>
         </div>
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-3xl font-bold text-gray-600 dark:text-gray-300">{findingsBySeverity.low.length}</div>
-          <div className="text-sm text-gray-700 dark:text-gray-400">Low</div>
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-3xl font-bold text-gray-600">{findingsBySeverity.low.length}</div>
+          <div className="text-sm text-gray-700">Low</div>
         </div>
       </div>
 
@@ -529,28 +529,28 @@ export function FindingsTab({ summary }: FindingsTabProps) {
             {findings.map((f, i) => (
               <div
                 key={f.id || i}
-                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+                className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <Badge variant={getSeverityVariant(f.severity)}>{f.severity}</Badge>
                       {f.domain && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">{f.domain}</span>
+                        <span className="text-xs text-gray-500">{f.domain}</span>
                       )}
                     </div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100">{f.title}</h4>
+                    <h4 className="font-medium text-gray-900">{f.title}</h4>
                     {f.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{f.description}</p>
+                      <p className="text-sm text-gray-600 mt-2">{f.description}</p>
                     )}
                     {f.recommendation && (
-                      <div className="mt-3 p-3 bg-primary-50 dark:bg-primary-900/30 rounded-lg">
-                        <div className="text-xs font-medium text-primary-700 dark:text-primary-300 mb-1">Recommendation</div>
-                        <p className="text-sm text-primary-900 dark:text-primary-200">{f.recommendation}</p>
+                      <div className="mt-3 p-3 bg-primary-50 rounded-lg">
+                        <div className="text-xs font-medium text-primary-700 mb-1">Recommendation</div>
+                        <p className="text-sm text-primary-900">{f.recommendation}</p>
                       </div>
                     )}
                     {f.evidence && (
-                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="mt-2 text-xs text-gray-500">
                         <strong>Evidence:</strong> {f.evidence}
                       </div>
                     )}
@@ -579,9 +579,9 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <Shield className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Framework Mappings</h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Framework Mappings</h3>
+          <p className="text-gray-600">
             Framework mappings will appear here once the assessment is scored.
           </p>
         </CardContent>
@@ -637,32 +637,32 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
         <Card>
           <CardContent className="py-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                <Target className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Target className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">MITRE ATT&CK</div>
-                <div className="text-2xl font-bold dark:text-gray-100">{mitrePct.toFixed(0)}%</div>
+                <div className="text-sm text-gray-500">MITRE ATT&CK</div>
+                <div className="text-2xl font-bold">{mitrePct.toFixed(0)}%</div>
               </div>
             </div>
 
             {/* Count from computed values */}
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              <span className="font-medium text-gray-700 dark:text-gray-300">{mitreCount}</span> of <span className="font-medium text-gray-700 dark:text-gray-300">{mitreTotal}</span> techniques referenced
+            <div className="text-xs text-gray-500 mt-2">
+              <span className="font-medium text-gray-700">{mitreCount}</span> of <span className="font-medium text-gray-700">{mitreTotal}</span> techniques referenced
             </div>
 
             {/* Top Techniques List */}
             {mitreList.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-1">Top Referenced</p>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Top Referenced</p>
                 <div className="flex flex-wrap gap-1">
                   {mitreList.map((tid: string) => (
-                    <Badge key={tid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white dark:bg-gray-800" title={mitreTechniqueNames[tid]}>
+                    <Badge key={tid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white" title={mitreTechniqueNames[tid]}>
                       {tid}
                     </Badge>
                   ))}
                   {uniqueMitre.size > 5 && (
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center">+{uniqueMitre.size - 5} more</span>
+                    <span className="text-[10px] text-gray-400 flex items-center">+{uniqueMitre.size - 5} more</span>
                   )}
                 </div>
               </div>
@@ -674,19 +674,19 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
         <Card>
           <CardContent className="py-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Shield className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">CIS Controls v8</div>
-                <div className="text-2xl font-bold dark:text-gray-100">{cisCount} referenced</div>
+                <div className="text-sm text-gray-500">CIS Controls v8</div>
+                <div className="text-2xl font-bold">{cisCount} referenced</div>
               </div>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              <span className="font-medium text-gray-700 dark:text-gray-300">{cisCount}</span> of <span className="font-medium text-gray-700 dark:text-gray-300">{cisTotal}</span> controls referenced
+            <div className="text-xs text-gray-500 mt-2">
+              <span className="font-medium text-gray-700">{cisCount}</span> of <span className="font-medium text-gray-700">{cisTotal}</span> controls referenced
             </div>
             {coverage && (
-              <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <div className="space-y-1 text-xs text-gray-500 mt-2">
                 <div>IG1: {coverage.ig1_coverage_pct?.toFixed(0) || 0}%</div>
                 <div>IG2: {coverage.ig2_coverage_pct?.toFixed(0) || 0}%</div>
                 <div>IG3: {coverage.ig3_coverage_pct?.toFixed(0) || 0}%</div>
@@ -694,16 +694,16 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
             )}
             {/* Top Controls List */}
             {cisList.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-1">Top Referenced</p>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Top Referenced</p>
                 <div className="flex flex-wrap gap-1">
                   {cisList.map((cid: string) => (
-                    <Badge key={cid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white dark:bg-gray-800" title={cisTechniqueNames[cid]}>
+                    <Badge key={cid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white" title={cisTechniqueNames[cid]}>
                       {cid}
                     </Badge>
                   ))}
                   {uniqueCIS.size > 5 && (
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center">+{uniqueCIS.size - 5} more</span>
+                    <span className="text-[10px] text-gray-400 flex items-center">+{uniqueCIS.size - 5} more</span>
                   )}
                 </div>
               </div>
@@ -715,29 +715,29 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
         <Card>
           <CardContent className="py-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <Lock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Lock className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">OWASP Top 10</div>
-                <div className="text-2xl font-bold dark:text-gray-100">{owaspCount} referenced</div>
+                <div className="text-sm text-gray-500">OWASP Top 10</div>
+                <div className="text-2xl font-bold">{owaspCount} referenced</div>
               </div>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              <span className="font-medium text-gray-700 dark:text-gray-300">{owaspCount}</span> of <span className="font-medium text-gray-700 dark:text-gray-300">{owaspTotal}</span> categories referenced ({owaspPct.toFixed(0)}%)
+            <div className="text-xs text-gray-500 mt-2">
+              <span className="font-medium text-gray-700">{owaspCount}</span> of <span className="font-medium text-gray-700">{owaspTotal}</span> categories referenced ({owaspPct.toFixed(0)}%)
             </div>
             {/* Top OWASP List */}
             {owaspList.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-1">Referenced</p>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Referenced</p>
                 <div className="flex flex-wrap gap-1">
                   {owaspList.map((oid: string) => (
-                    <Badge key={oid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white dark:bg-gray-800" title={owaspNames[oid]}>
+                    <Badge key={oid} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white" title={owaspNames[oid]}>
                       {oid}
                     </Badge>
                   ))}
                   {uniqueOWASP.size > 5 && (
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center">+{uniqueOWASP.size - 5} more</span>
+                    <span className="text-[10px] text-gray-400 flex items-center">+{uniqueOWASP.size - 5} more</span>
                   )}
                 </div>
               </div>
@@ -754,21 +754,21 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
         <CardContent>
           <div className="space-y-6">
             {findings.map((f: FrameworkMappedFinding, i: number) => (
-              <div key={f.finding_id || i} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <div key={f.finding_id || i} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <Badge variant={getSeverityVariant(f.severity)}>{f.severity}</Badge>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">{f.domain}</span>
+                      <span className="text-xs text-gray-500">{f.domain}</span>
                     </div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100">{f.title}</h4>
+                    <h4 className="font-medium text-gray-900">{f.title}</h4>
                   </div>
                 </div>
 
                 {/* MITRE ATT&CK References */}
                 {f.mitre_refs && f.mitre_refs.length > 0 && (
                   <div className="mb-3">
-                    <div className="text-xs font-medium text-red-700 dark:text-red-400 mb-2 flex items-center gap-1">
+                    <div className="text-xs font-medium text-red-700 mb-2 flex items-center gap-1">
                       <Target className="h-3 w-3" />
                       MITRE ATT&CK
                     </div>
@@ -779,7 +779,7 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
                           href={ref.url || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs hover:bg-red-100 transition-colors"
                         >
                           {ref.id}: {ref.name}
                           <ExternalLink className="h-3 w-3" />
@@ -792,7 +792,7 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
                 {/* CIS Controls References */}
                 {f.cis_refs && f.cis_refs.length > 0 && (
                   <div className="mb-3">
-                    <div className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-1">
+                    <div className="text-xs font-medium text-blue-700 mb-2 flex items-center gap-1">
                       <Shield className="h-3 w-3" />
                       CIS Controls v8
                     </div>
@@ -800,7 +800,7 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
                       {f.cis_refs.map((ref: FrameworkRef) => (
                         <span
                           key={ref.id}
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs"
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
                         >
                           {ref.id}{ref.ig_level ? ` (IG${ref.ig_level})` : ''}
                         </span>
@@ -812,7 +812,7 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
                 {/* OWASP References */}
                 {f.owasp_refs && f.owasp_refs.length > 0 && (
                   <div>
-                    <div className="text-xs font-medium text-purple-700 dark:text-purple-400 mb-2 flex items-center gap-1">
+                    <div className="text-xs font-medium text-purple-700 mb-2 flex items-center gap-1">
                       <Lock className="h-3 w-3" />
                       OWASP Top 10
                     </div>
@@ -820,7 +820,7 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
                       {f.owasp_refs.map((ref: FrameworkRef) => (
                         <span
                           key={ref.id}
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs"
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs"
                         >
                           {ref.id}: {ref.name}
                         </span>
@@ -856,25 +856,25 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
       <div className="space-y-6">
         {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="p-4 bg-primary-50 dark:bg-primary-900/30 rounded-lg border border-primary-200 dark:border-primary-800">
-            <div className="text-3xl font-bold text-primary-600 dark:text-primary-400">{stats.total_items}</div>
-            <div className="text-sm text-primary-700 dark:text-primary-300">Total Items</div>
+          <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
+            <div className="text-3xl font-bold text-primary-600">{stats.total_items}</div>
+            <div className="text-sm text-primary-700">Total Items</div>
           </div>
-          <div className="p-4 bg-danger-50 dark:bg-danger-900/30 rounded-lg border border-danger-200 dark:border-danger-800">
-            <div className="text-3xl font-bold text-danger-600 dark:text-danger-400">{stats.critical_items}</div>
-            <div className="text-sm text-danger-700 dark:text-danger-300">Critical</div>
+          <div className="p-4 bg-danger-50 rounded-lg border border-danger-200">
+            <div className="text-3xl font-bold text-danger-600">{stats.critical_items}</div>
+            <div className="text-sm text-danger-700">Critical</div>
           </div>
-          <div className="p-4 bg-success-50 dark:bg-success-900/30 rounded-lg border border-success-200 dark:border-success-800">
-            <div className="text-3xl font-bold text-success-600 dark:text-success-400">{stats.quick_wins}</div>
-            <div className="text-sm text-success-700 dark:text-success-300">Quick Wins</div>
+          <div className="p-4 bg-success-50 rounded-lg border border-success-200">
+            <div className="text-3xl font-bold text-success-600">{stats.quick_wins}</div>
+            <div className="text-sm text-success-700">Quick Wins</div>
           </div>
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-3xl font-bold text-gray-600 dark:text-gray-300">{stats.total_effort_hours}h</div>
-            <div className="text-sm text-gray-700 dark:text-gray-400">Est. Effort</div>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="text-3xl font-bold text-gray-600">{stats.total_effort_hours}h</div>
+            <div className="text-sm text-gray-700">Est. Effort</div>
           </div>
-          <div className="p-4 bg-warning-50 dark:bg-warning-900/30 rounded-lg border border-warning-200 dark:border-warning-800">
-            <div className="text-3xl font-bold text-warning-600 dark:text-warning-400">{stats.total_risk_reduction}</div>
-            <div className="text-sm text-warning-700 dark:text-warning-300">Risk Reduction</div>
+          <div className="p-4 bg-warning-50 rounded-lg border border-warning-200">
+            <div className="text-3xl font-bold text-warning-600">{stats.total_risk_reduction}</div>
+            <div className="text-sm text-warning-700">Risk Reduction</div>
           </div>
         </div>
 
@@ -884,17 +884,17 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
           if (!phase || phase.items.length === 0) return null
 
           const phaseColors: Record<string, string> = {
-            day30: 'border-danger-200 dark:border-danger-800 bg-danger-50/30 dark:bg-danger-900/20',
-            day60: 'border-warning-200 dark:border-warning-800 bg-warning-50/30 dark:bg-warning-900/20',
-            day90: 'border-primary-200 dark:border-primary-800 bg-primary-50/30 dark:bg-primary-900/20',
-            beyond: 'border-gray-200 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/30',
+            day30: 'border-danger-200 bg-danger-50/30',
+            day60: 'border-warning-200 bg-warning-50/30',
+            day90: 'border-primary-200 bg-primary-50/30',
+            beyond: 'border-gray-200 bg-gray-50/30/30',
           }
 
           const headerColors: Record<string, string> = {
-            day30: 'bg-danger-100 dark:bg-danger-900/50 text-danger-800 dark:text-danger-200',
-            day60: 'bg-warning-100 dark:bg-warning-900/50 text-warning-800 dark:text-warning-200',
-            day90: 'bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-200',
-            beyond: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
+            day30: 'bg-danger-100 text-danger-800',
+            day60: 'bg-warning-100 text-warning-800',
+            day90: 'bg-primary-100 text-primary-800',
+            beyond: 'bg-gray-100 text-gray-800',
           }
 
           return (
@@ -912,7 +912,7 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                 </div>
               </div>
               <CardContent className="pt-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{phase.description}</p>
+                <p className="text-sm text-gray-600 mb-4">{phase.description}</p>
                 <div className="space-y-3">
                   {phase.items.map((item: DetailedRoadmapItem, i: number) => {
                     // Tracking state
@@ -945,7 +945,7 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                     return (
                       <div
                         key={item.finding_id || i}
-                        className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"
+                        className="p-4 bg-white rounded-lg border border-gray-200"
                       >
                         <div className="flex items-start justify-between gap-4 mb-2">
                           <div className="flex-1">
@@ -954,9 +954,9 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                                 {item.severity}
                               </Badge>
                               <Badge variant="outline">{item.effort} effort</Badge>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{item.domain}</span>
+                              <span className="text-xs text-gray-500">{item.domain}</span>
                             </div>
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100">{item.title}</h4>
+                            <h4 className="font-medium text-gray-900">{item.title}</h4>
                           </div>
                           <Button
                             size="sm"
@@ -973,18 +973,18 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                             {added ? 'Tracked' : 'Track'}
                           </Button>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{item.action}</p>
+                        <p className="text-sm text-gray-600 mb-3">{item.action}</p>
 
                         {item.milestones && item.milestones.length > 0 && (
                           <div className="mb-3">
-                            <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <div className="text-xs font-medium text-gray-700 mb-2">
                               Milestones:
                             </div>
                             <ul className="space-y-1">
                               {item.milestones.map((m: string, mi: number) => (
                                 <li
                                   key={mi}
-                                  className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400"
+                                  className="flex items-start gap-2 text-xs text-gray-600"
                                 >
                                   <ChevronRight className="h-3 w-3 mt-0.5 flex-shrink-0" />
                                   {m}
@@ -995,12 +995,12 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                         )}
 
                         {item.success_criteria && (
-                          <div className="text-xs text-success-700 dark:text-success-300 bg-success-50 dark:bg-success-900/30 rounded p-2">
+                          <div className="text-xs text-success-700 bg-success-50 rounded p-2">
                             <strong>Success:</strong> {item.success_criteria}
                           </div>
                         )}
 
-                        <div className="mt-2 text-xs text-gray-400 dark:text-gray-500">Owner: {item.owner}</div>
+                        <div className="mt-2 text-xs text-gray-400">Owner: {item.owner}</div>
                       </div>
                     )
                   })}
@@ -1027,22 +1027,22 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* 30 Days */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2 pb-2 border-b border-danger-200 dark:border-danger-800">
-                <div className="w-10 h-10 rounded-full bg-danger-100 dark:bg-danger-900/30 flex items-center justify-center">
-                  <Zap className="h-5 w-5 text-danger-600 dark:text-danger-400" />
+              <div className="flex items-center gap-2 pb-2 border-b border-danger-200">
+                <div className="w-10 h-10 rounded-full bg-danger-100 flex items-center justify-center">
+                  <Zap className="h-5 w-5 text-danger-600" />
                 </div>
                 <div>
-                  <div className="font-semibold text-danger-700 dark:text-danger-300">Day 30</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Critical Actions</div>
+                  <div className="font-semibold text-danger-700">Day 30</div>
+                  <div className="text-xs text-gray-500">Critical Actions</div>
                 </div>
               </div>
               {basicRoadmap.day30.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No critical items</p>
+                <p className="text-sm text-gray-500 italic">No critical items</p>
               ) : (
                 basicRoadmap.day30.map((item, i) => (
-                  <div key={i} className="p-3 bg-danger-50 dark:bg-danger-900/30 rounded-lg border border-danger-100 dark:border-danger-800">
-                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{item.title}</div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{item.action}</p>
+                  <div key={i} className="p-3 bg-danger-50 rounded-lg border border-danger-100">
+                    <div className="font-medium text-sm text-gray-900">{item.title}</div>
+                    <p className="text-xs text-gray-600 mt-1">{item.action}</p>
                   </div>
                 ))
               )}
@@ -1050,22 +1050,22 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
 
             {/* 60 Days */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2 pb-2 border-b border-warning-200 dark:border-warning-800">
-                <div className="w-10 h-10 rounded-full bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-warning-600 dark:text-warning-400" />
+              <div className="flex items-center gap-2 pb-2 border-b border-warning-200">
+                <div className="w-10 h-10 rounded-full bg-warning-100 flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-warning-600" />
                 </div>
                 <div>
-                  <div className="font-semibold text-warning-700 dark:text-warning-300">Day 60</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">High Priority</div>
+                  <div className="font-semibold text-warning-700">Day 60</div>
+                  <div className="text-xs text-gray-500">High Priority</div>
                 </div>
               </div>
               {basicRoadmap.day60.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No high priority items</p>
+                <p className="text-sm text-gray-500 italic">No high priority items</p>
               ) : (
                 basicRoadmap.day60.map((item, i) => (
-                  <div key={i} className="p-3 bg-warning-50 dark:bg-warning-900/30 rounded-lg border border-warning-100 dark:border-warning-800">
-                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{item.title}</div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{item.action}</p>
+                  <div key={i} className="p-3 bg-warning-50 rounded-lg border border-warning-100">
+                    <div className="font-medium text-sm text-gray-900">{item.title}</div>
+                    <p className="text-xs text-gray-600 mt-1">{item.action}</p>
                   </div>
                 ))
               )}
@@ -1073,22 +1073,22 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
 
             {/* 90 Days */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2 pb-2 border-b border-primary-200 dark:border-primary-800">
-                <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+              <div className="flex items-center gap-2 pb-2 border-b border-primary-200">
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-primary-600" />
                 </div>
                 <div>
-                  <div className="font-semibold text-primary-700 dark:text-primary-300">Day 90</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Medium Priority</div>
+                  <div className="font-semibold text-primary-700">Day 90</div>
+                  <div className="text-xs text-gray-500">Medium Priority</div>
                 </div>
               </div>
               {basicRoadmap.day90.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No medium priority items</p>
+                <p className="text-sm text-gray-500 italic">No medium priority items</p>
               ) : (
                 basicRoadmap.day90.map((item, i) => (
-                  <div key={i} className="p-3 bg-primary-50 dark:bg-primary-900/30 rounded-lg border border-primary-100 dark:border-primary-800">
-                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{item.title}</div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{item.action}</p>
+                  <div key={i} className="p-3 bg-primary-50 rounded-lg border border-primary-100">
+                    <div className="font-medium text-sm text-gray-900">{item.title}</div>
+                    <p className="text-xs text-gray-600 mt-1">{item.action}</p>
                   </div>
                 ))
               )}
@@ -1114,9 +1114,9 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <Route className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Analytics Available</h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <Route className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Analytics Available</h3>
+          <p className="text-gray-600">
             Advanced analytics will appear here once the assessment is scored and findings are generated.
           </p>
         </CardContent>
@@ -1139,8 +1139,8 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
       <Card>
         <CardContent className="py-12 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No Critical Risks Detected</h3>
-          <p className="text-gray-600 dark:text-gray-400 max-w-lg mx-auto">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Critical Risks Detected</h3>
+          <p className="text-gray-600 max-w-lg mx-auto">
             Great job! Our analysis did not identify any major attack paths or critical security gaps based on the current assessment findings.
           </p>
         </CardContent>
@@ -1154,28 +1154,28 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
       {/* Risk Summary Cards */}
       {risk_summary && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800">
+          <Card className="bg-red-50 border-red-100">
             <CardContent className="p-4">
-              <div className="text-sm font-medium text-red-800 dark:text-red-300">Critical Risks</div>
-              <div className="text-2xl font-bold text-red-900 dark:text-red-200">{risk_summary.severity_counts?.critical || 0}</div>
+              <div className="text-sm font-medium text-red-800">Critical Risks</div>
+              <div className="text-2xl font-bold text-red-900">{risk_summary.severity_counts?.critical || 0}</div>
             </CardContent>
           </Card>
-          <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-800">
+          <Card className="bg-orange-50 border-orange-100">
             <CardContent className="p-4">
-              <div className="text-sm font-medium text-orange-800 dark:text-orange-300">High Risks</div>
-              <div className="text-2xl font-bold text-orange-900 dark:text-orange-200">{risk_summary.severity_counts?.high || 0}</div>
+              <div className="text-sm font-medium text-orange-800">High Risks</div>
+              <div className="text-2xl font-bold text-orange-900">{risk_summary.severity_counts?.high || 0}</div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <Card className="bg-gray-50 border-gray-200">
             <CardContent className="p-4">
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Findings</div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{risk_summary.findings_count || 0}</div>
+              <div className="text-sm font-medium text-gray-600">Total Findings</div>
+              <div className="text-2xl font-bold text-gray-900">{risk_summary.findings_count || 0}</div>
             </CardContent>
           </Card>
-          <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800">
+          <Card className="bg-blue-50 border-blue-100">
             <CardContent className="p-4">
-              <div className="text-sm font-medium text-blue-800 dark:text-blue-300">Risk Score</div>
-              <div className="text-2xl font-bold text-blue-900 dark:text-blue-200">{risk_summary.total_risk_score || 0}</div>
+              <div className="text-sm font-medium text-blue-800">Risk Score</div>
+              <div className="text-2xl font-bold text-blue-900">{risk_summary.total_risk_score || 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -1191,19 +1191,19 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-gray-600 mb-4">
               Based on the identified gaps, the following attack paths may be exploitable:
             </p>
             <div className="space-y-4">
               {attack_paths.map((path: AttackPath) => (
                 <div
                   key={path.id}
-                  className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-danger-200 dark:hover:border-danger-700 transition-colors bg-white dark:bg-gray-800"
+                  className="p-4 border border-gray-200 rounded-lg hover:border-danger-200 transition-colors bg-white"
                 >
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{path.name}</h4>
+                        <h4 className="font-medium text-gray-900">{path.name}</h4>
                         <Badge className={getLikelihoodColor(path.likelihood)}>
                           {path.likelihood || 'Medium'} likelihood
                         </Badge>
@@ -1211,18 +1211,18 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
                           {path.impact || 'High'} impact
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{path.description}</p>
+                      <p className="text-sm text-gray-600">{path.description}</p>
                     </div>
                   </div>
 
                   {/* Attack Steps (Techniques) */}
                   {path.steps && path.steps.length > 0 && (
                     <div className="mb-3">
-                      <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Attack Progression:</div>
+                      <div className="text-xs font-medium text-gray-700 mb-2">Attack Progression:</div>
                       <div className="flex items-center gap-2 flex-wrap">
                         {path.steps.map((step: AttackStep, i: number) => (
                           <div key={i} className="flex items-center gap-2">
-                            <div className="px-2 py-1 bg-danger-50 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 rounded text-xs">
+                            <div className="px-2 py-1 bg-danger-50 text-danger-700 rounded text-xs">
                               {step.step ? `${step.step}. ` : ''}{step.action}
                             </div>
                             {i < path.steps.length - 1 && (
@@ -1238,11 +1238,11 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
                   {/* @ts-ignore - handling backend payload variation */}
                   {path.techniques && path.techniques.length > 0 && !path.steps && (
                     <div className="mb-3">
-                      <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Techniques Used:</div>
+                      <div className="text-xs font-medium text-gray-700 mb-2">Techniques Used:</div>
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* @ts-ignore */}
                         {path.techniques.map((tech: { id: string; name: string }, i: number) => (
-                          <div key={i} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs border border-gray-200 dark:border-gray-600">
+                          <div key={i} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs border border-gray-200">
                             {tech.name || tech.id}
                           </div>
                         ))}
@@ -1253,10 +1253,10 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
                   {/* Enabling Gaps */}
                   {path.enabling_gaps && path.enabling_gaps.length > 0 && (
                     <div className="mb-3">
-                      <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Enabled by these gaps:</div>
+                      <div className="text-xs font-medium text-gray-700 mb-2">Enabled by these gaps:</div>
                       <div className="flex flex-wrap gap-2">
                         {path.enabling_gaps.map((gap: string, i: number) => (
-                          <span key={i} className="px-2 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs border border-red-100 dark:border-red-800">
+                          <span key={i} className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs border border-red-100">
                             {gap}
                           </span>
                         ))}
@@ -1315,19 +1315,19 @@ function GapAnalysisCard({ title, icon, categories }: { title: string, icon: Rea
       <CardContent>
         <div className="space-y-3">
           {categories.map((cat, i) => (
-            <div key={i} className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-100 dark:border-gray-700">
+            <div key={i} className="p-3 bg-gray-50 rounded border border-gray-100">
               <div className="flex justify-between items-start mb-1">
-                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{cat.category}</div>
-                <Badge variant="outline" className={cat.is_critical ? "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"}>
+                <div className="font-medium text-sm text-gray-900">{cat.category}</div>
+                <Badge variant="outline" className={cat.is_critical ? "bg-red-50 text-red-700 border-red-200" : "bg-gray-100 text-gray-600"}>
                   {cat.gap_count} gaps
                 </Badge>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{cat.description}</p>
+              <p className="text-xs text-gray-500 mb-2">{cat.description}</p>
 
               {cat.findings && cat.findings.length > 0 && (
-                <div className="space-y-1 pl-2 border-l-2 border-gray-200 dark:border-gray-600">
+                <div className="space-y-1 pl-2 border-l-2 border-gray-200">
                   {cat.findings.map((f: any, j: number) => (
-                    <div key={j} className="text-xs text-gray-700 dark:text-gray-300 truncate" title={f.title}>
+                    <div key={j} className="text-xs text-gray-700 truncate" title={f.title}>
                       • {f.title}
                     </div>
                   ))}

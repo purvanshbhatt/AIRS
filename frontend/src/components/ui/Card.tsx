@@ -8,12 +8,12 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', padding = 'md', children, ...props }, ref) => {
-    const baseStyles = 'bg-white rounded-xl';
+    const baseStyles = 'bg-white  text-gray-900  rounded-xl';
     
     const variants = {
-      default: 'shadow-card',
-      bordered: 'border border-gray-200',
-      elevated: 'shadow-medium',
+      default: 'shadow-card ',
+      bordered: 'border border-gray-200 ',
+      elevated: 'shadow-medium ',
     };
 
     const paddings = {
@@ -53,7 +53,7 @@ export interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {}
 
 export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
   ({ className, children, ...props }, ref) => (
-    <h3 ref={ref} className={clsx('text-lg font-semibold text-gray-900', className)} {...props}>
+    <h3 ref={ref} className={clsx('text-lg font-semibold text-gray-900 ', className)} {...props}>
       {children}
     </h3>
   )
@@ -65,7 +65,7 @@ export interface CardDescriptionProps extends HTMLAttributes<HTMLParagraphElemen
 
 export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>(
   ({ className, children, ...props }, ref) => (
-    <p ref={ref} className={clsx('text-sm text-gray-500 mt-1', className)} {...props}>
+    <p ref={ref} className={clsx('text-sm text-gray-900  mt-1', className)} {...props}>
       {children}
     </p>
   )
@@ -89,7 +89,7 @@ export interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {}
 
 export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
   ({ className, children, ...props }, ref) => (
-    <div ref={ref} className={clsx('mt-4 pt-4 border-t border-gray-100', className)} {...props}>
+    <div ref={ref} className={clsx('mt-4 pt-4 border-t border-gray-100 ', className)} {...props}>
       {children}
     </div>
   )

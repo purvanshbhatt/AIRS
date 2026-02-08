@@ -50,9 +50,9 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
     };
 
     const getConfidenceColor = (score: number) => {
-        if (score >= 0.8) return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30';
-        if (score >= 0.5) return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30';
-        return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30';
+        if (score >= 0.8) return 'text-green-600 bg-green-100';
+        if (score >= 0.5) return 'text-yellow-600 bg-yellow-100';
+        return 'text-red-600 bg-red-100';
     };
 
     const getConfidenceLabel = (score: number) => {
@@ -65,8 +65,8 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
         <Card className="h-full">
             <CardHeader>
                 <div className="flex items-center gap-2">
-                    <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                        <Sparkles className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                    <div className="p-2 bg-primary-100 rounded-lg">
+                        <Sparkles className="w-5 h-5 text-primary-600" />
                     </div>
                     <div>
                         <CardTitle className="text-lg">Profile Enrichment</CardTitle>
@@ -84,7 +84,7 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
                             placeholder="https://example.com"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                     </div>
                     <Button
@@ -102,7 +102,7 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
                 </div>
 
                 {error && (
-                    <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg flex items-start gap-2">
+                    <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                         {error}
                     </div>
@@ -110,17 +110,17 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
 
                 {/* Results Display */}
                 {result && (
-                    <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="flex items-start justify-between mb-3">
                             <div>
-                                <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                <h4 className="font-semibold text-gray-900">
                                     {result.title || 'Unknown Title'}
                                 </h4>
                                 <a
                                     href={result.source_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-xs text-gray-500 dark:text-gray-400 hover:underline truncate block max-w-[200px]"
+                                    className="text-xs text-gray-500 hover:underline truncate block max-w-[200px]"
                                 >
                                     {result.source_url}
                                 </a>
@@ -131,7 +131,7 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
                         </div>
 
                         {result.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-3">
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-3">
                                 {result.description}
                             </p>
                         )}
@@ -141,7 +141,7 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
                                 {result.keywords.slice(0, 5).map((kw: string, i: number) => (
                                     <span
                                         key={i}
-                                        className="text-xs px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
+                                        className="text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded"
                                     >
                                         {kw}
                                     </span>
@@ -155,16 +155,16 @@ export function OrgEnrichmentCard({ organization, onEnrichmentComplete }: OrgEnr
                         )}
 
                         {result.baseline_suggestion && (
-                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <div className="mt-3 pt-3 border-t border-gray-200">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <span className="text-sm font-medium text-gray-700">
                                         Suggested Profile:
                                     </span>
-                                    <span className="text-sm font-bold text-primary-600 dark:text-primary-400 capitalize">
+                                    <span className="text-sm font-bold text-primary-600 capitalize">
                                         {result.baseline_suggestion.replace('_', ' ')}
                                     </span>
                                 </div>
-                                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                                     <CheckCircle className="w-3 h-3 text-green-500" />
                                     Apply this baseline in Results page
                                 </div>

@@ -26,27 +26,27 @@ export default function DocsApi() {
         <div className="space-y-12">
             {/* Header */}
             <div>
-                <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 mb-4">
+                <div className="flex items-center gap-2 text-primary-600 mb-4">
                     <Code className="w-5 h-5" />
                     <span className="text-sm font-medium">API Reference</span>
                 </div>
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
                     AIRS API
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
+                <p className="text-xl text-gray-600 max-w-2xl">
                     The AIRS REST API allows you to programmatically run assessments,
                     retrieve scores, and generate reports.
                 </p>
             </div>
 
             {/* OpenAPI Link */}
-            <section className="p-6 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-xl border border-primary-200 dark:border-primary-800">
+            <section className="p-6 bg-gradient-to-r from-primary-50 to-primary-100/20 rounded-xl border border-primary-200">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">
                             Interactive API Documentation
                         </h2>
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p className="text-gray-600">
                             Explore the full API specification with Swagger UI
                         </p>
                     </div>
@@ -64,11 +64,11 @@ export default function DocsApi() {
 
             {/* Base URL */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
                     Base URL
                 </h2>
                 <div className="relative">
-                    <pre className="p-4 bg-gray-900 dark:bg-gray-950 text-gray-100 rounded-lg overflow-x-auto">
+                    <pre className="p-4 bg-gray-900 text-gray-100 rounded-lg overflow-x-auto">
                         <code>https://airs-api-227825933697.us-central1.run.app</code>
                     </pre>
                     <CopyButton text="https://airs-api-227825933697.us-central1.run.app" />
@@ -77,15 +77,15 @@ export default function DocsApi() {
 
             {/* Authentication */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
                     Authentication
                 </h2>
-                <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <div className="p-6 bg-white rounded-xl border border-gray-200">
+                    <p className="text-gray-600 mb-4">
                         API requests require a Bearer token obtained from Firebase Authentication.
                     </p>
                     <div className="relative">
-                        <pre className="p-4 bg-gray-900 dark:bg-gray-950 text-gray-100 rounded-lg overflow-x-auto text-sm">
+                        <pre className="p-4 bg-gray-900 text-gray-100 rounded-lg overflow-x-auto text-sm">
                             <code>{`Authorization: Bearer <firebase_id_token>`}</code>
                         </pre>
                     </div>
@@ -94,7 +94,7 @@ export default function DocsApi() {
 
             {/* Key Endpoints */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                     Key Endpoints
                 </h2>
 
@@ -145,24 +145,24 @@ export default function DocsApi() {
                     ].map((endpoint) => (
                         <div
                             key={endpoint.path}
-                            className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                            className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200"
                         >
                             <span
                                 className={`px-2 py-1 text-xs font-mono font-bold rounded ${endpoint.method === 'GET'
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-blue-100 text-blue-700'
                                     }`}
                             >
                                 {endpoint.method}
                             </span>
-                            <code className="flex-1 text-sm text-gray-700 dark:text-gray-300 font-mono">
+                            <code className="flex-1 text-sm text-gray-700 font-mono">
                                 {endpoint.path}
                             </code>
-                            <span className="text-sm text-gray-500 dark:text-gray-400 hidden md:block">
+                            <span className="text-sm text-gray-500 hidden md:block">
                                 {endpoint.description}
                             </span>
                             {endpoint.auth && (
-                                <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded">
+                                <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">
                                     Auth
                                 </span>
                             )}
@@ -173,16 +173,16 @@ export default function DocsApi() {
 
             {/* Example: Calculate Scores */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Terminal className="w-6 h-6 text-primary-600" />
                     Example: Calculate Scores
                 </h2>
 
                 <div className="space-y-4">
                     <div>
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Request (cURL)</h3>
+                        <h3 className="text-sm font-medium text-gray-700 mb-2">Request (cURL)</h3>
                         <div className="relative">
-                            <pre className="p-4 bg-gray-900 dark:bg-gray-950 text-gray-100 rounded-lg overflow-x-auto text-sm">
+                            <pre className="p-4 bg-gray-900 text-gray-100 rounded-lg overflow-x-auto text-sm">
                                 <code>{`curl -X POST \\
   https://airs-api-227825933697.us-central1.run.app/api/v1/scores/calculate \\
   -H "Content-Type: application/json" \\
@@ -204,9 +204,9 @@ export default function DocsApi() {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Response</h3>
+                        <h3 className="text-sm font-medium text-gray-700 mb-2">Response</h3>
                         <div className="relative">
-                            <pre className="p-4 bg-gray-900 dark:bg-gray-950 text-gray-100 rounded-lg overflow-x-auto text-sm">
+                            <pre className="p-4 bg-gray-900 text-gray-100 rounded-lg overflow-x-auto text-sm">
                                 <code>{`{
   "overall_score": 67.5,
   "max_score": 100,
@@ -231,11 +231,11 @@ export default function DocsApi() {
 
             {/* JavaScript Example */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
                     JavaScript Example
                 </h2>
                 <div className="relative">
-                    <pre className="p-4 bg-gray-900 dark:bg-gray-950 text-gray-100 rounded-lg overflow-x-auto text-sm">
+                    <pre className="p-4 bg-gray-900 text-gray-100 rounded-lg overflow-x-auto text-sm">
                         <code>{`const response = await fetch(
   'https://airs-api-227825933697.us-central1.run.app/api/v1/scores/calculate',
   {
