@@ -13,14 +13,14 @@ export default function DocsOverview() {
         <div className="space-y-12">
             {/* Hero */}
             <div>
-                <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 mb-4">
+                <div className="flex items-center gap-2 text-primary-600 mb-4">
                     <Shield className="w-5 h-5" />
                     <span className="text-sm font-medium">Documentation</span>
                 </div>
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
                     AIRS Documentation
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
+                <p className="text-xl text-gray-600 max-w-2xl">
                     AI Incident Readiness Score — a comprehensive self-assessment tool that evaluates
                     your organization's security posture across five critical domains.
                 </p>
@@ -28,11 +28,11 @@ export default function DocsOverview() {
 
             {/* What is AIRS */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
                     What is AIRS?
                 </h2>
-                <div className="prose dark:prose-invert max-w-none">
-                    <p className="text-gray-600 dark:text-gray-400">
+                <div className="prose max-w-none">
+                    <p className="text-gray-600">
                         AIRS is an open-source security assessment platform designed to help organizations
                         understand their incident response readiness. By answering 30 targeted questions
                         across 5 security domains, you receive an actionable readiness score,
@@ -43,7 +43,7 @@ export default function DocsOverview() {
 
             {/* Key Features */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                     Key Features
                 </h2>
                 <div className="grid md:grid-cols-3 gap-6">
@@ -66,13 +66,13 @@ export default function DocsOverview() {
                     ].map((feature) => (
                         <div
                             key={feature.title}
-                            className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+                            className="p-6 bg-white rounded-xl border border-gray-200"
                         >
-                            <feature.icon className="w-8 h-8 text-primary-600 dark:text-primary-400 mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            <feature.icon className="w-8 h-8 text-primary-600 mb-4" />
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                 {feature.title}
                             </h3>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">
+                            <p className="text-gray-600 text-sm">
                                 {feature.description}
                             </p>
                         </div>
@@ -81,16 +81,16 @@ export default function DocsOverview() {
             </section>
 
             {/* Quick Start */}
-            <section className="p-6 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-xl border border-primary-200 dark:border-primary-800">
+            <section className="p-6 bg-gradient-to-r from-primary-50 to-primary-100/20 rounded-xl border border-primary-200">
                 <div className="flex items-start gap-4">
                     <div className="p-2 bg-primary-600 rounded-lg">
                         <Zap className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">
                             Quick Start
                         </h2>
-                        <ol className="space-y-2 text-gray-700 dark:text-gray-300">
+                        <ol className="space-y-2 text-gray-700">
                             <li className="flex items-center gap-2">
                                 <CheckCircle className="w-4 h-4 text-primary-600" />
                                 Click "Start Assessment" to begin
@@ -121,7 +121,7 @@ export default function DocsOverview() {
 
             {/* Documentation Sections */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                     Documentation Sections
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -134,13 +134,13 @@ export default function DocsOverview() {
                         <Link
                             key={section.title}
                             to={section.href}
-                            className="group flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700 transition-colors"
+                            className="group flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
                         >
                             <div>
-                                <h3 className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400">
+                                <h3 className="font-medium text-gray-900 group-hover:text-primary-600">
                                     {section.title}
                                 </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{section.description}</p>
+                                <p className="text-sm text-gray-500">{section.description}</p>
                             </div>
                             <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
                         </Link>

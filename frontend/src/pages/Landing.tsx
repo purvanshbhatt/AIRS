@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ThemeToggle } from '../components/ui';
 import {
   Shield,
   ChevronRight,
@@ -44,21 +45,22 @@ const stats = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white ">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80  backdrop-blur-md border-b border-gray-100 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">AIRS</span>
+              <span className="text-xl font-bold text-gray-900 ">AIRS</span>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <Link
                 to="/dashboard"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-sm font-medium text-gray-900  hover:text-gray-900  transition-colors"
               >
                 Dashboard
               </Link>
@@ -78,18 +80,18 @@ export default function Landing() {
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700   rounded-full text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
               Open Source Security Assessment
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900  tracking-tight mb-6">
               Know Your{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">
                 AI Incident Readiness
               </span>{' '}
               Score
             </h1>
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-900  mb-10 max-w-2xl mx-auto leading-relaxed">
               Assess your organization's security posture in minutes. Get actionable insights,
               identify gaps, and generate executive-ready reports powered by AI.
             </p>
@@ -102,10 +104,10 @@ export default function Landing() {
                 <ChevronRight className="w-5 h-5" />
               </Link>
               <a
-                href="https://github.com"
+                href="https://github.com/purvabnshbhatt/AIRS"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-4 text-gray-700 text-lg font-medium hover:text-gray-900 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-4 text-gray-900  text-lg font-medium hover:text-gray-900  transition-colors"
               >
                 <Github className="w-5 h-5" />
                 View on GitHub
@@ -116,7 +118,7 @@ export default function Landing() {
       </section>
 
       {/* Stats Bar */}
-      <section className="py-12 bg-gray-50 border-y border-gray-100">
+      <section className="py-12 bg-gray-50  border-y border-gray-100 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat) => (
@@ -146,7 +148,7 @@ export default function Landing() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group p-8 bg-white rounded-2xl border border-gray-200 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-300"
+                className="group p-8 bg-white  rounded-2xl border border-gray-200  hover:border-primary-200  hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-300"
               >
                 <div className="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-110 transition-all duration-300">
                   <feature.icon className="w-7 h-7 text-primary-600 group-hover:text-white transition-colors" />
@@ -160,7 +162,7 @@ export default function Landing() {
       </section>
 
       {/* Report Preview Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-black/5 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -193,7 +195,7 @@ export default function Landing() {
             {/* Report Preview Placeholder */}
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary-600/20 to-primary-400/20 rounded-3xl blur-2xl" />
-              <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+              <div className="relative bg-white  rounded-2xl shadow-2xl border border-gray-200  overflow-hidden">
                 {/* Mock Report Header */}
                 <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-6 py-4">
                   <div className="flex items-center gap-3">
@@ -269,14 +271,14 @@ export default function Landing() {
       {/* CTA Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700   rounded-full text-sm font-medium mb-6">
             <Clock className="w-4 h-4" />
             Takes less than 5 minutes
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900  mb-6">
             Ready to Assess Your Security Posture?
           </h2>
-          <p className="text-lg text-gray-600 mb-10">
+          <p className="text-lg text-gray-900  mb-10">
             Start with a demo assessment using sample data, or create your organization to track
             progress over time.
           </p>
@@ -290,7 +292,7 @@ export default function Landing() {
             </Link>
             <Link
               to="/org/new"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-700 text-lg font-medium rounded-xl border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white  text-gray-900  text-lg font-medium rounded-xl border border-gray-300  hover:border-gray-400  hover:bg-gray-50  transition-colors"
             >
               Create Organization
             </Link>
@@ -307,30 +309,30 @@ export default function Landing() {
                 <Shield className="w-4 h-4 text-white" />
               </div>
               <span className="text-white font-semibold">AIRS</span>
-              <span className="text-gray-500">•</span>
-              <span className="text-gray-400 text-sm">AI Incident Readiness Score</span>
+              <span className="text-white/50">•</span>
+              <span className="text-white/40 text-sm">AI Incident Readiness Score</span>
             </div>
 
             <div className="flex items-center gap-6">
               <a
-                href="https://github.com"
+                href="https://github.com/purvanshbhatt/AIRS"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-white/40 hover:text-white transition-colors"
               >
                 <Github className="w-5 h-5" />
                 <span className="text-sm">GitHub</span>
               </a>
               <a
-                href="mailto:contact@example.com"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                href="mailto:purvansh95b@gmail.com"
+                className="flex items-center gap-2 text-white/40 hover:text-white transition-colors"
               >
                 <Mail className="w-5 h-5" />
                 <span className="text-sm">Contact</span>
               </a>
             </div>
 
-            <p className="text-gray-500 text-sm">
+            <p className="text-white/50 text-sm">
               © {new Date().getFullYear()} AIRS. Open source under MIT license.
             </p>
           </div>
