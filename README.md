@@ -192,7 +192,7 @@ AIRS/
 
 ## 📄 License
 
-This showcase repository is provided for demonstration purposes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
