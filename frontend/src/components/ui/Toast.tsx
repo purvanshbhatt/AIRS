@@ -82,10 +82,10 @@ function ToastItem({ toast }: { toast: Toast }) {
   };
 
   const styles = {
-    success: 'bg-success-50 border-success-500 text-success-600',
-    error: 'bg-danger-50 border-danger-500 text-danger-600',
-    warning: 'bg-warning-50 border-warning-500 text-warning-600',
-    info: 'bg-primary-50 border-primary-500 text-primary-600',
+    success: 'bg-success-50 border-success-500 text-success-600  ',
+    error: 'bg-danger-50 border-danger-500 text-danger-600  ',
+    warning: 'bg-warning-50 border-warning-500 text-warning-600  ',
+    info: 'bg-primary-50 border-primary-500 text-primary-600  ',
   };
 
   const Icon = icons[toast.type || 'info'];
@@ -94,7 +94,7 @@ function ToastItem({ toast }: { toast: Toast }) {
   return (
     <div
       className={clsx(
-        'pointer-events-auto bg-white rounded-lg shadow-medium border-l-4 p-4 flex items-start gap-3 animate-in slide-in-from-right-full',
+        'pointer-events-auto bg-white  rounded-lg shadow-medium border-l-4 p-4 flex items-start gap-3 animate-in slide-in-from-right-full',
         typeStyle
       )}
       role="alert"
@@ -102,15 +102,15 @@ function ToastItem({ toast }: { toast: Toast }) {
       <Icon className="h-5 w-5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         {toast.title && (
-          <p className="text-sm font-medium text-gray-900">{toast.title}</p>
+          <p className="text-sm font-medium text-gray-900 ">{toast.title}</p>
         )}
-        <p className={clsx('text-sm', toast.title ? 'text-gray-600' : 'text-gray-900')}>
+        <p className={clsx('text-sm', toast.title ? 'text-gray-900 ' : 'text-gray-900 ')}>
           {toast.message}
         </p>
       </div>
       <button
         onClick={() => removeToast(toast.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-gray-500"
+        className="flex-shrink-0 text-gray-700  hover:text-gray-900 "
       >
         <X className="h-4 w-4" />
       </button>

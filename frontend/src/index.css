@@ -5,6 +5,19 @@
 
 /* Custom theme configuration */
 @theme {
+  /* Gray colors - darker for better readability */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e4e4e7;
+  --color-gray-300: #d4d4d8;
+  --color-gray-400: #71717a;
+  --color-gray-500: #52525b;
+  --color-gray-600: #3f3f46;
+  --color-gray-700: #27272a;
+  --color-gray-800: #18181b;
+  --color-gray-900: #09090b;
+  --color-gray-950: #000000;
+
   --color-primary-50: #f0f9ff;
   --color-primary-100: #e0f2fe;
   --color-primary-200: #bae6fd;
@@ -66,6 +79,66 @@ body {
   font-family: var(--font-family-sans);
   background-color: var(--color-gray-50);
   color: var(--color-gray-900);
+}
+
+html.dark body {
+  background-color: #0b0b0b;
+  color: #f9fafb;
+}
+
+/* Dark mode: normalize common light utilities */
+html.dark .bg-white {
+  background-color: #111827;
+}
+html.dark .bg-gray-50 {
+  background-color: #0b0b0b;
+}
+html.dark .bg-gray-100 {
+  background-color: #111827;
+}
+html.dark .bg-gray-200 {
+  background-color: #1f2937;
+}
+html.dark .border-gray-100 {
+  border-color: #1f2937;
+}
+html.dark .border-gray-200 {
+  border-color: #374151;
+}
+html.dark .border-gray-300 {
+  border-color: #4b5563;
+}
+html.dark .text-gray-300,
+html.dark .text-gray-400,
+html.dark .text-gray-500,
+html.dark .text-gray-600,
+html.dark .text-gray-700,
+html.dark .text-slate-300,
+html.dark .text-slate-400,
+html.dark .text-slate-500,
+html.dark .text-slate-600,
+html.dark .text-slate-700 {
+  color: #d1d5db;
+}
+html.dark .text-gray-800,
+html.dark .text-gray-900,
+html.dark .text-slate-800,
+html.dark .text-slate-900 {
+  color: #f9fafb;
+}
+
+/* Light mode: increase contrast by mapping gray text to black */
+html:not(.dark) .text-gray-300,
+html:not(.dark) .text-gray-400,
+html:not(.dark) .text-gray-500,
+html:not(.dark) .text-gray-600,
+html:not(.dark) .text-gray-700,
+html:not(.dark) .text-slate-300,
+html:not(.dark) .text-slate-400,
+html:not(.dark) .text-slate-500,
+html:not(.dark) .text-slate-600,
+html:not(.dark) .text-slate-700 {
+  color: #000;
 }
 
 /* Animation keyframes */

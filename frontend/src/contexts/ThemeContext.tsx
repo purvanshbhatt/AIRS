@@ -32,46 +32,19 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-    const [theme, setThemeState] = useState<Theme>(getStoredTheme);
-    const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
-        theme === 'system' ? getSystemTheme() : theme
-    );
-
-    // Update localStorage and resolved theme when theme changes
+    // FORCE LIGHT MODE
+    const theme: Theme = 'light';
+    const resolvedTheme: ResolvedTheme = 'light';
+    
+    // Disable theme switching
     const setTheme = (newTheme: Theme) => {
-        setThemeState(newTheme);
-        localStorage.setItem(STORAGE_KEY, newTheme);
+        console.log('Theme switching is disabled. Requested:', newTheme);
     };
 
-    // Apply theme class to document and handle system preference changes
+    // Ensure dark class is removed
     useEffect(() => {
-        const root = document.documentElement;
-
-        const applyTheme = (resolved: ResolvedTheme) => {
-            setResolvedTheme(resolved);
-            if (resolved === 'dark') {
-                root.classList.add('dark');
-            } else {
-                root.classList.remove('dark');
-            }
-        };
-
-        if (theme === 'system') {
-            // Apply current system preference
-            applyTheme(getSystemTheme());
-
-            // Listen for system preference changes
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            const handler = (e: MediaQueryListEvent) => {
-                applyTheme(e.matches ? 'dark' : 'light');
-            };
-
-            mediaQuery.addEventListener('change', handler);
-            return () => mediaQuery.removeEventListener('change', handler);
-        } else {
-            applyTheme(theme);
-        }
-    }, [theme]);
+        document.documentElement.classList.remove('dark');
+    }, []);
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
