@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     # Authentication
     # ===========================================
     AUTH_REQUIRED: bool = False  # Set to true to require Firebase auth
+    FIREBASE_AUTH_EMULATOR_HOST: Optional[str] = None
     
     # ===========================================
     # Demo Mode
@@ -223,13 +224,16 @@ def _load_env_file() -> Optional[str]:
     """
     Determine if .env file should be loaded.
     
-    Only loads .env in local mode or if ENV is not set.
+    In local mode, prefer .env.dev when present, then fall back to .env.
     """
     # Check ENV from environment first
     env_value = os.environ.get("ENV", "local").lower()
     
-    if env_value == "local" and os.path.exists(".env"):
-        return ".env"
+    if env_value == "local":
+        if os.path.exists(".env.dev"):
+            return ".env.dev"
+        if os.path.exists(".env"):
+            return ".env"
     return None
 
 
@@ -251,7 +255,7 @@ def get_settings() -> Settings:
             # python-dotenv not installed, rely on pydantic-settings
             pass
     
-    return Settings(_env_file=env_file if env_file else None)
+    return Settings(_env_file=env_file)
 
 
 # Create settings instance for backward compatibility

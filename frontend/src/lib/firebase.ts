@@ -24,15 +24,20 @@ export const isFirebaseConfigured = Boolean(
 // Initialize Firebase only if configured
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
+const isDevelopmentMode = import.meta.env.MODE === 'development';
+const authEmulatorUrl =
+  import.meta.env.VITE_FIREBASE_AUTH_EMULATOR ||
+  (isDevelopmentMode ? 'http://127.0.0.1:9099' : '');
 
 if (isFirebaseConfigured) {
   // Initialize Firebase (avoid duplicate initialization)
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
   
-  // Connect to emulator in development if configured
-  if (import.meta.env.DEV && import.meta.env.VITE_FIREBASE_AUTH_EMULATOR) {
-    connectAuthEmulator(auth, import.meta.env.VITE_FIREBASE_AUTH_EMULATOR);
+  // In development mode, keep Auth traffic local by default.
+  if (isDevelopmentMode && authEmulatorUrl) {
+    connectAuthEmulator(auth, authEmulatorUrl);
+    console.log('[Firebase] Auth emulator enabled at:', authEmulatorUrl);
   }
   
   console.log('[Firebase] Initialized with project:', firebaseConfig.projectId);
