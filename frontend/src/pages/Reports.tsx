@@ -60,7 +60,7 @@ export default function Reports() {
       const a = document.createElement('a');
       a.href = url;
       const safeTitle = report.title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
-      a.download = `AIRS_Report_${safeTitle}_${new Date(report.created_at).toISOString().split('T')[0]}.pdf`;
+      a.download = `ResilAI_Report_${safeTitle}_${new Date(report.created_at).toISOString().split('T')[0]}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -282,3 +282,4 @@ export default function Reports() {
     </div>
   );
 }
+

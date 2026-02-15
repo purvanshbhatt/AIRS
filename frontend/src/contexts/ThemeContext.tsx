@@ -11,7 +11,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = 'airs-theme';
+const STORAGE_KEY = 'ResilAI-theme';
 
 function getSystemTheme(): ResolvedTheme {
     if (typeof window === 'undefined') return 'light';
@@ -63,3 +63,4 @@ export function useTheme() {
 
 export { ThemeContext };
 export type { Theme, ResolvedTheme };
+

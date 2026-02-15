@@ -1,4 +1,4 @@
-"""
+﻿"""
 PDF Report generation service.
 """
 
@@ -90,7 +90,7 @@ class PDFReportGenerator(BaseReport):
         elements = []
         
         elements.append(Spacer(1, 2 * inch))
-        elements.append(Paragraph("AIRS", self.styles['Title2']))
+        elements.append(Paragraph("ResilAI", self.styles['Title2']))
         elements.append(Paragraph("AI Incident Readiness Score", self.styles['Title']))
         elements.append(Spacer(1, 0.5 * inch))
         elements.append(Paragraph("Assessment Report", self.styles['Heading2']))
@@ -268,7 +268,7 @@ class PDFReportGenerator(BaseReport):
             elements.append(Spacer(1, 10))
             elements.append(Paragraph(
                 f"<font color='{severity_colors.get(severity, colors.black)}'>"
-                f"▶ {severity} SEVERITY ({len(severity_findings)})</font>",
+                f"[>] {severity} SEVERITY ({len(severity_findings)})</font>",
                 self.styles['FindingTitle']
             ))
             
@@ -281,7 +281,7 @@ class PDFReportGenerator(BaseReport):
                 title = get_attr(finding, "title", "Unknown")
                 evidence = get_attr(finding, "evidence")
                 
-                elements.append(Paragraph(f"• {title}", self.styles['Normal']))
+                elements.append(Paragraph(f"- {title}", self.styles['Normal']))
                 if evidence:
                     elements.append(Paragraph(
                         f"<i>Evidence: {evidence}</i>",
@@ -337,3 +337,4 @@ class PDFReportGenerator(BaseReport):
     def get_content_type(self) -> str:
         """Return PDF MIME type."""
         return "application/pdf"
+

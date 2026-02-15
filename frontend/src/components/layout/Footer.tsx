@@ -51,7 +51,7 @@ export function Footer() {
 
                 {/* Copyright */}
                 <p className="text-xs text-gray-900 ">
-                    © {currentYear} AIRS. Open source under MIT license.
+                    © {currentYear} ResilAI. Open source under MIT license.
                 </p>
             </div>
         </footer>
@@ -59,3 +59,5 @@ export function Footer() {
 }
 
 export default Footer;
+
+

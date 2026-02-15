@@ -162,7 +162,7 @@ async def download_report(
     
     # Create filename
     org_name = (result.get("organization_name") or "unknown").replace(" ", "_")
-    filename = f"AIRS_Report_{org_name}_{report_id[:8]}.pdf"
+    filename = f"ResilAI_Report_{org_name}_{report_id[:8]}.pdf"
     
     return StreamingResponse(
         BytesIO(pdf_content),

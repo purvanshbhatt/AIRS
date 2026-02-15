@@ -54,7 +54,7 @@ export default function Landing() {
               <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900 ">AIRS</span>
+              <span className="text-xl font-bold text-gray-900 ">ResilAI</span>
             </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
@@ -203,7 +203,7 @@ export default function Landing() {
                       <Shield className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-white font-semibold">AIRS Assessment Report</p>
+                      <p className="text-white font-semibold">ResilAI Assessment Report</p>
                       <p className="text-white/70 text-sm">AI Incident Readiness Score</p>
                     </div>
                   </div>
@@ -308,7 +308,7 @@ export default function Landing() {
               <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <span className="text-white font-semibold">AIRS</span>
+              <span className="text-white font-semibold">ResilAI</span>
               <span className="text-white/50">•</span>
               <span className="text-white/40 text-sm">AI Incident Readiness Score</span>
             </div>
@@ -333,7 +333,7 @@ export default function Landing() {
             </div>
 
             <p className="text-white/50 text-sm">
-              © {new Date().getFullYear()} AIRS. Open source under MIT license.
+              © {new Date().getFullYear()} ResilAI. Open source under MIT license.
             </p>
           </div>
         </div>
@@ -341,3 +341,5 @@ export default function Landing() {
     </div>
   );
 }
+
+

@@ -64,7 +64,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="AIRS - AI Incident Readiness Score API",
+    description="ResilAI - AI Incident Readiness Score API",
     version="1.0.0",
     debug=settings.DEBUG,
 )
@@ -107,7 +107,7 @@ app.include_router(api_router, prefix="/api")
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Welcome to AIRS"}
+    return {"message": f"Welcome to {settings.APP_NAME}"}
 
 
 if __name__ == "__main__":

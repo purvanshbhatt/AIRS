@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Results Tab Components for AIRS Assessment Results
+ * Results Tab Components for ResilAI Assessment Results
  * 
  * Tab structure:
  * - Overview: Score ring, tier, executive summary, domain heatmap
@@ -1343,3 +1343,4 @@ function GapAnalysisCard({ title, icon, categories }: { title: string, icon: Rea
 
 // Re-export from config file for backward compatibility
 export { RESULT_TABS, type ResultTabId } from './ResultsTabsConfig'
+

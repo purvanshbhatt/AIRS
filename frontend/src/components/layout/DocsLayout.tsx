@@ -57,7 +57,7 @@ export default function DocsLayout() {
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
                             <Shield className="w-5 h-5 text-white" />
                         </div>
-                        <span className="text-lg font-semibold text-gray-900 ">AIRS</span>
+                        <span className="text-lg font-semibold text-gray-900 ">ResilAI</span>
                     </Link>
                     <button
                         onClick={() => setSidebarOpen(false)}
@@ -181,3 +181,5 @@ export default function DocsLayout() {
         </div>
     );
 }
+
+

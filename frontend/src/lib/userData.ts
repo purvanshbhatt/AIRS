@@ -7,7 +7,7 @@
 
 // All localStorage keys used by the app for user data
 const USER_DATA_KEYS = [
-  'airs_assessment_draft',  // Draft assessment data
+  'ResilAI_assessment_draft',  // Draft assessment data
   // Add any other user-specific keys here as they're added
 ];
 
@@ -36,11 +36,11 @@ export function clearUserData(): void {
 export function clearAllLocalData(): void {
   console.log('[UserData] Clearing all local data');
   
-  // Clear all AIRS-related localStorage keys
+  // Clear all ResilAI-related localStorage keys
   const keysToRemove: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && key.startsWith('airs_')) {
+    if (key && key.startsWith('ResilAI_')) {
       keysToRemove.push(key);
     }
   }
@@ -61,7 +61,7 @@ export function getLocalDataSummary(): { key: string; size: number }[] {
   
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && key.startsWith('airs_')) {
+    if (key && key.startsWith('ResilAI_')) {
       const value = localStorage.getItem(key) || '';
       summary.push({
         key,
@@ -72,3 +72,4 @@ export function getLocalDataSummary(): { key: string; size: number }[] {
   
   return summary;
 }
+

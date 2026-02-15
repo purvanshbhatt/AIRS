@@ -13,7 +13,7 @@ export default function DocsFrameworks() {
                     Security Framework Mappings
                 </h1>
                 <p className="text-xl text-gray-600 max-w-2xl">
-                    AIRS findings automatically map to industry-standard security frameworks,
+                    ResilAI findings automatically map to industry-standard security frameworks,
                     enabling compliance alignment and standardized remediation.
                 </p>
             </div>
@@ -208,3 +208,4 @@ export default function DocsFrameworks() {
         </div>
     );
 }
+

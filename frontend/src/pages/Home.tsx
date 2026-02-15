@@ -68,7 +68,7 @@ export default function Home() {
       <Card variant="elevated" padding="lg">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to AIRS</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to ResilAI</h1>
             <p className="text-gray-600 max-w-2xl">
               AI Incident Readiness Score helps organizations assess their security posture across
               five key domains. Start by creating an organization or launching a new assessment.
@@ -129,3 +129,4 @@ export default function Home() {
     </div>
   );
 }
+

@@ -83,7 +83,7 @@ export default function Results() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `AIRS_Report_${id}.pdf`
+      link.download = `ResilAI_Report_${id}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -340,3 +340,4 @@ export default function Results() {
     </div>
   )
 }
+
