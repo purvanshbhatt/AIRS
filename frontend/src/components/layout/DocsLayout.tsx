@@ -113,7 +113,7 @@ export default function DocsLayout() {
                         Go to Dashboard
                     </Link>
                     <a
-                        href="https://github.com/purvanshbhatt/AIRS"
+                        href="https://www.github.com/purvanshbhatt/AIRS"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-900  hover:bg-slate-50  hover:text-gray-900  transition-colors"
