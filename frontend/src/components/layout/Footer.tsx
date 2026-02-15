@@ -12,7 +12,7 @@ const footerLinks: FooterLink[] = [
     { label: 'Docs', href: '/docs', icon: FileText },
     { label: 'Privacy', href: '/docs/security#privacy', icon: Lock },
     { label: 'Security', href: '/docs/security', icon: Shield },
-    { label: 'GitHub', href: 'https://github.com', icon: Github, external: true },
+    { label: 'GitHub', href: 'https://www.github.com/purvanshbhatt/AIRS', icon: Github, external: true },
     { label: 'Status', href: '/docs/api', icon: Activity },
 ];
 
