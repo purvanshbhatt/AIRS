@@ -47,6 +47,7 @@ frontend/.env
 frontend/.env.*
 !frontend/.env.example
 !frontend/.env.*.example
+!frontend/.env.production
 
 # GCP secrets (keep .example files)
 gcp/env.prod

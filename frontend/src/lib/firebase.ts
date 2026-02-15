@@ -8,10 +8,11 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
 
+const isProdBuild = import.meta.env.PROD;
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || (isProdBuild ? 'REDACTED_GOOGLE_API_KEY' : undefined),
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || (isProdBuild ? 'gen-lang-client-0384513977.firebaseapp.com' : undefined),
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || (isProdBuild ? 'gen-lang-client-0384513977' : undefined),
 };
 
 // Check if Firebase config is available
