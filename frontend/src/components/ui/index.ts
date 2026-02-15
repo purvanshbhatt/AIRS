@@ -1,5 +1,5 @@
 // UI Component Library
-// Lightweight enterprise design system for AIRS
+// Lightweight enterprise design system for ResilAI
 
 export { default as Button } from './Button';
 export type { ButtonProps } from './Button';
@@ -31,3 +31,4 @@ export type { Toast } from './Toast';
 export { EmptyState } from './EmptyState';
 export { Skeleton, CardSkeleton, TableRowSkeleton, ListSkeleton, StatCardSkeleton } from './Skeleton';
 export { default as ThemeToggle } from './ThemeToggle';
+

@@ -1,5 +1,5 @@
 """
-AIRS Configuration Module
+ResilAI Configuration Module
 
 Uses pydantic-settings for type-safe configuration with validation.
 Loads .env file only in local environment mode.
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     # Core Settings
     # ===========================================
     ENV: Environment = Environment.LOCAL
-    APP_NAME: str = "AIRS"
+    APP_NAME: str = "ResilAI"
     DEBUG: bool = False
     
     # ===========================================

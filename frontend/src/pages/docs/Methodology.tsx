@@ -13,7 +13,7 @@ export default function DocsMethodology() {
                     Scoring Methodology
                 </h1>
                 <p className="text-xl text-gray-600 max-w-2xl">
-                    Learn how AIRS calculates readiness scores across five security domains
+                    Learn how ResilAI calculates readiness scores across five security domains
                     and determines organizational maturity levels.
                 </p>
             </div>
@@ -25,7 +25,7 @@ export default function DocsMethodology() {
                     Assessment Domains
                 </h2>
                 <p className="text-gray-600 mb-6">
-                    AIRS evaluates your security posture across five critical domains, each with
+                    ResilAI evaluates your security posture across five critical domains, each with
                     a specific weight reflecting its importance in incident response readiness.
                 </p>
 
@@ -119,7 +119,7 @@ export default function DocsMethodology() {
                     Maturity Levels
                 </h2>
                 <p className="text-gray-600 mb-6">
-                    Based on your overall score, AIRS assigns a maturity level that describes
+                    Based on your overall score, ResilAI assigns a maturity level that describes
                     your organization's current state of incident response readiness.
                 </p>
 
@@ -159,3 +159,4 @@ export default function DocsMethodology() {
         </div>
     );
 }
+

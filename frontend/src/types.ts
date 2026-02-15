@@ -1,4 +1,4 @@
-// API Types for AIRS
+// API Types for ResilAI
 
 export interface Organization {
   id: string;
@@ -394,3 +394,4 @@ export interface ScoreTrendPoint {
   assessment_id: string;
   name?: string;  // Optional label for the data point
 }
+

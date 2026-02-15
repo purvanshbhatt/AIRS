@@ -1,5 +1,5 @@
-"""
-Professional PDF Report Generator for AIRS Assessments.
+﻿"""
+Professional PDF Report Generator for ResilAI Assessments.
 
 Generates consultant-grade PDF reports with:
 - Title page with organization and date
@@ -357,7 +357,7 @@ class ProfessionalPDFGenerator:
             leftMargin=72,
             topMargin=72,
             bottomMargin=72,
-            title="AIRS Assessment Report"
+            title="ResilAI Assessment Report"
         )
         
         story = []
@@ -400,7 +400,7 @@ class ProfessionalPDFGenerator:
         # Top spacing
         elements.append(Spacer(1, 1 * inch))
         
-        # Add AIRS logo
+        # Add ResilAI logo
         logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
                                   'frontend', 'public', 'favicon.png')
         if os.path.exists(logo_path):
@@ -412,8 +412,8 @@ class ProfessionalPDFGenerator:
             except Exception:
                 pass  # Skip logo if it fails to load
         
-        # AIRS branding
-        elements.append(Paragraph("AIRS", self.styles['ReportTitle']))
+        # ResilAI branding
+        elements.append(Paragraph("ResilAI", self.styles['ReportTitle']))
         elements.append(Paragraph(
             "AI Incident Readiness Score",
             self.styles['ReportSubtitle']
@@ -967,7 +967,7 @@ class ProfessionalPDFGenerator:
         
         if not items:
             elements.append(Paragraph(
-                "✓ No items in this phase - excellent progress!",
+                "[OK] No items in this phase - excellent progress!",
                 self.styles['RoadmapItem']
             ))
         else:
@@ -975,7 +975,7 @@ class ProfessionalPDFGenerator:
                 item_title = get_attr(item, "title", "Unknown")
                 sev = str(get_attr(item, "severity", "")).upper().replace("SEVERITY.", "")
                 elements.append(Paragraph(
-                    f"• [{sev}] {item_title}",
+                    f"- [{sev}] {item_title}",
                     self.styles['RoadmapItem']
                 ))
             
@@ -1110,15 +1110,15 @@ class ProfessionalPDFGenerator:
     def _format_answer(self, value: Any, q_type: str) -> str:
         """Format answer value for display."""
         if value is None:
-            return "—"
+            return "-"
         
         str_val = str(value).lower()
         
         if q_type == "boolean":
             if str_val in ("true", "yes", "1"):
-                return "✓ Yes"
+                return "Yes"
             elif str_val in ("false", "no", "0"):
-                return "✗ No"
+                return "No"
         
         return str(value)
     
@@ -1143,3 +1143,4 @@ def generate_pdf_report(data: Dict[str, Any]) -> bytes:
     """
     generator = ProfessionalPDFGenerator()
     return generator.generate(data)
+

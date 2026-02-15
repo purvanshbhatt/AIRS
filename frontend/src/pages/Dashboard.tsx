@@ -168,7 +168,7 @@ export default function Dashboard() {
         <Card>
           <EmptyState
             icon={ClipboardList}
-            title="Welcome to AIRS"
+            title="Welcome to ResilAI"
             description="Get started by creating your first organization, then run a security assessment to evaluate your incident readiness."
             action={{
               label: 'Create Organization',
@@ -332,3 +332,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 /**
- * AIRS API Client - SINGLE API INTERFACE
+ * ResilAI API Client - SINGLE API INTERFACE
  * 
  * All API calls go through this module.
  * Features:
@@ -480,3 +480,4 @@ export const deleteRoadmapItem = (assessmentId: string, itemId: string) =>
   request<void>(`/api/assessments/${assessmentId}/roadmap/${itemId}`, {
     method: 'DELETE',
   });
+

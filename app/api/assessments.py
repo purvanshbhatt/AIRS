@@ -482,7 +482,7 @@ async def generate_report(
     
     # Create filename
     org_name = result.get("organization_name", "unknown").replace(" ", "_")
-    filename = f"AIRS_Report_{org_name}_{assessment_id[:8]}.pdf"
+    filename = f"ResilAI_Report_{org_name}_{assessment_id[:8]}.pdf"
     
     return StreamingResponse(
         BytesIO(pdf_content),

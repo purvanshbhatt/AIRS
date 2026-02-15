@@ -1,4 +1,4 @@
-import { Code, ExternalLink, Terminal, Copy, Check } from 'lucide-react';
+﻿import { Code, ExternalLink, Terminal, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 
 function CopyButton({ text }: { text: string }) {
@@ -31,10 +31,10 @@ export default function DocsApi() {
                     <span className="text-sm font-medium">API Reference</span>
                 </div>
                 <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    AIRS API
+                    ResilAI API
                 </h1>
                 <p className="text-xl text-gray-600 max-w-2xl">
-                    The AIRS REST API allows you to programmatically run assessments,
+                    The ResilAI REST API allows you to programmatically run assessments,
                     retrieve scores, and generate reports.
                 </p>
             </div>
@@ -256,7 +256,7 @@ export default function DocsApi() {
 );
 
 const result = await response.json();
-console.log(\`Your AIRS score: \${result.overall_score}\`);`}</code>
+console.log(\`Your ResilAI score: \${result.overall_score}\`);`}</code>
                     </pre>
                     <CopyButton text={`const response = await fetch('https://airs-api-227825933697.us-central1.run.app/api/v1/scores/calculate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers: { tl_01: true, tl_02: true } }) });`} />
                 </div>
@@ -264,3 +264,5 @@ console.log(\`Your AIRS score: \${result.overall_score}\`);`}</code>
         </div>
     );
 }
+
+
