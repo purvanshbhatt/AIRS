@@ -333,7 +333,7 @@ export default function Landing() {
             </div>
 
             <p className="text-white/50 text-sm">
-              © {new Date().getFullYear()} ResilAI. Open source under MIT license.
+              © {new Date().getFullYear()} ResilAI. Open source under AGPL-3.0 license.
             </p>
           </div>
         </div>

@@ -51,7 +51,7 @@ export function Footer() {
 
                 {/* Copyright */}
                 <p className="text-xs text-gray-900 ">
-                    © {currentYear} ResilAI. Open source under MIT license.
+                    © {currentYear} ResilAI. Open source under AGPL-3.0 license.
                 </p>
             </div>
         </footer>
