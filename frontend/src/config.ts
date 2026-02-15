@@ -32,7 +32,10 @@ const _isProduction = import.meta.env.PROD;
 
 // Resolve the final API base URL
 // Remove trailing slash for consistency
-const resolvedApiUrl = (configuredApiUrl || 'http://localhost:8000').replace(/\/+$/, '');
+const fallbackApiUrl = _isProduction
+  ? 'https://airs-api-227825933697.us-central1.run.app'
+  : 'http://localhost:8000';
+const resolvedApiUrl = (configuredApiUrl || fallbackApiUrl).replace(/\/+$/, '');
 
 const config: Config = {
   apiBaseUrl: resolvedApiUrl,
