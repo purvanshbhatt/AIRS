@@ -50,23 +50,36 @@ jobs:
           fi
 
   deploy-staging:
-    if: github.ref_name == 'dev' && secrets.GCP_SA_KEY != '' && secrets.GCP_PROJECT_ID != '' && secrets.FIREBASE_TOKEN != ''
+    if: github.ref_name == 'dev'
     runs-on: ubuntu-latest
     needs: test
     environment: staging
     steps:
+      - name: Check staging deploy secrets
+        id: staging_secrets
+        run: |
+          if [ -n "${{ secrets.GCP_SA_KEY }}" ] && [ -n "${{ secrets.GCP_PROJECT_ID }}" ] && [ -n "${{ secrets.FIREBASE_TOKEN }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
+        if: steps.staging_secrets.outputs.ready == 'true'
         uses: actions/checkout@v4
 
       - name: Authenticate to GCP
+        if: steps.staging_secrets.outputs.ready == 'true'
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Setup gcloud
+        if: steps.staging_secrets.outputs.ready == 'true'
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy backend staging
+        if: steps.staging_secrets.outputs.ready == 'true'
         env:
           PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           STAGING_SECRETS: ${{ secrets.GCP_STAGING_SECRET_BINDINGS }}
@@ -78,17 +91,20 @@ jobs:
           bash ./scripts/deploy_cloud_run.sh "${ARGS[@]}"
 
       - name: Setup Node
+        if: steps.staging_secrets.outputs.ready == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Build frontend staging
+        if: steps.staging_secrets.outputs.ready == 'true'
         working-directory: frontend
         run: |
           npm ci
           npm run build:staging
 
       - name: Deploy frontend staging
+        if: steps.staging_secrets.outputs.ready == 'true'
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -96,24 +112,42 @@ jobs:
           npm i -g firebase-tools
           firebase deploy --project "$GCP_PROJECT_ID" --only hosting:staging --token "$FIREBASE_TOKEN"
 
+      - name: Skip staging deploy (missing secrets)
+        if: steps.staging_secrets.outputs.ready != 'true'
+        run: |
+          echo "Skipping staging deploy because one or more required secrets are not configured."
+
   deploy-production:
-    if: github.ref_name == 'main' && secrets.GCP_SA_KEY != '' && secrets.GCP_PROJECT_ID != '' && secrets.FIREBASE_TOKEN != ''
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     needs: test
     environment: production
     steps:
+      - name: Check production deploy secrets
+        id: prod_secrets
+        run: |
+          if [ -n "${{ secrets.GCP_SA_KEY }}" ] && [ -n "${{ secrets.GCP_PROJECT_ID }}" ] && [ -n "${{ secrets.FIREBASE_TOKEN }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
+        if: steps.prod_secrets.outputs.ready == 'true'
         uses: actions/checkout@v4
 
       - name: Authenticate to GCP
+        if: steps.prod_secrets.outputs.ready == 'true'
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Setup gcloud
+        if: steps.prod_secrets.outputs.ready == 'true'
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy backend production
+        if: steps.prod_secrets.outputs.ready == 'true'
         env:
           PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           PROD_SECRETS: ${{ secrets.GCP_PROD_SECRET_BINDINGS }}
@@ -125,20 +159,28 @@ jobs:
           bash ./scripts/deploy_cloud_run.sh "${ARGS[@]}"
 
       - name: Setup Node
+        if: steps.prod_secrets.outputs.ready == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Build frontend production
+        if: steps.prod_secrets.outputs.ready == 'true'
         working-directory: frontend
         run: |
           npm ci
           npm run build:production
 
       - name: Deploy frontend production
+        if: steps.prod_secrets.outputs.ready == 'true'
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           npm i -g firebase-tools
           firebase deploy --project "$GCP_PROJECT_ID" --only hosting:airs --token "$FIREBASE_TOKEN"
+
+      - name: Skip production deploy (missing secrets)
+        if: steps.prod_secrets.outputs.ready != 'true'
+        run: |
+          echo "Skipping production deploy because one or more required secrets are not configured."
