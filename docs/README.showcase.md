@@ -1,161 +1,41 @@
-# AIRS - AI Incident Readiness Score
+# ResilAI Showcase Notes
 
-<p align="center">
-  <img src="docs/assets/airs-logo-dark.png" alt="AIRS Logo" width="180"/>
-</p>
+This file is a concise handoff for demos, advisors, and early pilot conversations.
 
-<p align="center">
-  <strong>Quantify your organization's security readiness. Get actionable insights.</strong>
-</p>
+## Product Positioning
 
-<p align="center">
-  <a href="https://gen-lang-client-0384513977.web.app">🚀 Live Demo</a> •
-  <a href="#features">Features</a> •
-  <a href="docs/overview.md">Documentation</a> •
-  <a href="#security">Security</a>
-</p>
+ResilAI is an AI incident readiness platform that helps organizations measure readiness, prioritize remediation, and operationalize findings through executive reporting and integration hooks.
 
----
+## Demo Links
 
-## 🎯 What is AIRS?
+- Public Beta frontend: `https://airs-staging-0384513977.web.app`
+- Staging backend health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
+- Staging API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 
-**AIRS (AI Incident Readiness Score)** is a modern security assessment platform that helps organizations measure and improve their incident readiness posture. In 15 minutes, get:
+## Demo Flow (5 Minutes)
 
-- 📊 **Quantitative Score** (0-100) with maturity level (1-4)
-- 🔍 **Prioritized Findings** with remediation recommendations  
-- 🗺️ **30/60/90 Day Roadmap** for security improvements
-- 📋 **Framework Mapping** to MITRE ATT&CK, CIS Controls, OWASP
-- 📄 **Executive PDF Report** ready for board presentation
+1. Dashboard: show readiness score, trend, and integration status.
+2. New assessment: run quick controls walkthrough.
+3. Results: highlight top risks and top remediation priorities.
+4. Executive summary PDF: download one-page board-ready report.
+5. Integrations:
+   - generate API key
+   - create webhook
+   - seed mock Splunk findings
+6. Status page: show environment, version, and LLM health.
 
-## 🚀 Try the Live Demo
+## Enterprise Signals
 
-| Resource | Link |
-|----------|------|
-| **Web Application** | [gen-lang-client-0384513977.web.app](https://gen-lang-client-0384513977.web.app) |
-| **API Health Check** | [/health](https://airs-api-227825933697.us-central1.run.app/health) |
+- Deterministic scoring and framework mapping
+- API key and webhook integration primitives
+- Audit events for key operations
+- Staging/production separation with guarded deployment
+- Security and privacy documentation
 
-### Demo Walkthrough
+## Contact
 
-1. **Sign In** → Use Google OAuth or create an account
-2. **Create Organization** → Add a company name (use "Demo Corp")
-3. **Start Assessment** → Answer 25 security questions (~10 min)
-4. **View Results** → Explore scores, findings, and framework mappings
-5. **Generate Report** → Download a professional PDF report
+- Product and pilot contact: `purvansh95b@gmail.com`
 
-## ✨ Features
+## License
 
-### Security Assessment
-- **25 Questions** across 5 security domains
-- **Deterministic Scoring** — reproducible results, no black-box AI
-- **Baseline Comparison** — compare against SMB, Enterprise, Healthcare, Financial benchmarks
-
-### Findings & Roadmap
-- **Automated Gap Analysis** — findings generated from scoring gaps
-- **Severity Classification** — Critical, High, Medium, Low prioritization
-- **Remediation Roadmap** — 30/60/90 day action plan
-
-### Framework Integration
-| Framework | What You Get |
-|-----------|-------------|
-| **MITRE ATT&CK** | Technique coverage analysis |
-| **CIS Controls v8** | IG1/IG2/IG3 compliance tracking |
-| **OWASP Top 10** | Web application risk mapping |
-
-### Reporting
-- **Professional PDF Reports** — branded, board-ready
-- **Report Library** — save and manage historical reports
-- **Snapshot Preservation** — reports locked at generation time
-
-### AI Transparency 🤖
-
-AIRS uses AI (Google Gemini) for narrative generation **only**:
-
-| ✅ AI Generates | ❌ AI Does NOT Modify |
-|----------------|----------------------|
-| Executive summaries | Assessment scores |
-| Roadmap narratives | Finding severity |
-| Business-friendly insights | Recommendations |
-
-> All scores, findings, and framework mappings are computed deterministically. AI enhances readability, not results.
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   React SPA     │────▶│   FastAPI       │────▶│   PostgreSQL    │
-│   TypeScript    │     │   Python 3.11   │     │   Cloud SQL     │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │                       
-        ▼                       ▼                       
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Firebase      │     │   Cloud Storage │     │   Gemini API    │
-│   Auth          │     │   (Reports)     │     │   (Narratives)  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-```
-
-## 🔒 Security
-
-AIRS is built with enterprise security requirements in mind:
-
-| Control | Implementation |
-|---------|----------------|
-| **Authentication** | Firebase Auth (JWT validation) |
-| **Multi-Tenancy** | Row-level isolation by user ID |
-| **Data Encryption** | AES-256 at rest, TLS 1.2+ in transit |
-| **Secrets** | Google Secret Manager |
-| **Logging** | Structured logs with request correlation |
-| **Signed URLs** | Time-limited report access (15 min) |
-
-📖 See [security.md](docs/security.md) for full details.
-
-## 🏃 Run Frontend Locally
-
-```bash
-# Clone the repository
-git clone https://github.com/purvanshbhatt/AIRS-showcase.git
-cd AIRS-showcase/frontend
-
-# Install dependencies
-npm install
-
-# Configure environment (uses hosted API)
-cp .env.example .env
-
-# Start development server
-npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## 📚 Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Overview](docs/overview.md) | What AIRS is, who it's for |
-| [Methodology](docs/methodology.md) | Scoring domains, formulas, maturity levels |
-| [Frameworks](docs/frameworks.md) | MITRE/CIS/OWASP mapping philosophy |
-| [Security](docs/security.md) | Auth, tenancy, encryption, logging |
-| [Privacy](docs/privacy.md) | Data handling, retention, deletion |
-
-## 📸 Screenshots
-
-<p align="center">
-  <img src="docs/assets/screenshot-dashboard.png" alt="Dashboard" width="400"/>
-  <img src="docs/assets/screenshot-results.png" alt="Results" width="400"/>
-</p>
-
-## 🤝 Contact
-
-- **Demo Questions:** purvansh95b@gmail.com
-- **Enterprise Licensing:** purvansh95b@gmail.com
-- **Security Issues:** purvansh95b@gmail.com
-
-## 📄 License
-
-This repository is licensed under GNU AGPL-3.0. See [LICENSE](../LICENSE) for full terms.
-
----
-
-<p align="center">
-  Built with ❤️ for security teams everywhere
-</p>
+GNU AGPL-3.0.

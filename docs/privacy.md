@@ -1,8 +1,8 @@
-# Privacy & Data Handling
+﻿# Privacy & Data Handling
 
 ## Overview
 
-AIRS is designed with privacy by design principles. This document explains what data is collected, how it's used, and how to manage your data.
+ResilAI is designed with privacy by design principles. This document explains what data is collected, how it's used, and how to manage your data.
 
 ## Data Categories
 
@@ -62,7 +62,7 @@ Demo environment data may be purged periodically:
 | Actor | Access Level | Purpose |
 |-------|--------------|---------|
 | You | Full CRUD | Normal usage |
-| AIRS Admin | Read-only (support) | Troubleshooting with consent |
+| ResilAI Admin | Read-only (support) | Troubleshooting with consent |
 | Google Cloud | Infrastructure | Hosting, no data access |
 | No third parties | None | Data not shared or sold |
 
@@ -149,7 +149,7 @@ When LLM features are enabled:
 
 ## Children's Privacy
 
-AIRS is not intended for users under 18. We do not knowingly collect data from minors.
+ResilAI is not intended for users under 18. We do not knowingly collect data from minors.
 
 ## Changes to Privacy Practices
 
@@ -165,7 +165,7 @@ For privacy questions or data requests:
 
 ## Summary
 
-| Practice | AIRS Approach |
+| Practice | ResilAI Approach |
 |----------|---------------|
 | Data minimization | Collect only what's needed |
 | Purpose limitation | Used only for assessment |

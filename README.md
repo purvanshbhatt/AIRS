@@ -1,207 +1,190 @@
-# ResilAI - AI Incident Readiness Score
+# ResilAI
 
-<p align="center">
-  <img src="frontend/public/airs-logo-dark.png" alt="ResilAI Logo" width="200"/>
-</p>
+ResilAI is an AI incident readiness platform for security teams.  
+It measures readiness, maps findings to MITRE/CIS/OWASP, generates executive reports, and supports headless integrations through API keys and webhooks.
 
-<p align="center">
-  <strong>Quantify your organization's security readiness. Get actionable insights in 15 minutes.</strong>
-</p>
+## Public Beta
 
-<p align="center">
-  <a href="https://airs-staging-0384513977.web.app">🚀 Public Beta</a> •
-  <a href="#features">Features</a> •
-  <a href="#documentation">Documentation</a> •
-  <a href="#security">Security</a>
-</p>
+- Staging frontend: `https://airs-staging-0384513977.web.app`
+- Staging backend health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
+- Staging backend docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 
----
+Production demo endpoints remain isolated and are not overwritten by staging workflows.
 
-## 🎯 What is ResilAI?
+## Core Capabilities
 
-**ResilAI (AI Incident Readiness Score)** is a modern security assessment platform that helps organizations measure and improve their incident readiness posture. Complete a 15-minute assessment and receive:
+- Deterministic readiness scoring
+- Framework mapping: MITRE ATT&CK, CIS Controls v8, OWASP Top 10
+- Executive report generation (PDF)
+- Integrations:
+  - API key pull endpoint (`GET /api/external/latest-score`)
+  - Webhook push events (`assessment.scored`)
+  - Mock SIEM seed for staging demos
+- Operational endpoints:
+  - `GET /health`
+  - `GET /health/llm`
+  - `GET /health/system`
 
-- 📊 **Quantitative Score** (0-100) with maturity level (1-4)
-- 🔍 **Prioritized Findings** with remediation recommendations  
-- 🗺️ **30/60/90 Day Roadmap** for security improvements
-- 📋 **Framework Mapping** to MITRE ATT&CK, CIS Controls, OWASP
-- 📄 **Executive PDF Report** ready for board presentation
+## Architecture
 
-## 🚀 Public Beta
+- Frontend: React, TypeScript, Vite, Tailwind
+- Backend: FastAPI, SQLAlchemy, Alembic
+- Auth: Firebase Auth (real Firebase in staging/prod, emulator in local dev)
+- Hosting:
+  - Frontend on Firebase Hosting targets
+  - Backend on Cloud Run services
+- LLM:
+  - Gemini SDK via `google.genai`
+  - Narratives only (scoring remains deterministic)
 
-| Resource | Link |
-|----------|------|
-| **Web Application (Public Beta)** | [airs-staging-0384513977.web.app](https://airs-staging-0384513977.web.app) |
-| **API Health** | [/health](https://airs-api-staging-0384513977-knu3wsxymq-uc.a.run.app/health) |
-| **LLM Status** | [/health/llm](https://airs-api-staging-0384513977-knu3wsxymq-uc.a.run.app/health/llm) |
-| **Backend API Docs** | [/docs](https://airs-api-staging-0384513977-knu3wsxymq-uc.a.run.app/docs) |
+## Repository Layout
 
-### Quick Demo Walkthrough
-
-1. **Sign In** → Use Google OAuth or create an account
-2. **Create Organization** → Add a company name (use "Demo Corp")
-3. **Start Assessment** → Answer 25 security questions (~10 min)
-4. **View Results** → Explore scores, findings, and framework mappings
-5. **Generate Report** → Download a professional PDF report
-
----
-
-## ✨ Features
-
-### Security Assessment
-- **25 Questions** across 5 security domains
-- **Deterministic Scoring** — reproducible results, no black-box AI
-- **Baseline Comparison** — compare against SMB, Enterprise, Healthcare, Financial benchmarks
-
-### Findings & Roadmap
-- **Automated Gap Analysis** — findings generated from scoring gaps
-- **Severity Classification** — Critical, High, Medium, Low prioritization
-- **Remediation Roadmap** — 30/60/90 day action plan
-
-### Framework Integration
-
-| Framework | What You Get |
-|-----------|-------------|
-| **MITRE ATT&CK** | Technique coverage analysis |
-| **CIS Controls v8** | IG1/IG2/IG3 compliance tracking |
-| **OWASP Top 10** | Web application risk mapping |
-
-### Reporting
-- **Professional PDF Reports** — branded, board-ready
-- **Report Library** — save and manage historical reports
-- **Snapshot Preservation** — reports locked at generation time
-
-### AI Transparency 🤖
-
-ResilAI uses AI (Google Gemini) for narrative generation **only**:
-
-| ✅ AI Generates | ❌ AI Does NOT Modify |
-|----------------|----------------------|
-| Executive summaries | Assessment scores |
-| Roadmap narratives | Finding severity |
-| Business-friendly insights | Recommendations |
-
-> All scores, findings, and framework mappings are computed deterministically. AI enhances readability, not results.
-
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   React SPA     │────▶│   FastAPI       │────▶│   PostgreSQL    │
-│   TypeScript    │     │   Python 3.11   │     │   Cloud SQL     │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │                       
-        ▼                       ▼                       
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Firebase      │     │   Cloud Storage │     │   Gemini API    │
-│   Auth + Host   │     │   (Reports)     │     │   (Narratives)  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+```text
+.
+|-- app/                      # FastAPI app
+|-- alembic/                  # DB migrations
+|-- frontend/                 # React application
+|-- docs/                     # Runbooks and product docs
+|-- scripts/                  # Deploy/dev scripts
+|-- gcp/                      # Environment templates for Cloud Run
+`-- .github/workflows/        # CI/CD workflows
 ```
 
-**Tech Stack:**
-- **Frontend:** React 18, TypeScript, Tailwind CSS, Vite
-- **Backend:** FastAPI, Python 3.11, SQLAlchemy
-- **Database:** PostgreSQL (Cloud SQL)
-- **Auth:** Firebase Authentication
-- **Hosting:** Firebase Hosting (frontend), Cloud Run (API)
-- **AI:** Google Gemini 3 Flash (`gemini-3-flash-preview`, narratives only)
+## Environment Modes
 
----
+| Mode | Frontend Env File | Backend Env Source | Auth Mode | Typical Use |
+|---|---|---|---|---|
+| Local dev | `frontend/.env.development` | `.env.dev` + `ENV=local` | Firebase Auth Emulator | Feature development |
+| Staging | `frontend/.env.staging` (+ local override for sensitive values) | `gcp/env.staging.yaml` | Real Firebase | Internal demos, QA |
+| Production | `frontend/.env.production` | `gcp/env.prod.yaml` | Real Firebase | Public demo/product |
 
-## 📚 Documentation
+## Local Setup (PowerShell)
 
-| Document | Description |
-|----------|-------------|
-| [Overview](docs/overview.md) | What ResilAI is, who it's for |
-| [Methodology](docs/methodology.md) | Scoring domains, formulas, maturity levels |
-| [Frameworks](docs/frameworks.md) | MITRE/CIS/OWASP mapping philosophy |
-| [Security](docs/security.md) | Auth, tenancy, encryption, logging |
-| [Privacy](docs/privacy.md) | Data handling, retention, deletion |
+1. Install backend dependencies:
 
----
-
-## 🔒 Security
-
-ResilAI is built with enterprise security requirements in mind:
-
-| Control | Implementation |
-|---------|----------------|
-| **Authentication** | Firebase Auth (JWT validation) |
-| **Multi-Tenancy** | Row-level isolation by user ID |
-| **Data Encryption** | AES-256 at rest, TLS 1.2+ in transit |
-| **Secrets** | Google Secret Manager |
-| **Logging** | Structured logs with request correlation |
-| **Signed URLs** | Time-limited report access (15 min) |
-
-📖 See [docs/security.md](docs/security.md) for full details.
-
----
-
-## 🏃 Run Frontend Locally
-
-```bash
-# Clone the repository
-git clone https://github.com/purvanshbhatt/AIRS.git
-cd AIRS/frontend
-
-# Install dependencies
-npm install
-
-# Configure environment (uses hosted API)
-cp .env.example .env
-
-# Start development server
-npm run dev
+```powershell
+py -3 -m pip install --upgrade pip
+py -3 -m pip install -r requirements.txt
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+2. Create backend local env file:
 
----
-
-## 📦 Project Structure
-
-```
-ResilAI/
-├── frontend/               # React TypeScript SPA
-│   ├── src/
-│   │   ├── components/     # UI components
-│   │   ├── pages/          # Route pages
-│   │   ├── contexts/       # React contexts
-│   │   └── services/       # API services
-│   └── public/             # Static assets (logos)
-├── docs/                   # Documentation
-│   ├── overview.md
-│   ├── methodology.md
-│   ├── frameworks.md
-│   ├── security.md
-│   └── privacy.md
-├── openapi/                # API specification
-└── sample_reports/         # Example PDF outputs
+```powershell
+Copy-Item .env.dev.example .env.dev
 ```
 
----
+3. Ensure `.env.dev` has at least:
 
-## 🤝 Contact
+```env
+ENV=local
+DATABASE_URL=sqlite:///./airs_dev.db
+CORS_ALLOW_ORIGINS=http://localhost:5173
+```
 
-- **Demo Questions:** purvansh95b@gmail.com
-- **Enterprise Licensing:** purvansh95b@gmail.com
-- **Security Issues:** purvansh95b@gmail.com
+4. Run migrations:
 
----
+```powershell
+$env:ENV="local"
+py -3 -m alembic upgrade head
+```
 
-## 📄 License
+5. Frontend env (`frontend/.env.development`) should include:
 
-This repository is licensed under GNU AGPL-3.0. See [LICENSE](LICENSE) for full terms.
+```env
+VITE_API_BASE_URL=http://localhost:8000
+VITE_FIREBASE_PROJECT_ID=gen-lang-client-0384513977
+VITE_FIREBASE_AUTH_DOMAIN=gen-lang-client-0384513977.firebaseapp.com
+VITE_FIREBASE_API_KEY=REPLACE_WITH_FIREBASE_WEB_API_KEY
+VITE_FIREBASE_AUTH_EMULATOR=http://127.0.0.1:9099
+```
 
----
+6. Run services:
 
-<p align="center">
-  <img src="frontend/public/favicon.png" alt="ResilAI Icon" width="40"/>
-</p>
+Backend:
+```powershell
+$env:ENV="local"
+py -3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-<p align="center">
-  Built with ❤️ for security teams everywhere
-</p>
+Frontend:
+```powershell
+cd frontend
+npm ci
+npm run dev -- --host 0.0.0.0 --port 5173
+```
 
+Auth emulator:
+```powershell
+firebase emulators:start --only auth --project demo-airs
+```
+
+## Staging Deploy
+
+Frontend:
+
+```powershell
+cd frontend
+npm ci
+npm run build:staging
+cd ..
+firebase deploy --only hosting:staging
+```
+
+Backend:
+
+```powershell
+bash ./scripts/deploy_cloud_run.sh --service airs-api-staging --region us-central1 --env-file gcp/env.staging.yaml --project gen-lang-client-0384513977
+```
+
+## Production Deploy
+
+Frontend:
+
+```powershell
+cd frontend
+npm ci
+npm run build:production
+cd ..
+firebase deploy --only hosting:airs
+```
+
+Backend (`--prod` required by guardrail):
+
+```powershell
+bash ./scripts/deploy_cloud_run.sh --service airs-api --region us-central1 --env-file gcp/env.prod.yaml --project gen-lang-client-0384513977 --prod
+```
+
+## CI/CD
+
+- `push` to `dev`:
+  - test backend and frontend build
+  - deploy to staging only if required secrets are present
+- `push` to `main`:
+  - test backend and frontend build
+  - deploy to production only if required secrets are present
+- security workflow:
+  - gitleaks secret scan
+  - dependency audit in non-blocking mode for visibility
+
+## Security Notes
+
+- Do not commit real API keys, service credentials, or `.env` secrets.
+- Keep Firebase Web API keys out of tracked env files when possible; use local overrides or CI secrets.
+- Use Secret Manager bindings for backend runtime secrets in Cloud Run.
+- Rotate any key if exposed.
+
+## Documentation
+
+- Local dev runbook: `docs/LOCAL_DEV.md`
+- Staging deploy runbook: `docs/STAGING_DEPLOY.md`
+- API/Frontend contract map: `docs/dev/contract_map.md`
+- Security details: `docs/security.md`
+- Privacy details: `docs/privacy.md`
+
+## Contact
+
+- Demo and product contact: `purvansh95b@gmail.com`
+
+## License
+
+GNU AGPL-3.0. See `LICENSE`.
