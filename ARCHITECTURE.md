@@ -89,7 +89,7 @@ flowchart LR
 
 - Org-scoped API key creation
 - Hashed key storage
-- Header auth (`X-AIRS-API-Key`)
+- Header auth (current compatibility header: `X-AIRS-API-Key`)
 - External ingestion endpoint for latest score and findings
 
 ### Webhook Push

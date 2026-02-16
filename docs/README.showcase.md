@@ -1,41 +1,38 @@
-# ResilAI Showcase Notes
+﻿# ResilAI Showcase Notes
 
-This file is a concise handoff for demos, advisors, and early pilot conversations.
+Concise handoff for advisors, design partners, and pilot conversations.
 
-## Product Positioning
+## Positioning
 
-ResilAI is an AI incident readiness platform that helps organizations measure readiness, prioritize remediation, and operationalize findings through executive reporting and integration hooks.
+ResilAI is an AI Incident Readiness Platform that helps organizations measure readiness, prioritize remediation, and integrate findings into security operations.
 
-## Demo Links
+## Public Beta Links
 
-- Public Beta frontend: `https://airs-staging-0384513977.web.app`
-- Staging backend health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
-- Staging API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
+- Frontend: `https://airs-staging-0384513977.web.app`
+- API health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
+- API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 
-## Demo Flow (5 Minutes)
+## 5-Minute Product Walkthrough
 
-1. Dashboard: show readiness score, trend, and integration status.
-2. New assessment: run quick controls walkthrough.
-3. Results: highlight top risks and top remediation priorities.
-4. Executive summary PDF: download one-page board-ready report.
-5. Integrations:
-   - generate API key
-   - create webhook
-   - seed mock Splunk findings
-6. Status page: show environment, version, and LLM health.
+1. Dashboard: readiness snapshot and trend context
+2. Assessment: complete a control pass
+3. Results: review top risks and remediation priorities
+4. Executive Summary: download one-page PDF
+5. Integrations: API key, webhook, external findings flow
+6. Status: verify environment and runtime health
 
-## Enterprise Signals
+## Enterprise Trust Signals
 
-- Deterministic scoring and framework mapping
-- API key and webhook integration primitives
-- Audit events for key operations
-- Staging/production separation with guarded deployment
+- Deterministic scoring model
+- Framework alignment (MITRE, CIS, OWASP)
+- API key and webhook integration support
+- Environment separation and guarded deployment
 - Security and privacy documentation
 
-## Contact
+## Design Partner CTA
 
-- Product and pilot contact: `purvansh95b@gmail.com`
+Design partner inquiries: `purvansh95b@gmail.com`
 
 ## License
 
-GNU AGPL-3.0.
+GNU AGPL-3.0

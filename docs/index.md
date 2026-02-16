@@ -19,3 +19,9 @@ Welcome to the documentation hub for **ResilAI**, the AI Incident Readiness Plat
 - Local development: `LOCAL_DEV.md`
 - Staging deployment runbook: `STAGING_DEPLOY.md`
 - Contract map: `dev/contract_map.md`
+- Authentication integration: `AUTH_INTEGRATION.md`
+- Backend latency notes: `BACKEND_LATENCY.md`
+- Cloud SQL setup: `CLOUD_SQL_SETUP.md`
+- Methodology: `methodology.md`
+- Framework mapping: `frameworks.md`
+- Privacy: `privacy.md`

@@ -61,4 +61,4 @@ Backward compatibility: roadmap endpoints also resolve legacy organization ID in
 | `createWebhook(orgId, ...)` | `POST /api/orgs/{org_id}/webhooks` | `Webhook` |
 | `listWebhooks(orgId)` | `GET /api/orgs/{org_id}/webhooks` | `Webhook[]` |
 | `testWebhook(id)` | `POST /api/webhooks/{id}/test` | `{ webhook_id, delivered, status_code, error }` |
-| External pull contract | `GET /api/external/latest-score` (`X-AIRS-API-Key`) | `{ org_id, assessment_id, timestamp, overall_score, risk_summary, top_findings[] }` |
+| External pull contract | `GET /api/external/latest-score` (header: `X-AIRS-API-Key`) | `{ org_id, assessment_id, timestamp, overall_score, risk_summary, top_findings[] }` |

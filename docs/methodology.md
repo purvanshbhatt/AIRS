@@ -1,128 +1,83 @@
 ﻿# ResilAI Methodology
 
-## Scoring Philosophy
+## Scoring Principles
 
-ResilAI uses a **deterministic scoring model** where every score is reproducible given the same inputs. There is no randomness or AI-driven modification of scores.
+ResilAI uses deterministic scoring. The same answers and rubric version always produce the same outputs.
 
-> **Key Principle:** AI is used *only* for generating human-readable narratives. All scores, findings, and recommendations are computed algorithmically.
+- LLM output is optional and narrative-only
+- Numeric scores and severity decisions are rule-based
+- Framework mappings are deterministic
 
 ## Assessment Domains
 
-ResilAI evaluates security readiness across five core domains:
-
-| Domain | ID | Weight | Focus Area |
-|--------|-----|--------|------------|
-| **Telemetry & Logging** | `tl` | 20% | Log collection, retention, centralization |
-| **Detection Coverage** | `dc` | 25% | EDR, network monitoring, threat detection |
-| **Identity Visibility** | `id` | 20% | IAM, MFA, privileged access |
-| **Incident Response** | `ir` | 20% | Playbooks, tabletops, response capabilities |
-| **Resilience** | `rs` | 15% | Backups, recovery, business continuity |
+| Domain | ID | Weight | Focus |
+| --- | --- | --- | --- |
+| Telemetry and Logging | `tl` | 20% | Collection, retention, centralization |
+| Detection Coverage | `dc` | 25% | Monitoring and detection controls |
+| Identity Visibility | `id` | 20% | IAM, MFA, privileged access |
+| Incident Response | `ir` | 20% | Playbooks and response maturity |
+| Resilience | `rs` | 15% | Backup and recovery readiness |
 
 ## Question Types
 
-Each domain contains 5 questions using standardized formats:
+- Boolean: full points for compliant answers
+- Numeric: threshold-based scoring bands
+- Percentage: percentage thresholds mapped to point bands
 
-### Boolean Questions
-```
-Example: "Do you have centralized logging?"
-Scoring: Yes = Full points, No = 0 points
-```
+## Formula
 
-### Numeric Questions
-```
-Example: "What is your log retention period (days)?"
-Scoring: Threshold-based (90+ days = Full, 30-89 = Partial, <30 = Low)
-```
+### 1. Domain score (0-5)
 
-### Percentage Questions
-```
-Example: "What percentage of endpoints have EDR?"
-Scoring: 90%+ = Full, 70-89% = High, 50-69% = Medium, <50% = Low
-```
+`domain_score = (points_earned / max_points) * 5`
 
-## Scoring Formula
+### 2. Weighted contribution
 
-### Step 1: Domain Score (0-5 scale)
-```
-Domain Score = (Points Earned / Max Points) Ã— 5
-```
+`contribution = (domain_score / 5) * domain_weight`
 
-### Step 2: Weighted Contribution
-```
-Contribution = (Domain Score / 5) Ã— Domain Weight
-```
+### 3. Overall score (0-100)
 
-### Step 3: Overall Score (0-100)
-```
-Overall Score = Î£ (All Domain Contributions)
-```
+`overall_score = sum(all_domain_contributions)`
 
 ## Maturity Levels
 
-Based on the overall score, organizations are assigned a maturity level:
-
-| Score Range | Level | Name | Description |
-|-------------|-------|------|-------------|
-| 0-39 | 1 | **Initial** | Ad-hoc security, significant gaps |
-| 40-59 | 2 | **Developing** | Some controls, inconsistent application |
-| 60-79 | 3 | **Defined** | Established processes, room for improvement |
-| 80-100 | 4 | **Optimized** | Strong posture, continuous improvement |
+| Score Range | Level | Label |
+| --- | --- | --- |
+| 0-39 | 1 | Initial |
+| 40-59 | 2 | Developing |
+| 60-79 | 3 | Defined |
+| 80-100 | 4 | Optimized |
 
 ## Finding Generation
 
-Findings are generated automatically based on scoring gaps:
+Findings are generated from scored control gaps:
 
-1. **Gap Detection**: Questions where earned < possible points
-2. **Severity Assignment**: Based on point gap magnitude
-   - Gap â‰¥ 75% â†’ HIGH
-   - Gap â‰¥ 50% â†’ MEDIUM
-   - Gap < 50% â†’ LOW
-3. **Prioritization**: Sorted by severity and domain weight
+- Gap >= 75%: High
+- Gap >= 50%: Medium
+- Gap < 50%: Low
 
-## Roadmap Construction
+## Remediation Roadmap
 
-The 30/60/90 day roadmap is built deterministically:
+Roadmap phases follow operational urgency:
 
-| Phase | Timeline | Finding Types | Rationale |
-|-------|----------|---------------|-----------|
-| Day 30 | Immediate | CRITICAL severity | Address existential risks |
-| Day 60 | Short-term | HIGH severity | Close major gaps |
-| Day 90 | Medium-term | MEDIUM/LOW | Optimization and hardening |
+- Day 30: critical actions
+- Day 60: high-priority closure
+- Day 90: medium and optimization work
 
-## AI Narrative Generation (Optional)
+## AI Narrative Usage
 
-When LLM features are enabled:
+When LLM is enabled, ResilAI may generate:
 
-### What AI Generates
-- Executive summary paragraphs
-- Roadmap narrative descriptions
-- Business-friendly finding rewrites
+- Executive narrative
+- Roadmap narrative context
+- Business-facing interpretation text
 
-### What AI Cannot Modify
-- âŒ Numeric scores
-- âŒ Maturity levels
-- âŒ Finding severity
-- âŒ Recommendations
-- âŒ Framework mappings
+LLM does not modify:
 
-### Transparency
-The UI clearly indicates:
-- `llm_enabled: true/false` in API responses
-- "AI Generated" badges on narrative sections
-- Model name displayed (e.g., "Gemini 2.0")
+- Numeric score
+- Maturity level
+- Severity ranking
+- Framework mappings
 
 ## Reproducibility Guarantee
 
-Given identical:
-- Assessment answers
-- Rubric version
-- Baseline profiles
-
-ResilAI will produce identical:
-- Overall score
-- Domain scores
-- Findings
-- Recommendations
-- Framework mappings
-
-This reproducibility is essential for audit trails and compliance documentation.
+Given identical answers and rubric version, ResilAI guarantees identical scoring, findings, and framework mapping outputs.

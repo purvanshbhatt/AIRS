@@ -1,32 +1,25 @@
-﻿# ResilAI Authentication Integration Guide
+﻿# ResilAI Authentication Integration
 
-This document describes how to integrate Firebase Authentication into ResilAI.
+This guide documents Firebase Auth integration patterns for the ResilAI frontend and backend.
 
-## Current State
+## Current Behavior
 
-Authentication is **scaffolded but not active**:
-- **Local mode**: All requests are allowed without authentication
-- **Production mode**: Bearer token is required (returns 401 if missing)
+Authentication behavior is environment-driven:
+
+- Local development: auth can be optional for faster iteration
+- Hosted environments: bearer token validation is enforced by configuration
 
 ## Architecture
 
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚   React App     â”‚â”€â”€â”€â”€â–¶â”‚   FastAPI       â”‚â”€â”€â”€â”€â–¶â”‚  Firebase Admin â”‚
-â”‚   AuthContext   â”‚     â”‚   get_current_  â”‚     â”‚  (verify token) â”‚
-â”‚   getToken()    â”‚     â”‚   user()        â”‚     â”‚                 â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-        â”‚                       â”‚
-        â”‚                       â”‚
-        â–¼                       â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚  Firebase Auth  â”‚     â”‚  User object    â”‚
-â”‚  (client SDK)   â”‚     â”‚  uid, email,    â”‚
-â”‚  signIn, etc.   â”‚     â”‚  name           â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```mermaid
+graph LR
+  FE[React App\nAuthContext] --> FA[Firebase Auth SDK]
+  FE --> API[FastAPI API]
+  API --> ADM[Firebase Admin Verify]
+  API --> USER[Resolved User Context]
 ```
 
-## Frontend Integration Steps
+## Frontend Integration
 
 ### 1. Install Firebase SDK
 
@@ -35,224 +28,67 @@ cd frontend
 npm install firebase
 ```
 
-### 2. Create Firebase Config
+### 2. Configure client initialization
 
-Create `frontend/src/lib/firebase.ts`:
+Use `frontend/src/lib/firebase.ts` with environment-backed config values:
 
-```typescript
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-};
+Development mode can connect to Auth Emulator when configured.
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-```
+### 3. Auth context wiring
 
-### 3. Add Environment Variables
+`frontend/src/contexts/AuthContext.tsx` should:
 
-Create/update `frontend/.env`:
+- subscribe to auth state
+- expose current user
+- provide `getToken()` for API calls
+- support sign-in and sign-out flows
 
-```env
-VITE_FIREBASE_API_KEY=your-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-```
+## Backend Integration
 
-### 4. Update AuthContext
-
-Update `frontend/src/contexts/AuthContext.tsx`:
-
-```typescript
-import { auth } from '../lib/firebase';
-import { 
-  onAuthStateChanged, 
-  signInWithPopup, 
-  GoogleAuthProvider,
-  signOut as firebaseSignOut 
-} from 'firebase/auth';
-
-// In AuthProvider:
-
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-    if (firebaseUser) {
-      setUser({
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        photoURL: firebaseUser.photoURL,
-      });
-    } else {
-      setUser(null);
-    }
-    setLoading(false);
-  });
-  return unsubscribe;
-}, []);
-
-const getToken = useCallback(async () => {
-  return auth.currentUser?.getIdToken() ?? null;
-}, []);
-
-const signIn = useCallback(async () => {
-  const provider = new GoogleAuthProvider();
-  await signInWithPopup(auth, provider);
-}, []);
-
-const signOut = useCallback(async () => {
-  await firebaseSignOut(auth);
-  setUser(null);
-}, []);
-```
-
-## Backend Integration Steps
-
-### 1. Install Firebase Admin SDK
+### 1. Install Firebase Admin
 
 ```bash
 pip install firebase-admin
 ```
 
-### 2. Add to Requirements
+### 2. Verify tokens in auth dependency
 
-Update `requirements.txt`:
+`app/core/auth.py` performs token verification and returns structured user context.
 
-```
-firebase-admin>=6.0.0
-```
+### 3. Apply route protection
 
-### 3. Initialize Firebase Admin
+Use dependencies for protected routes:
 
-Update `app/main.py`:
+- `Depends(require_auth)` for required authentication
+- `Depends(get_current_user)` for optional user context
 
-```python
-import firebase_admin
-from firebase_admin import credentials
+## Cloud Run Runtime Notes
 
-# Initialize on startup
-@app.on_event("startup")
-def init_firebase():
-    if settings.is_prod:
-        # Uses Application Default Credentials on Cloud Run
-        firebase_admin.initialize_app()
-```
+- Configure service account permissions required for Firebase token verification
+- Keep environment policy explicit for `AUTH_REQUIRED` and `ENV`
+- Do not commit credentials to repository files
 
-### 4. Update Auth Module
+## Validation
 
-Update `app/core/auth.py`:
+### Local
 
-```python
-from firebase_admin import auth as firebase_auth
+- Start frontend and backend
+- Start Firebase Auth Emulator (optional for local auth testing)
+- Confirm authenticated and unauthenticated behaviors match environment policy
 
-def verify_firebase_token(token: str) -> dict:
-    try:
-        decoded = firebase_auth.verify_id_token(token)
-        return {
-            "uid": decoded["uid"],
-            "email": decoded.get("email"),
-            "name": decoded.get("name"),
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}",
-        )
-```
+### Hosted
 
-### 5. Protect Routes
+- Confirm missing token returns 401 where auth is required
+- Confirm valid Firebase token is accepted and user context resolves
 
-Apply auth to routes in `app/api/*.py`:
+## Related Files
 
-```python
-from app.core.auth import require_auth, get_current_user, User
-
-# Option A: Require auth without accessing user
-@router.post("/", dependencies=[Depends(require_auth)])
-def create_item(...):
-    ...
-
-# Option B: Access authenticated user
-@router.get("/profile")
-def get_profile(user: User = Depends(require_auth)):
-    return {"uid": user.uid, "email": user.email}
-
-# Option C: Optional auth (works in local mode)
-@router.get("/public-or-private")
-def flexible_route(user: Optional[User] = Depends(get_current_user)):
-    if user:
-        return {"message": f"Hello {user.email}"}
-    return {"message": "Hello anonymous"}
-```
-
-## Cloud Run Configuration
-
-### Service Account Permissions
-
-The Cloud Run service account needs the `Firebase Authentication Admin` role:
-
-```bash
-gcloud projects add-iam-policy-binding PROJECT_ID \
-  --member="serviceAccount:SERVICE_ACCOUNT@PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/firebaseauth.admin"
-```
-
-### Environment Variables
-
-Set these in Cloud Run:
-
-```bash
-gcloud run services update airs \
-  --set-env-vars="ENV=prod"
-```
-
-## Testing
-
-### Local Development
-
-In local mode (`ENV=local`), authentication is bypassed:
-- Frontend: `getToken()` returns `null`
-- Backend: `get_current_user()` returns `None`
-- Backend: `require_auth()` returns a mock dev user
-
-### Production Testing
-
-Test with a real Firebase token:
-
-```bash
-# Get token from Firebase client
-TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-
-# Test API
-curl -H "Authorization: Bearer $TOKEN" \
-  https://your-api.run.app/api/orgs
-```
-
-### Test 401 Response
-
-```bash
-# Without token in prod mode
-curl https://your-api.run.app/api/orgs
-# Returns: {"detail": "Authentication required"}
-```
-
-## File Reference
-
-| File | Purpose |
-|------|---------|
-| `frontend/src/contexts/AuthContext.tsx` | React auth state and methods |
-| `frontend/src/api.ts` | API client with token injection |
-| `app/core/auth.py` | FastAPI auth dependencies |
-| `app/core/config.py` | Environment detection |
-
-## Security Considerations
-
-1. **Never commit Firebase credentials** - Use environment variables
-2. **Validate tokens server-side** - Don't trust client-only auth
-3. **Use HTTPS in production** - Required for secure cookies
-4. **Restrict CORS in production** - Set specific origins
-5. **Audit auth bypass in local mode** - Ensure `ENV=prod` is set in production
+- `frontend/src/lib/firebase.ts`
+- `frontend/src/contexts/AuthContext.tsx`
+- `frontend/src/api.ts`
+- `app/core/auth.py`
+- `app/core/config.py`

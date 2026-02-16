@@ -2,129 +2,65 @@
 
 ## Overview
 
-ResilAI automatically maps assessment findings to industry-standard security frameworks, enabling organizations to understand their compliance posture without manual cross-referencing.
+ResilAI maps assessment outputs to major security frameworks so teams can move from readiness scoring to recognized control language.
 
 ## Supported Frameworks
 
 ### MITRE ATT&CK
 
-**Purpose:** Understand which attack techniques your controls address
+Used to connect control gaps to adversary techniques.
 
-| Metric | Description |
-|--------|-------------|
-| Techniques Referenced | ATT&CK techniques covered by your controls |
-| Coverage Percentage | % of relevant techniques with mitigation |
-| Tactic Distribution | Breakdown by ATT&CK tactic (Initial Access, Execution, etc.) |
-
-**How It Works:**
-- Each assessment question is mapped to relevant ATT&CK techniques
-- Positive answers indicate technique coverage
-- Gaps reveal attack surface exposure
-
-**Example Mapping:**
-```
-Question: "Do you have email security filtering?"
-Maps to: T1566 (Phishing), T1566.001 (Spearphishing Attachment)
-```
+- Technique reference counts
+- Tactic-level visibility
+- Coverage-oriented insights
 
 ### CIS Controls v8
 
-**Purpose:** Track compliance with CIS Critical Security Controls
+Used for control maturity and implementation planning.
 
-| Implementation Group | Target Audience |
-|---------------------|-----------------|
-| **IG1** | Small organizations, essential hygiene |
-| **IG2** | Mid-size, sector-specific risks |
-| **IG3** | Large/regulated, advanced threats |
+- Control mapping by finding
+- Implementation group context (IG1, IG2, IG3)
+- Coverage gap identification
 
-**Metrics Provided:**
-- Controls referenced count
-- IG1/IG2/IG3 coverage percentages
-- Gap analysis by control family
+### OWASP
 
-**Example Mapping:**
-```
-Question: "What is your log retention period?"
-Maps to: CIS 8.1 (Establish and Maintain Audit Log Management)
-```
+Used for application and AI-adjacent risk framing.
 
-### OWASP Top 10
+- Category-aligned findings
+- Risk communication in familiar security taxonomy
 
-**Purpose:** Web application security risk awareness
+## Mapping Approach
 
-ResilAI maps relevant findings to OWASP Top 10 2021:
+ResilAI uses conservative mapping:
 
-| ID | Risk Category |
-|----|---------------|
-| A01 | Broken Access Control |
-| A02 | Cryptographic Failures |
-| A03 | Injection |
-| A05 | Security Misconfiguration |
-| A07 | Identification and Authentication Failures |
-| A09 | Security Logging and Monitoring Failures |
+- Mappings are applied only where relationship is defensible
+- Coverage signals are directional, not certification claims
+- Mapping metadata is included with findings and report outputs
 
-## Mapping Philosophy
+## Example Structure
 
-### Conservative Approach
-ResilAI uses a **conservative mapping** strategy:
-- Only maps when there's a clear, defensible relationship
-- Avoids over-claiming coverage
-- Focuses on controls that demonstrably mitigate techniques
-
-### Question-Level Mapping
-Mappings are defined at the question level in the rubric:
 ```json
 {
-  "id": "dc_01",
-  "text": "EDR deployed on all endpoints?",
-  "mitre": ["T1059", "T1053", "T1547"],
-  "cis": ["CIS-10.1", "CIS-10.2"],
-  "owasp": []
+  "finding_id": "abc123",
+  "title": "Insufficient log retention",
+  "mitre_refs": [{ "id": "T1070", "name": "Indicator Removal" }],
+  "cis_refs": [{ "id": "CIS 8.1", "name": "Audit Log Management" }],
+  "owasp_refs": [{ "id": "A09", "name": "Security Logging and Monitoring Failures" }]
 }
 ```
 
-### Finding-Level Aggregation
-When generating findings, ResilAI aggregates:
-- All framework references for the source question
-- Impact assessment based on technique severity
-- Remediation guidance aligned with framework controls
-
 ## Coverage Calculations
 
-### MITRE Coverage
-```
-Coverage % = (Techniques with positive answers / Total mapped techniques) Ã— 100
-```
+- MITRE coverage percentage: techniques positively covered / total mapped techniques
+- CIS coverage percentage: controls met / total mapped controls
+- OWASP snapshot: count of mapped findings by category
 
-### CIS Coverage
-```
-IG Coverage % = (Controls met / Total controls in IG) Ã— 100
-```
+## Where Mapping Appears
 
-### OWASP Relevance
-```
-Relevant findings mapped to OWASP categories (count-based)
-```
-
-## Report Integration
-
-Framework mappings appear in:
-
-1. **Results Dashboard** â†’ Framework tab with visual coverage charts
-2. **PDF Reports** â†’ Dedicated framework mapping section
-3. **API Response** â†’ `framework_mapping` object with full details
+- Results framework views
+- Executive and detailed PDF exports
+- API payloads (`framework_mapping` and export endpoints)
 
 ## Limitations
 
-| What We Do | What We Don't Do |
-|------------|------------------|
-| Map to relevant techniques | Claim full framework compliance |
-| Show coverage gaps | Replace formal audits |
-| Guide prioritization | Guarantee regulatory compliance |
-| Provide starting point | Substitute for penetration testing |
-
-## Keeping Mappings Current
-
-- Framework mappings are version-controlled in the rubric
-- Updates follow framework version releases (e.g., CIS v8.1)
-- Breaking changes are documented in release notes
+Framework mapping in ResilAI supports prioritization and communication. It does not replace formal audits, penetration testing, or regulatory attestation.

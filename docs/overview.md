@@ -1,83 +1,63 @@
 ﻿# ResilAI Overview
 
 <p align="center">
-  <img src="assets/airs-logo-dark.png" alt="ResilAI Logo" width="150"/>
+  <img src="assets/airs-logo-dark.png" alt="ResilAI logo" width="150" />
 </p>
 
-## What is ResilAI?
+ResilAI is an **AI Incident Readiness Platform** that helps organizations evaluate readiness, prioritize risk reduction, and communicate posture to executives.
 
-**ResilAI (AI Incident Readiness Score)** is a comprehensive security readiness assessment platform designed for organizations preparing for AI-driven threats and incidents. It provides a structured, quantitative approach to measuring and improving your organization's security posture.
+## Audience
 
-## Who is ResilAI For?
+| Audience | Primary Outcome |
+| --- | --- |
+| CISOs and Security Leaders | Executive risk visibility and prioritized actions |
+| Security Engineering Teams | Gap detection and operational remediation plans |
+| Consultants and Advisors | Repeatable assessments and board-ready outputs |
+| Design Partners | Early access and direct product influence |
 
-| Audience | Use Case |
-|----------|----------|
-| **CISOs & Security Leaders** | Board-ready reports, maturity benchmarking, remediation roadmaps |
-| **Security Teams** | Gap analysis, prioritized findings, framework compliance tracking |
-| **Consultants & Auditors** | Standardized assessments, client deliverables, repeatable methodology |
-| **Academic Researchers** | Security posture studies, quantitative security metrics research |
+## Core Capabilities
 
-## Key Capabilities
+1. Deterministic readiness scoring
+2. Framework alignment for MITRE ATT&CK, CIS Controls, and OWASP
+3. Executive and full-detail PDF reporting
+4. API keys and webhooks for platform integration
+5. Public status and operational diagnostics
 
-### 1. Structured Assessment
-- 25 questions across 5 security domains
-- Deterministic scoring (0-100 scale)
-- Industry-standard maturity levels (1-4)
+## Public Beta Flow
 
-### 2. Framework Mapping
-- **MITRE ATT&CK** technique coverage analysis
-- **CIS Controls v8** compliance tracking (IG1/IG2/IG3)
-- **OWASP Top 10** risk correlation
+1. Create or select an organization
+2. Run an assessment
+3. Review readiness score and top risks
+4. Download Executive Risk Summary
+5. Configure integrations (API keys, webhooks, external findings)
 
-### 3. Executive Reporting
-- Professional PDF reports with branding
-- 30/60/90 day remediation roadmaps
-- Baseline comparisons (SMB, Enterprise, Healthcare, Financial)
+## Architecture Snapshot
 
-### 4. AI-Enhanced Narratives
-- LLM-generated executive summaries (optional)
-- AI never modifies scores or findings
-- Full transparency on AI vs. deterministic content
-
-## Demo Flow
-
-1. **Create Organization** â†’ Set up your company profile
-2. **Start Assessment** â†’ Answer 25 security questions
-3. **View Results** â†’ See scores, findings, and framework mappings
-4. **Generate Report** â†’ Download professional PDF or save to library
-5. **Track Progress** â†’ Compare assessments over time
-
-## Architecture Overview
-
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚   React SPA     â”‚â”€â”€â”€â”€â–¶â”‚   FastAPI       â”‚â”€â”€â”€â”€â–¶â”‚   Cloud SQL     â”‚
-â”‚   (Frontend)    â”‚     â”‚   (Backend)     â”‚     â”‚   (PostgreSQL)  â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-        â”‚                       â”‚                       
-        â–¼                       â–¼                       
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     
-â”‚   Firebase      â”‚     â”‚   Cloud Storage â”‚     
-â”‚   (Auth)        â”‚     â”‚   (Reports)     â”‚     
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     
+```mermaid
+graph TD
+  U[Security Team] --> FE[Frontend: React + Vite]
+  FE --> BE[Backend: FastAPI]
+  FE --> AUTH[Firebase Auth]
+  BE --> DB[(SQLite / Cloud SQL)]
+  BE --> LLM[Gemini via google-genai]
+  BE --> INT[API keys + Webhooks]
+  FE --> FH[Firebase Hosting]
+  BE --> CR[Google Cloud Run]
 ```
 
-## What Makes ResilAI Different
+## What Differentiates ResilAI
 
-| Feature | ResilAI | Traditional Tools |
-|---------|------|-------------------|
-| **Scoring** | Deterministic, reproducible | Often subjective |
-| **AI Transparency** | AI for narrative only, clearly labeled | Black-box AI scoring |
-| **Framework Mapping** | Automatic MITRE/CIS/OWASP | Manual mapping required |
-| **Deployment** | Cloud-native, multi-tenant | On-premises heavy |
-| **Time to Value** | 15-minute assessment | Days/weeks |
+| Area | ResilAI Approach |
+| --- | --- |
+| Scoring | Deterministic and reproducible |
+| AI usage | Narrative generation only |
+| Integration | API-first with webhook support |
+| Reporting | Executive-ready artifacts |
+| Deployment | Local, staging, and production separation |
 
-## Getting Started
+## Links
 
-Visit the [Live Demo](https://airs-api-<project-id>.run.app) to try ResilAI with sample data.
-
-For technical documentation, see:
-- [Methodology](methodology.md) - Scoring domains and formulas
-- [Frameworks](frameworks.md) - MITRE/CIS/OWASP mapping
-- [Security](security.md) - Authentication and data protection
-- [Privacy](privacy.md) - Data handling and retention
+- Public Beta: `https://airs-staging-0384513977.web.app`
+- Staging API health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
+- Staging API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
+- Docs index: `index.md`
