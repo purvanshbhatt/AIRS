@@ -25,11 +25,12 @@ function isMissingOrFakeApiKey(value?: string): boolean {
   );
 }
 
-// Check if Firebase config is available
+// Check if Firebase config is available and key looks valid for web auth usage.
 export const isFirebaseConfigured = Boolean(
-  firebaseConfig.apiKey && 
-  firebaseConfig.authDomain && 
-  firebaseConfig.projectId
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId &&
+  firebaseConfig.apiKey &&
+  !isMissingOrFakeApiKey(firebaseConfig.apiKey)
 );
 
 // Initialize Firebase only if configured
@@ -45,10 +46,6 @@ if (isFirebaseConfigured) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
 
-  if (isMissingOrFakeApiKey(firebaseConfig.apiKey)) {
-    console.warn('[Firebase] VITE_FIREBASE_API_KEY looks missing or invalid for this build mode.');
-  }
-
   // In development mode, keep Auth traffic local by default.
   // Call emulator wiring immediately after getAuth() and only once.
   if (isDevelopmentMode && authEmulatorUrl) {
@@ -63,6 +60,9 @@ if (isFirebaseConfigured) {
 } else {
   console.warn('[Firebase] Not configured. Auth features will be disabled.');
   console.warn('[Firebase] Set VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID');
+  if (isMissingOrFakeApiKey(firebaseConfig.apiKey)) {
+    console.warn('[Firebase] VITE_FIREBASE_API_KEY is missing or placeholder/fake in this build.');
+  }
 }
 
 export { app, auth };

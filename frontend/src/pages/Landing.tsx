@@ -287,16 +287,16 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full text-sm font-medium mb-6">
             <Clock className="w-4 h-4" />
             Takes less than 5 minutes
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-6">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
             Ready to Assess Your Security Posture?
           </h2>
-          <p className="text-lg text-gray-600 dark:text-slate-300 mb-10">
+          <p className="text-lg text-gray-600 dark:text-slate-200 mb-10">
             Start with an assessment using synthetic example data, or create your organization to track
             progress over time.
           </p>

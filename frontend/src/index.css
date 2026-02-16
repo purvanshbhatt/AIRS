@@ -66,6 +66,12 @@ body {
   font-family: var(--font-family-sans);
   background-color: var(--color-gray-50);
   color: var(--color-gray-900);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+html.dark body {
+  background-color: #020617;
+  color: #e2e8f0;
 }
 
 /* Animation keyframes */

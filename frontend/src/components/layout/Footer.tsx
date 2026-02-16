@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Github, FileText, Lock, Shield, Activity } from 'lucide-react';
+import { Github, FileText, Lock, Shield, Activity, Mail } from 'lucide-react';
 import { getSystemStatus } from '../../api';
 import type { SystemStatus } from '../../types';
 
@@ -18,6 +18,7 @@ const footerLinks: FooterLink[] = [
     { label: 'Privacy', href: '/docs/security#privacy', icon: Lock },
     { label: 'Security', href: '/security', icon: Shield },
     { label: 'GitHub', href: 'https://www.github.com/purvanshbhatt/AIRS', icon: Github, external: true },
+    { label: 'Contact', href: 'mailto:purvansh95b@gmail.com', icon: Mail, external: true },
     { label: 'Status', href: '/status', icon: Activity },
 ];
 
@@ -62,7 +63,7 @@ export function Footer() {
                 </nav>
 
                 <p className="text-xs text-gray-400 dark:text-gray-500">
-                    ResilAI Public Beta | Aligned to CIS | NIST | OWASP | © 2026 ResilAI
+                    ResilAI Public Beta | Aligned to CIS | NIST | OWASP | GNU AGPL-3.0 | (c) 2026 ResilAI
                     {systemStatus ? ` | v${systemStatus.version || 'dev'} (${systemStatus.environment})` : ''}
                 </p>
             </div>
