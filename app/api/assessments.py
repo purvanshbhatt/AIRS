@@ -5,10 +5,12 @@ All endpoints enforce tenant isolation using Firebase user UID.
 Users can only access their own assessments and related data.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from io import BytesIO
 from app.db.database import get_db
 from app.core.logging import event_logger
@@ -30,7 +32,19 @@ from app.schemas.assessment import (
 from app.schemas.report import ReportCreate, ReportResponse
 from app.services.assessment import AssessmentService
 from app.services.report import ReportService
+from app.services.integrations import dispatch_assessment_scored_webhooks
+from app.services.audit import record_audit_event
+from app.services.demo_seed import ensure_demo_seed_data
 from app.reports.pdf import ProfessionalPDFGenerator
+from app.models.assessment import Assessment
+from app.models.finding import Finding, Severity as FindingSeverity
+from app.models.roadmap_item import RoadmapItem
+from app.schemas.integrations import (
+    RoadmapTrackerItemCreate,
+    RoadmapTrackerItemUpdate,
+    RoadmapTrackerItemResponse,
+    RoadmapTrackerListResponse,
+)
 
 router = APIRouter()
 
@@ -43,6 +57,42 @@ def get_assessment_service(db: Session, user: User) -> AssessmentService:
 def get_report_service(db: Session, user: User) -> ReportService:
     """Get report service with tenant isolation."""
     return ReportService(db, owner_uid=user.uid)
+
+
+def _severity_rank(severity: str) -> int:
+    order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    return order.get(str(severity).lower(), 4)
+
+
+def _build_siem_export_payload(summary: Dict[str, Any]) -> Dict[str, Any]:
+    findings_export = []
+    for finding in summary.get("findings", []):
+        refs = finding.get("framework_refs") or {}
+        findings_export.append(
+            {
+                "severity": finding.get("severity"),
+                "category": finding.get("domain"),
+                "title": finding.get("title"),
+                "description": finding.get("description") or finding.get("evidence"),
+                "mitre_refs": refs.get("mitre", []),
+                "cis_refs": refs.get("cis", []),
+                "owasp_refs": refs.get("owasp", []),
+                "remediation": finding.get("recommendation"),
+            }
+        )
+
+    findings_export = sorted(
+        findings_export,
+        key=lambda item: _severity_rank(str(item.get("severity", ""))),
+    )
+
+    return {
+        "organization": summary.get("organization_name"),
+        "assessment_id": summary.get("id"),
+        "score": summary.get("overall_score"),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "findings": findings_export,
+    }
 
 
 # ----- Assessment CRUD -----
@@ -73,6 +123,12 @@ async def create_assessment(
             organization_id=assessment.organization_id,
             title=assessment.title or ""
         )
+        record_audit_event(
+            db=db,
+            org_id=assessment.organization_id,
+            action="assessment.created",
+            actor=user.uid,
+        )
         return assessment
     except ValueError as e:
         raise HTTPException(
@@ -90,6 +146,7 @@ async def list_assessments(
     user: User = Depends(require_auth)
 ):
     """List assessments owned by the current user, optionally filtered by organization."""
+    ensure_demo_seed_data(db, user.uid if user else None)
     service = get_assessment_service(db, user)
     assessments = service.get_all(organization_id=organization_id, skip=skip, limit=limit)
     
@@ -270,6 +327,7 @@ async def get_answers(
 )
 async def compute_score(
     assessment_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
@@ -301,6 +359,37 @@ async def compute_score(
                 "created_at": score.created_at
             })
         
+        # Fire integration webhooks in background (non-blocking)
+        assessment = service.get(assessment_id)
+        if assessment:
+            critical_findings = (
+                db.query(Finding)
+                .filter(
+                    Finding.assessment_id == assessment_id,
+                    Finding.severity == FindingSeverity.CRITICAL,
+                )
+                .count()
+            )
+            webhook_payload = {
+                "event_type": "assessment.scored",
+                "org_id": assessment.organization_id,
+                "assessment_id": assessment_id,
+                "score": result["overall_score"],
+                "critical_findings": critical_findings,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            background_tasks.add_task(
+                dispatch_assessment_scored_webhooks,
+                assessment.organization_id,
+                webhook_payload,
+            )
+            record_audit_event(
+                db=db,
+                org_id=assessment.organization_id,
+                action="assessment.score_generated",
+                actor=user.uid,
+            )
+
         return {
             "assessment_id": result["assessment_id"],
             "overall_score": result["overall_score"],
@@ -472,7 +561,14 @@ async def generate_report(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Assessment has not been scored yet. Call POST /assessments/{id}/score first."
         )
-    
+
+    # Enrich report payload with analytics/mapping data for executive summary pages.
+    summary = service.get_summary(assessment_id)
+    if summary:
+        for field in ("analytics", "framework_mapping", "detailed_roadmap", "roadmap"):
+            if field in summary:
+                result[field] = summary[field]
+
     # Generate PDF using professional generator
     generator = ProfessionalPDFGenerator()
     pdf_content = generator.generate(result)
@@ -482,7 +578,7 @@ async def generate_report(
     
     # Create filename
     org_name = result.get("organization_name", "unknown").replace(" ", "_")
-    filename = f"AIRS_Report_{org_name}_{assessment_id[:8]}.pdf"
+    filename = f"ResilAI_Report_{org_name}_{assessment_id[:8]}.pdf"
     
     return StreamingResponse(
         BytesIO(pdf_content),
@@ -491,3 +587,207 @@ async def generate_report(
             "Content-Disposition": f"attachment; filename={filename}"
         }
     )
+
+
+@router.get(
+    "/{assessment_id}/executive-summary",
+    summary="Download Executive Risk Summary (1-page)",
+    description="Generate and download a one-page executive risk summary PDF for the assessment.",
+    responses={
+        200: {"description": "Executive summary PDF", "content": {"application/pdf": {}}},
+        400: {"description": "Assessment has not been scored yet"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Assessment not found"},
+    },
+)
+async def download_executive_summary(
+    assessment_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    service = get_assessment_service(db, user)
+    detail = service.get_detail(assessment_id)
+    if not detail:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Assessment not found: {assessment_id}",
+        )
+    if detail.get("overall_score") is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Assessment has not been scored yet. Call POST /assessments/{id}/score first.",
+        )
+
+    summary = service.get_summary(assessment_id)
+    payload = summary or detail
+
+    generator = ProfessionalPDFGenerator()
+    pdf_content = generator.generate_executive_summary_page(payload)
+
+    org_name = str(payload.get("organization_name", "unknown")).replace(" ", "_")
+    filename = f"{payload.get('product', {}).get('name', 'ResilAI')}_Executive_Risk_Summary_{org_name}_{assessment_id[:8]}.pdf"
+
+    return StreamingResponse(
+        BytesIO(pdf_content),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@router.get(
+    "/{assessment_id}/export",
+    summary="Export Findings for SIEM",
+    description="Export assessment findings in a SIEM-friendly JSON schema.",
+)
+async def export_assessment_for_siem(
+    assessment_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    service = get_assessment_service(db, user)
+    summary = service.get_summary(assessment_id)
+    if not summary:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Assessment not found: {assessment_id}",
+        )
+    return _build_siem_export_payload(summary)
+
+
+def _resolve_assessment_for_tracker(
+    db: Session,
+    service: AssessmentService,
+    candidate_id: str,
+) -> Optional[Assessment]:
+    """
+    Backward-compatible resolver for roadmap tracker routes.
+
+    Accepts either:
+    - assessment_id (preferred)
+    - organization_id (legacy frontend behavior)
+    """
+    assessment = service.get(candidate_id)
+    if assessment:
+        return assessment
+
+    return (
+        service._base_query()
+        .filter(Assessment.organization_id == candidate_id)
+        .order_by(Assessment.created_at.desc())
+        .first()
+    )
+
+
+@router.get("/{assessment_id}/roadmap", response_model=RoadmapTrackerListResponse)
+async def list_roadmap_items(
+    assessment_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    service = get_assessment_service(db, user)
+    assessment = _resolve_assessment_for_tracker(db, service, assessment_id)
+    if not assessment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+
+    items = (
+        db.query(RoadmapItem)
+        .filter(
+            RoadmapItem.assessment_id == assessment.id,
+            RoadmapItem.owner_uid == user.uid,
+        )
+        .order_by(RoadmapItem.created_at.desc())
+        .all()
+    )
+    return {"items": items, "total": len(items)}
+
+
+@router.post("/{assessment_id}/roadmap", response_model=RoadmapTrackerItemResponse, status_code=status.HTTP_201_CREATED)
+async def create_roadmap_item(
+    assessment_id: str,
+    data: RoadmapTrackerItemCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    service = get_assessment_service(db, user)
+    assessment = _resolve_assessment_for_tracker(db, service, assessment_id)
+    if not assessment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+
+    item = RoadmapItem(
+        assessment_id=assessment.id,
+        owner_uid=user.uid,
+        title=data.title,
+        description=data.description,
+        phase=data.phase,
+        status=data.status,
+        priority=data.priority,
+        owner=data.owner,
+        due_date=data.due_date,
+        notes=data.notes,
+        effort=data.effort,
+    )
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@router.put("/{assessment_id}/roadmap/{item_id}", response_model=RoadmapTrackerItemResponse)
+async def update_roadmap_item(
+    assessment_id: str,
+    item_id: str,
+    data: RoadmapTrackerItemUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    service = get_assessment_service(db, user)
+    assessment = _resolve_assessment_for_tracker(db, service, assessment_id)
+    if not assessment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+
+    item = (
+        db.query(RoadmapItem)
+        .filter(
+            RoadmapItem.id == item_id,
+            RoadmapItem.assessment_id == assessment.id,
+            RoadmapItem.owner_uid == user.uid,
+        )
+        .first()
+    )
+    if not item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Roadmap item not found")
+
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(item, key, value)
+
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@router.delete("/{assessment_id}/roadmap/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_roadmap_item(
+    assessment_id: str,
+    item_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    service = get_assessment_service(db, user)
+    assessment = _resolve_assessment_for_tracker(db, service, assessment_id)
+    if not assessment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment not found")
+
+    item = (
+        db.query(RoadmapItem)
+        .filter(
+            RoadmapItem.id == item_id,
+            RoadmapItem.assessment_id == assessment.id,
+            RoadmapItem.owner_uid == user.uid,
+        )
+        .first()
+    )
+    if not item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Roadmap item not found")
+    db.delete(item)
+    db.commit()

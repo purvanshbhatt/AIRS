@@ -7,6 +7,7 @@ import {
   Building2,
   FileText,
   Settings,
+  SlidersHorizontal,
   Menu,
   X,
   ChevronRight,
@@ -15,6 +16,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { Footer } from './Footer';
 
 interface NavItem {
   name: string;
@@ -27,7 +29,8 @@ const navigation: NavItem[] = [
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
   { name: 'Reports', href: '/dashboard/reports', icon: FileText },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Integrations', href: '/dashboard/integrations', icon: Settings },
+  { name: 'Settings', href: '/dashboard/settings', icon: SlidersHorizontal },
   { name: 'Docs', href: '/docs', icon: BookOpen },
 ];
 
@@ -74,7 +77,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
               <Shield className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-semibold text-slate-800">AIRS</span>
+            <span className="text-lg font-semibold text-slate-800">ResilAI</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -164,7 +167,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Page content */}
         <main className="flex-1 p-4 lg:p-6 bg-slate-50">{children}</main>
+        <Footer />
       </div>
     </div>
   );
 }
+

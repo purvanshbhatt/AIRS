@@ -3,7 +3,7 @@ Organization model.
 """
 
 import uuid
-from sqlalchemy import Column, String, DateTime, Text, Index
+from sqlalchemy import Column, String, DateTime, Text
 from sqlalchemy.dialects.sqlite import CHAR
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -23,12 +23,17 @@ class Organization(Base):
     contact_email = Column(String(255), nullable=True)
     contact_name = Column(String(255), nullable=True)
     notes = Column(Text, nullable=True)
+    integration_status = Column(Text, nullable=False, default="{}")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
     assessments = relationship("Assessment", back_populates="organization", cascade="all, delete-orphan")
     reports = relationship("Report", back_populates="organization", cascade="all, delete-orphan")
+    api_keys = relationship("ApiKey", back_populates="organization", cascade="all, delete-orphan")
+    webhooks = relationship("Webhook", back_populates="organization", cascade="all, delete-orphan")
+    external_findings = relationship("ExternalFinding", back_populates="organization", cascade="all, delete-orphan")
+    audit_events = relationship("AuditEvent", back_populates="organization", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Organization(id={self.id}, name={self.name}, owner={self.owner_uid})>"

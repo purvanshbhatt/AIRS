@@ -13,7 +13,7 @@ export default function DocsSecurity() {
                     Security & Privacy
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
-                    Learn how AIRS protects your data, handles authentication,
+                    Learn how ResilAI protects your data, handles authentication,
                     and ensures tenant isolation.
                 </p>
             </div>
@@ -31,7 +31,7 @@ export default function DocsSecurity() {
 
                 <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        AIRS uses Firebase Authentication for secure user identity management.
+                        ResilAI uses Firebase Authentication for secure user identity management.
                     </p>
 
                     <ul className="space-y-3">
@@ -112,7 +112,7 @@ export default function DocsSecurity() {
 
                 <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        AIRS stores data securely in Google Cloud infrastructure.
+                        ResilAI stores data securely in Google Cloud infrastructure.
                     </p>
 
                     <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
@@ -211,3 +211,4 @@ export default function DocsSecurity() {
         </div>
     );
 }
+

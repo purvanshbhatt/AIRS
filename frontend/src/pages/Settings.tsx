@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { checkHealth, getApiBaseUrl, ApiRequestError } from '../api';
 import { clearAllLocalData, getLocalDataSummary } from '../lib/userData';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,7 +11,7 @@ import {
   CardContent,
   Button,
 } from '../components/ui';
-import { Settings as SettingsIcon, Server, CheckCircle, XCircle, RefreshCw, Trash2, Database, User, Mail, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Server, CheckCircle, XCircle, RefreshCw, Trash2, Database, User, Mail, Shield, Plug } from 'lucide-react';
 
 interface HealthStatus {
   status: 'checking' | 'ok' | 'error';
@@ -224,6 +225,24 @@ export default function Settings() {
               {apiBaseUrl}/health/llm
             </a>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Local Data Management */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Plug className="h-5 w-5 text-gray-500" />
+            <CardTitle className="text-lg">Integrations</CardTitle>
+          </div>
+          <CardDescription>
+            Manage API keys and webhooks for headless integrations.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link to="/dashboard/integrations">
+            <Button variant="outline">Open Integrations</Button>
+          </Link>
         </CardContent>
       </Card>
 

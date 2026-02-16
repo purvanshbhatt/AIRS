@@ -313,6 +313,45 @@ export const downloadReport = async (assessmentId: string): Promise<Blob> => {
   return response.blob();
 };
 
+export const downloadExecutiveSummary = async (assessmentId: string): Promise<Blob> => {
+  const authHeaders = await getAuthHeaders();
+  const url = `${API_BASE_URL}/api/assessments/${assessmentId}/executive-summary`;
+
+  if (isDevelopment) {
+    console.log(`[API] GET ${url} (blob)`);
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: authHeaders,
+    });
+  } catch (networkError) {
+    throw new ApiRequestError({
+      message: 'Unable to download executive summary. Check your connection.',
+    });
+  }
+
+  if (response.status === 401) {
+    handleUnauthorized();
+    throw new ApiRequestError({
+      message: 'Authentication required to download executive summary.',
+      status: 401,
+    });
+  }
+
+  if (!response.ok) {
+    throw new ApiRequestError({
+      message: 'Failed to download executive summary',
+      status: response.status,
+    });
+  }
+  return response.blob();
+};
+
+export const exportAssessmentForSiem = (assessmentId: string) =>
+  request<import('./types').SiemExportPayload>(`/api/assessments/${assessmentId}/export`);
+
 // =============================================================================
 // REPORTS API (Persistent Reports)
 // =============================================================================
@@ -397,7 +436,7 @@ export const deleteReport = (reportId: string) =>
   });
 
 // Health check (no auth required)
-export const checkHealth = async (): Promise<{ status: string }> => {
+export const checkHealth = async (): Promise<{ status: string; product?: import('./types').ProductInfo }> => {
   const url = `${API_BASE_URL}/health`;
   if (isDevelopment) {
     console.log(`[API] GET ${url}`);
@@ -415,6 +454,22 @@ export const checkHealth = async (): Promise<{ status: string }> => {
   if (!response.ok) {
     throw new ApiRequestError({
       message: `Health check failed`,
+      status: response.status,
+    });
+  }
+  return response.json();
+};
+
+export const getSystemStatus = async (): Promise<import('./types').SystemStatus> => {
+  const url = `${API_BASE_URL}/health/system`;
+  if (isDevelopment) {
+    console.log(`[API] GET ${url}`);
+  }
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new ApiRequestError({
+      message: 'System status check failed',
       status: response.status,
     });
   }
@@ -479,4 +534,96 @@ export const updateRoadmapItem = (assessmentId: string, itemId: string, data: Pa
 export const deleteRoadmapItem = (assessmentId: string, itemId: string) =>
   request<void>(`/api/assessments/${assessmentId}/roadmap/${itemId}`, {
     method: 'DELETE',
+  });
+
+// =============================================================================
+// INTEGRATIONS (API Keys + Webhooks)
+// =============================================================================
+
+export const createApiKey = (orgId: string, scopes: string[] = ['scores:read']) =>
+  request<import('./types').ApiKeyCreateResponse>(`/api/orgs/${orgId}/api-keys`, {
+    method: 'POST',
+    body: JSON.stringify({ scopes }),
+  });
+
+export const listApiKeys = (orgId: string) =>
+  request<import('./types').ApiKeyMetadata[]>(`/api/orgs/${orgId}/api-keys`);
+
+export const revokeApiKey = (keyId: string) =>
+  request<void>(`/api/api-keys/${keyId}`, {
+    method: 'DELETE',
+  });
+
+export const createWebhook = (
+  orgId: string,
+  data: { url: string; event_types?: string[]; secret?: string }
+) =>
+  request<import('./types').Webhook>(`/api/orgs/${orgId}/webhooks`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const listWebhooks = (orgId: string) =>
+  request<import('./types').Webhook[]>(`/api/orgs/${orgId}/webhooks`);
+
+export const deleteWebhook = (webhookId: string) =>
+  request<void>(`/api/webhooks/${webhookId}`, {
+    method: 'DELETE',
+  });
+
+export const testWebhook = (webhookId: string) =>
+  request<{ webhook_id: string; delivered: boolean; status_code?: number; error?: string }>(
+    `/api/webhooks/${webhookId}/test`,
+    {
+      method: 'POST',
+    }
+  );
+
+export const seedMockSplunkFindings = (orgId?: string) =>
+  request<{ org_id: string; source: string; inserted: number; connected: boolean }>(
+    '/api/integrations/mock/splunk-seed',
+    {
+      method: 'POST',
+      body: JSON.stringify(orgId ? { org_id: orgId } : {}),
+    }
+  );
+
+export const getExternalFindings = (params?: { source?: string; limit?: number; orgId?: string }) => {
+  const search = new URLSearchParams();
+  if (params?.source) search.set('source', params.source);
+  if (params?.limit) search.set('limit', String(params.limit));
+  if (params?.orgId) search.set('org_id', params.orgId);
+  const query = search.toString();
+  return request<import('./types').ExternalFinding[]>(
+    `/api/integrations/external-findings${query ? `?${query}` : ''}`
+  );
+};
+
+export const testWebhookUrl = (url: string, secret?: string, eventType = 'assessment.scored.test') =>
+  request<import('./types').WebhookUrlTestResponse>(
+    '/api/integrations/webhooks/test',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        url,
+        secret: secret || undefined,
+        event_type: eventType,
+      }),
+    }
+  );
+
+export const getOrgAuditEvents = (orgId: string, limit = 100) =>
+  request<import('./types').AuditEvent[]>(`/api/orgs/${orgId}/audit?limit=${limit}`);
+
+export const submitPilotRequest = (data: import('./types').PilotRequestInput) =>
+  request<{
+    id: string;
+    company_name: string;
+    team_size: string;
+    current_security_tools?: string;
+    email: string;
+    created_at: string;
+  }>('/api/pilot-request', {
+    method: 'POST',
+    body: JSON.stringify(data),
   });

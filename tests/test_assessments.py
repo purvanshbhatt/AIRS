@@ -4,6 +4,7 @@ Tests for assessment API endpoints.
 
 import pytest
 from fastapi.testclient import TestClient
+from app.core.config import settings
 
 
 class TestOrganizations:
@@ -56,6 +57,20 @@ class TestOrganizations:
         # Verify deleted
         response = client.get(f"/api/orgs/{org_id}")
         assert response.status_code == 404
+
+    def test_demo_mode_auto_seeds_demo_org_and_splunk(self, client, monkeypatch):
+        monkeypatch.setattr(settings, "DEMO_MODE", True, raising=False)
+
+        response = client.get("/api/orgs")
+        assert response.status_code == 200
+        orgs = response.json()
+        assert len(orgs) >= 1
+        org_id = orgs[0]["id"]
+
+        findings_resp = client.get(f"/api/integrations/external-findings?source=splunk&limit=1&org_id={org_id}")
+        assert findings_resp.status_code == 200
+        findings = findings_resp.json()
+        assert len(findings) >= 1
 
 
 class TestAssessments:
@@ -281,3 +296,27 @@ class TestReports:
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/pdf"
         assert "attachment" in response.headers.get("content-disposition", "")
+
+    def test_generate_executive_summary_success(self, client, scored_assessment):
+        response = client.get(f"/api/assessments/{scored_assessment}/executive-summary")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/pdf"
+        assert "attachment" in response.headers.get("content-disposition", "")
+
+    def test_export_for_siem_success(self, client, scored_assessment):
+        response = client.get(f"/api/assessments/{scored_assessment}/export")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["assessment_id"] == scored_assessment
+        assert "organization" in data
+        assert "score" in data
+        assert "generated_at" in data
+        assert isinstance(data["findings"], list)
+        if data["findings"]:
+            finding = data["findings"][0]
+            assert "severity" in finding
+            assert "category" in finding
+            assert "title" in finding
+            assert "mitre_refs" in finding
+            assert "cis_refs" in finding
+            assert "owasp_refs" in finding

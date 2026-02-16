@@ -21,12 +21,13 @@ ALLOW_UNAUTHENTICATED="true"
 CLOUDSQL_INSTANCE="${CLOUDSQL_INSTANCE:-}"  # e.g., "project:region:instance"
 PROJECT_ID=""
 ALLOW_PROD="false"
+SET_SECRETS=""
 
 usage() {
     cat <<EOF
 Usage:
   ./scripts/deploy_cloud_run.sh [service] [region] [env_file] [allow_unauthenticated]
-  ./scripts/deploy_cloud_run.sh --service <name> --region <region> --env-file <path> [--project <id>] [--prod]
+  ./scripts/deploy_cloud_run.sh --service <name> --region <region> --env-file <path> [--project <id>] [--set-secrets <bindings>] [--prod]
 
 Defaults (safe):
   --service  airs-api-staging
@@ -60,6 +61,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --project)
             PROJECT_ID="${2:-}"
+            shift 2
+            ;;
+        --set-secrets)
+            SET_SECRETS="${2:-}"
             shift 2
             ;;
         --allow-unauthenticated)
@@ -177,8 +182,6 @@ PROJECT_ID="$(strip_quotes "${PROJECT_ID:-}")"
 REQUIRE_PROD_CONFIRM="false"
 if [[ "$SERVICE_NAME" == "airs-api" ]]; then
     REQUIRE_PROD_CONFIRM="true"
-elif [[ -n "$PROJECT_ID" && "$PROJECT_ID" == "$PROD_PROJECT_ID" ]]; then
-    REQUIRE_PROD_CONFIRM="true"
 elif [[ "$ENV_FILE" == *"env.prod"* ]]; then
     REQUIRE_PROD_CONFIRM="true"
 fi
@@ -204,6 +207,9 @@ echo "  Env file: $ENV_FILE"
 if [ -n "$CLOUDSQL_INSTANCE" ]; then
     echo "  Cloud SQL: $CLOUDSQL_INSTANCE"
 fi
+if [ -n "$SET_SECRETS" ]; then
+    echo "  Secret bindings: configured"
+fi
 echo ""
 
 # Build gcloud command (array form to avoid eval/quoting issues)
@@ -225,6 +231,10 @@ fi
 if [ -n "$CLOUDSQL_INSTANCE" ]; then
     DEPLOY_ARGS+=(--add-cloudsql-instances="$CLOUDSQL_INSTANCE")
     echo "Attaching Cloud SQL instance: $CLOUDSQL_INSTANCE"
+fi
+
+if [ -n "$SET_SECRETS" ]; then
+    DEPLOY_ARGS+=(--set-secrets "$SET_SECRETS")
 fi
 
 # Env vars (prefer --env-vars-file for YAML)

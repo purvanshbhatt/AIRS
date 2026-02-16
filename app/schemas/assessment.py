@@ -311,6 +311,7 @@ class AttackPath(BaseModel):
     description: Optional[str] = None
     risk_level: str
     techniques: List[Dict[str, str]] = []
+    steps: List[AttackStep] = []
     enabling_gaps: List[str] = []
     likelihood: Optional[int] = None
     impact: Optional[int] = None
@@ -319,8 +320,13 @@ class AttackPath(BaseModel):
 class GapCategory(BaseModel):
     """Gap category with list of gaps."""
     name: str
+    category: Optional[str] = None
     gaps: List[str] = []
+    gap_count: Optional[int] = None
     severity: Optional[str] = None
+    is_critical: Optional[bool] = None
+    description: Optional[str] = None
+    findings: List[Dict[str, Any]] = []
 
 
 class GapAnalysis(BaseModel):
@@ -334,6 +340,11 @@ class RiskSummary(BaseModel):
     overall_risk_level: str
     key_risks: List[str] = []
     mitigating_factors: List[str] = []
+    attack_paths_enabled: Optional[int] = None
+    total_gaps_identified: Optional[int] = None
+    severity_counts: Dict[str, int] = {}
+    findings_count: Optional[int] = None
+    total_risk_score: Optional[int] = None
 
 
 class AnalyticsSummary(BaseModel):
@@ -394,6 +405,7 @@ class AssessmentSummaryResponse(BaseModel):
     """Comprehensive assessment summary for executive dashboard."""
     # API version for forward compatibility
     api_version: str = "1.0"
+    product: Dict[str, Optional[str]]
     
     # Metadata
     id: str
@@ -441,6 +453,7 @@ class AssessmentSummaryResponse(BaseModel):
     # These fields indicate the current LLM configuration status
     llm_enabled: bool = False
     llm_provider: Optional[str] = None  # e.g., "google", "openai"
-    llm_model: Optional[str] = None     # e.g., "gemini-2.0-flash"
+    llm_model: Optional[str] = None     # e.g., "gemini-3-flash-preview"
     llm_mode: LLMMode = LLMMode.DISABLED  # "demo" | "prod" | "disabled"
+    llm_status: Optional[str] = None       # "pending" | "completed" | "failed"
 

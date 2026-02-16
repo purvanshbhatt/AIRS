@@ -5,6 +5,7 @@ export interface Organization {
   name: string;
   industry?: string;
   size?: string;
+  integration_status?: string;
   created_at: string;
 }
 
@@ -125,6 +126,7 @@ export interface FindingSummary {
 
 export interface AssessmentSummary {
   api_version: string;
+  product?: ProductInfo;
   id: string;
   title?: string;
   organization_id: string;
@@ -339,8 +341,13 @@ export interface AttackPath {
 // Gap analysis types
 export interface GapCategory {
   name: string;
+  category?: string;
   gaps: string[];
+  gap_count?: number;
   severity?: 'critical' | 'high' | 'medium' | 'low';
+  is_critical?: boolean;
+  description?: string;
+  findings?: Array<{ title: string }>;
 }
 
 export interface GapAnalysis {
@@ -352,6 +359,11 @@ export interface RiskSummary {
   overall_risk_level: 'critical' | 'high' | 'medium' | 'low';
   key_risks: string[];
   mitigating_factors?: string[];
+  attack_paths_enabled?: number;
+  total_gaps_identified?: number;
+  severity_counts?: Record<string, number>;
+  findings_count?: number;
+  total_risk_score?: number;
 }
 
 export interface AnalyticsSummary {
@@ -393,4 +405,99 @@ export interface ScoreTrendPoint {
   score: number;
   assessment_id: string;
   name?: string;  // Optional label for the data point
+}
+
+// Integration types
+export interface ApiKeyMetadata {
+  id: string;
+  org_id: string;
+  prefix: string;
+  scopes: string[];
+  is_active: boolean;
+  created_at: string;
+  last_used_at?: string | null;
+}
+
+export interface ApiKeyCreateResponse {
+  id: string;
+  org_id: string;
+  prefix: string;
+  scopes: string[];
+  api_key: string;
+  created_at: string;
+}
+
+export interface Webhook {
+  id: string;
+  org_id: string;
+  url: string;
+  event_types: string[];
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ExternalFinding {
+  id: string;
+  org_id: string;
+  source: string;
+  title: string;
+  severity: string;
+  created_at: string;
+  raw_json: Record<string, unknown>;
+}
+
+export interface WebhookUrlTestResponse {
+  delivered: boolean;
+  status_code?: number;
+  error?: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+}
+
+export interface ProductInfo {
+  name: string;
+  version?: string | null;
+}
+
+export interface SystemStatus {
+  version?: string | null;
+  environment: string;
+  llm_enabled: boolean;
+  demo_mode: boolean;
+  integrations_enabled: boolean;
+  last_deployment_at?: string | null;
+}
+
+export interface AuditEvent {
+  id: string;
+  org_id: string;
+  action: string;
+  actor: string;
+  timestamp: string;
+}
+
+export interface PilotRequestInput {
+  company_name: string;
+  team_size: string;
+  current_security_tools?: string;
+  email: string;
+}
+
+export interface SiemExportFinding {
+  severity: string;
+  category?: string;
+  title: string;
+  description?: string;
+  mitre_refs: Array<Record<string, unknown>>;
+  cis_refs: Array<Record<string, unknown>>;
+  owasp_refs: Array<Record<string, unknown>>;
+  remediation?: string;
+}
+
+export interface SiemExportPayload {
+  organization?: string;
+  assessment_id: string;
+  score: number;
+  generated_at: string;
+  findings: SiemExportFinding[];
 }
