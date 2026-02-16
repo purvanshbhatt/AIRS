@@ -13,6 +13,7 @@ import {
   Target,
   TrendingUp,
 } from 'lucide-react';
+import ThemeToggle from '../components/ui/ThemeToggle';
 
 const features = [
   {
@@ -44,39 +45,40 @@ const stats = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">ResilAI</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-slate-100">ResilAI</span>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <Link
                 to="/about"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
               >
                 About
               </Link>
               <Link
                 to="/security"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
               >
                 Security
               </Link>
               <Link
                 to="/pilot"
-                className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 text-primary-700 text-sm font-medium rounded-lg hover:bg-primary-50 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
               >
                 Request Enterprise Pilot
               </Link>
               <Link
                 to="/dashboard"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
               >
                 Dashboard
               </Link>
@@ -96,18 +98,18 @@ export default function Landing() {
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
               Open Source Security Assessment
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-slate-100 tracking-tight mb-6">
               Know Your{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">
                 AI Incident Readiness
               </span>{' '}
               Score
             </h1>
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
               Assess your organization's security posture in minutes. Get actionable insights,
               identify gaps, and generate executive-ready reports powered by AI.
             </p>
@@ -123,7 +125,7 @@ export default function Landing() {
                 href="https://www.github.com/purvanshbhatt/AIRS"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-4 text-gray-700 text-lg font-medium hover:text-gray-900 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-4 text-gray-700 dark:text-slate-300 text-lg font-medium hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
               >
                 <Github className="w-5 h-5" />
                 View on GitHub
@@ -134,13 +136,13 @@ export default function Landing() {
       </section>
 
       {/* Stats Bar */}
-      <section className="py-12 bg-gray-50 border-y border-gray-100">
+      <section className="py-12 bg-gray-50 dark:bg-slate-900 border-y border-gray-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-3xl sm:text-4xl font-bold text-primary-600">{stat.value}</p>
-                <p className="text-sm text-gray-600 mt-1">{stat.label}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300 mt-1">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -151,10 +153,10 @@ export default function Landing() {
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
               Everything You Need to Assess Readiness
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-slate-300 max-w-2xl mx-auto">
               Built by security professionals for security professionals. Get from zero to
               actionable insights in under 5 minutes.
             </p>
@@ -164,13 +166,13 @@ export default function Landing() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group p-8 bg-white rounded-2xl border border-gray-200 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-300"
+                className="group p-8 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 hover:border-primary-200 dark:hover:border-primary-800 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-300"
               >
-                <div className="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-110 transition-all duration-300">
+                <div className="w-14 h-14 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-110 transition-all duration-300">
                   <feature.icon className="w-7 h-7 text-primary-600 group-hover:text-white transition-colors" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-slate-300 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>

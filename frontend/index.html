@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="light">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -11,12 +11,27 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/favicon.png" />
     <script>
-      // Force light mode - remove any dark class
-      document.documentElement.classList.remove('dark');
-      localStorage.removeItem('airs-theme');
+      (function () {
+        try {
+          const storageKey = 'airs-theme';
+          const savedTheme = localStorage.getItem(storageKey);
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const shouldUseDark =
+            savedTheme === 'dark' ||
+            ((savedTheme === 'system' || savedTheme === null) && prefersDark);
+
+          if (shouldUseDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
     </script>
   </head>
-  <body class="bg-slate-50">
+  <body class="bg-slate-50 dark:bg-slate-950">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
