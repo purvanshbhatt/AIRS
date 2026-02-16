@@ -91,11 +91,20 @@ async def llm_health() -> LLMHealthResponse:
     """
     llm_enabled = settings.is_llm_enabled
     sdk_installed = importlib.util.find_spec("google.genai") is not None
+    feature_flag_enabled = bool(settings.AIRS_USE_LLM)
     credentials_configured = bool(settings.GEMINI_API_KEY or settings.GCP_PROJECT_ID)
+    if settings.GCP_PROJECT_ID:
+        auth_mode = "vertex-adc"
+    elif settings.GEMINI_API_KEY:
+        auth_mode = "api-key"
+    else:
+        auth_mode = "none"
     runtime_check = {
         "sdk_installed": sdk_installed,
+        "feature_flag_enabled": feature_flag_enabled,
         "credentials_configured": credentials_configured,
-        "client_configured": bool(llm_enabled and sdk_installed and credentials_configured),
+        "auth_mode": auth_mode,
+        "client_configured": bool(feature_flag_enabled and sdk_installed and (credentials_configured or settings.is_demo_mode)),
     }
     
     return LLMHealthResponse(

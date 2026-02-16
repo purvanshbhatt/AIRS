@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     # GCP Settings (Optional)
     # ===========================================
     GCP_PROJECT_ID: Optional[str] = None
+    GCP_REGION: str = "us-central1"
     
     # ===========================================
     # Authentication
@@ -118,10 +119,10 @@ class Settings(BaseSettings):
                     file=sys.stderr
                 )
             
-            # In production with LLM enabled (not demo mode), API key is recommended
-            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY and not self.DEMO_MODE:
+            # In production with LLM enabled (not demo mode), either API key or ADC should exist
+            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY and not self.GCP_PROJECT_ID and not self.DEMO_MODE:
                 print(
-                    "INFO: GEMINI_API_KEY not set. Using Application Default Credentials for Gemini.",
+                    "WARNING: AIRS_USE_LLM=true but neither GEMINI_API_KEY nor GCP_PROJECT_ID is set.",
                     file=sys.stderr
                 )
         
@@ -208,7 +209,10 @@ class Settings(BaseSettings):
         Check if LLM narrative generation is enabled.
         
         LLM is enabled when:
-          - AIRS_USE_LLM=true AND (GEMINI_API_KEY is set OR DEMO_MODE=true)
+          - AIRS_USE_LLM=true AND one of:
+            - DEMO_MODE=true
+            - GEMINI_API_KEY is set (direct API-key auth)
+            - GCP_PROJECT_ID is set (Vertex/ADC auth)
         
         In demo mode, LLM can run without strict API key validation,
         using ADC (Application Default Credentials) on Cloud Run.
@@ -220,11 +224,11 @@ class Settings(BaseSettings):
         """
         if not self.AIRS_USE_LLM:
             return False
-        # In demo mode, allow LLM even without explicit API key (use ADC)
+        # In demo mode, allow LLM even without explicit API key (use ADC/fallback)
         if self.DEMO_MODE:
             return True
-        # Otherwise require API key
-        return bool(self.GEMINI_API_KEY)
+        # Non-demo mode supports either API key auth or Vertex/ADC auth.
+        return bool(self.GEMINI_API_KEY or self.GCP_PROJECT_ID)
 
     @property
     def is_demo_mode(self) -> bool:
