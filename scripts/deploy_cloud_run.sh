@@ -224,7 +224,6 @@ DEPLOY_ARGS=(
     --timeout 120
 )
 DEPLOYED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-DEPLOY_ARGS+=(--update-env-vars "DEPLOYED_AT=${DEPLOYED_AT_UTC}")
 
 if [ -n "$PROJECT_ID" ]; then
     DEPLOY_ARGS+=(--project "$PROJECT_ID")
@@ -261,6 +260,12 @@ else
     done < "$ENV_FILE_PATH"
 
     ENV_COUNT=$(echo "$ENV_VARS" | tr ',' '\n' | grep -c . || echo 0)
+    # For .env-style files, inject deploy timestamp as runtime metadata.
+    if [ -n "$ENV_VARS" ]; then
+        ENV_VARS="$ENV_VARS,DEPLOYED_AT=$DEPLOYED_AT_UTC"
+    else
+        ENV_VARS="DEPLOYED_AT=$DEPLOYED_AT_UTC"
+    fi
     if [ -n "$ENV_VARS" ]; then
         DEPLOY_ARGS+=(--set-env-vars "$ENV_VARS")
     fi
@@ -269,7 +274,11 @@ fi
 if [ -n "$ENV_COUNT" ]; then
     echo "  Env vars: $ENV_COUNT variables loaded"
 fi
-echo "  Deployed at (UTC): $DEPLOYED_AT_UTC"
+if [[ "$ENV_FILE_LOWER" == *.yaml || "$ENV_FILE_LOWER" == *.yml ]]; then
+    echo "  Deployed at (UTC): $DEPLOYED_AT_UTC (not injected when using --env-vars-file)"
+else
+    echo "  Deployed at (UTC): $DEPLOYED_AT_UTC"
+fi
 
 if [ "$ALLOW_UNAUTHENTICATED" = "true" ]; then
     DEPLOY_ARGS+=(--allow-unauthenticated)

@@ -302,7 +302,8 @@ def _generate_fallback_narrative(summary_payload: Dict[str, Any], llm_failed: bo
         context_text = (
             f"{org_name} received an overall score of {overall_score:.0f}/100 and is in the Critical tier. "
             f"{len(findings)} findings were identified, including {critical_count} critical and {high_count} high-severity issues. "
-            f"The largest exposure areas are {' and '.join(weak_domain_names)}."
+            f"The largest exposure areas are {' and '.join(weak_domain_names)}. "
+            "Immediate action is required to reduce urgent operational risk."
         )
     elif tier_label == "Needs Work":
         context_text = (

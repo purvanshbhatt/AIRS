@@ -11,12 +11,12 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
     const baseStyles = 'inline-flex items-center font-medium rounded-full';
     
     const variants = {
-      default: 'bg-gray-100 text-gray-700',
-      primary: 'bg-primary-100 text-primary-700',
-      success: 'bg-success-50 text-success-600',
-      warning: 'bg-warning-50 text-warning-600',
-      danger: 'bg-danger-50 text-danger-600',
-      outline: 'border border-gray-300 text-gray-700',
+      default: 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-200',
+      primary: 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300',
+      success: 'bg-success-50 text-success-600 dark:bg-success-900/30 dark:text-success-300',
+      warning: 'bg-warning-50 text-warning-600 dark:bg-warning-900/30 dark:text-warning-300',
+      danger: 'bg-danger-50 text-danger-600 dark:bg-danger-900/30 dark:text-danger-300',
+      outline: 'border border-gray-300 text-gray-700 dark:border-slate-700 dark:text-slate-200',
     };
 
     const sizes = {

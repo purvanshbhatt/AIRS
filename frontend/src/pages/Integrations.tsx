@@ -272,18 +272,18 @@ export default function Integrations() {
   };
 
   if (loading) {
-    return <div className="text-sm text-gray-500">Loading integrations...</div>;
+    return <div className="text-sm text-gray-500 dark:text-slate-400">Loading integrations...</div>;
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-          <ShieldCheck className="h-5 w-5 text-blue-600" />
+        <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+          <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-300" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Integrations</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Integrations</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400">
             API keys, webhooks, and SIEM ingestion hooks for external tooling.
           </p>
         </div>
@@ -305,10 +305,10 @@ export default function Integrations() {
       </Card>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">{error}</div>
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-300">{error}</div>
       )}
       {notice && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+        <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm text-green-700 dark:text-green-300">
           {notice}
         </div>
       )}
@@ -321,20 +321,20 @@ export default function Integrations() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="p-3 border border-gray-200 rounded-lg">
-              <div className="text-xs text-gray-500">Splunk</div>
-              <div className="mt-1 font-medium text-gray-900">
+              <div className="text-xs text-gray-500 dark:text-slate-400">Splunk</div>
+              <div className="mt-1 font-medium text-gray-900 dark:text-slate-100">
                 {splunkConnected ? 'Connected (Last sync: 5 min ago)' : 'Not Connected'}
               </div>
             </div>
             <div className="p-3 border border-gray-200 rounded-lg">
-              <div className="text-xs text-gray-500">Webhook</div>
-              <div className="mt-1 font-medium text-gray-900">
+              <div className="text-xs text-gray-500 dark:text-slate-400">Webhook</div>
+              <div className="mt-1 font-medium text-gray-900 dark:text-slate-100">
                 {webhooks.length > 0 ? 'Active (Last delivery check: 2 min ago)' : 'Inactive'}
               </div>
             </div>
             <div className="p-3 border border-gray-200 rounded-lg">
-              <div className="text-xs text-gray-500">API Access</div>
-              <div className="mt-1 font-medium text-gray-900">
+              <div className="text-xs text-gray-500 dark:text-slate-400">API Access</div>
+              <div className="mt-1 font-medium text-gray-900 dark:text-slate-100">
                 {apiKeys.some((k) => k.is_active) ? 'Enabled (Key active)' : 'Not Enabled'}
               </div>
             </div>
@@ -343,15 +343,15 @@ export default function Integrations() {
       </Card>
 
       {newKey && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
           <CardHeader>
-            <CardTitle className="text-blue-900">New API Key (Copy Once)</CardTitle>
-            <CardDescription className="text-blue-800">
+            <CardTitle className="text-blue-900 dark:text-blue-200">New API Key (Copy Once)</CardTitle>
+            <CardDescription className="text-blue-800 dark:text-blue-300">
               This value is shown once. Save it now.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <code className="block text-xs bg-white border border-blue-200 rounded p-3 overflow-x-auto">
+            <code className="block text-xs bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 rounded p-3 overflow-x-auto">
               {newKey.api_key}
             </code>
             <Button size="sm" onClick={handleCopy} className="gap-2">
@@ -373,21 +373,21 @@ export default function Integrations() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Org: {selectedOrgName}</span>
+              <span className="text-sm text-gray-600 dark:text-slate-300">Org: {selectedOrgName}</span>
               <Button size="sm" onClick={handleCreateApiKey} disabled={busy || !selectedOrgId}>
                 Generate New Key
               </Button>
             </div>
             <div className="space-y-2">
-              {apiKeys.length === 0 && <p className="text-sm text-gray-500">No API keys yet.</p>}
+              {apiKeys.length === 0 && <p className="text-sm text-gray-500 dark:text-slate-400">No API keys yet.</p>}
               {apiKeys.map((key) => (
                 <div
                   key={key.id}
                   className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
                 >
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{key.prefix}...</div>
-                    <div className="text-xs text-gray-500">{new Date(key.created_at).toLocaleString()}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-slate-100">{key.prefix}...</div>
+                    <div className="text-xs text-gray-500 dark:text-slate-400">{new Date(key.created_at).toLocaleString()}</div>
                   </div>
                   <Button
                     size="sm"
@@ -432,10 +432,10 @@ export default function Integrations() {
             </div>
 
             <div className="space-y-2 pt-2">
-              {webhooks.length === 0 && <p className="text-sm text-gray-500">No webhooks configured.</p>}
+              {webhooks.length === 0 && <p className="text-sm text-gray-500 dark:text-slate-400">No webhooks configured.</p>}
               {webhooks.map((hook) => (
                 <div key={hook.id} className="p-3 border border-gray-200 rounded-lg space-y-2">
-                  <div className="text-sm font-medium text-gray-900 break-all">{hook.url}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-slate-100 break-all">{hook.url}</div>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline" onClick={() => handleTestWebhook(hook.id)} disabled={busy}>
                       Run Check
@@ -448,7 +448,7 @@ export default function Integrations() {
               ))}
             </div>
 
-            <div className="pt-3 border-t border-gray-200 space-y-2">
+            <div className="pt-3 border-t border-gray-200 dark:border-slate-800 space-y-2">
               <Input
                 label="Quick Webhook Check URL"
                 value={webhookTestUrl}
@@ -463,9 +463,9 @@ export default function Integrations() {
               >
                 Send Check
               </Button>
-              {webhookTestResult && <p className="text-xs text-gray-600">{webhookTestResult}</p>}
+              {webhookTestResult && <p className="text-xs text-gray-600 dark:text-slate-300">{webhookTestResult}</p>}
               {webhookTestPayload && (
-                <pre className="text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-x-auto">
+                <pre className="text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded p-3 overflow-x-auto">
                   {webhookTestPayload}
                 </pre>
               )}
@@ -503,30 +503,30 @@ export default function Integrations() {
 
           <div className="overflow-x-auto border border-gray-200 rounded-lg">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-slate-900">
                 <tr>
-                  <th className="text-left px-3 py-2 font-medium text-gray-600">Timestamp</th>
-                  <th className="text-left px-3 py-2 font-medium text-gray-600">Severity</th>
-                  <th className="text-left px-3 py-2 font-medium text-gray-600">Title</th>
-                  <th className="text-left px-3 py-2 font-medium text-gray-600">Source</th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-slate-300">Timestamp</th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-slate-300">Severity</th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-slate-300">Title</th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-slate-300">Source</th>
                 </tr>
               </thead>
               <tbody>
                 {externalFindings.length === 0 && (
                   <tr>
-                    <td className="px-3 py-3 text-gray-500" colSpan={4}>
+                    <td className="px-3 py-3 text-gray-500 dark:text-slate-400" colSpan={4}>
                       No ingested findings yet.
                     </td>
                   </tr>
                 )}
                 {externalFindings.map((finding) => (
-                  <tr key={finding.id} className="border-t border-gray-100">
-                    <td className="px-3 py-2 text-gray-600">{new Date(finding.created_at).toLocaleString()}</td>
+                  <tr key={finding.id} className="border-t border-gray-100 dark:border-slate-800">
+                    <td className="px-3 py-2 text-gray-600 dark:text-slate-300">{new Date(finding.created_at).toLocaleString()}</td>
                     <td className="px-3 py-2">
                       <Badge variant="outline">{finding.severity}</Badge>
                     </td>
-                    <td className="px-3 py-2 text-gray-900">{finding.title}</td>
-                    <td className="px-3 py-2 text-gray-600">
+                    <td className="px-3 py-2 text-gray-900 dark:text-slate-100">{finding.title}</td>
+                    <td className="px-3 py-2 text-gray-600 dark:text-slate-300">
                       <span className="inline-flex items-center gap-1">
                         <Database className="w-3.5 h-3.5" />
                         {finding.source}

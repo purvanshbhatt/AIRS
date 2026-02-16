@@ -1,8 +1,14 @@
+import os
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+# Force deterministic local test settings regardless of host environment.
+os.environ.setdefault("ENV", "local")
+os.environ.setdefault("AUTH_REQUIRED", "false")
+os.environ.setdefault("DEMO_MODE", "true")
 
 from app.main import app
 from app.db.database import Base, get_db

@@ -6,9 +6,17 @@ on:
       - dev
       - main
 
+concurrency:
+  group: ci-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      ENV: local
+      AUTH_REQUIRED: "false"
+      DEMO_MODE: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,7 +50,7 @@ jobs:
           fi
 
   deploy-staging:
-    if: github.ref_name == 'dev'
+    if: github.ref_name == 'dev' && secrets.GCP_SA_KEY != '' && secrets.GCP_PROJECT_ID != '' && secrets.FIREBASE_TOKEN != ''
     runs-on: ubuntu-latest
     needs: test
     environment: staging
@@ -83,12 +91,13 @@ jobs:
       - name: Deploy frontend staging
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           npm i -g firebase-tools
-          firebase deploy --only hosting:airs-staging --token "$FIREBASE_TOKEN"
+          firebase deploy --project "$GCP_PROJECT_ID" --only hosting:staging --token "$FIREBASE_TOKEN"
 
   deploy-production:
-    if: github.ref_name == 'main'
+    if: github.ref_name == 'main' && secrets.GCP_SA_KEY != '' && secrets.GCP_PROJECT_ID != '' && secrets.FIREBASE_TOKEN != ''
     runs-on: ubuntu-latest
     needs: test
     environment: production
@@ -129,6 +138,7 @@ jobs:
       - name: Deploy frontend production
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           npm i -g firebase-tools
-          firebase deploy --only hosting:airs --token "$FIREBASE_TOKEN"
+          firebase deploy --project "$GCP_PROJECT_ID" --only hosting:airs --token "$FIREBASE_TOKEN"

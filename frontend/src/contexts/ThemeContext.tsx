@@ -11,7 +11,8 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = 'airs-theme';
+const STORAGE_KEY = 'resilai-theme';
+const LEGACY_STORAGE_KEY = 'airs-theme';
 
 function getSystemTheme(): ResolvedTheme {
     if (typeof window === 'undefined') return 'light';
@@ -21,8 +22,10 @@ function getSystemTheme(): ResolvedTheme {
 function getStoredTheme(): Theme {
     if (typeof window === 'undefined') return 'system';
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'light' || stored === 'dark' || stored === 'system') {
-        return stored;
+    const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
+    const resolved = stored || legacyStored;
+    if (resolved === 'light' || resolved === 'dark' || resolved === 'system') {
+        return resolved;
     }
     return 'system';
 }
@@ -41,6 +44,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     const setTheme = (newTheme: Theme) => {
         setThemeState(newTheme);
         localStorage.setItem(STORAGE_KEY, newTheme);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
     };
 
     // Apply theme class to document and handle system preference changes
