@@ -14,6 +14,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Organizations from './pages/Organizations';
 import Assessments from './pages/Assessments';
+import AnalyticsPage from './pages/Analytics';
 import Reports from './pages/Reports';
 import NewOrg from './pages/NewOrg';
 import NewAssessment from './pages/NewAssessment';
@@ -67,6 +68,7 @@ function DashboardRoutes() {
           <Route path="/organizations" element={<Organizations />} />
           <Route path="/org/new" element={<NewOrg />} />
           <Route path="/assessments" element={<Assessments />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/assessment/new" element={<NewAssessment />} />
           <Route path="/results/:id" element={<Results />} />
           <Route path="/reports" element={<Reports />} />

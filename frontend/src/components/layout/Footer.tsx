@@ -62,7 +62,7 @@ export function Footer() {
                 </nav>
 
                 <p className="text-xs text-gray-400 dark:text-gray-500">
-                    Copyright 2026 ResilAI | Public Beta
+                    ResilAI Public Beta | Aligned to CIS | NIST | OWASP | © 2026 ResilAI
                     {systemStatus ? ` | v${systemStatus.version || 'dev'} (${systemStatus.environment})` : ''}
                 </p>
             </div>
