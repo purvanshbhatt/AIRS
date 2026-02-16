@@ -1,28 +1,45 @@
-# Changelog
+﻿# Changelog
 
-## 2026-02-14
+All notable changes to this project are documented in this file.
+
+The format is based on Keep a Changelog and follows Semantic Versioning.
+
+## [Unreleased]
+
+### Added
+- Public launch documentation and repository community templates
+- GitHub Pages-ready `docs/` navigation pages
+- CI and automated release workflow definitions
+
+### Changed
+- Repository messaging standardized for ResilAI public beta positioning
+
+## [0.2.0-staging] - 2026-02-16
 
 ### Added
 - Integration-ready backend primitives:
-  - API key lifecycle endpoints (`/api/orgs/{org_id}/api-keys`, list/revoke)
-  - API key-protected external pull endpoint (`/api/external/latest-score`)
-  - Webhook lifecycle + test endpoints (`/api/orgs/{org_id}/webhooks`, `/api/webhooks/{id}/test`)
+  - API key lifecycle endpoints (`/api/orgs/{org_id}/api-keys`, list, revoke)
+  - API key-protected external pull endpoint (`GET /api/external/latest-score`)
+  - Webhook lifecycle and test endpoints
   - Background webhook dispatch on assessment scoring with retry/backoff logging
 - Roadmap tracker persistence model and endpoints (`/api/assessments/{id}/roadmap*`)
-- Frontend Integrations page for API key generation and webhook management
-- Environment mode support for `local/staging/prod` and staging env file (`gcp/env.staging.yaml`)
-- Staging-safe deployment workflow and production overwrite guard usage in docs
-- New documentation:
-  - `docs/LOCAL_DEV.md`
-  - `docs/STAGING_DEPLOY.md`
-  - `docs/dev/contract_map.md`
+- Frontend Integrations page for API keys, webhooks, and external findings
+- Environment mode support for local/staging/production
 
 ### Changed
-- LLM narrative implementation migrated to `google.genai` (google-genai SDK)
-- `/health/llm` now exposes lightweight runtime checks
-- Analytics/framework/roadmap contracts aligned for results UI compatibility
-- Frontend build scripts now support explicit `staging` and `production` modes
+- LLM narrative integration migrated to `google-genai`
+- `/health/llm` exposes lightweight runtime status checks
+- Frontend build scripts support explicit staging/production modes
+- Results and analytics contract alignment for dashboard compatibility
 
-### Safety
-- Deployment script requires explicit `--prod` confirmation for `airs-api` production service
-- Local development defaults to isolated SQLite (`airs_dev.db`) and localhost CORS
+### Security
+- Deployment safeguards for production service overwrite (`--prod` guard)
+- Local development defaults to isolated SQLite and local CORS
+
+## [0.1.0-beta] - 2026-02-14
+
+### Added
+- Baseline production demo and end-to-end assessment flow
+- Deterministic scoring and narrative generation pipeline
+- PDF report generation and framework mapping outputs
+- Initial docs for local development and staging deployment

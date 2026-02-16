@@ -1,0 +1,33 @@
+﻿name: Design Partner Inquiry
+description: Apply to become a ResilAI design partner
+labels: ["type: design-partner", "status: triage"]
+body:
+  - type: input
+    id: company
+    attributes:
+      label: Company Name
+    validations:
+      required: true
+  - type: input
+    id: team_size
+    attributes:
+      label: Team Size
+      placeholder: e.g. 50-200
+    validations:
+      required: true
+  - type: textarea
+    id: tools
+    attributes:
+      label: Current Security Tooling
+      placeholder: SIEM, EDR, cloud monitoring, ticketing
+  - type: input
+    id: contact
+    attributes:
+      label: Contact Email
+    validations:
+      required: true
+  - type: textarea
+    id: goals
+    attributes:
+      label: Pilot Goals
+      description: What would success look like for your team?

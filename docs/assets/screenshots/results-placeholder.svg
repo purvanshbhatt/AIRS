@@ -1,0 +1,6 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="Results screenshot placeholder">
+  <rect width="1280" height="720" fill="#0b1220" />
+  <rect x="40" y="40" width="1200" height="640" rx="20" fill="#0f172a" stroke="#334155" />
+  <text x="640" y="330" text-anchor="middle" fill="#e2e8f0" font-size="48" font-family="Arial, sans-serif">Results Screenshot</text>
+  <text x="640" y="390" text-anchor="middle" fill="#94a3b8" font-size="24" font-family="Arial, sans-serif">Placeholder for Executive Summary View</text>
+</svg>

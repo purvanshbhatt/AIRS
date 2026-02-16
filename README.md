@@ -1,126 +1,75 @@
-# ResilAI
+﻿# ResilAI
 
-ResilAI is an AI incident readiness platform for security teams.  
-It measures readiness, maps findings to MITRE/CIS/OWASP, generates executive reports, and supports headless integrations through API keys and webhooks.
+**ResilAI** is an **AI Incident Readiness Platform** that helps organizations measure, improve, and report their preparedness for AI-era security incidents.
+
+[Public Beta](https://airs-staging-0384513977.web.app) | [Staging API Docs](https://airs-api-staging-227825933697.us-central1.run.app/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
+
+## Problem Statement
+Most organizations have SIEM, endpoint, and cloud tooling, but still lack a clear and repeatable way to answer:
+
+- How ready are we for AI-related security incidents?
+- What are our highest-risk readiness gaps?
+- What should we fix first for executive and board reporting?
+
+ResilAI closes this gap with deterministic scoring, framework alignment, and executive-ready outputs.
+
+## Key Features
+- Deterministic AI incident readiness scoring
+- MITRE ATT&CK, CIS Controls, and OWASP mapping
+- Executive Risk Summary and detailed PDF reporting
+- API key-based pull integrations for external platforms
+- Webhook-based push integrations for event-driven workflows
+- Health and runtime diagnostics for operational transparency
+
+## Architecture Diagram
+
+```mermaid
+graph TD
+  U[Security Team / CISO] --> FE[Frontend: React + Vite]
+  FE --> BE[Backend: FastAPI]
+  FE --> AUTH[Firebase Auth]
+  BE --> DB[(SQLite / Cloud SQL)]
+  BE --> LLM[Google Gemini via google-genai]
+  BE --> WH[Outbound Webhooks]
+  EXT[SIEM / GRC / BI] -->|API Key Pull| BE
+  BE -->|JSON Export / Webhook Push| EXT
+  FE --> HOST[Firebase Hosting]
+  BE --> RUN[Google Cloud Run]
+```
 
 ## Public Beta
+- Frontend (staging): `https://airs-staging-0384513977.web.app`
+- Backend health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
+- Backend docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 
-- Staging frontend: `https://airs-staging-0384513977.web.app`
-- Staging backend health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
-- Staging backend docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
+## Screenshots
 
-Production demo endpoints remain isolated and are not overwritten by staging workflows.
+Screenshot placeholders for launch materials:
+- `docs/assets/screenshots/dashboard-placeholder.svg`
+- `docs/assets/screenshots/results-placeholder.svg`
+- `docs/assets/screenshots/integrations-placeholder.svg`
 
-## Core Capabilities
+## Quick Start
 
-- Deterministic readiness scoring
-- Framework mapping: MITRE ATT&CK, CIS Controls v8, OWASP Top 10
-- Executive report generation (PDF)
-- Integrations:
-  - API key pull endpoint (`GET /api/external/latest-score`)
-  - Webhook push events (`assessment.scored`)
-  - Mock SIEM seed for staging demos
-- Operational endpoints:
-  - `GET /health`
-  - `GET /health/llm`
-  - `GET /health/system`
-
-## Architecture
-
-- Frontend: React, TypeScript, Vite, Tailwind
-- Backend: FastAPI, SQLAlchemy, Alembic
-- Auth: Firebase Auth (real Firebase in staging/prod, emulator in local dev)
-- Hosting:
-  - Frontend on Firebase Hosting targets
-  - Backend on Cloud Run services
-- LLM:
-  - Gemini SDK via `google.genai`
-  - Narratives only (scoring remains deterministic)
-
-## Repository Layout
-
-```text
-.
-|-- app/                      # FastAPI app
-|-- alembic/                  # DB migrations
-|-- frontend/                 # React application
-|-- docs/                     # Runbooks and product docs
-|-- scripts/                  # Deploy/dev scripts
-|-- gcp/                      # Environment templates for Cloud Run
-`-- .github/workflows/        # CI/CD workflows
-```
-
-## Environment Modes
-
-| Mode | Frontend Env File | Backend Env Source | Auth Mode | Typical Use |
-|---|---|---|---|---|
-| Local dev | `frontend/.env.development` | `.env.dev` + `ENV=local` | Firebase Auth Emulator | Feature development |
-| Staging | `frontend/.env.staging` (+ local override for sensitive values) | `gcp/env.staging.yaml` | Real Firebase | Internal demos, QA |
-| Production | `frontend/.env.production` | `gcp/env.prod.yaml` | Real Firebase | Public demo/product |
-
-## Local Setup (PowerShell)
-
-1. Install backend dependencies:
+### Local Development (PowerShell)
 
 ```powershell
-py -3 -m pip install --upgrade pip
 py -3 -m pip install -r requirements.txt
-```
-
-2. Create backend local env file:
-
-```powershell
 Copy-Item .env.dev.example .env.dev
-```
-
-3. Ensure `.env.dev` has at least:
-
-```env
-ENV=local
-DATABASE_URL=sqlite:///./airs_dev.db
-CORS_ALLOW_ORIGINS=http://localhost:5173
-```
-
-4. Run migrations:
-
-```powershell
 $env:ENV="local"
 py -3 -m alembic upgrade head
-```
-
-5. Frontend env (`frontend/.env.development`) should include:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-VITE_FIREBASE_PROJECT_ID=gen-lang-client-0384513977
-VITE_FIREBASE_AUTH_DOMAIN=gen-lang-client-0384513977.firebaseapp.com
-VITE_FIREBASE_API_KEY=REPLACE_WITH_FIREBASE_WEB_API_KEY
-VITE_FIREBASE_AUTH_EMULATOR=http://127.0.0.1:9099
-```
-
-6. Run services:
-
-Backend:
-```powershell
-$env:ENV="local"
 py -3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Frontend:
+In another terminal:
+
 ```powershell
 cd frontend
 npm ci
 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
-Auth emulator:
-```powershell
-firebase emulators:start --only auth --project demo-airs
-```
-
-## Staging Deploy
-
-Frontend:
+### Staging Build + Deploy (PowerShell)
 
 ```powershell
 cd frontend
@@ -128,63 +77,38 @@ npm ci
 npm run build:staging
 cd ..
 firebase deploy --only hosting:staging
-```
-
-Backend:
-
-```powershell
 bash ./scripts/deploy_cloud_run.sh --service airs-api-staging --region us-central1 --env-file gcp/env.staging.yaml --project gen-lang-client-0384513977
 ```
 
-## Production Deploy
+## Roadmap Summary
+- Beta stabilization and demo hardening
+- Enterprise integrations (API keys, webhooks, SIEM-ready exports)
+- Executive reporting and continuous readiness workflows
+- Expanded observability, compliance, and pilot onboarding
 
-Frontend:
+See full plan in `ROADMAP.md`.
 
-```powershell
-cd frontend
-npm ci
-npm run build:production
-cd ..
-firebase deploy --only hosting:airs
+## Design Partner Program
+We are onboarding a limited set of design partners (Series B/C startups and security teams).
+
+If you want early access and direct product influence, contact: `purvansh95b@gmail.com`
+
+## Repository Structure
+
+```text
+.
+|-- app/                      # FastAPI backend
+|-- frontend/                 # React + Vite frontend
+|-- alembic/                  # Database migrations
+|-- docs/                     # GitHub Pages documentation source
+|-- scripts/                  # Deployment and utility scripts
+`-- .github/                  # CI/CD and community templates
 ```
 
-Backend (`--prod` required by guardrail):
-
-```powershell
-bash ./scripts/deploy_cloud_run.sh --service airs-api --region us-central1 --env-file gcp/env.prod.yaml --project gen-lang-client-0384513977 --prod
-```
-
-## CI/CD
-
-- `push` to `dev`:
-  - test backend and frontend build
-  - deploy to staging only if required secrets are present
-- `push` to `main`:
-  - test backend and frontend build
-  - deploy to production only if required secrets are present
-- security workflow:
-  - gitleaks secret scan
-  - dependency audit in non-blocking mode for visibility
-
-## Security Notes
-
-- Do not commit real API keys, service credentials, or `.env` secrets.
-- Keep Firebase Web API keys out of tracked env files when possible; use local overrides or CI secrets.
-- Use Secret Manager bindings for backend runtime secrets in Cloud Run.
-- Rotate any key if exposed.
-
-## Documentation
-
-- Local dev runbook: `docs/LOCAL_DEV.md`
-- Staging deploy runbook: `docs/STAGING_DEPLOY.md`
-- API/Frontend contract map: `docs/dev/contract_map.md`
-- Security details: `docs/security.md`
-- Privacy details: `docs/privacy.md`
-
-## Contact
-
-- Demo and product contact: `purvansh95b@gmail.com`
+## Security and Compliance
+- Security policy: `SECURITY.md`
+- Architecture and trust boundaries: `ARCHITECTURE.md`
+- API references and docs: `docs/`
 
 ## License
-
-GNU AGPL-3.0. See `LICENSE`.
+This project is licensed under **GNU AGPL-3.0**. See `LICENSE`.
