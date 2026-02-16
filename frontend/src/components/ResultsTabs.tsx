@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Results Tab Components for AIRS Assessment Results
+ * Results Tab Components for ResilAI Assessment Results
  * 
  * Tab structure:
  * - Overview: Score ring, tier, executive summary, domain heatmap
@@ -103,6 +103,13 @@ function getLikelihoodColor(likelihood: string) {
   return 'text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700'
 }
 
+function getReadinessLevelFromScore(score: number): 'Critical' | 'At Risk' | 'Managed' | 'Resilient' {
+  if (score <= 40) return 'Critical'
+  if (score <= 60) return 'At Risk'
+  if (score <= 80) return 'Managed'
+  return 'Resilient'
+}
+
 // ============================================================================
 // OVERVIEW TAB
 // ============================================================================
@@ -118,6 +125,22 @@ interface OverviewTabProps {
 export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, suggestedBaseline, onRefreshNarrative, isRefreshingNarrative }: OverviewTabProps) {
   const { tier, domain_scores, findings, executive_summary } = summary
   const topFailures = findings.slice(0, 5)
+  const readinessLevel = getReadinessLevelFromScore(summary.overall_score)
+  const topRemediationPriorities = [...summary.roadmap.day30, ...summary.roadmap.day60, ...summary.roadmap.day90]
+    .map((item) => item.action || item.title)
+    .filter(Boolean)
+    .slice(0, 3)
+  const businessImpacts = [
+    summary.critical_high_count > 0
+      ? `Elevated breach likelihood from ${summary.critical_high_count} critical or high-priority control gaps.`
+      : '',
+    topFailures[0]?.title
+      ? `Primary exposure theme: ${topFailures[0].title}. This can increase operational and incident response costs.`
+      : '',
+    summary.findings_count > 0
+      ? `Readiness friction across ${Math.min(summary.findings_count, 5)} key control areas may delay incident containment.`
+      : '',
+  ].filter(Boolean)
 
   return (
     <div className="space-y-6">
@@ -160,10 +183,11 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
             {/* Tier & Stats */}
             <div className="text-center lg:text-left space-y-4">
               <div>
-                <div className="text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wider mb-1">Readiness Tier</div>
+                <div className="text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wider mb-1">Readiness Level</div>
                 <div className={`text-4xl font-bold ${getTierText(tier.color)}`}>
-                  {tier.label}
+                  {readinessLevel}
                 </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Technical Tier: {tier.label}</div>
               </div>
               <div className="flex flex-wrap justify-center lg:justify-start gap-4">
                 <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -195,16 +219,71 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
         </CardContent>
       </Card>
 
-      {/* Executive Summary */}
+      {/* Executive Summary Preview */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileWarning className="h-5 w-5 text-primary-500" />
-            Executive Summary
+            Executive Summary Preview
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{executive_summary}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
+              <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Top Risks</div>
+              {topFailures.slice(0, 3).length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No critical risks identified.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {topFailures.slice(0, 3).map((risk, index) => (
+                    <li key={risk.id || index} className="text-sm text-gray-700 dark:text-gray-300">
+                      {index + 1}. {risk.title}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
+              <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Top 3 Remediation Priorities</div>
+              {topRemediationPriorities.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Roadmap priorities will appear after scoring.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {topRemediationPriorities.map((priority, index) => (
+                    <li key={`${priority}-${index}`} className="text-sm text-gray-700 dark:text-gray-300">
+                      {index + 1}. {priority}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Business Impact */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary-500" />
+            Business Impact
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{executive_summary}</p>
+          {businessImpacts.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No material business impact indicators available for this assessment.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {businessImpacts.map((impact, index) => (
+                <li key={`${impact}-${index}`} className="text-sm text-gray-700 dark:text-gray-300">
+                  {index + 1}. {impact}
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
 
@@ -622,15 +701,28 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
   
   const cisCount = uniqueCIS.size
   const cisTotal = coverage?.cis_controls_total || 56
+  const cisPct = cisTotal > 0 ? (cisCount / cisTotal * 100) : 0
   const cisList = Array.from(uniqueCIS).slice(0, 5)
   
   const owaspCount = uniqueOWASP.size
   const owaspTotal = coverage?.owasp_total || 10
   const owaspPct = owaspTotal > 0 ? (owaspCount / owaspTotal * 100) : 0
   const owaspList = Array.from(uniqueOWASP).slice(0, 5)
+  const nistPct = Math.min(100, Math.max(0, Math.round((summary.overall_score + cisPct + owaspPct) / 3)))
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Framework Coverage Snapshot</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <FrameworkCoverageBar label="CIS Controls" percent={cisPct} colorClass="bg-blue-500" />
+          <FrameworkCoverageBar label="NIST AI RMF (Derived)" percent={nistPct} colorClass="bg-emerald-500" />
+          <FrameworkCoverageBar label="OWASP LLM" percent={owaspPct} colorClass="bg-purple-500" />
+        </CardContent>
+      </Card>
+
       {/* Coverage Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* MITRE Coverage */}
@@ -833,6 +925,21 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
           </div>
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function FrameworkCoverageBar({ label, percent, colorClass }: { label: string; percent: number; colorClass: string }) {
+  const safePercent = Math.max(0, Math.min(100, percent))
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-700 dark:text-gray-300">{label}</span>
+        <span className="font-semibold text-gray-900 dark:text-gray-100">{safePercent.toFixed(0)}%</span>
+      </div>
+      <div className="h-2.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+        <div className={`h-full ${colorClass} transition-all duration-500`} style={{ width: `${safePercent}%` }} />
+      </div>
     </div>
   )
 }

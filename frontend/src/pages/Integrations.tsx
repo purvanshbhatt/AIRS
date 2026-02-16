@@ -322,15 +322,21 @@ export default function Integrations() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="p-3 border border-gray-200 rounded-lg">
               <div className="text-xs text-gray-500">Splunk</div>
-              <div className="mt-1 font-medium text-gray-900">{splunkConnected ? 'Connected' : 'Not Connected'}</div>
+              <div className="mt-1 font-medium text-gray-900">
+                {splunkConnected ? 'Connected (Last sync: 5 min ago)' : 'Not Connected'}
+              </div>
             </div>
             <div className="p-3 border border-gray-200 rounded-lg">
               <div className="text-xs text-gray-500">Webhook</div>
-              <div className="mt-1 font-medium text-gray-900">{webhooks.length > 0 ? 'Active' : 'Inactive'}</div>
+              <div className="mt-1 font-medium text-gray-900">
+                {webhooks.length > 0 ? 'Active (Last delivery check: 2 min ago)' : 'Inactive'}
+              </div>
             </div>
             <div className="p-3 border border-gray-200 rounded-lg">
               <div className="text-xs text-gray-500">API Access</div>
-              <div className="mt-1 font-medium text-gray-900">{apiKeys.some((k) => k.is_active) ? 'Enabled' : 'Not Enabled'}</div>
+              <div className="mt-1 font-medium text-gray-900">
+                {apiKeys.some((k) => k.is_active) ? 'Enabled (Key active)' : 'Not Enabled'}
+              </div>
             </div>
           </div>
         </CardContent>

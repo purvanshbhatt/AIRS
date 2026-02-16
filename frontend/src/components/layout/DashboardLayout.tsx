@@ -8,12 +8,15 @@ import {
   FileText,
   Settings,
   SlidersHorizontal,
+  BarChart3,
   Menu,
   X,
   ChevronRight,
   Shield,
   LogOut,
   BookOpen,
+  Activity,
+  Info,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Footer } from './Footer';
@@ -27,11 +30,15 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
-  { name: 'Reports', href: '/dashboard/reports', icon: FileText },
+  { name: 'Results', href: '/dashboard/reports', icon: FileText },
   { name: 'Integrations', href: '/dashboard/integrations', icon: Settings },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Settings', href: '/dashboard/settings', icon: SlidersHorizontal },
+  { name: 'Status', href: '/status', icon: Activity },
+  { name: 'About', href: '/about', icon: Info },
+  { name: 'Security', href: '/security', icon: Shield },
   { name: 'Docs', href: '/docs', icon: BookOpen },
 ];
 
@@ -53,6 +60,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'User';
   const displayEmail = user?.email || 'Not signed in';
   const initials = displayName.charAt(0).toUpperCase();
+
+  const isNavItemActive = (href: string, pathname: string) => {
+    if (href === '/dashboard') {
+      return pathname === '/dashboard' || pathname === '/dashboard/';
+    }
+    if (href === '/dashboard/assessments') {
+      return pathname === href || pathname.startsWith('/dashboard/assessment/');
+    }
+    if (href === '/dashboard/reports') {
+      return pathname === href || pathname.startsWith('/dashboard/results/');
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const activeNavItem =
+    navigation.find((item) => isNavItemActive(item.href, location.pathname))?.name || 'Page';
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -91,7 +114,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = isNavItemActive(item.href, location.pathname);
             return (
               <Link
                 key={item.name}
@@ -156,9 +179,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {location.pathname !== '/' && (
               <>
                 <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                <span className="text-slate-800 dark:text-slate-100 font-medium">
-                  {navigation.find((n) => n.href === location.pathname)?.name || 'Page'}
-                </span>
+                <span className="text-slate-800 dark:text-slate-100 font-medium">{activeNavItem}</span>
               </>
             )}
           </div>

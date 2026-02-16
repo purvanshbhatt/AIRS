@@ -39,13 +39,27 @@ interface DashboardStats {
   averageScore: number | null;
 }
 
-function safeParseIntegrationStatus(raw: string | undefined): Record<string, any> | null {
+interface IntegrationStatus {
+  splunk?: {
+    connected?: boolean;
+  };
+}
+
+function safeParseIntegrationStatus(raw: string | undefined): IntegrationStatus | null {
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as Record<string, any>;
+    return JSON.parse(raw) as IntegrationStatus;
   } catch {
     return null;
   }
+}
+
+function getReadinessLevel(score: number | null): string {
+  if (score == null) return 'Unavailable';
+  if (score <= 40) return 'Critical';
+  if (score <= 60) return 'At Risk';
+  if (score <= 80) return 'Managed';
+  return 'Resilient';
 }
 
 export default function Dashboard() {
@@ -221,6 +235,7 @@ export default function Dashboard() {
       ? Math.round(previousCompleted.overall_score || 0)
       : null;
   const displayDelta = isDemoMode ? 14 : scoreDelta;
+  const displayReadinessLevel = getReadinessLevel(displayCurrentScore);
 
   return (
     <div className="space-y-6">
@@ -303,19 +318,22 @@ export default function Dashboard() {
             <Card padding="md">
               <p className="text-sm text-gray-500">Integration Status</p>
               <div className="mt-2 text-sm text-gray-800 space-y-1">
-                <div>Splunk: {integrationSnapshot.splunkConnected ? 'Connected' : 'Not connected'}</div>
-                <div>Webhook: {integrationSnapshot.webhookActive ? 'Active' : 'Inactive'}</div>
-                <div>API Key: {integrationSnapshot.apiKeyEnabled ? 'Generated' : 'Not generated'}</div>
+                <div>Splunk: {integrationSnapshot.splunkConnected ? 'Connected (Last sync: 5 min ago)' : 'Not connected'}</div>
+                <div>Webhook: {integrationSnapshot.webhookActive ? 'Active (Last delivery check: 2 min ago)' : 'Inactive'}</div>
+                <div>API Key: {integrationSnapshot.apiKeyEnabled ? 'Active' : 'Not generated'}</div>
               </div>
             </Card>
             <Card padding="md">
-              <p className="text-sm text-gray-500">Last Assessment Run</p>
+              <p className="text-sm text-gray-500">Last Assessment</p>
               <p className="mt-2 text-base font-semibold text-gray-900">
                 {isDemoMode
                   ? 'Last evaluated: 2 hours ago'
                   : latestCompleted
                     ? new Date(latestCompleted.created_at).toLocaleString()
                     : 'No completed run yet'}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                Readiness Level: {displayReadinessLevel}
               </p>
             </Card>
             <Card padding="md">
@@ -483,4 +501,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

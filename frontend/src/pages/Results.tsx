@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import {
   getAssessmentSummary,
   downloadReport,
@@ -50,9 +50,15 @@ const tabs = [
   { id: 'analytics', label: 'Analytics', icon: TrendingUp },
 ]
 
+function getReadinessLevel(score: number): { label: string; variant: 'danger' | 'warning' | 'primary' | 'success' } {
+  if (score <= 40) return { label: 'Critical', variant: 'danger' }
+  if (score <= 60) return { label: 'At Risk', variant: 'warning' }
+  if (score <= 80) return { label: 'Managed', variant: 'primary' }
+  return { label: 'Resilient', variant: 'success' }
+}
+
 export default function Results() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const [summary, setSummary] = useState<AssessmentSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
@@ -216,7 +222,7 @@ export default function Results() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading assessment results...</p>
+          <p className="text-gray-600">Analyzing AI security posture...</p>
         </div>
       </div>
     )
@@ -280,6 +286,8 @@ export default function Results() {
     )
   }
 
+  const readinessLevel = getReadinessLevel(summary.overall_score)
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Header */}
@@ -288,13 +296,17 @@ export default function Results() {
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Building2 className="h-4 w-4" />
             <span>{summary.organization_name || 'Organization'}</span>
-            <span className="text-gray-300">•</span>
+            <span className="text-gray-300">|</span>
             <Clock className="h-4 w-4" />
             <span>{formatDate(summary.created_at)}</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
             {summary.title || 'AI Readiness Assessment'}
           </h1>
+          <div className="flex items-center gap-2">
+            <Badge variant={readinessLevel.variant}>Readiness Level: {readinessLevel.label}</Badge>
+            <Badge variant="outline">Readiness Score: {Math.round(summary.overall_score)}</Badge>
+          </div>
           <p className="text-gray-600">Assessment ID: {id?.slice(0, 8)}...</p>
         </div>
 
@@ -416,4 +428,5 @@ export default function Results() {
     </div>
   )
 }
+
 

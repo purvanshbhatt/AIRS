@@ -127,7 +127,7 @@ export default function Assessments() {
           <EmptyState
             icon={ClipboardList}
             title="No assessments yet"
-            description="Start your first security assessment to evaluate your organization's incident readiness."
+            description="Run your first assessment to generate a readiness score."
             action={{
               label: 'Start Assessment',
               href: '/dashboard/assessment/new',
