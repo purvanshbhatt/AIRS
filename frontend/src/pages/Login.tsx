@@ -66,7 +66,7 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">AIRS</h1>
+          <h1 className="text-2xl font-bold text-gray-900">ResilAI</h1>
           <p className="text-gray-500 text-sm mt-1">AI Incident Readiness Score</p>
         </div>
 
@@ -206,3 +206,4 @@ export default function Login() {
     </div>
   );
 }
+

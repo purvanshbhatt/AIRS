@@ -18,7 +18,10 @@ from app.schemas.organization import (
     OrganizationResponse,
     OrganizationWithAssessments
 )
+from app.schemas.audit import AuditEventResponse
+from app.models.audit_event import AuditEvent
 from app.services.organization import OrganizationService
+from app.services.demo_seed import ensure_demo_seed_data
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -74,6 +77,7 @@ async def list_organizations(
     user: User = Depends(require_auth)
 ):
     """List organizations owned by the current user."""
+    ensure_demo_seed_data(db, user.uid if user else None)
     service = get_org_service(db, user)
     return service.get_all(skip=skip, limit=limit)
 
@@ -126,3 +130,30 @@ async def delete_organization(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Organization not found: {org_id}"
         )
+
+
+@router.get("/{org_id}/audit", response_model=List[AuditEventResponse])
+async def list_organization_audit_events(
+    org_id: str,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """List recent audit events for an organization owned by the current user."""
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Organization not found: {org_id}",
+        )
+
+    safe_limit = max(1, min(limit, 500))
+    events = (
+        db.query(AuditEvent)
+        .filter(AuditEvent.org_id == org_id)
+        .order_by(AuditEvent.timestamp.desc())
+        .limit(safe_limit)
+        .all()
+    )
+    return events

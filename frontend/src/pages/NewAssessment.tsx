@@ -60,7 +60,7 @@ const domainColors: Record<string, string> = {
 };
 
 // LocalStorage key
-const DRAFT_KEY = 'airs_assessment_draft';
+const DRAFT_KEY = 'ResilAI_assessment_draft';
 
 interface DraftData {
   orgId: string;
@@ -556,3 +556,4 @@ export default function NewAssessment() {
 
   return step === 'setup' ? renderSetup() : renderQuestions();
 }
+

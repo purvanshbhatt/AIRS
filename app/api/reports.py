@@ -152,7 +152,14 @@ async def download_report(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Assessment not found for report: {report_id}"
         )
-    
+
+    # Enrich payload with summary analytics for executive risk page.
+    assessment_summary = assessment_service.get_summary(result["assessment_id"])
+    if assessment_summary:
+        for field in ("analytics", "framework_mapping", "detailed_roadmap", "roadmap"):
+            if field in assessment_summary:
+                assessment_detail[field] = assessment_summary[field]
+
     # Generate PDF using professional generator
     generator = ProfessionalPDFGenerator()
     pdf_content = generator.generate(assessment_detail)
@@ -162,7 +169,7 @@ async def download_report(
     
     # Create filename
     org_name = (result.get("organization_name") or "unknown").replace(" ", "_")
-    filename = f"AIRS_Report_{org_name}_{report_id[:8]}.pdf"
+    filename = f"ResilAI_Report_{org_name}_{report_id[:8]}.pdf"
     
     return StreamingResponse(
         BytesIO(pdf_content),

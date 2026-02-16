@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { getAssessmentSummary, downloadReport, createReport, ApiRequestError } from '../api'
+import {
+  getAssessmentSummary,
+  downloadReport,
+  downloadExecutiveSummary,
+  exportAssessmentForSiem,
+  createReport,
+  ApiRequestError,
+} from '../api'
 import type { AssessmentSummary } from '../types'
 import {
   Card,
@@ -49,6 +56,8 @@ export default function Results() {
   const [summary, setSummary] = useState<AssessmentSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
+  const [executiveDownloading, setExecutiveDownloading] = useState(false)
+  const [exportingSiem, setExportingSiem] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -83,7 +92,7 @@ export default function Results() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `AIRS_Report_${id}.pdf`
+      link.download = `ResilAI_Report_${id}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -96,6 +105,53 @@ export default function Results() {
       }
     } finally {
       setDownloading(false)
+    }
+  }
+
+  const handleDownloadExecutiveSummary = async () => {
+    setExecutiveDownloading(true)
+    try {
+      const blob = await downloadExecutiveSummary(id!)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ResilAI_Executive_Risk_Summary_${id}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage())
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to download executive summary')
+      }
+    } finally {
+      setExecutiveDownloading(false)
+    }
+  }
+
+  const handleExportForSiem = async () => {
+    setExportingSiem(true)
+    try {
+      const payload = await exportAssessmentForSiem(id!)
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ResilAI_SIEM_Export_${id}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage())
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to export findings')
+      }
+    } finally {
+      setExportingSiem(false)
     }
   }
 
@@ -271,6 +327,26 @@ export default function Results() {
             <Download className="h-4 w-4" />
             {downloading ? 'Downloading...' : 'Download PDF'}
           </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleDownloadExecutiveSummary}
+            disabled={executiveDownloading}
+            className="gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            {executiveDownloading ? 'Downloading...' : 'Download Executive Summary (1-Page)'}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleExportForSiem}
+            disabled={exportingSiem}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {exportingSiem ? 'Exporting...' : 'Export for SIEM'}
+          </Button>
         </div>
       </div>
 
@@ -340,3 +416,4 @@ export default function Results() {
     </div>
   )
 }
+

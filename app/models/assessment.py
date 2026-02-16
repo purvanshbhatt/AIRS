@@ -49,6 +49,7 @@ class Assessment(Base):
     scores = relationship("Score", back_populates="assessment", cascade="all, delete-orphan")
     findings = relationship("Finding", back_populates="assessment", cascade="all, delete-orphan")
     reports = relationship("Report", back_populates="assessment", cascade="all, delete-orphan")
+    roadmap_items = relationship("RoadmapItem", back_populates="assessment", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Assessment(id={self.id}, org={self.organization_id}, score={self.overall_score})>"

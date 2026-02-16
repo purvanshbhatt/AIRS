@@ -19,10 +19,10 @@ import { getRoadmap, createRoadmapItem, updateRoadmapItem, deleteRoadmapItem } f
 import type { TrackerItem } from '../types';
 
 interface RoadmapTrackerProps {
-    organizationId: string;
+    assessmentId: string;
 }
 
-export function RoadmapTracker({ organizationId }: RoadmapTrackerProps) {
+export function RoadmapTracker({ assessmentId }: RoadmapTrackerProps) {
     const [items, setItems] = useState<TrackerItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
@@ -31,11 +31,11 @@ export function RoadmapTracker({ organizationId }: RoadmapTrackerProps) {
     // Load items
     useEffect(() => {
         loadItems();
-    }, [organizationId]);
+    }, [assessmentId]);
 
     const loadItems = async () => {
         try {
-            const res = await getRoadmap(organizationId);
+            const res = await getRoadmap(assessmentId);
             setItems(res.items);
         } catch (e) {
             console.error("Failed to load roadmap", e);
@@ -47,7 +47,7 @@ export function RoadmapTracker({ organizationId }: RoadmapTrackerProps) {
     const handleAdd = async () => {
         if (!newItemTitle.trim()) return;
         try {
-            const newItem = await createRoadmapItem(organizationId, {
+            const newItem = await createRoadmapItem(assessmentId, {
                 title: newItemTitle,
                 status: 'todo',
                 priority: 'medium',
@@ -64,7 +64,7 @@ export function RoadmapTracker({ organizationId }: RoadmapTrackerProps) {
     const handleToggleStatus = async (item: TrackerItem) => {
         const newStatus = item.status === 'done' ? 'todo' : 'done';
         try {
-            const updated = await updateRoadmapItem(item.id, { status: newStatus });
+            const updated = await updateRoadmapItem(assessmentId, item.id, { status: newStatus });
             setItems(items.map(i => i.id === item.id ? updated : i));
         } catch (e) {
             console.error(e);
@@ -73,7 +73,7 @@ export function RoadmapTracker({ organizationId }: RoadmapTrackerProps) {
 
     const handleDelete = async (id: string) => {
         try {
-            await deleteRoadmapItem(id);
+            await deleteRoadmapItem(assessmentId, id);
             setItems(items.filter(i => i.id !== id));
         } catch (e) {
             console.error(e);

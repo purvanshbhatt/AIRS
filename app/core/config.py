@@ -1,5 +1,5 @@
 """
-AIRS Configuration Module
+ResilAI Configuration Module
 
 Uses pydantic-settings for type-safe configuration with validation.
 Loads .env file only in local environment mode.
@@ -18,6 +18,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Environment(str, Enum):
     """Application environment."""
     LOCAL = "local"
+    STAGING = "staging"
     PROD = "prod"
 
 
@@ -33,7 +34,9 @@ class Settings(BaseSettings):
     # Core Settings
     # ===========================================
     ENV: Environment = Environment.LOCAL
-    APP_NAME: str = "AIRS"
+    APP_NAME: str = "ResilAI"
+    APP_VERSION: Optional[str] = None
+    DEPLOYED_AT: Optional[str] = None
     DEBUG: bool = False
     
     # ===========================================
@@ -75,6 +78,7 @@ class Settings(BaseSettings):
     #   - LLM generates narratives only (no score modification)
     #   - Falls back to deterministic text if LLM fails
     DEMO_MODE: bool = False
+    INTEGRATIONS_ENABLED: bool = True
     
     # ===========================================
     # LLM Feature Flags
@@ -89,8 +93,8 @@ class Settings(BaseSettings):
     AIRS_USE_LLM: bool = False
     LLM_PROVIDER: str = "gemini"
     GEMINI_API_KEY: Optional[str] = None
-    LLM_MODEL: str = "gemini-2.0-flash"
-    GEMINI_MODEL: str = "gemini-2.0-flash"  # Alias for backwards compatibility
+    LLM_MODEL: str = "gemini-3-flash-preview"
+    GEMINI_MODEL: str = "gemini-3-flash-preview"  # Alias for backwards compatibility
     LLM_MAX_TOKENS: int = 1000
     LLM_TEMPERATURE: float = 0.7
 
@@ -104,7 +108,7 @@ class Settings(BaseSettings):
         """Validate that production environment has required settings."""
         errors = []
         
-        if self.ENV == Environment.PROD:
+        if self.ENV in (Environment.PROD, Environment.STAGING):
             # In production, CORS wildcard is now blocked by cors.py
             # Just log a warning here for visibility
             if self.CORS_ALLOW_ORIGINS == "*":
@@ -182,13 +186,21 @@ class Settings(BaseSettings):
 
     @property
     def is_prod(self) -> bool:
-        """Check if running in production environment."""
-        return self.ENV == Environment.PROD
+        """Check if running in production-like environment (staging or prod)."""
+        return self.ENV in (Environment.PROD, Environment.STAGING)
+
+    @property
+    def is_staging(self) -> bool:
+        """Check if running in staging environment."""
+        return self.ENV == Environment.STAGING
 
     @property
     def is_auth_required(self) -> bool:
         """Check if authentication is required for protected endpoints."""
-        return self.AUTH_REQUIRED or self.ENV == Environment.PROD
+        if self.DEMO_MODE:
+            # Demo links should be accessible without requiring auth.
+            return False
+        return self.AUTH_REQUIRED or self.ENV in (Environment.PROD, Environment.STAGING)
 
     @property
     def is_llm_enabled(self) -> bool:

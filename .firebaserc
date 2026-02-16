@@ -5,10 +5,17 @@
   "targets": {
     "gen-lang-client-0384513977": {
       "hosting": {
+        "airs-staging": [
+          "airs-staging-0384513977"
+        ],
+        "staging": [
+          "airs-staging-0384513977"
+        ],
         "airs": [
-          "airs-demo"
+          "gen-lang-client-0384513977"
         ]
       }
     }
-  }
+  },
+  "etags": {}
 }

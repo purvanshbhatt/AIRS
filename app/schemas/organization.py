@@ -35,6 +35,7 @@ class OrganizationUpdate(BaseModel):
 class OrganizationResponse(OrganizationBase):
     """Schema for organization response."""
     id: str
+    integration_status: Optional[str] = "{}"
     created_at: datetime
     updated_at: Optional[datetime] = None
     

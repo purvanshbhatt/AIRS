@@ -24,6 +24,11 @@ from app.models import (
     Answer,
     Score,
     Finding,
+    Report,
+    ApiKey,
+    Webhook,
+    RoadmapItem,
+    ExternalFinding,
 )
 
 # Alembic Config object

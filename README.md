@@ -1,7 +1,7 @@
-# AIRS - AI Incident Readiness Score
+# ResilAI - AI Incident Readiness Score
 
 <p align="center">
-  <img src="frontend/public/airs-logo-dark.png" alt="AIRS Logo" width="200"/>
+  <img src="frontend/public/airs-logo-dark.png" alt="ResilAI Logo" width="200"/>
 </p>
 
 <p align="center">
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://gen-lang-client-0384513977.web.app">🚀 Live Demo</a> •
+  <a href="https://airs-staging-0384513977.web.app">🚀 Public Beta</a> •
   <a href="#features">Features</a> •
   <a href="#documentation">Documentation</a> •
   <a href="#security">Security</a>
@@ -17,9 +17,9 @@
 
 ---
 
-## 🎯 What is AIRS?
+## 🎯 What is ResilAI?
 
-**AIRS (AI Incident Readiness Score)** is a modern security assessment platform that helps organizations measure and improve their incident readiness posture. Complete a 15-minute assessment and receive:
+**ResilAI (AI Incident Readiness Score)** is a modern security assessment platform that helps organizations measure and improve their incident readiness posture. Complete a 15-minute assessment and receive:
 
 - 📊 **Quantitative Score** (0-100) with maturity level (1-4)
 - 🔍 **Prioritized Findings** with remediation recommendations  
@@ -27,13 +27,14 @@
 - 📋 **Framework Mapping** to MITRE ATT&CK, CIS Controls, OWASP
 - 📄 **Executive PDF Report** ready for board presentation
 
-## 🚀 Live Demo
+## 🚀 Public Beta
 
 | Resource | Link |
 |----------|------|
-| **Web Application** | [gen-lang-client-0384513977.web.app](https://gen-lang-client-0384513977.web.app) |
-| **API Health** | [/health](https://airs-api-227825933697.us-central1.run.app/health) |
-| **LLM Status** | [/health/llm](https://airs-api-227825933697.us-central1.run.app/health/llm) |
+| **Web Application (Public Beta)** | [airs-staging-0384513977.web.app](https://airs-staging-0384513977.web.app) |
+| **API Health** | [/health](https://airs-api-staging-0384513977-knu3wsxymq-uc.a.run.app/health) |
+| **LLM Status** | [/health/llm](https://airs-api-staging-0384513977-knu3wsxymq-uc.a.run.app/health/llm) |
+| **Backend API Docs** | [/docs](https://airs-api-staging-0384513977-knu3wsxymq-uc.a.run.app/docs) |
 
 ### Quick Demo Walkthrough
 
@@ -72,7 +73,7 @@
 
 ### AI Transparency 🤖
 
-AIRS uses AI (Google Gemini) for narrative generation **only**:
+ResilAI uses AI (Google Gemini) for narrative generation **only**:
 
 | ✅ AI Generates | ❌ AI Does NOT Modify |
 |----------------|----------------------|
@@ -105,7 +106,7 @@ AIRS uses AI (Google Gemini) for narrative generation **only**:
 - **Database:** PostgreSQL (Cloud SQL)
 - **Auth:** Firebase Authentication
 - **Hosting:** Firebase Hosting (frontend), Cloud Run (API)
-- **AI:** Google Gemini 3.0 Pro (narratives only)
+- **AI:** Google Gemini 3 Flash (`gemini-3-flash-preview`, narratives only)
 
 ---
 
@@ -113,7 +114,7 @@ AIRS uses AI (Google Gemini) for narrative generation **only**:
 
 | Document | Description |
 |----------|-------------|
-| [Overview](docs/overview.md) | What AIRS is, who it's for |
+| [Overview](docs/overview.md) | What ResilAI is, who it's for |
 | [Methodology](docs/methodology.md) | Scoring domains, formulas, maturity levels |
 | [Frameworks](docs/frameworks.md) | MITRE/CIS/OWASP mapping philosophy |
 | [Security](docs/security.md) | Auth, tenancy, encryption, logging |
@@ -123,7 +124,7 @@ AIRS uses AI (Google Gemini) for narrative generation **only**:
 
 ## 🔒 Security
 
-AIRS is built with enterprise security requirements in mind:
+ResilAI is built with enterprise security requirements in mind:
 
 | Control | Implementation |
 |---------|----------------|
@@ -162,7 +163,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ## 📦 Project Structure
 
 ```
-AIRS/
+ResilAI/
 ├── frontend/               # React TypeScript SPA
 │   ├── src/
 │   │   ├── components/     # UI components
@@ -197,9 +198,10 @@ This showcase repository is provided for demonstration purposes.
 ---
 
 <p align="center">
-  <img src="frontend/public/favicon.png" alt="AIRS Icon" width="40"/>
+  <img src="frontend/public/favicon.png" alt="ResilAI Icon" width="40"/>
 </p>
 
 <p align="center">
   Built with ❤️ for security teams everywhere
 </p>
+

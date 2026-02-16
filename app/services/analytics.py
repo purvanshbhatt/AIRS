@@ -124,6 +124,20 @@ ATTACK_PATH_DEFINITIONS = {
 }
 
 
+def _build_gap_category(name: str, gaps: List[str], severity: str) -> Dict[str, Any]:
+    """Build gap category with backward-compatible fields for frontend variants."""
+    return {
+        "name": name,
+        "category": name,
+        "gaps": gaps,
+        "gap_count": len(gaps),
+        "severity": severity,
+        "is_critical": severity == "critical",
+        "description": f"{len(gaps)} control gap(s) identified in {name.lower()}.",
+        "findings": [{"title": g} for g in gaps],
+    }
+
+
 def analyze_attack_paths(finding_rule_ids: List[str]) -> List[Dict[str, Any]]:
     """
     Identify attack paths enabled by the current set of findings.
@@ -190,11 +204,13 @@ def analyze_detection_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         edr_gaps.append("Endpoint logs not collected")
     
     if edr_gaps:
-        gaps["categories"].append({
-            "name": "Endpoint Detection",
-            "gaps": edr_gaps,
-            "severity": "critical" if "DC-002" in finding_set else "high"
-        })
+        gaps["categories"].append(
+            _build_gap_category(
+                "Endpoint Detection",
+                edr_gaps,
+                "critical" if "DC-002" in finding_set else "high"
+            )
+        )
         gaps["total_gaps"] += len(edr_gaps)
     
     # Network Detection
@@ -205,11 +221,7 @@ def analyze_detection_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         network_gaps.append("Cloud service logs not collected")
     
     if network_gaps:
-        gaps["categories"].append({
-            "name": "Network Detection",
-            "gaps": network_gaps,
-            "severity": "high"
-        })
+        gaps["categories"].append(_build_gap_category("Network Detection", network_gaps, "high"))
         gaps["total_gaps"] += len(network_gaps)
     
     # Email/Phishing Detection
@@ -218,11 +230,7 @@ def analyze_detection_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         email_gaps.append("No email security/anti-phishing protection")
     
     if email_gaps:
-        gaps["categories"].append({
-            "name": "Email Security",
-            "gaps": email_gaps,
-            "severity": "high"
-        })
+        gaps["categories"].append(_build_gap_category("Email Security", email_gaps, "high"))
         gaps["total_gaps"] += len(email_gaps)
     
     # Log Visibility
@@ -235,11 +243,13 @@ def analyze_detection_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         log_gaps.append("Authentication events not logged")
     
     if log_gaps:
-        gaps["categories"].append({
-            "name": "Log Visibility",
-            "gaps": log_gaps,
-            "severity": "high" if "TL-002" in finding_set else "medium"
-        })
+        gaps["categories"].append(
+            _build_gap_category(
+                "Log Visibility",
+                log_gaps,
+                "high" if "TL-002" in finding_set else "medium"
+            )
+        )
         gaps["total_gaps"] += len(log_gaps)
     
     # Detection Operations
@@ -250,11 +260,7 @@ def analyze_detection_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         ops_gaps.append("Alerts not triaged within 24 hours")
     
     if ops_gaps:
-        gaps["categories"].append({
-            "name": "Detection Operations",
-            "gaps": ops_gaps,
-            "severity": "medium"
-        })
+        gaps["categories"].append(_build_gap_category("Detection Operations", ops_gaps, "medium"))
         gaps["total_gaps"] += len(ops_gaps)
     
     return gaps
@@ -289,11 +295,13 @@ def analyze_response_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         ir_gaps.append("No defined IR team or roles")
     
     if ir_gaps:
-        gaps["categories"].append({
-            "name": "Incident Response Process",
-            "gaps": ir_gaps,
-            "severity": "high" if "IR-001" in finding_set else "medium"
-        })
+        gaps["categories"].append(
+            _build_gap_category(
+                "Incident Response Process",
+                ir_gaps,
+                "high" if "IR-001" in finding_set else "medium"
+            )
+        )
         gaps["total_gaps"] += len(ir_gaps)
     
     # Recovery Capability
@@ -312,11 +320,13 @@ def analyze_response_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         recovery_gaps.append("Backup credentials not isolated")
     
     if recovery_gaps:
-        gaps["categories"].append({
-            "name": "Recovery Capability",
-            "gaps": recovery_gaps,
-            "severity": "critical" if "RS-003" in finding_set or "RS-002" in finding_set else "high"
-        })
+        gaps["categories"].append(
+            _build_gap_category(
+                "Recovery Capability",
+                recovery_gaps,
+                "critical" if "RS-003" in finding_set or "RS-002" in finding_set else "high"
+            )
+        )
         gaps["total_gaps"] += len(recovery_gaps)
     
     return gaps
@@ -347,11 +357,13 @@ def analyze_identity_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         mfa_gaps.append("MFA not enforced organization-wide")
     
     if mfa_gaps:
-        gaps["categories"].append({
-            "name": "Multi-Factor Authentication",
-            "gaps": mfa_gaps,
-            "severity": "critical" if "IV-001" in finding_set else "high"
-        })
+        gaps["categories"].append(
+            _build_gap_category(
+                "Multi-Factor Authentication",
+                mfa_gaps,
+                "critical" if "IV-001" in finding_set else "high"
+            )
+        )
         gaps["total_gaps"] += len(mfa_gaps)
     
     # Privileged Access
@@ -364,11 +376,7 @@ def analyze_identity_gaps(finding_rule_ids: List[str]) -> Dict[str, Any]:
         pam_gaps.append("No PAM solution deployed")
     
     if pam_gaps:
-        gaps["categories"].append({
-            "name": "Privileged Access Management",
-            "gaps": pam_gaps,
-            "severity": "high"
-        })
+        gaps["categories"].append(_build_gap_category("Privileged Access Management", pam_gaps, "high"))
         gaps["total_gaps"] += len(pam_gaps)
     
     return gaps
@@ -378,7 +386,8 @@ def calculate_risk_summary(
     attack_paths: List[Dict],
     detection_gaps: Dict,
     response_gaps: Dict,
-    identity_gaps: Dict
+    identity_gaps: Dict,
+    finding_rule_ids: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """
     Calculate overall risk summary from all gap analyses.
@@ -415,6 +424,15 @@ def calculate_risk_summary(
     key_risks = []
     for path in attack_paths[:3]:
         key_risks.append(f"{path['name']} ({path['risk_level']})")
+
+    total_risk_score = int(sum(path.get("risk_score", 0) for path in attack_paths))
+    severity_counts = {
+        "critical": len([p for p in attack_paths if p.get("risk_level") == "critical"]),
+        "high": len([p for p in attack_paths if p.get("risk_level") == "high"]),
+        "medium": len([p for p in attack_paths if p.get("risk_level") == "medium"]),
+        "low": len([p for p in attack_paths if p.get("risk_level") == "low"]),
+    }
+    findings_count = len(finding_rule_ids or [])
     
     # Mitigating factors
     mitigating_factors = []
@@ -430,7 +448,11 @@ def calculate_risk_summary(
         "key_risks": key_risks,
         "mitigating_factors": mitigating_factors,
         "attack_paths_enabled": len(attack_paths),
-        "total_gaps_identified": total_gaps
+        "total_gaps_identified": total_gaps,
+        # Backward-compatible summary fields expected by some frontend views
+        "severity_counts": severity_counts,
+        "findings_count": findings_count,
+        "total_risk_score": total_risk_score,
     }
 
 
@@ -452,7 +474,7 @@ def generate_analytics(finding_rule_ids: List[str]) -> Dict[str, Any]:
     
     # Calculate risk summary
     risk_summary = calculate_risk_summary(
-        attack_paths, detection_gaps, response_gaps, identity_gaps
+        attack_paths, detection_gaps, response_gaps, identity_gaps, finding_rule_ids=finding_rule_ids
     )
     
     # Calculate risk distribution

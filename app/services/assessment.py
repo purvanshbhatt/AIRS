@@ -26,6 +26,7 @@ from app.services.ai_narrative import generate_narrative
 from app.services.analytics import generate_analytics
 from app.services.roadmap import generate_detailed_roadmap, generate_simple_roadmap
 from app.core.frameworks import get_framework_refs, get_all_unique_techniques
+from app.core.product import get_product_info
 
 
 def load_baseline_profiles() -> Dict[str, Dict[str, float]]:
@@ -459,6 +460,9 @@ class AssessmentService:
         
         # Build LLM metadata (informational only - does NOT affect scoring)
         llm_metadata = self._get_llm_metadata()
+        llm_status = None
+        if llm_metadata["llm_enabled"]:
+            llm_status = "completed" if narratives.get("llm_generated") else "failed"
         
         # Generate framework mapping with coverage stats
         coverage_stats = get_all_unique_techniques(finding_rule_ids)
@@ -503,6 +507,7 @@ class AssessmentService:
         
         return {
             "api_version": "1.0",
+            "product": get_product_info(),
             "id": assessment.id,
             "title": assessment.title,
             "organization_id": assessment.organization_id,
@@ -533,6 +538,7 @@ class AssessmentService:
             "llm_provider": llm_metadata["llm_provider"],
             "llm_model": llm_metadata["llm_model"],
             "llm_mode": llm_metadata["llm_mode"],
+            "llm_status": llm_status,
         }
     
     def _get_llm_metadata(self) -> Dict[str, Any]:
@@ -556,7 +562,7 @@ class AssessmentService:
         llm_enabled = settings.is_llm_enabled
         
         # Provider and model (only if enabled)
-        llm_provider = "google" if llm_enabled else None
+        llm_provider = settings.LLM_PROVIDER if llm_enabled else None
         llm_model = settings.LLM_MODEL if llm_enabled else None
         
         return {
