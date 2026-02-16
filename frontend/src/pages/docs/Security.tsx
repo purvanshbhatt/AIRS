@@ -40,7 +40,7 @@ export default function DocsSecurity() {
                             { title: 'Social Providers', desc: 'Optional Google, Microsoft, and GitHub OAuth integration' },
                             { title: 'MFA Support', desc: 'Multi-factor authentication available for enhanced security' },
                             { title: 'Session Management', desc: 'JWT tokens with configurable expiration and refresh' },
-                            { title: 'Demo Mode', desc: 'Run assessments without authentication for evaluation' },
+                            { title: 'Public Beta Mode', desc: 'Run assessments in a synthetic-data environment for evaluation' },
                         ].map((item) => (
                             <li key={item.title} className="flex items-start gap-3">
                                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
@@ -170,7 +170,7 @@ export default function DocsSecurity() {
                         </li>
                         <li className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                            <span>Demo mode assessments are stored locally and not persisted to backend</span>
+                            <span>Public Beta synthetic assessments can be isolated from production persistence</span>
                         </li>
                     </ul>
                 </div>

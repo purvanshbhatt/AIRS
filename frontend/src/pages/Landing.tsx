@@ -70,9 +70,9 @@ export default function Landing() {
               </Link>
               <Link
                 to="/pilot"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 text-primary-700 text-sm font-medium rounded-lg hover:bg-primary-50 transition-colors"
               >
-                Pilot
+                Request Enterprise Pilot
               </Link>
               <Link
                 to="/dashboard"
@@ -116,7 +116,7 @@ export default function Landing() {
                 to="/assessment/new"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white text-lg font-semibold rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5"
               >
-                Run Demo Assessment
+                Run Assessment
                 <ChevronRight className="w-5 h-5" />
               </Link>
               <a
@@ -212,7 +212,7 @@ export default function Landing() {
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary-600/20 to-primary-400/20 rounded-3xl blur-2xl" />
               <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-                {/* Mock Report Header */}
+                {/* Example Report Header */}
                 <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
@@ -225,7 +225,7 @@ export default function Landing() {
                   </div>
                 </div>
 
-                {/* Mock Report Content */}
+                {/* Example Report Content */}
                 <div className="p-6 space-y-6">
                   {/* Score Circle */}
                   <div className="flex items-center gap-6">
@@ -238,7 +238,7 @@ export default function Landing() {
                     </div>
                   </div>
 
-                  {/* Mock Domain Bars */}
+                  {/* Example Domain Bars */}
                   <div className="space-y-3">
                     {[
                       { name: 'Telemetry & Logging', score: 85 },
@@ -260,7 +260,7 @@ export default function Landing() {
                     ))}
                   </div>
 
-                  {/* Mock Finding */}
+                  {/* Example Finding */}
                   <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
                     <div className="flex items-start gap-3">
                       <div className="w-6 h-6 bg-warning-500 rounded text-white flex items-center justify-center text-xs font-bold">
@@ -295,7 +295,7 @@ export default function Landing() {
             Ready to Assess Your Security Posture?
           </h2>
           <p className="text-lg text-gray-600 mb-10">
-            Start with a demo assessment using sample data, or create your organization to track
+            Start with an assessment using synthetic example data, or create your organization to track
             progress over time.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

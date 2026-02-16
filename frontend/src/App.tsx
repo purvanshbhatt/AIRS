@@ -39,7 +39,7 @@ function ApiConfigBanner() {
   );
 }
 
-function DemoModeBanner() {
+function PublicBetaBanner() {
   const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
@@ -52,7 +52,8 @@ function DemoModeBanner() {
 
   return (
     <div className="bg-blue-600 text-white px-4 py-2 text-center text-sm font-medium">
-      Public Beta - Sample environment with synthetic data
+      Public Beta
+      <span className="ml-2 opacity-90">This environment contains synthetic example data.</span>
     </div>
   );
 }
@@ -98,7 +99,7 @@ export default function App() {
       <ToastProvider>
         <AuthRedirectHandler />
         <ApiConfigBanner />
-        <DemoModeBanner />
+        <PublicBetaBanner />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />

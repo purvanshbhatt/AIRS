@@ -420,6 +420,15 @@ class ProfessionalPDFGenerator:
             Spacer(1, 8),
             Paragraph(f"<b>Organization:</b> {org_name}", self.styles["Metadata"]),
             Paragraph(f"<b>Date:</b> {report_date}", self.styles["Metadata"]),
+            Paragraph(
+                "<b>Confidential - Executive Summary</b>",
+                ParagraphStyle(
+                    "ExecutiveConfidential",
+                    parent=self.styles["Metadata"],
+                    fontName="Helvetica-Bold",
+                    textColor=Colors.DARK_BLUE,
+                ),
+            ),
             Spacer(1, 10),
             HRFlowable(
                 width="100%",

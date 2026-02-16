@@ -191,12 +191,12 @@ export default function Integrations() {
     try {
       const result = await testWebhook(id);
       if (!result.delivered) {
-        setError(result.error || `Test failed (HTTP ${result.status_code || 'unknown'})`);
+        setError(result.error || `Delivery check failed (HTTP ${result.status_code || 'unknown'})`);
       } else {
-        setNotice(`Webhook test delivered (HTTP ${result.status_code || 200}).`);
+        setNotice(`Webhook delivery check succeeded (HTTP ${result.status_code || 200}).`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to test webhook');
+      setError(err instanceof Error ? err.message : 'Failed to run webhook delivery check');
     } finally {
       setBusy(false);
     }
@@ -265,7 +265,7 @@ export default function Integrations() {
       }
       setWebhookTestPayload(JSON.stringify(result.payload, null, 2));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Webhook test failed');
+      setError(err instanceof Error ? err.message : 'Webhook delivery check failed');
     } finally {
       setBusy(false);
     }
@@ -432,7 +432,7 @@ export default function Integrations() {
                   <div className="text-sm font-medium text-gray-900 break-all">{hook.url}</div>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline" onClick={() => handleTestWebhook(hook.id)} disabled={busy}>
-                      Test
+                      Run Check
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => handleDeleteWebhook(hook.id)} disabled={busy}>
                       Disable
@@ -444,10 +444,10 @@ export default function Integrations() {
 
             <div className="pt-3 border-t border-gray-200 space-y-2">
               <Input
-                label="Quick Webhook Test URL"
+                label="Quick Webhook Check URL"
                 value={webhookTestUrl}
                 onChange={(e) => setWebhookTestUrl(e.target.value)}
-                placeholder="https://webhook.site/your-test-id"
+                placeholder="https://webhook.site/your-check-id"
               />
               <Button
                 size="sm"
@@ -455,7 +455,7 @@ export default function Integrations() {
                 onClick={handleTestWebhookUrl}
                 disabled={busy || !webhookTestUrl.trim()}
               >
-                Send Test
+                Send Check
               </Button>
               {webhookTestResult && <p className="text-xs text-gray-600">{webhookTestResult}</p>}
               {webhookTestPayload && (
@@ -487,7 +487,7 @@ export default function Integrations() {
               Connect Splunk
             </Button>
             <Button size="sm" variant="outline" onClick={handleSeedFindings} disabled={busy || !selectedOrgId}>
-              Seed Sample Findings
+              Seed Example Findings
             </Button>
             <Button size="sm" variant="outline" onClick={reload} disabled={busy || !selectedOrgId} className="gap-2">
               <RefreshCw className="w-4 h-4" />
