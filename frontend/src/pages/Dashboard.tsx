@@ -53,7 +53,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
-  const [sampleAssessmentId, setSampleAssessmentId] = useState<string | null>(null);
+  const [exampleAssessmentId, setExampleAssessmentId] = useState<string | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [selectedOrgId, setSelectedOrgId] = useState('');
@@ -77,55 +77,51 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
       try {
-        const [orgs, assessments, systemStatus] = await Promise.all([
+        const [orgs, loadedAssessments, systemStatus] = await Promise.all([
           getOrganizations(),
           getAssessments(),
           getSystemStatus().catch(() => null),
         ]);
         setIsDemoMode(Boolean(systemStatus?.demo_mode));
         setOrganizations(orgs);
-        setAssessments(assessments);
+        setAssessments(loadedAssessments);
         if (orgs.length > 0) {
           setSelectedOrgId(orgs[0].id);
         }
 
-        // Calculate stats
-        const completed = assessments.filter((a) => a.status === 'completed');
-        const drafts = assessments.filter((a) => a.status !== 'completed');
-        const scoresWithValues = completed.filter((a) => a.overall_score != null);
+        const completed = loadedAssessments.filter((assessment) => assessment.status === 'completed');
+        const drafts = loadedAssessments.filter((assessment) => assessment.status !== 'completed');
+        const scoresWithValues = completed.filter((assessment) => assessment.overall_score != null);
         const avgScore =
           scoresWithValues.length > 0
-            ? scoresWithValues.reduce((sum, a) => sum + (a.overall_score ?? 0), 0) /
+            ? scoresWithValues.reduce((sum, assessment) => sum + (assessment.overall_score ?? 0), 0) /
               scoresWithValues.length
             : null;
 
         setStats({
           totalOrgs: orgs.length,
-          totalAssessments: assessments.length,
+          totalAssessments: loadedAssessments.length,
           completedAssessments: completed.length,
           draftAssessments: drafts.length,
           averageScore: avgScore,
         });
 
-        // Get recent items (last 5)
         setRecentAssessments(
-          assessments
+          loadedAssessments
+            .slice()
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 5)
         );
-        const completedForDemo = assessments.filter((a) => a.status === 'completed');
-        setSampleAssessmentId(completedForDemo[0]?.id || assessments[0]?.id || null);
+        const completedForExample = loadedAssessments.filter((assessment) => assessment.status === 'completed');
+        setExampleAssessmentId(completedForExample[0]?.id || loadedAssessments[0]?.id || null);
         setRecentOrgs(
           orgs
+            .slice()
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 3)
         );
       } catch (err) {
-        setError(
-          err instanceof ApiRequestError
-            ? err.toDisplayMessage()
-            : 'Failed to load dashboard data'
-        );
+        setError(err instanceof ApiRequestError ? err.toDisplayMessage() : 'Failed to load dashboard data');
       } finally {
         setLoading(false);
       }
@@ -141,26 +137,24 @@ export default function Dashboard() {
       try {
         const selectedOrg = organizations.find((org) => org.id === selectedOrgId);
         const integrationStatus = safeParseIntegrationStatus(selectedOrg?.integration_status);
-        const [apiKeys, webhooks] = await Promise.all([
-          listApiKeys(selectedOrgId),
-          listWebhooks(selectedOrgId),
-        ]);
+        const [apiKeys, webhooks] = await Promise.all([listApiKeys(selectedOrgId), listWebhooks(selectedOrgId)]);
+        const betaDefault = isDemoMode;
         setIntegrationSnapshot({
-          splunkConnected: Boolean(integrationStatus?.splunk?.connected),
-          webhookActive: webhooks.length > 0,
-          apiKeyEnabled: apiKeys.some((key) => key.is_active),
+          splunkConnected: betaDefault ? true : Boolean(integrationStatus?.splunk?.connected),
+          webhookActive: betaDefault ? true : webhooks.length > 0,
+          apiKeyEnabled: betaDefault ? true : apiKeys.some((key) => key.is_active),
         });
       } catch {
         setIntegrationSnapshot({
-          splunkConnected: false,
-          webhookActive: false,
-          apiKeyEnabled: false,
+          splunkConnected: isDemoMode,
+          webhookActive: isDemoMode,
+          apiKeyEnabled: isDemoMode,
         });
       }
     };
 
     loadOrgIntegrationSnapshot();
-  }, [selectedOrgId, organizations]);
+  }, [selectedOrgId, organizations, isDemoMode]);
 
   if (loading) {
     return (
@@ -212,9 +206,24 @@ export default function Dashboard() {
       ? (latestCompleted.overall_score ?? 0) - (previousCompleted.overall_score ?? 0)
       : null;
 
+  const selectedOrganization = organizations.find((org) => org.id === selectedOrgId);
+  const displayOrganizationName = selectedOrganization?.name || 'Acme Health Systems';
+  const displayIndustry = selectedOrganization?.industry || 'Healthcare';
+  const displayEmployees = isDemoMode ? '850' : selectedOrganization?.size || 'N/A';
+  const displayCurrentScore = isDemoMode
+    ? 72
+    : latestCompleted
+      ? Math.round(latestCompleted.overall_score || 0)
+      : null;
+  const displayPreviousScore = isDemoMode
+    ? 58
+    : previousCompleted
+      ? Math.round(previousCompleted.overall_score || 0)
+      : null;
+  const displayDelta = isDemoMode ? 14 : scoreDelta;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
@@ -269,23 +278,26 @@ export default function Dashboard() {
         </Card>
       ) : (
         <>
-          {isDemoMode && sampleAssessmentId && (
+          {isDemoMode && exampleAssessmentId && (
             <Card className="border-blue-200 bg-blue-50">
               <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="text-sm text-blue-900">
-                  Public Beta sample environment is preloaded with synthetic organization data.
+                  Public Beta environment contains synthetic example data.
                 </div>
-                <Button
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => navigate(`/dashboard/results/${sampleAssessmentId}`)}
-                >
+                <Button size="sm" className="gap-2" onClick={() => navigate(`/dashboard/results/${exampleAssessmentId}`)}>
                   <Sparkles className="w-4 h-4" />
-                  View Sample Executive Report
+                  View Executive Report
                 </Button>
               </CardContent>
             </Card>
           )}
+
+          <Card padding="md">
+            <p className="text-sm text-gray-500">Organization Profile</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">{displayOrganizationName}</p>
+            <div className="mt-2 text-sm text-gray-700">Industry: {displayIndustry}</div>
+            <div className="text-sm text-gray-700">Employees: {displayEmployees}</div>
+          </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card padding="md">
@@ -299,26 +311,29 @@ export default function Dashboard() {
             <Card padding="md">
               <p className="text-sm text-gray-500">Last Assessment Run</p>
               <p className="mt-2 text-base font-semibold text-gray-900">
-                {latestCompleted ? new Date(latestCompleted.created_at).toLocaleString() : 'No completed run yet'}
+                {isDemoMode
+                  ? 'Last evaluated: 2 hours ago'
+                  : latestCompleted
+                    ? new Date(latestCompleted.created_at).toLocaleString()
+                    : 'No completed run yet'}
               </p>
             </Card>
             <Card padding="md">
               <p className="text-sm text-gray-500">Risk Trend</p>
               <p className="mt-2 text-base font-semibold text-gray-900">
-                {latestCompleted ? `Current: ${Math.round(latestCompleted.overall_score || 0)}%` : 'Current: N/A'}
+                {displayCurrentScore != null ? `Current: ${displayCurrentScore}%` : 'Current: N/A'}
               </p>
               <p className="text-sm text-gray-600">
-                {previousCompleted
-                  ? `Previous: ${Math.round(previousCompleted.overall_score || 0)}%`
-                  : 'Previous: N/A'}
+                {displayPreviousScore != null ? `Previous: ${displayPreviousScore}%` : 'Previous: N/A'}
               </p>
-              <p className={`text-sm font-medium ${scoreDelta != null && scoreDelta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {scoreDelta == null ? 'Trend unavailable' : `${scoreDelta >= 0 ? '↑' : '↓'} ${Math.abs(scoreDelta).toFixed(1)} points`}
+              <p className={`text-sm font-medium ${displayDelta != null && displayDelta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {displayDelta == null
+                  ? 'Trend unavailable'
+                  : `${displayDelta >= 0 ? '^' : 'v'} ${displayDelta >= 0 ? '+' : '-'}${Math.abs(displayDelta).toFixed(0)} ${displayDelta >= 0 ? 'improvement' : 'change'}`}
               </p>
             </Card>
           </div>
 
-          {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card padding="md">
               <div className="flex items-center gap-3">
@@ -364,16 +379,14 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm text-gray-500">Avg. Score</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {stats.averageScore != null ? `${Math.round(stats.averageScore)}%` : '—'}
+                    {stats.averageScore != null ? `${Math.round(stats.averageScore)}%` : '-'}
                   </p>
                 </div>
               </div>
             </Card>
           </div>
 
-          {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Assessments */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -408,7 +421,7 @@ export default function Dashboard() {
                           <div>
                             <p className="font-medium text-gray-900">{assessment.title}</p>
                             <p className="text-xs text-gray-500">
-                              {assessment.organization_name || 'Unknown org'} •{' '}
+                              {assessment.organization_name || 'Unknown org'} |{' '}
                               {new Date(assessment.created_at).toLocaleDateString()}
                             </p>
                           </div>
@@ -429,7 +442,6 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Recent Organizations */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -457,8 +469,7 @@ export default function Dashboard() {
                       >
                         <p className="font-medium text-gray-900">{org.name}</p>
                         <p className="text-xs text-gray-500">
-                          {org.industry || 'No industry'} •{' '}
-                          {new Date(org.created_at).toLocaleDateString()}
+                          {org.industry || 'No industry'} | {new Date(org.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     ))}

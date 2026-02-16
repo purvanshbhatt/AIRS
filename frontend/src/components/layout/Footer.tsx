@@ -14,7 +14,7 @@ interface FooterLink {
 const footerLinks: FooterLink[] = [
     { label: 'About', href: '/about', icon: FileText },
     { label: 'Docs', href: '/docs', icon: FileText },
-    { label: 'Pilot', href: '/pilot', icon: Activity },
+    { label: 'Request Enterprise Pilot', href: '/pilot', icon: Activity },
     { label: 'Privacy', href: '/docs/security#privacy', icon: Lock },
     { label: 'Security', href: '/security', icon: Shield },
     { label: 'GitHub', href: 'https://www.github.com/purvanshbhatt/AIRS', icon: Github, external: true },
@@ -22,7 +22,6 @@ const footerLinks: FooterLink[] = [
 ];
 
 export function Footer() {
-    const currentYear = new Date().getFullYear();
     const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
 
     useEffect(() => {
@@ -63,8 +62,8 @@ export function Footer() {
                 </nav>
 
                 <p className="text-xs text-gray-400 dark:text-gray-500">
-                    © {currentYear} ResilAI
-                    {systemStatus ? ` v${systemStatus.version || 'dev'} (${systemStatus.environment})` : ''}
+                    Copyright 2026 ResilAI | Public Beta
+                    {systemStatus ? ` | v${systemStatus.version || 'dev'} (${systemStatus.environment})` : ''}
                 </p>
             </div>
         </footer>

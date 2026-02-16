@@ -30,7 +30,7 @@ export function clearUserData(): void {
 }
 
 /**
- * Clear all local demo/test data.
+ * Clear all local synthetic/staging data.
  * This is a more aggressive clear that removes all app-related localStorage.
  */
 export function clearAllLocalData(): void {

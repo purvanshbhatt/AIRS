@@ -198,9 +198,9 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        {/* Demo notice */}
+        {/* Public beta notice */}
         <p className="text-center text-xs text-gray-400 mt-6">
-          For demo purposes only. Do not use real credentials.
+          Public Beta environment with synthetic example data.
         </p>
       </div>
     </div>

@@ -223,6 +223,8 @@ DEPLOY_ARGS=(
     --max-instances 10
     --timeout 120
 )
+DEPLOYED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+DEPLOY_ARGS+=(--update-env-vars "DEPLOYED_AT=${DEPLOYED_AT_UTC}")
 
 if [ -n "$PROJECT_ID" ]; then
     DEPLOY_ARGS+=(--project "$PROJECT_ID")
@@ -267,6 +269,7 @@ fi
 if [ -n "$ENV_COUNT" ]; then
     echo "  Env vars: $ENV_COUNT variables loaded"
 fi
+echo "  Deployed at (UTC): $DEPLOYED_AT_UTC"
 
 if [ "$ALLOW_UNAUTHENTICATED" = "true" ]; then
     DEPLOY_ARGS+=(--allow-unauthenticated)

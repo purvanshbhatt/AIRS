@@ -280,7 +280,7 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
             <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 pt-2 border-t border-gray-100 dark:border-gray-700">
               <span>Powered by {summary.llm_provider || 'AI'}</span>
               {summary.llm_mode === 'demo' && (
-                <span className="text-warning-500 font-medium">Demo Mode</span>
+                <span className="text-warning-500 font-medium">Public Beta</span>
               )}
             </div>
           </CardContent>
