@@ -112,7 +112,7 @@ export default function Assessment() {
           onClick={() => handleAnswerChange(q.id, value !== true)}
           className={clsx(
             'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-            value === true ? 'bg-primary-600' : 'bg-gray-200'
+            value === true ? 'bg-primary-600' : 'bg-gray-200 dark:bg-slate-700'
           )}
         >
           <span
@@ -134,9 +134,9 @@ export default function Assessment() {
           max={q.type === 'percentage' ? 100 : undefined}
           value={typeof value === 'number' ? value : ''}
           onChange={(e) => handleAnswerChange(q.id, parseFloat(e.target.value) || 0)}
-          className="w-24 px-3 py-1.5 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-24 px-3 py-1.5 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
-        {q.type === 'percentage' && <span className="text-gray-500 text-sm">%</span>}
+        {q.type === 'percentage' && <span className="text-gray-500 dark:text-slate-400 text-sm">%</span>}
       </div>
     );
   };
@@ -146,7 +146,7 @@ export default function Assessment() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading assessment...</p>
+          <p className="text-gray-600 dark:text-slate-300">Loading assessment...</p>
         </div>
       </div>
     );
@@ -168,7 +168,7 @@ export default function Assessment() {
   if (!rubric || !assessment) {
     return (
       <Card>
-        <CardContent className="py-8 text-center text-gray-600">
+        <CardContent className="py-8 text-center text-gray-600 dark:text-slate-300">
           Assessment not found
         </CardContent>
       </Card>
@@ -186,17 +186,17 @@ export default function Assessment() {
         <CardContent className="py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{assessment.title}</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">{assessment.title}</h1>
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 Answer all questions to complete the assessment
               </p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-primary-600">{progress}%</p>
-              <p className="text-xs text-gray-500">Complete</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400">Complete</p>
             </div>
           </div>
-          <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="mt-4 h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
               className="h-full bg-primary-500 transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -220,7 +220,7 @@ export default function Assessment() {
                 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-primary-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700'
               )}
             >
               {domain.name}
@@ -239,15 +239,15 @@ export default function Assessment() {
       {/* Questions */}
       {currentDomain && (
         <Card>
-          <CardContent className="divide-y divide-gray-100">
+          <CardContent className="divide-y divide-gray-100 dark:divide-slate-800">
             {currentDomain.questions.map((q, idx) => (
               <div key={q.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-slate-100">
                       {idx + 1}. {q.text}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                       {q.points} point{q.points !== 1 ? 's' : ''} • {q.type}
                     </p>
                   </div>
@@ -261,7 +261,7 @@ export default function Assessment() {
 
       {/* Submit */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
           {progress < 100
             ? `Complete all questions to submit (${100 - progress}% remaining)`
             : 'All questions answered!'}

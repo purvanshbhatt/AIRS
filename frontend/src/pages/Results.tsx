@@ -222,7 +222,7 @@ export default function Results() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600">Analyzing AI security posture...</p>
+          <p className="text-gray-600 dark:text-slate-300">Analyzing AI security posture...</p>
         </div>
       </div>
     )
@@ -235,8 +235,8 @@ export default function Results() {
           <Card className="max-w-md w-full">
             <CardContent className="py-12 text-center">
               <Shield className="h-16 w-16 text-warning-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-              <p className="text-gray-600 mb-6">{error}</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">Access Denied</h2>
+              <p className="text-gray-600 dark:text-slate-300 mb-6">{error}</p>
               <div className="flex flex-col gap-3">
                 <Link to="/dashboard">
                   <Button className="w-full gap-2">
@@ -260,8 +260,8 @@ export default function Results() {
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
             <FileText className="h-16 w-16 text-danger-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Assessment</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">Error Loading Assessment</h2>
+            <p className="text-gray-600 dark:text-slate-300 mb-6">{error}</p>
             <Link to="/dashboard">
               <Button>Back to Dashboard</Button>
             </Link>
@@ -276,8 +276,8 @@ export default function Results() {
       <Card className="max-w-md mx-auto mt-12">
         <CardContent className="py-12 text-center">
           <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Assessment Not Found</h2>
-          <p className="text-gray-600 mb-6">The requested assessment could not be loaded</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">Assessment Not Found</h2>
+          <p className="text-gray-600 dark:text-slate-300 mb-6">The requested assessment could not be loaded</p>
           <Link to="/dashboard">
             <Button>Back to Dashboard</Button>
           </Link>
@@ -291,23 +291,23 @@ export default function Results() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white rounded-xl border border-gray-200 p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-6">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
             <Building2 className="h-4 w-4" />
             <span>{summary.organization_name || 'Organization'}</span>
-            <span className="text-gray-300">|</span>
+            <span className="text-gray-300 dark:text-slate-600">|</span>
             <Clock className="h-4 w-4" />
             <span>{formatDate(summary.created_at)}</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
             {summary.title || 'AI Readiness Assessment'}
           </h1>
           <div className="flex items-center gap-2">
             <Badge variant={readinessLevel.variant}>Readiness Level: {readinessLevel.label}</Badge>
             <Badge variant="outline">Readiness Score: {Math.round(summary.overall_score)}</Badge>
           </div>
-          <p className="text-gray-600">Assessment ID: {id?.slice(0, 8)}...</p>
+          <p className="text-gray-600 dark:text-slate-300">Assessment ID: {id?.slice(0, 8)}...</p>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -363,7 +363,7 @@ export default function Results() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-slate-800">
         <nav className="flex space-x-1 overflow-x-auto pb-px" aria-label="Results tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -376,7 +376,7 @@ export default function Results() {
                   'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors',
                   isActive
                     ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:border-gray-300 dark:hover:border-slate-700'
                 )}
               >
                 <Icon className="h-4 w-4" />

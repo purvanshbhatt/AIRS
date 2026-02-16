@@ -21,10 +21,10 @@ export class ErrorBoundary extends React.Component<React.PropsWithChildren, Erro
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-white border border-slate-200 rounded-xl p-6 text-center">
-            <h1 className="text-lg font-semibold text-slate-900 mb-2">Something went wrong</h1>
-            <p className="text-sm text-slate-600 mb-4">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-center">
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Something went wrong</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
               Please refresh the page or contact support if the issue persists.
             </p>
             <button
