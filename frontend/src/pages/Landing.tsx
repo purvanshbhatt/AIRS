@@ -71,6 +71,12 @@ export default function Landing() {
                 Security
               </Link>
               <Link
+                to="/status"
+                className="text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
+              >
+                Status
+              </Link>
+              <Link
                 to="/pilot"
                 className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
               >

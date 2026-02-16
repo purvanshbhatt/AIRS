@@ -11,7 +11,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, hint, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
     
-    const baseStyles = 'block w-full rounded-lg border bg-white text-gray-900 placeholder:text-gray-400 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0';
+    const baseStyles = 'block w-full rounded-lg border bg-white text-gray-900 placeholder:text-gray-400 caret-gray-900 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:caret-slate-100 px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0';
     
     const stateStyles = error
       ? 'border-danger-500 focus:border-danger-500 focus:ring-danger-500/20'

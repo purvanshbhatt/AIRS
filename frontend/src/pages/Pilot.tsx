@@ -54,13 +54,14 @@ export default function PilotPage() {
             <ThemeToggle />
             <Link to="/about" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">About</Link>
             <Link to="/security" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">Security</Link>
+            <Link to="/status" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">Status</Link>
           </div>
         </div>
       </header>
 
       <main className="flex-1">
         <div className="max-w-3xl mx-auto px-4 py-10">
-          <Card>
+          <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-card">
             <CardHeader>
               <CardTitle>Request a Pilot</CardTitle>
             </CardHeader>
@@ -77,11 +78,12 @@ export default function PilotPage() {
                 </div>
               )}
 
-              <form onSubmit={onSubmit} className="space-y-4">
+              <form onSubmit={onSubmit} className="space-y-4" autoComplete="on">
                 <Input
                   required
                   label="Company Name"
                   value={form.company_name}
+                  className="caret-slate-900 dark:caret-slate-100"
                   onChange={(e) => setForm((prev) => ({ ...prev, company_name: e.target.value }))}
                 />
 
@@ -89,6 +91,7 @@ export default function PilotPage() {
                   required
                   label="Team Size"
                   value={form.team_size}
+                  className="caret-slate-900 dark:caret-slate-100"
                   onChange={(e) => setForm((prev) => ({ ...prev, team_size: e.target.value }))}
                   placeholder="e.g. 51-200"
                 />
@@ -96,7 +99,7 @@ export default function PilotPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">Current Security Tools</label>
                   <textarea
-                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-sm min-h-24 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 caret-slate-900 dark:caret-slate-100 px-3 py-2 text-sm min-h-24 resize-y focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                     value={form.current_security_tools}
                     onChange={(e) => setForm((prev) => ({ ...prev, current_security_tools: e.target.value }))}
                     placeholder="SIEM, EDR, cloud monitoring stack..."
@@ -108,6 +111,7 @@ export default function PilotPage() {
                   type="email"
                   label="Email"
                   value={form.email}
+                  className="caret-slate-900 dark:caret-slate-100"
                   onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
                 />
 

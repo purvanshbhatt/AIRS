@@ -17,6 +17,7 @@ export default function SecurityPage() {
             <ThemeToggle />
             <Link to="/about" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">About</Link>
             <Link to="/pilot" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">Pilot Request</Link>
+            <Link to="/status" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">Status</Link>
             <Link to="/dashboard" className="text-primary-600 font-medium">Dashboard</Link>
           </div>
         </div>

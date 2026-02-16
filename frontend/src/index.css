@@ -98,6 +98,19 @@ html.dark [class~="border-slate-100"]:not([class*="dark:border-"]) { border-colo
 html.dark [class~="border-slate-200"]:not([class*="dark:border-"]) { border-color: #334155; }
 html.dark [class~="border-slate-300"]:not([class*="dark:border-"]) { border-color: #475569; }
 
+/* Ensure form controls stay readable in dark mode even on legacy pages. */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select {
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"])::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
 /* Animation keyframes */
 @keyframes animate-in {
   from {
