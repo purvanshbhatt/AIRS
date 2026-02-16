@@ -1,8 +1,8 @@
-# Security Posture
+﻿# Security Posture
 
 ## Overview
 
-AIRS is built with security as a foundational requirement. This document outlines the security controls, architecture decisions, and practices that protect your assessment data.
+ResilAI is built with security as a foundational requirement. This document outlines the security controls, architecture decisions, and practices that protect your assessment data.
 
 ## Authentication
 
@@ -14,7 +14,7 @@ AIRS is built with security as a foundational requirement. This document outline
 
 ### Implementation Details
 ```
-Client → Firebase SDK → JWT Token → API Gateway → Token Validation → Request Processing
+Client â†’ Firebase SDK â†’ JWT Token â†’ API Gateway â†’ Token Validation â†’ Request Processing
 ```
 
 - Tokens are validated server-side using Firebase Admin SDK
@@ -24,7 +24,7 @@ Client → Firebase SDK → JWT Token → API Gateway → Token Validation → R
 ## Tenant Isolation
 
 ### Multi-Tenant Architecture
-AIRS implements strict tenant isolation at the database level:
+ResilAI implements strict tenant isolation at the database level:
 
 | Resource | Isolation Method |
 |----------|------------------|
@@ -163,9 +163,9 @@ For security concerns or vulnerability reports:
 
 ## Compliance Notes
 
-AIRS is designed with compliance-friendly architecture:
+ResilAI is designed with compliance-friendly architecture:
 - SOC 2 Type II controls alignment
 - GDPR data handling capabilities
 - Audit trail for all data modifications
 
-*Note: AIRS itself does not hold compliance certifications. Organizations should conduct their own compliance assessments.*
+*Note: ResilAI itself does not hold compliance certifications. Organizations should conduct their own compliance assessments.*
