@@ -185,15 +185,15 @@ ResilAI/
 
 ## 🤝 Contact
 
-- **Demo Questions:** Schedule a walkthrough
-- **Enterprise Licensing:** Contact for pricing
-- **Security Issues:** security@[domain]
+- **Demo Questions:** purvansh95b@gmail.com
+- **Enterprise Licensing:** purvansh95b@gmail.com
+- **Security Issues:** purvansh95b@gmail.com
 
 ---
 
 ## 📄 License
 
-This showcase repository is provided for demonstration purposes.
+This repository is licensed under GNU AGPL-3.0. See [LICENSE](LICENSE) for full terms.
 
 ---
 

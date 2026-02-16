@@ -158,7 +158,7 @@ Every request includes:
 ## Security Contacts
 
 For security concerns or vulnerability reports:
-- **Email:** security@[domain]
+- **Email:** purvansh95b@gmail.com
 - **Response Time:** 24-48 hours for initial acknowledgment
 
 ## Compliance Notes

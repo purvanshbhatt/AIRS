@@ -180,18 +180,18 @@ export default function Landing() {
       </section>
 
       {/* Report Preview Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white dark:from-slate-900 dark:to-slate-950">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-success-50 text-success-700 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-success-50 text-success-700 dark:bg-success-900/30 dark:text-success-300 rounded-full text-sm font-medium mb-6">
                 <TrendingUp className="w-4 h-4" />
                 AI-Powered Insights
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-6">
                 Professional Reports in Seconds
               </h2>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 dark:text-slate-300 mb-8 leading-relaxed">
                 Generate comprehensive PDF reports that executives and auditors love. Includes
                 domain-by-domain analysis, severity-ranked findings, and AI-generated narratives.
               </p>
@@ -204,7 +204,7 @@ export default function Landing() {
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-success-500 flex-shrink-0" />
-                    <span className="text-gray-700">{item}</span>
+                    <span className="text-gray-700 dark:text-slate-300">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -213,7 +213,7 @@ export default function Landing() {
             {/* Report Preview Placeholder */}
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary-600/20 to-primary-400/20 rounded-3xl blur-2xl" />
-              <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+              <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 overflow-hidden">
                 {/* Example Report Header */}
                 <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-6 py-4">
                   <div className="flex items-center gap-3">
@@ -235,8 +235,8 @@ export default function Landing() {
                       <span className="text-3xl font-bold text-success-600">78</span>
                     </div>
                     <div>
-                      <p className="text-lg font-semibold text-gray-900">Overall Score</p>
-                      <p className="text-sm text-gray-500">Maturity Level: Managed</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">Overall Score</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-300">Maturity Level: Managed</p>
                     </div>
                   </div>
 
@@ -249,10 +249,10 @@ export default function Landing() {
                     ].map((domain) => (
                       <div key={domain.name}>
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-700">{domain.name}</span>
-                          <span className="font-medium text-gray-900">{domain.score}%</span>
+                          <span className="text-gray-700 dark:text-slate-300">{domain.name}</span>
+                          <span className="font-medium text-gray-900 dark:text-slate-100">{domain.score}%</span>
                         </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary-500 rounded-full"
                             style={{ width: `${domain.score}%` }}
@@ -263,14 +263,14 @@ export default function Landing() {
                   </div>
 
                   {/* Example Finding */}
-                  <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
+                  <div className="p-4 bg-warning-50 border border-warning-200 dark:bg-warning-900/20 dark:border-warning-800 rounded-lg">
                     <div className="flex items-start gap-3">
                       <div className="w-6 h-6 bg-warning-500 rounded text-white flex items-center justify-center text-xs font-bold">
                         !
                       </div>
                       <div>
-                        <p className="font-medium text-warning-900">MFA Not Enforced</p>
-                        <p className="text-sm text-warning-700">
+                        <p className="font-medium text-warning-900 dark:text-warning-200">MFA Not Enforced</p>
+                        <p className="text-sm text-warning-700 dark:text-warning-300">
                           Multi-factor authentication should be required for all users...
                         </p>
                       </div>
@@ -287,16 +287,16 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full text-sm font-medium mb-6">
             <Clock className="w-4 h-4" />
             Takes less than 5 minutes
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-6">
             Ready to Assess Your Security Posture?
           </h2>
-          <p className="text-lg text-gray-600 mb-10">
+          <p className="text-lg text-gray-600 dark:text-slate-300 mb-10">
             Start with an assessment using synthetic example data, or create your organization to track
             progress over time.
           </p>
@@ -310,7 +310,7 @@ export default function Landing() {
             </Link>
             <Link
               to="/org/new"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-700 text-lg font-medium rounded-xl border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 text-lg font-medium rounded-xl border border-gray-300 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               Create Organization
             </Link>
@@ -327,7 +327,7 @@ export default function Landing() {
                 <Shield className="w-4 h-4 text-white" />
               </div>
               <span className="text-white font-semibold">ResilAI</span>
-              <span className="text-gray-500">•</span>
+              <span className="text-gray-500">|</span>
               <span className="text-gray-400 text-sm">AI Incident Readiness Score</span>
             </div>
 
@@ -342,7 +342,7 @@ export default function Landing() {
                 <span className="text-sm">GitHub</span>
               </a>
               <a
-                href="mailto:contact@example.com"
+                href="mailto:purvansh95b@gmail.com"
                 className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
                 <Mail className="w-5 h-5" />
@@ -351,7 +351,7 @@ export default function Landing() {
             </div>
 
             <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} ResilAI. Open source under MIT license.
+              (c) {new Date().getFullYear()} ResilAI. Open source under GNU AGPL-3.0 license.
             </p>
           </div>
         </div>
@@ -359,4 +359,5 @@ export default function Landing() {
     </div>
   );
 }
+
 

@@ -160,7 +160,7 @@ AIRS is not intended for users under 18. We do not knowingly collect data from m
 ## Contact
 
 For privacy questions or data requests:
-- **Email:** privacy@[domain]
+- **Email:** purvansh95b@gmail.com
 - **Response Time:** 5 business days
 
 ## Summary
