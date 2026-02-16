@@ -1,4 +1,4 @@
-# AIRS Frontend/Backend Contract Map
+# ResilAI Frontend/Backend Contract Map
 
 This map documents the current runtime contracts used by the frontend, with focus on framework mapping, roadmap, analytics, scoring, narratives, and reporting.
 

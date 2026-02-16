@@ -1,6 +1,6 @@
-# Cloud SQL PostgreSQL Setup for AIRS
+﻿# Cloud SQL PostgreSQL Setup for ResilAI
 
-This guide covers setting up Cloud SQL PostgreSQL for AIRS on Cloud Run.
+This guide covers setting up Cloud SQL PostgreSQL for ResilAI on Cloud Run.
 
 ## Prerequisites
 
