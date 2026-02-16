@@ -1,8 +1,8 @@
-# Framework Mapping
+﻿# Framework Mapping
 
 ## Overview
 
-AIRS automatically maps assessment findings to industry-standard security frameworks, enabling organizations to understand their compliance posture without manual cross-referencing.
+ResilAI automatically maps assessment findings to industry-standard security frameworks, enabling organizations to understand their compliance posture without manual cross-referencing.
 
 ## Supported Frameworks
 
@@ -52,7 +52,7 @@ Maps to: CIS 8.1 (Establish and Maintain Audit Log Management)
 
 **Purpose:** Web application security risk awareness
 
-AIRS maps relevant findings to OWASP Top 10 2021:
+ResilAI maps relevant findings to OWASP Top 10 2021:
 
 | ID | Risk Category |
 |----|---------------|
@@ -66,7 +66,7 @@ AIRS maps relevant findings to OWASP Top 10 2021:
 ## Mapping Philosophy
 
 ### Conservative Approach
-AIRS uses a **conservative mapping** strategy:
+ResilAI uses a **conservative mapping** strategy:
 - Only maps when there's a clear, defensible relationship
 - Avoids over-claiming coverage
 - Focuses on controls that demonstrably mitigate techniques
@@ -84,7 +84,7 @@ Mappings are defined at the question level in the rubric:
 ```
 
 ### Finding-Level Aggregation
-When generating findings, AIRS aggregates:
+When generating findings, ResilAI aggregates:
 - All framework references for the source question
 - Impact assessment based on technique severity
 - Remediation guidance aligned with framework controls
@@ -93,12 +93,12 @@ When generating findings, AIRS aggregates:
 
 ### MITRE Coverage
 ```
-Coverage % = (Techniques with positive answers / Total mapped techniques) × 100
+Coverage % = (Techniques with positive answers / Total mapped techniques) Ã— 100
 ```
 
 ### CIS Coverage
 ```
-IG Coverage % = (Controls met / Total controls in IG) × 100
+IG Coverage % = (Controls met / Total controls in IG) Ã— 100
 ```
 
 ### OWASP Relevance
@@ -110,9 +110,9 @@ Relevant findings mapped to OWASP categories (count-based)
 
 Framework mappings appear in:
 
-1. **Results Dashboard** → Framework tab with visual coverage charts
-2. **PDF Reports** → Dedicated framework mapping section
-3. **API Response** → `framework_mapping` object with full details
+1. **Results Dashboard** â†’ Framework tab with visual coverage charts
+2. **PDF Reports** â†’ Dedicated framework mapping section
+3. **API Response** â†’ `framework_mapping` object with full details
 
 ## Limitations
 

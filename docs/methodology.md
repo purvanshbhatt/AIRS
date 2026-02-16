@@ -1,14 +1,14 @@
-# AIRS Methodology
+﻿# ResilAI Methodology
 
 ## Scoring Philosophy
 
-AIRS uses a **deterministic scoring model** where every score is reproducible given the same inputs. There is no randomness or AI-driven modification of scores.
+ResilAI uses a **deterministic scoring model** where every score is reproducible given the same inputs. There is no randomness or AI-driven modification of scores.
 
 > **Key Principle:** AI is used *only* for generating human-readable narratives. All scores, findings, and recommendations are computed algorithmically.
 
 ## Assessment Domains
 
-AIRS evaluates security readiness across five core domains:
+ResilAI evaluates security readiness across five core domains:
 
 | Domain | ID | Weight | Focus Area |
 |--------|-----|--------|------------|
@@ -44,17 +44,17 @@ Scoring: 90%+ = Full, 70-89% = High, 50-69% = Medium, <50% = Low
 
 ### Step 1: Domain Score (0-5 scale)
 ```
-Domain Score = (Points Earned / Max Points) × 5
+Domain Score = (Points Earned / Max Points) Ã— 5
 ```
 
 ### Step 2: Weighted Contribution
 ```
-Contribution = (Domain Score / 5) × Domain Weight
+Contribution = (Domain Score / 5) Ã— Domain Weight
 ```
 
 ### Step 3: Overall Score (0-100)
 ```
-Overall Score = Σ (All Domain Contributions)
+Overall Score = Î£ (All Domain Contributions)
 ```
 
 ## Maturity Levels
@@ -74,9 +74,9 @@ Findings are generated automatically based on scoring gaps:
 
 1. **Gap Detection**: Questions where earned < possible points
 2. **Severity Assignment**: Based on point gap magnitude
-   - Gap ≥ 75% → HIGH
-   - Gap ≥ 50% → MEDIUM
-   - Gap < 50% → LOW
+   - Gap â‰¥ 75% â†’ HIGH
+   - Gap â‰¥ 50% â†’ MEDIUM
+   - Gap < 50% â†’ LOW
 3. **Prioritization**: Sorted by severity and domain weight
 
 ## Roadmap Construction
@@ -99,11 +99,11 @@ When LLM features are enabled:
 - Business-friendly finding rewrites
 
 ### What AI Cannot Modify
-- ❌ Numeric scores
-- ❌ Maturity levels
-- ❌ Finding severity
-- ❌ Recommendations
-- ❌ Framework mappings
+- âŒ Numeric scores
+- âŒ Maturity levels
+- âŒ Finding severity
+- âŒ Recommendations
+- âŒ Framework mappings
 
 ### Transparency
 The UI clearly indicates:
@@ -118,7 +118,7 @@ Given identical:
 - Rubric version
 - Baseline profiles
 
-AIRS will produce identical:
+ResilAI will produce identical:
 - Overall score
 - Domain scores
 - Findings

@@ -1,6 +1,6 @@
-# Backend Latency Optimizations
+﻿# Backend Latency Optimizations
 
-This document describes the caching and performance optimizations implemented for the AIRS API.
+This document describes the caching and performance optimizations implemented for the ResilAI API.
 
 ## Summary Caching
 
@@ -20,58 +20,58 @@ This document describes the caching and performance optimizations implemented fo
 
 | Event | Summary Cache | Narrative Cache |
 |-------|---------------|-----------------|
-| `submit_answers()` | ✅ Invalidated | ❌ Preserved until summary recomputes |
-| `compute_score()` | ✅ Invalidated | ❌ Preserved until summary recomputes |
-| First `GET /summary` after invalidation | ✅ Recomputed | ✅ Regenerated if version mismatch |
-| Subsequent `GET /summary` (no changes) | ✅ Cache HIT | ✅ Cache HIT |
+| `submit_answers()` | âœ… Invalidated | âŒ Preserved until summary recomputes |
+| `compute_score()` | âœ… Invalidated | âŒ Preserved until summary recomputes |
+| First `GET /summary` after invalidation | âœ… Recomputed | âœ… Regenerated if version mismatch |
+| Subsequent `GET /summary` (no changes) | âœ… Cache HIT | âœ… Cache HIT |
 
 ### Cache Logic Flow
 
 ```
 GET /api/assessments/{id}/summary
-    │
-    ▼
-┌─────────────────────────────────────┐
-│ Check assessment.summary_json       │
-│ and assessment.summary_computed_at  │
-└─────────────────────────────────────┘
-    │
-    ├── Cache HIT ──► Return cached summary (+ fresh LLM metadata)
-    │
-    └── Cache MISS
-            │
-            ▼
-    ┌───────────────────────────────┐
-    │ _compute_summary()            │
-    │  - domain scores              │
-    │  - findings                   │
-    │  - roadmap                    │
-    │  - framework mapping          │
-    │  - analytics                  │
-    │  - executive summary          │
-    │  - _get_or_generate_narratives│
-    └───────────────────────────────┘
-            │
-            ▼
-    ┌───────────────────────────────┐
-    │ _get_or_generate_narratives() │
-    │                               │
-    │ if narrative_version >=       │
-    │    summary_version:           │
-    │    → Return cached narratives │
-    │ else:                         │
-    │    → generate_narrative(LLM)  │
-    │    → Cache new narratives     │
-    └───────────────────────────────┘
-            │
-            ▼
-    ┌───────────────────────────────┐
-    │ Cache computed summary        │
-    │ assessment.summary_json = ... │
-    │ assessment.summary_computed_at│
-    └───────────────────────────────┘
-            │
-            ▼
+    â”‚
+    â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Check assessment.summary_json       â”‚
+â”‚ and assessment.summary_computed_at  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+    â”‚
+    â”œâ”€â”€ Cache HIT â”€â”€â–º Return cached summary (+ fresh LLM metadata)
+    â”‚
+    â””â”€â”€ Cache MISS
+            â”‚
+            â–¼
+    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+    â”‚ _compute_summary()            â”‚
+    â”‚  - domain scores              â”‚
+    â”‚  - findings                   â”‚
+    â”‚  - roadmap                    â”‚
+    â”‚  - framework mapping          â”‚
+    â”‚  - analytics                  â”‚
+    â”‚  - executive summary          â”‚
+    â”‚  - _get_or_generate_narrativesâ”‚
+    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+            â”‚
+            â–¼
+    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+    â”‚ _get_or_generate_narratives() â”‚
+    â”‚                               â”‚
+    â”‚ if narrative_version >=       â”‚
+    â”‚    summary_version:           â”‚
+    â”‚    â†’ Return cached narratives â”‚
+    â”‚ else:                         â”‚
+    â”‚    â†’ generate_narrative(LLM)  â”‚
+    â”‚    â†’ Cache new narratives     â”‚
+    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+            â”‚
+            â–¼
+    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+    â”‚ Cache computed summary        â”‚
+    â”‚ assessment.summary_json = ... â”‚
+    â”‚ assessment.summary_computed_atâ”‚
+    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+            â”‚
+            â–¼
     Return summary response
 ```
 

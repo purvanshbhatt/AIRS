@@ -1,14 +1,14 @@
-# AIRS Overview
+﻿# ResilAI Overview
 
 <p align="center">
-  <img src="assets/airs-logo-dark.png" alt="AIRS Logo" width="150"/>
+  <img src="assets/airs-logo-dark.png" alt="ResilAI Logo" width="150"/>
 </p>
 
-## What is AIRS?
+## What is ResilAI?
 
-**AIRS (AI Incident Readiness Score)** is a comprehensive security readiness assessment platform designed for organizations preparing for AI-driven threats and incidents. It provides a structured, quantitative approach to measuring and improving your organization's security posture.
+**ResilAI (AI Incident Readiness Score)** is a comprehensive security readiness assessment platform designed for organizations preparing for AI-driven threats and incidents. It provides a structured, quantitative approach to measuring and improving your organization's security posture.
 
-## Who is AIRS For?
+## Who is ResilAI For?
 
 | Audience | Use Case |
 |----------|----------|
@@ -41,30 +41,30 @@
 
 ## Demo Flow
 
-1. **Create Organization** → Set up your company profile
-2. **Start Assessment** → Answer 25 security questions
-3. **View Results** → See scores, findings, and framework mappings
-4. **Generate Report** → Download professional PDF or save to library
-5. **Track Progress** → Compare assessments over time
+1. **Create Organization** â†’ Set up your company profile
+2. **Start Assessment** â†’ Answer 25 security questions
+3. **View Results** â†’ See scores, findings, and framework mappings
+4. **Generate Report** â†’ Download professional PDF or save to library
+5. **Track Progress** â†’ Compare assessments over time
 
 ## Architecture Overview
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   React SPA     │────▶│   FastAPI       │────▶│   Cloud SQL     │
-│   (Frontend)    │     │   (Backend)     │     │   (PostgreSQL)  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │                       
-        ▼                       ▼                       
-┌─────────────────┐     ┌─────────────────┐     
-│   Firebase      │     │   Cloud Storage │     
-│   (Auth)        │     │   (Reports)     │     
-└─────────────────┘     └─────────────────┘     
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚   React SPA     â”‚â”€â”€â”€â”€â–¶â”‚   FastAPI       â”‚â”€â”€â”€â”€â–¶â”‚   Cloud SQL     â”‚
+â”‚   (Frontend)    â”‚     â”‚   (Backend)     â”‚     â”‚   (PostgreSQL)  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+        â”‚                       â”‚                       
+        â–¼                       â–¼                       
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     
+â”‚   Firebase      â”‚     â”‚   Cloud Storage â”‚     
+â”‚   (Auth)        â”‚     â”‚   (Reports)     â”‚     
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     
 ```
 
-## What Makes AIRS Different
+## What Makes ResilAI Different
 
-| Feature | AIRS | Traditional Tools |
+| Feature | ResilAI | Traditional Tools |
 |---------|------|-------------------|
 | **Scoring** | Deterministic, reproducible | Often subjective |
 | **AI Transparency** | AI for narrative only, clearly labeled | Black-box AI scoring |
@@ -74,7 +74,7 @@
 
 ## Getting Started
 
-Visit the [Live Demo](https://airs-api-<project-id>.run.app) to try AIRS with sample data.
+Visit the [Live Demo](https://airs-api-<project-id>.run.app) to try ResilAI with sample data.
 
 For technical documentation, see:
 - [Methodology](methodology.md) - Scoring domains and formulas

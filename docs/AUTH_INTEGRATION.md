@@ -1,6 +1,6 @@
-# AIRS Authentication Integration Guide
+﻿# ResilAI Authentication Integration Guide
 
-This document describes how to integrate Firebase Authentication into AIRS.
+This document describes how to integrate Firebase Authentication into ResilAI.
 
 ## Current State
 
@@ -11,19 +11,19 @@ Authentication is **scaffolded but not active**:
 ## Architecture
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   React App     │────▶│   FastAPI       │────▶│  Firebase Admin │
-│   AuthContext   │     │   get_current_  │     │  (verify token) │
-│   getToken()    │     │   user()        │     │                 │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │
-        │                       │
-        ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐
-│  Firebase Auth  │     │  User object    │
-│  (client SDK)   │     │  uid, email,    │
-│  signIn, etc.   │     │  name           │
-└─────────────────┘     └─────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚   React App     â”‚â”€â”€â”€â”€â–¶â”‚   FastAPI       â”‚â”€â”€â”€â”€â–¶â”‚  Firebase Admin â”‚
+â”‚   AuthContext   â”‚     â”‚   get_current_  â”‚     â”‚  (verify token) â”‚
+â”‚   getToken()    â”‚     â”‚   user()        â”‚     â”‚                 â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+        â”‚                       â”‚
+        â”‚                       â”‚
+        â–¼                       â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Firebase Auth  â”‚     â”‚  User object    â”‚
+â”‚  (client SDK)   â”‚     â”‚  uid, email,    â”‚
+â”‚  signIn, etc.   â”‚     â”‚  name           â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ## Frontend Integration Steps
