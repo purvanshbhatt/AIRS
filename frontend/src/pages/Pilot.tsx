@@ -1,9 +1,10 @@
 import { FormEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Rocket, Send, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, Button } from '../components/ui';
+import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '../components/ui';
 import { submitPilotRequest, ApiRequestError } from '../api';
 import { Footer } from '../components/layout/Footer';
+import ThemeToggle from '../components/ui/ThemeToggle';
 
 interface PilotFormState {
   company_name: string;
@@ -42,22 +43,23 @@ export default function PilotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-slate-900 font-semibold">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-semibold">
             <Rocket className="h-5 w-5 text-primary-600" />
             ResilAI Pilot
           </Link>
           <div className="flex items-center gap-4 text-sm">
-            <Link to="/about" className="text-slate-600 hover:text-slate-900">About</Link>
-            <Link to="/security" className="text-slate-600 hover:text-slate-900">Security</Link>
+            <ThemeToggle />
+            <Link to="/about" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">About</Link>
+            <Link to="/security" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100">Security</Link>
           </div>
         </div>
       </header>
 
       <main className="flex-1">
-        <div className="max-w-2xl mx-auto px-4 py-10">
+        <div className="max-w-3xl mx-auto px-4 py-10">
           <Card>
             <CardHeader>
               <CardTitle>Request a Pilot</CardTitle>
@@ -76,47 +78,38 @@ export default function PilotPage() {
               )}
 
               <form onSubmit={onSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Company Name</label>
-                  <input
-                    required
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    value={form.company_name}
-                    onChange={(e) => setForm((prev) => ({ ...prev, company_name: e.target.value }))}
-                  />
-                </div>
+                <Input
+                  required
+                  label="Company Name"
+                  value={form.company_name}
+                  onChange={(e) => setForm((prev) => ({ ...prev, company_name: e.target.value }))}
+                />
+
+                <Input
+                  required
+                  label="Team Size"
+                  value={form.team_size}
+                  onChange={(e) => setForm((prev) => ({ ...prev, team_size: e.target.value }))}
+                  placeholder="e.g. 51-200"
+                />
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Team Size</label>
-                  <input
-                    required
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    value={form.team_size}
-                    onChange={(e) => setForm((prev) => ({ ...prev, team_size: e.target.value }))}
-                    placeholder="e.g. 51-200"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Current Security Tools</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">Current Security Tools</label>
                   <textarea
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm min-h-24"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-sm min-h-24 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                     value={form.current_security_tools}
                     onChange={(e) => setForm((prev) => ({ ...prev, current_security_tools: e.target.value }))}
                     placeholder="SIEM, EDR, cloud monitoring stack..."
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                  <input
-                    required
-                    type="email"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    value={form.email}
-                    onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-                  />
-                </div>
+                <Input
+                  required
+                  type="email"
+                  label="Email"
+                  value={form.email}
+                  onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+                />
 
                 <Button type="submit" disabled={loading} className="gap-2">
                   <Send className="h-4 w-4" />

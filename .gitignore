@@ -44,6 +44,8 @@ build/
 node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/build_output.txt
+frontend/*.tsbuildinfo
 frontend/.env
 frontend/.env.*
 !frontend/.env.example

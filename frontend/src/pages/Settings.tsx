@@ -63,12 +63,12 @@ export default function Settings() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-          <SettingsIcon className="w-5 h-5 text-gray-600" />
+        <div className="w-10 h-10 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+          <SettingsIcon className="w-5 h-5 text-gray-600 dark:text-slate-300" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-500 text-sm">Profile, environment, and system configuration</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Settings</h1>
+          <p className="text-gray-500 dark:text-slate-400 text-sm">Profile, environment, and system configuration</p>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export default function Settings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <User className="h-5 w-5 text-gray-500" />
+            <User className="h-5 w-5 text-gray-500 dark:text-slate-400" />
             <CardTitle className="text-lg">Profile</CardTitle>
           </div>
           <CardDescription>Your account information</CardDescription>
@@ -99,23 +99,23 @@ export default function Settings() {
               )}
             </div>
             <div>
-              <p className="text-lg font-semibold text-gray-900">
+              <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">
                 {user?.displayName || 'User'}
               </p>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
+              <p className="text-sm text-gray-500 dark:text-slate-400 flex items-center gap-1">
                 <Mail className="w-3.5 h-3.5" />
                 {user?.email || 'Not signed in'}
               </p>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-gray-100 space-y-2">
+          <div className="pt-3 border-t border-gray-100 dark:border-slate-800 space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-500 flex items-center gap-1">
+              <span className="text-gray-500 dark:text-slate-400 flex items-center gap-1">
                 <Shield className="w-3.5 h-3.5" />
                 User ID
               </span>
-              <code className="bg-gray-100 px-2 py-0.5 rounded font-mono text-xs text-gray-700">
+              <code className="bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded font-mono text-xs text-gray-700 dark:text-slate-200">
                 {user?.uid ? `${user.uid.slice(0, 8)}...` : 'N/A'}
               </code>
             </div>
@@ -129,16 +129,16 @@ export default function Settings() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Server className="h-5 w-5 text-gray-500" />
+              <Server className="h-5 w-5 text-gray-500 dark:text-slate-400" />
               <CardTitle className="text-lg">API Status</CardTitle>
             </div>
             <button
               onClick={checkApiHealth}
               disabled={health.status === 'checking'}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
               title="Refresh status"
             >
-              <RefreshCw className={`h-4 w-4 text-gray-500 ${health.status === 'checking' ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 text-gray-500 dark:text-slate-400 ${health.status === 'checking' ? 'animate-spin' : ''}`} />
             </button>
           </div>
           <CardDescription>Backend API connection status</CardDescription>
@@ -168,22 +168,22 @@ export default function Settings() {
 
           {/* Error message if any */}
           {health.status === 'error' && health.message && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
               {health.message}
             </div>
           )}
 
           {/* API URL */}
-          <div className="pt-3 border-t border-gray-100">
-            <p className="text-xs text-gray-500 mb-1">API Base URL (VITE_API_BASE_URL)</p>
-            <code className="text-sm bg-gray-100 px-2 py-1 rounded font-mono text-gray-700 block overflow-x-auto">
+          <div className="pt-3 border-t border-gray-100 dark:border-slate-800">
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">API Base URL (VITE_API_BASE_URL)</p>
+            <code className="text-sm bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded font-mono text-gray-700 dark:text-slate-200 block overflow-x-auto">
               {apiBaseUrl}
             </code>
           </div>
 
           {/* Last checked */}
           {health.lastChecked && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-slate-500">
               Last checked: {health.lastChecked.toLocaleTimeString()}
             </p>
           )}
@@ -198,13 +198,13 @@ export default function Settings() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Environment</p>
-            <code className="text-sm bg-gray-100 px-2 py-1 rounded font-mono text-gray-700">
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Environment</p>
+            <code className="text-sm bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded font-mono text-gray-700 dark:text-slate-200">
               {import.meta.env.MODE}
             </code>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">Health Endpoint</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Health Endpoint</p>
             <a
               href={`${apiBaseUrl}/health`}
               target="_blank"
@@ -215,7 +215,7 @@ export default function Settings() {
             </a>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">LLM Status Endpoint</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">LLM Status Endpoint</p>
             <a
               href={`${apiBaseUrl}/health/llm`}
               target="_blank"
@@ -260,11 +260,11 @@ export default function Settings() {
         <CardContent className="space-y-4">
           {localDataSummary.length > 0 ? (
             <div className="space-y-2">
-              <p className="text-sm text-gray-600 mb-2">Stored items:</p>
+              <p className="text-sm text-gray-600 dark:text-slate-300 mb-2">Stored items:</p>
               {localDataSummary.map((item) => (
-                <div key={item.key} className="flex justify-between items-center text-sm bg-gray-50 px-3 py-2 rounded">
-                  <code className="font-mono text-gray-700">{item.key}</code>
-                  <span className="text-gray-500 text-xs">
+                <div key={item.key} className="flex justify-between items-center text-sm bg-gray-50 dark:bg-slate-800 px-3 py-2 rounded">
+                  <code className="font-mono text-gray-700 dark:text-slate-200">{item.key}</code>
+                  <span className="text-gray-500 dark:text-slate-400 text-xs">
                     {item.size < 1024
                       ? `${item.size} bytes`
                       : `${(item.size / 1024).toFixed(1)} KB`}
@@ -273,10 +273,10 @@ export default function Settings() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 italic">No local data stored</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400 italic">No local data stored</p>
           )}
 
-          <div className="pt-3 border-t border-gray-100">
+          <div className="pt-3 border-t border-gray-100 dark:border-slate-800">
             <Button
               variant="outline"
               onClick={handleClearLocalData}
@@ -286,7 +286,7 @@ export default function Settings() {
               <Trash2 className={`h-4 w-4 ${clearingData ? 'animate-pulse' : ''}`} />
               {clearingData ? 'Clearing...' : 'Clear Local Data'}
             </Button>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
               This will remove any draft assessments and cached data. Your saved assessments in the cloud are not affected.
             </p>
           </div>

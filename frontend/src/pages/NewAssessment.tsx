@@ -390,7 +390,7 @@ export default function NewAssessment() {
             <Accordion defaultOpen={[domains[0]?.[0]]}>
               {domains.map(([domainId, domain]) => {
                 const Icon = domainIcons[domainId] || Shield;
-                const color = domainColors[domainId] || 'bg-gray-50 dark:bg-slate-9000';
+                const color = domainColors[domainId] || 'bg-gray-50 dark:bg-slate-900';
                 const domainProgress = getDomainProgress(domain);
                 const isComplete = domainProgress.answered === domainProgress.total;
 

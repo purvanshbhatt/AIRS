@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, TrendingUp, AlertTriangle, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, Button, ListSkeleton } from '../components/ui';
+import { Card, CardContent, CardHeader, CardTitle, Button, ListSkeleton, Select } from '../components/ui';
 import { getAssessments, ApiRequestError } from '../api';
 import type { Assessment } from '../types';
 
@@ -16,6 +16,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [selectedOrg, setSelectedOrg] = useState<string>('all');
 
   useEffect(() => {
     const run = async () => {
@@ -34,11 +35,30 @@ export default function AnalyticsPage() {
     run();
   }, []);
 
+  const orgOptions = useMemo(() => {
+    const values = Array.from(
+      new Set(
+        assessments
+          .map((assessment) => assessment.organization_name)
+          .filter((name): name is string => Boolean(name))
+      )
+    );
+    return [{ value: 'all', label: 'All Organizations' }, ...values.map((name) => ({ value: name, label: name }))];
+  }, [assessments]);
+
+  const filteredAssessments = useMemo(
+    () =>
+      selectedOrg === 'all'
+        ? assessments
+        : assessments.filter((assessment) => (assessment.organization_name || 'Organization') === selectedOrg),
+    [assessments, selectedOrg]
+  );
+
   const completed = useMemo(
-    () => assessments
+    () => filteredAssessments
       .filter((assessment) => assessment.status === 'completed' && assessment.overall_score != null)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
-    [assessments]
+    [filteredAssessments]
   );
 
   const latest = completed[0] || null;
@@ -49,6 +69,18 @@ export default function AnalyticsPage() {
   const scoreDelta = latest && previous
     ? (latest.overall_score || 0) - (previous.overall_score || 0)
     : null;
+
+  const readinessDistribution = useMemo(() => {
+    const bands = { Critical: 0, 'At Risk': 0, Managed: 0, Resilient: 0 };
+    completed.forEach((assessment) => {
+      const score = Math.round(assessment.overall_score || 0);
+      const level = getReadinessLevel(score) as keyof typeof bands;
+      bands[level] += 1;
+    });
+    return bands;
+  }, [completed]);
+
+  const maxBandValue = Math.max(...Object.values(readinessDistribution), 1);
 
   if (loading) {
     return (
@@ -84,9 +116,17 @@ export default function AnalyticsPage() {
         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
           <BarChart3 className="w-5 h-5 text-blue-600" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">Decision-focused readiness and risk movement</p>
+        </div>
+        <div className="w-full max-w-xs">
+          <Select
+            label="Organization"
+            value={selectedOrg}
+            onChange={(event) => setSelectedOrg(event.target.value)}
+            options={orgOptions}
+          />
         </div>
       </div>
 
@@ -126,6 +166,28 @@ export default function AnalyticsPage() {
           </p>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Readiness Distribution</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {Object.entries(readinessDistribution).map(([label, count]) => (
+            <div key={label}>
+              <div className="flex items-center justify-between text-sm mb-1">
+                <span className="text-gray-700 dark:text-gray-300">{label}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">{count}</span>
+              </div>
+              <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary-500"
+                  style={{ width: `${(count / maxBandValue) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

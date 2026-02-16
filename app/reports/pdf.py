@@ -101,6 +101,37 @@ def get_heatmap_color(score: float) -> colors.Color:
     return Colors.HEAT_EXCELLENT
 
 
+def summarize_framework_refs(refs: Any, limit: int = 3) -> str:
+    """Return compact comma-separated framework IDs from dict/object/list refs."""
+    if not refs:
+        return "None"
+
+    values: List[str] = []
+    if isinstance(refs, list):
+        for item in refs:
+            ref_id = str(get_attr(item, "id", "")).strip()
+            if ref_id:
+                values.append(ref_id)
+    elif isinstance(refs, dict):
+        for _, items in refs.items():
+            if isinstance(items, list):
+                for item in items:
+                    ref_id = str(get_attr(item, "id", "")).strip()
+                    if ref_id:
+                        values.append(ref_id)
+
+    unique_values = []
+    for value in values:
+        if value not in unique_values:
+            unique_values.append(value)
+
+    if not unique_values:
+        return "None"
+    if len(unique_values) <= limit:
+        return ", ".join(unique_values)
+    return f"{', '.join(unique_values[:limit])} (+{len(unique_values) - limit})"
+
+
 # =============================================================================
 # SCORE DONUT CHART
 # =============================================================================
@@ -718,6 +749,39 @@ class ProfessionalPDFGenerator:
         elements.append(framework_table)
         elements.append(Spacer(1, 8))
 
+        detailed_rows = [["Finding", "MITRE", "CIS", "OWASP"]]
+        for finding in findings[:3]:
+            framework_refs = get_attr(finding, "framework_refs", {}) or {}
+            mitre = summarize_framework_refs(get_attr(framework_refs, "mitre", []))
+            cis = summarize_framework_refs(get_attr(framework_refs, "cis", []))
+            owasp = summarize_framework_refs(get_attr(framework_refs, "owasp", []))
+            title = str(get_attr(finding, "title", "Unspecified finding"))[:54]
+            detailed_rows.append([title, mitre, cis, owasp])
+
+        if len(detailed_rows) == 1:
+            detailed_rows.append(["No prioritized findings available", "None", "None", "None"])
+
+        detail_table = Table(detailed_rows, colWidths=[2.8 * inch, 1.0 * inch, 1.0 * inch, 1.0 * inch])
+        detail_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), Colors.DARK_BLUE),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), Colors.WHITE),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 8),
+                    ("GRID", (0, 0), (-1, -1), 0.5, Colors.WHITE),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [Colors.WHITE, Colors.LIGHT_GRAY]),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ]
+            )
+        )
+        elements.append(Paragraph("Framework Reference Detail (Top Findings)", self.styles["SubsectionHeader"]))
+        elements.append(detail_table)
+        elements.append(Spacer(1, 8))
+
         narrative = str(
             get_attr(
                 data,
@@ -1035,7 +1099,8 @@ class ProfessionalPDFGenerator:
         recommendation = get_attr(finding, "recommendation", "")
         reference = get_attr(finding, "reference", "")
         domain = get_attr(finding, "domain_name", "")
-        
+        framework_refs = get_attr(finding, "framework_refs", {}) or {}
+
         severity_color = get_severity_color(severity)
         
         # Create severity badge
@@ -1087,7 +1152,18 @@ class ProfessionalPDFGenerator:
                 f"<b>Recommendation:</b> {rec_text}",
                 self.styles['FindingBody']
             ))
-        
+
+        mitre = summarize_framework_refs(get_attr(framework_refs, "mitre", []), limit=4)
+        cis = summarize_framework_refs(get_attr(framework_refs, "cis", []), limit=4)
+        owasp = summarize_framework_refs(get_attr(framework_refs, "owasp", []), limit=4)
+        if any(value != "None" for value in (mitre, cis, owasp)):
+            elements.append(
+                Paragraph(
+                    f"<b>Frameworks:</b> MITRE [{mitre}] | CIS [{cis}] | OWASP [{owasp}]",
+                    self.styles['ReportSmallText']
+                )
+            )
+
         # Reference
         if reference:
             elements.append(Paragraph(

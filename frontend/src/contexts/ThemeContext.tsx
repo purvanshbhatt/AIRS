@@ -20,14 +20,14 @@ function getSystemTheme(): ResolvedTheme {
 }
 
 function getStoredTheme(): Theme {
-    if (typeof window === 'undefined') return 'system';
+    if (typeof window === 'undefined') return 'light';
     const stored = localStorage.getItem(STORAGE_KEY);
     const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
     const resolved = stored || legacyStored;
     if (resolved === 'light' || resolved === 'dark' || resolved === 'system') {
         return resolved;
     }
-    return 'system';
+    return 'light';
 }
 
 interface ThemeProviderProps {
@@ -53,6 +53,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
         const applyTheme = (resolved: ResolvedTheme) => {
             setResolvedTheme(resolved);
+            root.setAttribute('data-theme', resolved);
             if (resolved === 'dark') {
                 root.classList.add('dark');
             } else {

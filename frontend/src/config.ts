@@ -15,7 +15,10 @@ const isApiConfiguredInternal = Boolean(configuredApiUrl && configuredApiUrl.tri
 const isDevelopmentInternal = import.meta.env.DEV;
 const isProductionInternal = import.meta.env.PROD;
 
-const resolvedApiUrl = (configuredApiUrl || 'http://localhost:8000').replace(/\/+$/, '');
+const resolvedApiUrl = (
+  configuredApiUrl ||
+  (isDevelopmentInternal ? 'http://localhost:8000' : '')
+).replace(/\/+$/, '');
 
 const config: Config = {
   apiBaseUrl: resolvedApiUrl,

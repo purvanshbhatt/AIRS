@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   createApiKey,
   listApiKeys,
@@ -295,12 +296,23 @@ export default function Integrations() {
           <CardDescription>Select which organization to manage.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Select
-            label="Organization"
-            value={selectedOrgId}
-            onChange={(e) => setSelectedOrgId(e.target.value)}
-            options={organizations.map((o) => ({ value: o.id, label: o.name }))}
-          />
+          {organizations.length > 0 ? (
+            <Select
+              label="Organization"
+              value={selectedOrgId}
+              onChange={(e) => setSelectedOrgId(e.target.value)}
+              options={organizations.map((o) => ({ value: o.id, label: o.name }))}
+            />
+          ) : (
+            <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                Create an organization before configuring integrations.
+              </p>
+              <Link to="/dashboard/org/new" className="inline-flex mt-3">
+                <Button size="sm">Create Organization</Button>
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -320,19 +332,19 @@ export default function Integrations() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="p-3 border border-gray-200 rounded-lg">
+            <div className="p-3 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
               <div className="text-xs text-gray-500 dark:text-slate-400">Splunk</div>
               <div className="mt-1 font-medium text-gray-900 dark:text-slate-100">
                 {splunkConnected ? 'Connected (Last sync: 5 min ago)' : 'Not Connected'}
               </div>
             </div>
-            <div className="p-3 border border-gray-200 rounded-lg">
+            <div className="p-3 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
               <div className="text-xs text-gray-500 dark:text-slate-400">Webhook</div>
               <div className="mt-1 font-medium text-gray-900 dark:text-slate-100">
                 {webhooks.length > 0 ? 'Active (Last delivery check: 2 min ago)' : 'Inactive'}
               </div>
             </div>
-            <div className="p-3 border border-gray-200 rounded-lg">
+            <div className="p-3 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900">
               <div className="text-xs text-gray-500 dark:text-slate-400">API Access</div>
               <div className="mt-1 font-medium text-gray-900 dark:text-slate-100">
                 {apiKeys.some((k) => k.is_active) ? 'Enabled (Key active)' : 'Not Enabled'}
@@ -383,7 +395,7 @@ export default function Integrations() {
               {apiKeys.map((key) => (
                 <div
                   key={key.id}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                  className="flex items-center justify-between p-3 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900"
                 >
                   <div>
                     <div className="text-sm font-medium text-gray-900 dark:text-slate-100">{key.prefix}...</div>
@@ -434,7 +446,7 @@ export default function Integrations() {
             <div className="space-y-2 pt-2">
               {webhooks.length === 0 && <p className="text-sm text-gray-500 dark:text-slate-400">No webhooks configured.</p>}
               {webhooks.map((hook) => (
-                <div key={hook.id} className="p-3 border border-gray-200 rounded-lg space-y-2">
+                <div key={hook.id} className="p-3 border border-gray-200 dark:border-slate-700 rounded-lg space-y-2 bg-white dark:bg-slate-900">
                   <div className="text-sm font-medium text-gray-900 dark:text-slate-100 break-all">{hook.url}</div>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline" onClick={() => handleTestWebhook(hook.id)} disabled={busy}>
@@ -500,6 +512,11 @@ export default function Integrations() {
               Refresh
             </Button>
           </div>
+          {!selectedOrgId && (
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Select or create an organization to enable the Splunk connector.
+            </p>
+          )}
 
           <div className="overflow-x-auto border border-gray-200 rounded-lg">
             <table className="min-w-full text-sm">
