@@ -110,6 +110,9 @@ class FindingResponse(BaseModel):
     evidence: Optional[str] = None
     recommendation: Optional[str] = None
     priority: Optional[str] = None
+    # NIST CSF 2.0 mapping fields
+    nist_function: Optional[str] = None   # e.g. "DE", "PR", "RC"
+    nist_category: Optional[str] = None   # e.g. "DE.CM-1", "PR.AA-5"
     created_at: datetime
     
     class Config:
@@ -221,6 +224,10 @@ class DomainScoreSummary(BaseModel):
     weight: float
     earned_points: Optional[float] = None
     max_points: Optional[float] = None
+    # NIST CSF 2.0 lifecycle mapping
+    nist_function: Optional[str] = None        # e.g. "DE"
+    nist_function_name: Optional[str] = None   # e.g. "Detect"
+    nist_categories: Optional[List[str]] = None
 
 
 class FindingSummary(BaseModel):
@@ -269,6 +276,14 @@ class FindingSummaryWithFramework(BaseModel):
     recommendation: Optional[str] = None
     description: Optional[str] = None
     framework_refs: Optional[Dict[str, List[Dict]]] = None
+    # NIST CSF 2.0 mapping
+    nist_function: Optional[str] = None   # e.g. "DE"
+    nist_category: Optional[str] = None   # e.g. "DE.CM-1"
+    # Remediation timeline tier (Immediate / Near-term / Strategic)
+    remediation_timeline: Optional[str] = None
+    # Effort vs Impact for prioritisation
+    effort: Optional[str] = None   # low | medium | high
+    impact: Optional[str] = None   # low | medium | high
 
 
 class FrameworkMappedFinding(BaseModel):
@@ -357,6 +372,9 @@ class AnalyticsSummary(BaseModel):
     risk_summary: Optional[RiskSummary] = None
     top_risks: List[str] = []
     improvement_recommendations: List[str] = []
+    # Contract-integrity fields (v2 additions — additive, non-breaking)
+    gap_category: Optional[str] = None   # Primary gap category from GapAnalysis
+    maturity_tier: Optional[str] = None  # Overall maturity tier label (Initial/Developing/…)
 
 
 class DetailedRoadmapItem(BaseModel):
@@ -366,10 +384,16 @@ class DetailedRoadmapItem(BaseModel):
     action: str
     priority: str
     phase: str
+    # Enterprise timeline labels: Immediate | Near-term | Strategic
+    timeline_label: Optional[str] = None
+    timeline_range: Optional[str] = None
     effort: str
     effort_estimate: Optional[str] = None
+    # Risk Reduction Impact: low | medium | high
+    risk_impact: Optional[str] = None
     domain: Optional[str] = None
     finding_id: Optional[str] = None
+    nist_category: Optional[str] = None
     owner: Optional[str] = None
     dependencies: List[str] = []
     milestones: List[str] = []

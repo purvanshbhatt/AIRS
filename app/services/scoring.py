@@ -57,6 +57,11 @@ def _score_question(question: dict, answer: Any) -> float:
     """
     Score a single question based on its type and the provided answer.
     
+    Supports an optional ``tier_options`` field on a question for maturity-tier
+    string answers (e.g. ">90%", "<4hrs", "Not Measured").  When a tier string
+    is detected the mapped score is used directly.  Legacy numeric answers
+    continue to use the threshold lookup so backwards-compatibility is preserved.
+    
     Args:
         question: Question definition from rubric
         answer: The answer value
@@ -69,7 +74,21 @@ def _score_question(question: dict, answer: Any) -> float:
     
     if answer is None:
         return 0.0
-    
+
+    # ── Maturity-tier string handling (backward-compatible) ──
+    # If the question publishes tier_options AND the answer is a recognised
+    # tier value string, resolve to the mapped score without touching the
+    # existing threshold logic below.
+    tier_options = question.get("tier_options")
+    if tier_options and isinstance(answer, str):
+        canonical = answer.strip()
+        for opt in tier_options:
+            if opt["value"].lower() == canonical.lower():
+                return max_points * opt["score"]
+        # Unknown tier string → treat as unanswered (score 0) rather than
+        # accidentally falling through to boolean "truthy" logic.
+        return 0.0
+
     if q_type == "boolean":
         # Boolean: True = full points, False = 0
         if isinstance(answer, bool):

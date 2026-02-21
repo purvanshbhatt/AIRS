@@ -184,6 +184,8 @@ def _generate_llm_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
     
     # Generate executive summary
     exec_prompt = f"""Write a professional executive narrative for {org_name}'s AI Security Readiness Assessment.
+Use enterprise risk terminology throughout: Operational Resilience, Risk Posture, Governance Maturity,
+and Control Effectiveness.
 
 ASSESSMENT RESULTS (DO NOT CHANGE THESE NUMBERS):
 - Overall Score: {overall_score:.1f}/100
@@ -199,14 +201,20 @@ TOP FINDINGS:
 
 Output requirements (must follow exactly):
 1. Start with a heading line: "Readiness Score"
-2. Include 2 short paragraphs focused on implications and executive actions.
+2. Include 2 short paragraphs describing Risk Posture, Governance Maturity, and Control Effectiveness
+   implications. Focus on business impact and executive actions rather than repeating raw scores.
 3. Add a heading: "Top 3 Remediation Priorities"
-4. Under that heading, provide exactly 3 bullet points.
+4. Under that heading, provide exactly 3 bullet points. Each bullet MUST include:
+   - The specific action (using enterprise language about control effectiveness or operational resilience)
+   - The risk category addressed (e.g. Credential Compromise, Ransomware Recovery)
+   - A direct implementation guide link from one of: CISA (https://www.cisa.gov/stopransomware),
+     NIST (https://csrc.nist.gov/publications), or OWASP (https://owasp.org/www-project-top-ten/)
 5. Do not repeat raw questionnaire answers; focus on business impact and next actions.
 6. Do not include any numeric values other than those provided above."""
 
     # Generate roadmap narrative
-    roadmap_prompt = f"""Create a 30/60/90 day remediation roadmap narrative for {org_name}.
+    roadmap_prompt = f"""Create a tiered remediation roadmap narrative for {org_name} using enterprise
+risk language: Operational Resilience, Risk Posture, Governance Maturity, and Control Effectiveness.
 
 CURRENT STATE:
 - Overall Score: {overall_score:.1f}/100 ({tier_label})
@@ -217,10 +225,13 @@ CURRENT STATE:
 TOP FINDINGS TO ADDRESS:
 {findings_context if findings_context else "No significant findings requiring immediate attention."}
 
-Write a clear, actionable roadmap with:
-- FIRST 30 DAYS: Immediate priorities and quick wins
-- DAYS 31-60: Foundation building and process improvements  
-- DAYS 61-90: Maturity advancement and long-term initiatives
+Write a clear, actionable remediation roadmap with three tiers:
+- IMMEDIATE (0-30 DAYS): Critical risk reduction and quick wins. Reference specific CISA or NIST guidance
+  where applicable (e.g. https://www.cisa.gov/stopransomware).
+- NEAR-TERM (30-90 DAYS): Foundation building, Control Effectiveness improvements, and process
+  maturation. Reference relevant NIST CSF 2.0 categories.
+- STRATEGIC (90+ DAYS): Governance Maturity advancement, Operational Resilience, and long-term Risk
+  Posture hardening. Reference OWASP or NIST SP publications where relevant.
 
 Use business-friendly language. Be specific about actions and expected outcomes.
 Format as clear paragraphs, not bullet lists."""
@@ -302,30 +313,40 @@ def _generate_fallback_narrative(summary_payload: Dict[str, Any], llm_failed: bo
         context_text = (
             f"{org_name} received an overall score of {overall_score:.0f}/100 and is in the Critical tier. "
             f"{len(findings)} findings were identified, including {critical_count} critical and {high_count} high-severity issues. "
-            f"The largest exposure areas are {' and '.join(weak_domain_names)}. "
-            "Immediate action is required to reduce urgent operational risk."
+            f"The largest Control Effectiveness gaps are in {' and '.join(weak_domain_names)}. "
+            "Risk Posture is at maximum exposure — immediate executive action is required to restore "
+            "Operational Resilience."
         )
     elif tier_label == "Needs Work":
         context_text = (
             f"{org_name} scored {overall_score:.0f}/100 and is in the Needs Work tier. "
-            f"The assessment identified {len(findings)} findings across multiple domains. "
-            f"While {' and '.join(strong_domain_names)} are stronger, {' and '.join(weak_domain_names)} require focused remediation."
+            f"The assessment identified {len(findings)} findings across multiple security domains. "
+            f"While {' and '.join(strong_domain_names)} demonstrate reasonable Control Effectiveness, "
+            f"{' and '.join(weak_domain_names)} carry the highest Operational Resilience risk and require "
+            "focused remediation to improve Governance Maturity."
         )
     elif tier_label == "Good":
         context_text = (
-            f"{org_name} scored {overall_score:.0f}/100 and is in the Good tier, with strong foundations in {' and '.join(strong_domain_names)}. "
-            f"The {len(findings)} findings are primarily maturity and optimization gaps concentrated in {' and '.join(weak_domain_names)}."
+            f"{org_name} scored {overall_score:.0f}/100 and is in the Good tier with strong Control Effectiveness "
+            f"in {' and '.join(strong_domain_names)}. "
+            f"The {len(findings)} remaining findings are primarily Governance Maturity and optimisation gaps "
+            f"concentrated in {' and '.join(weak_domain_names)}."
         )
     else:  # Strong
         context_text = (
-            f"{org_name} scored {overall_score:.0f}/100 and is in the Strong tier, indicating mature controls across assessed domains. "
-            f"Only {len(findings)} lower-priority findings were identified, with the strongest areas in {' and '.join(strong_domain_names)}."
+            f"{org_name} scored {overall_score:.0f}/100 and is in the Strong tier, indicating a mature Risk Posture "
+            f"and high Control Effectiveness across assessed domains. "
+            f"Only {len(findings)} lower-priority findings were identified, with the strongest Operational Resilience "
+            f"in {' and '.join(strong_domain_names)}."
         )
 
     priorities = [
-        f"Close highest-risk gaps in {weak_domain_names[0] if weak_domain_names else 'core controls'} with executive sponsorship.",
-        "Assign owners and delivery dates for critical and high-severity remediation items.",
-        "Implement a 30/60/90 day operating cadence with measurable readiness checkpoints.",
+        f"Close highest Operational Resilience gaps in {weak_domain_names[0] if weak_domain_names else 'core controls'} "
+        f"with executive sponsorship. Reference: https://www.cisa.gov/stopransomware",
+        "Assign control owners and delivery dates for critical and high-severity remediation items to improve "
+        "Governance Maturity. Reference: https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final",
+        "Establish a 30/60/90-day operating cadence with measurable Risk Posture checkpoints. "
+        "Reference: https://www.nist.gov/cyberframework",
     ]
     if llm_failed:
         exec_summary = (

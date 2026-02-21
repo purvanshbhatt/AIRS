@@ -9,6 +9,7 @@ from app.api import (
     external,
     pilot,
 )
+from app.api.v1 import router as v1_router
 
 router = APIRouter()
 
@@ -21,3 +22,5 @@ router.include_router(reports.router, prefix="/reports", tags=["reports"])
 router.include_router(integrations.router, tags=["integrations"])
 router.include_router(external.router, tags=["external"])
 router.include_router(pilot.router, tags=["pilot"])
+# v1 versioned routes (e.g. /api/v1/methodology)
+router.include_router(v1_router, prefix="/v1", tags=["v1"])

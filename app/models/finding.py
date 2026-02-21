@@ -52,6 +52,10 @@ class Finding(Base):
     
     # Priority for remediation (1 = highest)
     priority = Column(String(10), nullable=True)
+
+    # NIST CSF 2.0 mapping (added v2.0)
+    nist_function = Column(String(10), nullable=True)   # e.g. "DE", "PR", "RC"
+    nist_category = Column(String(20), nullable=True)   # e.g. "DE.CM-1", "PR.AA-5"
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

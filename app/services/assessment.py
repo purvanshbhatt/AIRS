@@ -21,7 +21,7 @@ from app.schemas.assessment import (
     FindingCreate,
 )
 from app.services.scoring import calculate_scores, get_recommendations
-from app.core.rubric import get_rubric, get_question
+from app.core.rubric import get_rubric, get_question, get_domain_nist_function, NIST_FUNCTIONS
 from app.services.ai_narrative import generate_narrative
 from app.services.analytics import generate_analytics
 from app.services.roadmap import generate_detailed_roadmap, generate_simple_roadmap
@@ -375,10 +375,12 @@ class AssessmentService:
         # Determine readiness tier
         tier = self._get_readiness_tier(overall_score)
         
-        # Build domain scores with 0-5 scale
+        rubric = get_rubric()
+        # Build domain scores with 0-5 scale and NIST CSF 2.0 lifecycle mapping
         domain_scores = []
         for score in assessment.scores:
-            # score.score is already on 0-5 scale from scoring service
+            nist_info = get_domain_nist_function(score.domain_id)
+            rubric_domain = rubric["domains"].get(score.domain_id, {})
             domain_scores.append({
                 "domain_id": score.domain_id,
                 "domain_name": score.domain_name,
@@ -386,7 +388,11 @@ class AssessmentService:
                 "score_5": score.score,  # Original 0-5 scale
                 "weight": score.weight,
                 "earned_points": score.raw_points,
-                "max_points": score.max_raw_points
+                "max_points": score.max_raw_points,
+                # NIST CSF 2.0 lifecycle function
+                "nist_function": nist_info.get("id"),
+                "nist_function_name": nist_info.get("name"),
+                "nist_categories": rubric_domain.get("nist_categories", []),
             })
         
         # Build findings list sorted by severity with framework refs
@@ -421,7 +427,10 @@ class AssessmentService:
                 "evidence": f.evidence,
                 "recommendation": f.recommendation,
                 "description": f.description,
-                "framework_refs": fw_refs
+                "framework_refs": fw_refs,
+                # NIST CSF 2.0 mapping — from DB column (if populated) else domain fallback
+                "nist_function": getattr(f, "nist_function", None),
+                "nist_category": getattr(f, "nist_category", None),
             })
         
         # Count critical + high
@@ -505,6 +514,29 @@ class AssessmentService:
         ]
         detailed_roadmap = generate_detailed_roadmap(finding_dicts)
         
+        # Derive maturity_tier from overall_score for contract integrity
+        maturity_levels = get_rubric()["maturity_levels"]
+        maturity_tier = "Initial"
+        for range_key, level_info in maturity_levels.items():
+            low, high = map(int, range_key.split("-"))
+            if low <= overall_score <= high:
+                maturity_tier = level_info["name"]
+                break
+
+        # Enrich analytics with gap_category and maturity_tier
+        if analytics and isinstance(analytics, dict):
+            # Primary gap category: the most severe gap namespace
+            top_gap = None
+            for gc in (analytics.get("detection_gaps") or {}).get("categories", []):
+                if gc.get("is_critical"):
+                    top_gap = gc.get("name")
+                    break
+            if top_gap is None and analytics.get("detection_gaps"):
+                cats = analytics["detection_gaps"].get("categories", [])
+                top_gap = cats[0].get("name") if cats else None
+            analytics["gap_category"] = top_gap
+            analytics["maturity_tier"] = maturity_tier
+
         return {
             "api_version": "1.0",
             "product": get_product_info(),
@@ -529,7 +561,7 @@ class AssessmentService:
             "baseline_profiles": baseline_profiles,
             # New: Framework mapping with MITRE, CIS, OWASP refs
             "framework_mapping": framework_mapping,
-            # New: Analytics with attack paths and gaps
+            # New: Analytics with attack paths and gaps (includes gap_category + maturity_tier)
             "analytics": analytics,
             # New: Detailed roadmap with phases
             "detailed_roadmap": detailed_roadmap,
