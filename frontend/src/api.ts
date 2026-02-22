@@ -627,3 +627,54 @@ export const submitPilotRequest = (data: import('./types').PilotRequestInput) =>
     method: 'POST',
     body: JSON.stringify(data),
   });
+
+// =============================================================================
+// ENTERPRISE PILOT LEADS (v1)
+// =============================================================================
+
+export const submitEnterprisePilotLead = (data: import('./types').EnterprisePilotLeadInput) =>
+  request<import('./types').PilotRequestInput & { id: string; created_at: string }>(
+    '/api/v1/pilot-leads',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  );
+
+// =============================================================================
+// GOVERNANCE & ANALYTICS CONTROL (Phase 5)
+// =============================================================================
+
+export const toggleOrgAnalytics = (orgId: string, analyticsEnabled: boolean) =>
+  request<import('./types').Organization>(`/api/orgs/${orgId}/analytics`, {
+    method: 'PATCH',
+    body: JSON.stringify({ analytics_enabled: analyticsEnabled }),
+  });
+
+// =============================================================================
+// SCORING METHODOLOGY (Phase 4)
+// =============================================================================
+
+export const getMethodology = () =>
+  request<import('./types').MethodologyResponse>('/api/v1/methodology');
+
+// =============================================================================
+// AUDIT EXPORT (Phase 7)
+// =============================================================================
+
+export const downloadAuditExport = async (orgId: string): Promise<Blob> => {
+  const authHeaders = await getAuthHeaders();
+  const url = `${API_BASE_URL}/api/orgs/${orgId}/audit/export`;
+  if (isDevelopment) {
+    console.log(`[API] GET ${url} (blob)`);
+  }
+  const response = await fetch(url, { headers: authHeaders });
+  if (response.status === 401) {
+    handleUnauthorized();
+    throw new ApiRequestError({ message: 'Authentication required', status: 401 });
+  }
+  if (!response.ok) {
+    throw new ApiRequestError({ message: 'Failed to download audit log', status: response.status });
+  }
+  return response.blob();
+};

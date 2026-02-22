@@ -19,6 +19,11 @@ class PilotRequest(Base):
     team_size = Column(String(64), nullable=False)
     current_security_tools = Column(Text, nullable=True)
     email = Column(String(255), nullable=False, index=True)
+    # Enterprise Pilot Program extended fields (Phase 6 / migration 0010)
+    contact_name = Column(String(255), nullable=True)
+    industry = Column(String(100), nullable=True)
+    company_size = Column(String(64), nullable=True)
+    ai_usage_description = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     def __repr__(self):

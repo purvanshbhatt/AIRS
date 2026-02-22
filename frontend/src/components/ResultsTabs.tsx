@@ -467,6 +467,61 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
         </Card>
       )}
 
+      {/* === Scoring Methodology (Why Panel) === */}
+      <Card className="border-blue-100 dark:border-blue-900">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Lightbulb className="h-5 w-5 text-blue-500" />
+            How This Score Is Calculated
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            ResilAI scores are derived from three authoritative frameworks that define the most prevalent ransomware
+            root causes and enterprise control effectiveness:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800">
+              <div className="font-semibold text-sm text-red-800 dark:text-red-300 mb-1">MITRE ATT&amp;CK Prevalence</div>
+              <p className="text-xs text-red-700 dark:text-red-400">
+                Each control domain maps to real-world attacker techniques (·T-codes). Higher-frequency techniques carry
+                greater weight in the Risk Posture calculation.
+              </p>
+            </div>
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800">
+              <div className="font-semibold text-sm text-emerald-800 dark:text-emerald-300 mb-1">NIST CSF 2.0 Impact Areas</div>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                Domains are aligned to the six NIST CSF lifecycle functions—Govern, Identify, Protect, Detect, Respond,
+                Recover—ensuring Governance Maturity coverage across the full incident lifecycle.
+              </p>
+            </div>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+              <div className="font-semibold text-sm text-blue-800 dark:text-blue-300 mb-1">Ransomware Root Causes</div>
+              <p className="text-xs text-blue-700 dark:text-blue-400">
+                Questions target the top confirmed breach enablers (CISA, FBI IC3, Verizon DBIR): unpatched exposure,
+                credential compromise, detection gaps, and inadequate Recovery Controls.
+              </p>
+            </div>
+          </div>
+          <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              <strong className="text-gray-700 dark:text-gray-300">Control Effectiveness</strong> is scored 0–5 per domain
+              (weight-adjusted). The overall score is a weighted average translated to a 0–100 Risk Posture index.
+              The
+              <a
+                href="/api/v1/methodology"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-600 dark:text-primary-400 hover:underline ml-1"
+              >
+                full methodology
+              </a>
+              {' '}returns the live rubric weights via the API.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Benchmark Comparison */}
       {summary.baseline_profiles && Object.keys(summary.baseline_profiles).length > 0 && (
         <Card>
@@ -612,10 +667,15 @@ export function FindingsTab({ summary }: FindingsTabProps) {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
                       <Badge variant={getSeverityVariant(f.severity)}>{f.severity}</Badge>
                       {f.domain && (
                         <span className="text-xs text-gray-500 dark:text-gray-400">{f.domain}</span>
+                      )}
+                      {(f as any).nist_category && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                          NIST CSF: {(f as any).nist_category}
+                        </span>
                       )}
                     </div>
                     <h4 className="font-medium text-gray-900 dark:text-gray-100">{f.title}</h4>
@@ -1056,11 +1116,26 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                       >
                         <div className="flex items-start justify-between gap-4 mb-2">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
                               <Badge variant={getSeverityVariant(item.severity)}>
                                 {item.severity}
                               </Badge>
                               <Badge variant="outline">{item.effort} effort</Badge>
+                              {item.timeline_label && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                  {item.timeline_label}
+                                </span>
+                              )}
+                              {item.risk_impact && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                                  {item.risk_impact}
+                                </span>
+                              )}
+                              {item.nist_category && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                  NIST CSF: {item.nist_category}
+                                </span>
+                              )}
                               <span className="text-xs text-gray-500 dark:text-gray-400">{item.domain}</span>
                             </div>
                             <h4 className="font-medium text-gray-900 dark:text-gray-100">{item.title}</h4>
@@ -1139,8 +1214,8 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                   <Zap className="h-5 w-5 text-danger-600 dark:text-danger-400" />
                 </div>
                 <div>
-                  <div className="font-semibold text-danger-700 dark:text-danger-300">Day 30</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Critical Actions</div>
+                  <div className="font-semibold text-danger-700 dark:text-danger-300">Immediate</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">0–30 days · Critical Actions</div>
                 </div>
               </div>
               {basicRoadmap.day30.length === 0 ? (
@@ -1162,8 +1237,8 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                   <Clock className="h-5 w-5 text-warning-600 dark:text-warning-400" />
                 </div>
                 <div>
-                  <div className="font-semibold text-warning-700 dark:text-warning-300">Day 60</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">High Priority</div>
+                  <div className="font-semibold text-warning-700 dark:text-warning-300">Near-term</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">30–90 days · High Priority</div>
                 </div>
               </div>
               {basicRoadmap.day60.length === 0 ? (
@@ -1185,8 +1260,8 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                   <TrendingUp className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                 </div>
                 <div>
-                  <div className="font-semibold text-primary-700 dark:text-primary-300">Day 90</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Medium Priority</div>
+                  <div className="font-semibold text-primary-700 dark:text-primary-300">Strategic</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">90+ days · Medium Priority</div>
                 </div>
               </div>
               {basicRoadmap.day90.length === 0 ? (

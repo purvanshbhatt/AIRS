@@ -6,6 +6,7 @@ export interface Organization {
   industry?: string;
   size?: string;
   integration_status?: string;
+  analytics_enabled?: boolean;
   created_at: string;
 }
 
@@ -122,6 +123,9 @@ export interface FindingSummary {
   evidence?: string;
   recommendation?: string;
   description?: string;
+  // NIST CSF 2.0 mapping (v2.0)
+  nist_function?: string;   // e.g. "DE", "PR", "RS", "RC"
+  nist_category?: string;   // e.g. "DE.CM-1", "PR.AA-5"
 }
 
 export interface AssessmentSummary {
@@ -306,6 +310,10 @@ export interface DetailedRoadmapItem {
   success_criteria?: string;
   domain?: string;
   finding_id?: string;
+  // Enterprise roadmap fields (v2.0)
+  timeline_label?: string;  // e.g. "Immediate", "Near-term", "Strategic"
+  risk_impact?: string;     // e.g. "Critical Risk Reduction", "High Impact"
+  nist_category?: string;   // e.g. "DE.CM-1", "PR.AA-5"
 }
 
 // Detailed roadmap wrapper with phases structure
@@ -375,6 +383,9 @@ export interface AnalyticsSummary {
   response_gaps?: GapAnalysis;
   identity_gaps?: GapAnalysis;
   risk_summary?: RiskSummary;
+  // Enterprise analytics contract fields (v2.0)
+  gap_category?: string;    // Primary gap category label
+  maturity_tier?: string;   // e.g. "Initial", "Developing", "Defined", "Managed", "Optimized"
 }
 
 // Tracker item for roadmap tracking
@@ -481,6 +492,43 @@ export interface PilotRequestInput {
   team_size: string;
   current_security_tools?: string;
   email: string;
+}
+
+// Enterprise Pilot Lead (Phase 6 — extended form for /api/v1/pilot-leads)
+export interface EnterprisePilotLeadInput {
+  company_name: string;
+  contact_name: string;
+  email: string;
+  industry?: string;
+  company_size?: string;
+  team_size?: string;
+  current_security_tools?: string;
+  ai_usage_description?: string;
+}
+
+// Methodology endpoint response (Phase 4)
+export interface MethodologyDomain {
+  domain_id: string;
+  domain_name: string;
+  weight_pct: number;
+  nist_function?: string;
+  nist_function_name?: string;
+  nist_categories?: string[];
+  description: string;
+  question_count: number;
+  max_domain_score: number;
+}
+
+export interface MethodologyResponse {
+  rubric_version: string;
+  nist_csf_version: string;
+  methodology_basis: string[];
+  total_weight: number;
+  max_domain_score: number;
+  scoring_formula: string;
+  domains: MethodologyDomain[];
+  maturity_levels: Record<string, unknown>;
+  remediation_timelines: Record<string, unknown>;
 }
 
 export interface SiemExportFinding {

@@ -5,8 +5,9 @@ All endpoints enforce tenant isolation using Firebase user UID.
 Users can only access their own organizations.
 """
 
+import json
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.db.database import get_db
@@ -157,3 +158,93 @@ async def list_organization_audit_events(
         .all()
     )
     return events
+
+
+# ---------------------------------------------------------------------------
+# Phase 5: Analytics toggle
+# ---------------------------------------------------------------------------
+
+from pydantic import BaseModel
+
+
+class AnalyticsToggleRequest(BaseModel):
+    analytics_enabled: bool
+
+
+@router.patch(
+    "/{org_id}/analytics",
+    response_model=OrganizationResponse,
+    summary="Toggle Analytics",
+    description=(
+        "Enable or disable anonymised telemetry for an organization. "
+        "When disabled, the backend suppresses telemetry events and "
+        "behavioral analytics logging for all assessments belonging to "
+        "this organization."
+    ),
+)
+async def toggle_analytics(
+    org_id: str,
+    body: AnalyticsToggleRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """PATCH /api/orgs/{org_id}/analytics — update analytics_enabled flag."""
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Organization not found: {org_id}")
+
+    org.analytics_enabled = body.analytics_enabled
+    db.commit()
+    db.refresh(org)
+    return org
+
+
+# ---------------------------------------------------------------------------
+# Phase 7: Audit export
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/{org_id}/audit/export",
+    summary="Export Audit Trail",
+    description="Download all audit events for an organization as a JSON file.",
+)
+async def export_audit_trail(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """GET /api/orgs/{org_id}/audit/export — downloadable JSON audit log."""
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Organization not found: {org_id}")
+
+    events = (
+        db.query(AuditEvent)
+        .filter(AuditEvent.org_id == org_id)
+        .order_by(AuditEvent.timestamp.asc())
+        .all()
+    )
+
+    payload = {
+        "organization_id": org_id,
+        "organization_name": org.name,
+        "exported_events": len(events),
+        "events": [
+            {
+                "id": e.id,
+                "action": e.action,
+                "actor": e.actor,
+                "timestamp": e.timestamp.isoformat() if e.timestamp else None,
+            }
+            for e in events
+        ],
+    }
+    json_bytes = json.dumps(payload, indent=2).encode("utf-8")
+    filename = f"audit_{org_id[:8]}.json"
+    return Response(
+        content=json_bytes,
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

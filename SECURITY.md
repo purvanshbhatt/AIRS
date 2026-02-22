@@ -1,5 +1,20 @@
 ﻿# Security Policy
 
+## Analytics Opt-Out and Privacy Controls
+
+ResilAI provides first-class privacy controls at the organisation level:
+
+- **Per-org analytics flag**: Each organisation can disable anonymised telemetry via
+  `PATCH /api/orgs/{id}/analytics` with `{"analytics_enabled": false}`.
+- **Settings UI**: The toggle in **Settings → Privacy & Analytics** persists the preference
+  to both `localStorage` (instant) and the backend database (durable).
+- **What is collected when enabled**: Anonymised feature usage signals (e.g., tab viewed,
+  report downloaded). No assessment content, no PII, no scoring data.
+- **What is never collected**: Assessment answers, finding details, LLM-generated narratives,
+  user email addresses, or any personally identifiable information.
+- **Right to erasure**: Contact `purvansh95b@gmail.com` to request deletion of all data
+  associated with your organisation.
+
 ## Supported Versions
 
 | Version | Supported |

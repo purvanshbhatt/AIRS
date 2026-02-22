@@ -3,6 +3,7 @@ Organization model.
 """
 
 import uuid
+import sqlalchemy as sa
 from sqlalchemy import Column, String, DateTime, Text
 from sqlalchemy.dialects.sqlite import CHAR
 from sqlalchemy.sql import func
@@ -24,6 +25,8 @@ class Organization(Base):
     contact_name = Column(String(255), nullable=True)
     notes = Column(Text, nullable=True)
     integration_status = Column(Text, nullable=False, default="{}")
+    # Governance & Analytics Control (Phase 5) — if False, telemetry is suppressed
+    analytics_enabled = Column(sa.Boolean, nullable=False, default=True, server_default="1")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { checkHealth, getApiBaseUrl, ApiRequestError } from '../api';
+import { checkHealth, getApiBaseUrl, getOrganizations, toggleOrgAnalytics, ApiRequestError } from '../api';
 import { clearAllLocalData, getLocalDataSummary } from '../lib/userData';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -11,7 +11,7 @@ import {
   CardContent,
   Button,
 } from '../components/ui';
-import { Settings as SettingsIcon, Server, CheckCircle, XCircle, RefreshCw, Trash2, Database, User, Mail, Shield, Plug } from 'lucide-react';
+import { Settings as SettingsIcon, Server, CheckCircle, XCircle, RefreshCw, Trash2, Database, User, Mail, Shield, Plug, Eye, EyeOff } from 'lucide-react';
 
 interface HealthStatus {
   status: 'checking' | 'ok' | 'error';
@@ -23,8 +23,29 @@ export default function Settings() {
   const [health, setHealth] = useState<HealthStatus>({ status: 'checking' });
   const [localDataSummary, setLocalDataSummary] = useState<{ key: string; size: number }[]>([]);
   const [clearingData, setClearingData] = useState(false);
+  const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
+  const [analyticsUpdating, setAnalyticsUpdating] = useState(false);
+  // Privacy: persisted to localStorage; default enabled
+  const [analyticsEnabled, setAnalyticsEnabled] = useState<boolean>(
+    () => localStorage.getItem('airs_analytics_enabled') !== 'false'
+  );
   const apiBaseUrl = getApiBaseUrl();
   const { user } = useAuth();
+
+  const handleAnalyticsToggle = async (enabled: boolean) => {
+    setAnalyticsEnabled(enabled);
+    localStorage.setItem('airs_analytics_enabled', enabled ? 'true' : 'false');
+    if (currentOrgId) {
+      setAnalyticsUpdating(true);
+      try {
+        await toggleOrgAnalytics(currentOrgId, enabled);
+      } catch {
+        // Non-critical — localStorage already updated
+      } finally {
+        setAnalyticsUpdating(false);
+      }
+    }
+  };
 
   const refreshLocalDataSummary = () => {
     setLocalDataSummary(getLocalDataSummary());
@@ -58,6 +79,19 @@ export default function Settings() {
   useEffect(() => {
     checkApiHealth();
     refreshLocalDataSummary();
+    // Fetch first org for analytics backend sync
+    getOrganizations()
+      .then((orgs) => {
+        if (orgs.length > 0) {
+          setCurrentOrgId(orgs[0].id);
+          // Sync localStorage state from backend preference
+          if (typeof orgs[0].analytics_enabled === 'boolean') {
+            setAnalyticsEnabled(orgs[0].analytics_enabled);
+            localStorage.setItem('airs_analytics_enabled', orgs[0].analytics_enabled ? 'true' : 'false');
+          }
+        }
+      })
+      .catch(() => { /* offline / unauthenticated — localStorage fallback is fine */ });
   }, []);
 
   return (
@@ -243,6 +277,60 @@ export default function Settings() {
           <Link to="/dashboard/integrations">
             <Button variant="outline">Open Integrations</Button>
           </Link>
+        </CardContent>
+      </Card>
+
+      {/* Privacy & Analytics */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            {analyticsEnabled
+              ? <Eye className="h-5 w-5 text-gray-500 dark:text-slate-400" />
+              : <EyeOff className="h-5 w-5 text-gray-500 dark:text-slate-400" />}
+            <CardTitle className="text-lg">Privacy &amp; Analytics</CardTitle>
+          </div>
+          <CardDescription>
+            Control whether anonymised usage telemetry is sent to improve ResilAI.
+            No assessment content or PII is ever included.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                Share anonymised telemetry
+              </p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                Helps us understand feature usage and improve the platform.
+              </p>
+            </div>
+            {/* Toggle switch */}
+            <button
+              role="switch"
+              aria-checked={analyticsEnabled}
+              disabled={analyticsUpdating}
+              onClick={() => handleAnalyticsToggle(!analyticsEnabled)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-wait ${
+                analyticsEnabled
+                  ? 'bg-primary-600'
+                  : 'bg-gray-300 dark:bg-slate-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  analyticsEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {!analyticsEnabled && (
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <p className="text-xs text-amber-800 dark:text-amber-300">
+                Telemetry is <strong>disabled</strong>. No usage data will be sent to the backend.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

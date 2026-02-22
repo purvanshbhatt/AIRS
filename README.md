@@ -80,6 +80,31 @@ firebase deploy --only hosting:staging
 bash ./scripts/deploy_cloud_run.sh --service airs-api-staging --region us-central1 --env-file gcp/env.staging.yaml --project gen-lang-client-0384513977
 ```
 
+## Enterprise Readiness
+
+As of **v0.3-enterprise-beta**, ResilAI ships with the following enterprise-grade capabilities:
+
+| Capability | Detail |
+|---|---|
+| **NIST CSF 2.0 Alignment** | Every finding is tagged to a NIST CSF 2.0 Function (GV, ID, PR, DE, RS, RC) and category (e.g. `DE.CM-3`) |
+| **Maturity Tiers** | Scoring rubric v2.0.0 distinguishes Basic → Managed → Advanced maturity for key controls |
+| **Enterprise Roadmap** | Effort vs. Impact matrix with Immediate / Near-term / Strategic timeline lanes |
+| **Scoring Transparency** | `/api/v1/methodology` endpoint exposes full rubric weights, NIST mappings, and scoring formula |
+| **Analytics Governance** | Per-organisation `analytics_enabled` flag — tunable via Settings UI or `PATCH /api/orgs/{id}/analytics` |
+| **Audit Export** | `GET /api/orgs/{id}/audit/export` returns a signed JSON export of all audit events |
+| **Schema Versioning** | `assessments.schema_version` column differentiates v1 (legacy) and v2 (maturity-tier) assessments |
+| **Executive Reports** | PDF export includes NIST function breakdown, maturity gap analysis, and board-ready summary |
+
+### Enterprise Pilot Programme
+
+We run a structured **90-day enterprise pilot** with a limited cohort each quarter.
+Apply at `/pilot` or email `purvansh95b@gmail.com` with subject `Enterprise Pilot Application`.
+
+### API Versioning
+
+- `/api/*` — stable, production API surface
+- `/api/v1/*` — new enterprise endpoints (methodology, pilot leads)
+
 ## Roadmap Summary
 - Beta stabilization and demo hardening
 - Enterprise integrations (API keys, webhooks, SIEM-ready exports)

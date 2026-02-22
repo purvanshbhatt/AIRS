@@ -30,12 +30,15 @@ class OrganizationUpdate(BaseModel):
     contact_email: Optional[str] = Field(None, max_length=255)
     contact_name: Optional[str] = Field(None, max_length=255)
     notes: Optional[str] = None
+    # Phase 5: Governance & Analytics Control
+    analytics_enabled: Optional[bool] = None
 
 
 class OrganizationResponse(OrganizationBase):
     """Schema for organization response."""
     id: str
     integration_status: Optional[str] = "{}"
+    analytics_enabled: bool = True
     created_at: datetime
     updated_at: Optional[datetime] = None
     

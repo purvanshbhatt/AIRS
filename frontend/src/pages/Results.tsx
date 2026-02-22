@@ -31,6 +31,7 @@ import {
   Route,
   TrendingUp,
   AlertTriangle,
+  Map,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import {
@@ -40,6 +41,7 @@ import {
   RoadmapTab,
   AnalyticsTab,
 } from '../components/ResultsTabs'
+import { EnterpriseRoadmap } from '../components/EnterpriseRoadmap'
 
 // Tab definitions
 const tabs = [
@@ -48,6 +50,7 @@ const tabs = [
   { id: 'framework', label: 'Framework Mapping', icon: Shield },
   { id: 'roadmap', label: 'Roadmap', icon: Route },
   { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+  { id: 'enterprise', label: 'Enterprise Roadmap', icon: Map },
 ]
 
 function getReadinessLevel(score: number): { label: string; variant: 'danger' | 'warning' | 'primary' | 'success' } {
@@ -408,6 +411,7 @@ export default function Results() {
         {activeTab === 'framework' && <FrameworkTab summary={summary} />}
         {activeTab === 'roadmap' && <RoadmapTab summary={summary} />}
         {activeTab === 'analytics' && <AnalyticsTab summary={summary} />}
+        {activeTab === 'enterprise' && <EnterpriseRoadmap summary={summary} />}
       </div>
 
       {/* Actions Footer */}
