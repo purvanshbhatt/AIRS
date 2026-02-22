@@ -96,8 +96,16 @@ export default function NewAssessment() {
         const saved = localStorage.getItem(DRAFT_KEY);
         if (saved) {
           try {
-            JSON.parse(saved); // Validate JSON
-            setHasDraft(true);
+            const parsed = JSON.parse(saved);
+            // Validate that the draft's org still exists in the current org list
+            const orgStillExists = orgsData.some((o: { id: string }) => o.id === parsed.orgId);
+            if (orgStillExists) {
+              setHasDraft(true);
+            } else {
+              // Stale draft — the org was deleted or the DB was reset (e.g. container restart).
+              // Remove the draft silently so the user gets a clean start.
+              localStorage.removeItem(DRAFT_KEY);
+            }
           } catch {
             localStorage.removeItem(DRAFT_KEY);
           }
@@ -220,7 +228,22 @@ export default function NewAssessment() {
 
       navigate(`/results/${assessment.id}`);
     } catch (err) {
-      if (err instanceof ApiRequestError) {
+      const isOrgNotFound =
+        err instanceof ApiRequestError &&
+        err.message?.toLowerCase().includes('organization not found');
+
+      if (isOrgNotFound) {
+        // The selected org is stale (e.g. server restarted and wiped in-memory DB).
+        // Clear the bad org selection and draft so the user can pick a fresh one.
+        localStorage.removeItem(DRAFT_KEY);
+        setHasDraft(false);
+        setOrgId('');
+        setStep('setup');
+        setError(
+          'The selected organization no longer exists on the server. ' +
+          'This can happen after a server restart. Please select your organization again.'
+        );
+      } else if (err instanceof ApiRequestError) {
         setError(err.toDisplayMessage());
       } else {
         setError(err instanceof Error ? err.message : 'Failed to submit assessment');
