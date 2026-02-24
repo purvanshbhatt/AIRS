@@ -1,7 +1,8 @@
 """
 AIRS Middleware
 
-Production-grade middleware for request tracking, logging, and error handling.
+Production-grade middleware for request tracking, logging, security headers,
+and error handling.
 """
 
 import time
@@ -21,6 +22,22 @@ from app.core.logging import (
 )
 
 logger = logging.getLogger("airs.middleware")
+
+
+# ---- Security Headers Middleware ----
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Inject standard security response headers on every response."""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+        # HSTS: 1 year, include subdomains
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
 
 
 class RequestIdMiddleware(BaseHTTPMiddleware):

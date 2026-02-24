@@ -87,8 +87,9 @@ async def generate_narratives(
     
     If LLM is disabled, returns deterministic fallback narratives.
     """
-    # Get assessment with scores
-    service = AssessmentService(db)
+    # Get assessment with scores — scoped to authenticated user
+    owner_uid = user.uid if user else None
+    service = AssessmentService(db, owner_uid=owner_uid)
     assessment = service.get_detail(assessment_id)
     
     if not assessment:

@@ -82,7 +82,8 @@ def verify_firebase_token(token: str) -> dict:
     """
     Verify Firebase ID token.
     
-    Uses Firebase Admin SDK if available, otherwise returns mock user for development.
+    Uses Firebase Admin SDK if available. Mock fallback is ONLY allowed
+    in local environment — in prod/staging, missing SDK raises an error.
     """
     try:
         # Try to use Firebase Admin SDK
@@ -94,8 +95,16 @@ def verify_firebase_token(token: str) -> dict:
             "name": decoded.get("name"),
         }
     except ImportError:
-        # Firebase Admin not installed - use mock for development
-        logger.warning("Firebase Admin SDK not installed. Using mock authentication.")
+        # Firebase Admin not installed
+        if settings.is_prod:
+            logger.error("Firebase Admin SDK not installed in production — cannot verify tokens.")
+            raise _create_auth_error(
+                "AUTH_CONFIG_ERROR",
+                "Authentication service unavailable. Contact administrator.",
+                status_code=503,
+            )
+        # Local development only: mock auth
+        logger.warning("Firebase Admin SDK not installed. Using mock authentication (local dev only).")
         if token and len(token) > 10:
             return {
                 "uid": f"mock-{token[:8]}",

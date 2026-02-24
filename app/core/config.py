@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins
     # Example: "http://localhost:3000,https://myapp.com"
     # Use "*" to allow all origins (not recommended for production)
-    CORS_ALLOW_ORIGINS: str = "*"
+    CORS_ALLOW_ORIGINS: str = "http://localhost:5173"
     
     # ===========================================
     # GCP Settings (Optional)
@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     # ===========================================
     # Authentication
     # ===========================================
-    AUTH_REQUIRED: bool = False  # Set to true to require Firebase auth
+    AUTH_REQUIRED: bool = True  # Default secure: require Firebase auth
     FIREBASE_AUTH_EMULATOR_HOST: Optional[str] = None
     
     # ===========================================
@@ -120,6 +120,13 @@ class Settings(BaseSettings):
         errors = []
         
         if self.ENV in (Environment.PROD, Environment.STAGING):
+            # SECURITY: DEMO_MODE must never be enabled in prod/staging
+            if self.DEMO_MODE:
+                errors.append(
+                    f"DEMO_MODE=true is FORBIDDEN in {self.ENV.value}. "
+                    "It disables authentication. Set DEMO_MODE=false."
+                )
+
             # In production, CORS wildcard is now blocked by cors.py
             # Just log a warning here for visibility
             if self.CORS_ALLOW_ORIGINS == "*":
@@ -129,17 +136,17 @@ class Settings(BaseSettings):
                     file=sys.stderr
                 )
             
-            # In production with LLM enabled (not demo mode), either API key or ADC should exist
-            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY and not self.GCP_PROJECT_ID and not self.DEMO_MODE:
+            # In production with LLM enabled, either API key or ADC should exist
+            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY and not self.GCP_PROJECT_ID:
                 print(
                     "WARNING: AIRS_USE_LLM=true but neither GEMINI_API_KEY nor GCP_PROJECT_ID is set.",
                     file=sys.stderr
                 )
         
-        # Demo mode warnings
+        # Demo mode warnings (local only)
         if self.DEMO_MODE:
             print(
-                "WARNING: DEMO_MODE=true. LLM features enabled for demonstration purposes.",
+                "INFO: DEMO_MODE=true (local). LLM features enabled for demonstration purposes.",
                 file=sys.stderr
             )
             if self.AIRS_USE_LLM:
@@ -207,10 +214,11 @@ class Settings(BaseSettings):
 
     @property
     def is_auth_required(self) -> bool:
-        """Check if authentication is required for protected endpoints."""
-        if self.DEMO_MODE:
-            # Demo links should be accessible without requiring auth.
-            return False
+        """Check if authentication is required for protected endpoints.
+        
+        Auth is required when AUTH_REQUIRED=true OR in prod/staging.
+        DEMO_MODE no longer bypasses auth — it only enables LLM features.
+        """
         return self.AUTH_REQUIRED or self.ENV in (Environment.PROD, Environment.STAGING)
 
     @property

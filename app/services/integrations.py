@@ -2,11 +2,14 @@
 
 import hashlib
 import hmac
+import ipaddress
 import json
 import secrets
+import socket
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 import httpx
 from sqlalchemy.orm import Session
@@ -310,6 +313,57 @@ def _sign_payload(secret: Optional[str], payload: str) -> Optional[str]:
     return f"sha256={digest}"
 
 
+# ---- SSRF protection ----
+
+_BLOCKED_NETWORKS = [
+    ipaddress.ip_network("127.0.0.0/8"),       # Loopback
+    ipaddress.ip_network("10.0.0.0/8"),         # Private RFC-1918
+    ipaddress.ip_network("172.16.0.0/12"),      # Private RFC-1918
+    ipaddress.ip_network("192.168.0.0/16"),     # Private RFC-1918
+    ipaddress.ip_network("169.254.0.0/16"),     # Link-local / cloud metadata
+    ipaddress.ip_network("::1/128"),            # IPv6 loopback
+    ipaddress.ip_network("fc00::/7"),           # IPv6 unique local
+    ipaddress.ip_network("fe80::/10"),          # IPv6 link-local
+]
+
+
+def _validate_webhook_url(url: str) -> str:
+    """Validate a webhook URL is safe to call (anti-SSRF).
+    
+    Rules:
+      - Must use https:// scheme (http:// blocked in production)
+      - Hostname must not resolve to a private/loopback/link-local IP
+      - Blocks cloud metadata endpoints (169.254.169.254)
+    
+    Returns the validated URL or raises ValueError.
+    """
+    parsed = urlparse(url)
+
+    # Scheme check
+    if parsed.scheme not in ("https",):
+        raise ValueError(f"Webhook URL must use HTTPS: {url}")
+
+    hostname = parsed.hostname
+    if not hostname:
+        raise ValueError(f"Webhook URL has no hostname: {url}")
+
+    # Resolve hostname to IPs and check each
+    try:
+        results = socket.getaddrinfo(hostname, parsed.port or 443, proto=socket.IPPROTO_TCP)
+    except socket.gaierror:
+        raise ValueError(f"Cannot resolve webhook hostname: {hostname}")
+
+    for _, _, _, _, sockaddr in results:
+        ip = ipaddress.ip_address(sockaddr[0])
+        for net in _BLOCKED_NETWORKS:
+            if ip in net:
+                raise ValueError(
+                    f"Webhook URL resolves to blocked private/internal address ({ip})"
+                )
+
+    return url
+
+
 def deliver_webhook(webhook: Webhook, event_type: str, payload: Dict[str, Any]) -> Tuple[bool, Optional[int], Optional[str]]:
     body = json.dumps(payload)
     headers = {
@@ -337,7 +391,15 @@ def deliver_webhook_url_test(
     payload: Dict[str, Any],
     secret: Optional[str] = None,
 ) -> Tuple[bool, Optional[int], Optional[str]]:
-    """Send a direct webhook test payload to a provided URL."""
+    """Send a direct webhook test payload to a provided URL.
+    
+    Validates the URL against SSRF before making the outbound call.
+    """
+    try:
+        url = _validate_webhook_url(url)
+    except ValueError as exc:
+        return False, None, f"URL validation failed: {exc}"
+
     temp_webhook = Webhook(url=url, secret=secret, event_types='["assessment.scored"]', org_id="test-org")
     return deliver_webhook(temp_webhook, event_type, payload)
 

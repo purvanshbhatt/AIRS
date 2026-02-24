@@ -7,6 +7,7 @@ from app.core.logging import setup_logging, event_logger
 from app.core.cors import get_allowed_origins, log_cors_config
 from app.core.middleware import (
     RequestIdMiddleware,
+    SecurityHeadersMiddleware,
     global_exception_handler,
     http_exception_handler,
     validation_exception_handler,
@@ -71,6 +72,9 @@ app = FastAPI(
 
 # Add request ID middleware (must be first to capture all requests)
 app.add_middleware(RequestIdMiddleware)
+
+# Add security response headers
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Get validated CORS origins - single source of truth
 # This validates scheme, hostname, and blocks wildcards in production
