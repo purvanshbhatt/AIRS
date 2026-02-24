@@ -19,6 +19,7 @@ class Environment(str, Enum):
     """Application environment."""
     LOCAL = "local"
     STAGING = "staging"
+    DEMO = "demo"
     PROD = "prod"
 
 
@@ -204,8 +205,8 @@ class Settings(BaseSettings):
 
     @property
     def is_prod(self) -> bool:
-        """Check if running in production-like environment (staging or prod)."""
-        return self.ENV in (Environment.PROD, Environment.STAGING)
+        """Check if running in production-like environment (demo, staging, or prod)."""
+        return self.ENV in (Environment.PROD, Environment.STAGING, Environment.DEMO)
 
     @property
     def is_staging(self) -> bool:
