@@ -33,7 +33,7 @@ def test_generate_llm_narrative_uses_google_genai_sdk(monkeypatch):
 
     monkeypatch.setattr(ai_narrative.settings, "GCP_PROJECT_ID", None, raising=False)
     monkeypatch.setattr(ai_narrative.settings, "GEMINI_API_KEY", "fake-key", raising=False)
-    monkeypatch.setattr(ai_narrative.settings, "LLM_MODEL", "gemini-3-flash-preview", raising=False)
+    monkeypatch.setattr(ai_narrative.settings, "LLM_MODEL", "gemini-3-flash", raising=False)
     monkeypatch.setattr(ai_narrative.settings, "LLM_TEMPERATURE", 0.2, raising=False)
     monkeypatch.setattr(ai_narrative.settings, "LLM_MAX_TOKENS", 256, raising=False)
 

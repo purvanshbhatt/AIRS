@@ -485,7 +485,7 @@ class AssessmentSummaryResponse(BaseModel):
     # These fields indicate the current LLM configuration status
     llm_enabled: bool = False
     llm_provider: Optional[str] = None  # e.g., "google", "openai"
-    llm_model: Optional[str] = None     # e.g., "gemini-3-flash-preview"
+    llm_model: Optional[str] = None     # e.g., "gemini-3-flash"
     llm_mode: LLMMode = LLMMode.DISABLED  # "demo" | "prod" | "disabled"
     llm_status: Optional[str] = None       # "pending" | "completed" | "failed"
 
