@@ -283,6 +283,7 @@ export interface FrameworkCoverage {
   ig1_coverage_pct?: number;
   ig2_coverage_pct?: number;
   ig3_coverage_pct?: number;
+  nist_csf_categories?: number;
 }
 
 export interface FrameworkMapping {

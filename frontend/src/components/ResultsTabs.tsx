@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Shield,
+  ShieldCheck,
   Target,
   TrendingUp,
   Calendar,
@@ -125,10 +126,10 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, suggestedBaseline, onRefreshNarrative, isRefreshingNarrative }: OverviewTabProps) {
-  const { tier, domain_scores, findings, executive_summary } = summary
+  const { tier, domain_scores = [], findings = [], executive_summary = '' } = summary
   const topFailures = findings.slice(0, 5)
   const readinessLevel = getReadinessLevelFromScore(summary.overall_score)
-  const topRemediationPriorities = [...summary.roadmap.day30, ...summary.roadmap.day60, ...summary.roadmap.day90]
+  const topRemediationPriorities = [...(summary.roadmap?.day30 || []), ...(summary.roadmap?.day60 || []), ...(summary.roadmap?.day90 || [])]
     .map((item) => item.action || item.title)
     .filter(Boolean)
     .slice(0, 3)
@@ -674,9 +675,9 @@ export function FindingsTab({ summary }: FindingsTabProps) {
                       {f.domain && (
                         <span className="text-xs text-gray-500 dark:text-gray-400">{f.domain}</span>
                       )}
-                      {(f as any).nist_category && (
+                      {f.nist_category && (
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                          NIST CSF: {(f as any).nist_category}
+                          NIST CSF: {f.nist_category}
                         </span>
                       )}
                       {f.verification_status === 'VERIFIED' && (
@@ -727,7 +728,7 @@ interface FrameworkTabProps {
 export function FrameworkTab({ summary }: FrameworkTabProps) {
   const mapping = summary.framework_mapping
 
-  if (!mapping || mapping.findings.length === 0) {
+  if (!mapping || !mapping.findings || mapping.findings.length === 0) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
@@ -787,7 +788,7 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
       owaspNames[ref.id] = ref.name
     })
     // Collect NIST CSF 2.0 categories from findings
-    const nistCat = (f as any).nist_category || f.nist_category
+    const nistCat = f.nist_category
     if (nistCat && typeof nistCat === 'string') {
       uniqueNIST.add(nistCat)
       // Extract function from category (e.g., "DE.CM-1" → "DE")
@@ -1087,8 +1088,8 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
                           <div className="flex items-center gap-2 mb-1">
                             <Badge variant={getSeverityVariant(f.severity)} className="text-[10px]">{f.severity}</Badge>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{f.domain}</span>
-                            {(f as any).nist_category && (
-                              <span className="text-xs font-mono text-teal-600 dark:text-teal-400">{(f as any).nist_category}</span>
+                            {f.nist_category && (
+                              <span className="text-xs font-mono text-teal-600 dark:text-teal-400">{f.nist_category}</span>
                             )}
                           </div>
                           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{f.title}</p>
@@ -1218,7 +1219,7 @@ interface RoadmapTabProps {
 
 export function RoadmapTab({ summary }: RoadmapTabProps) {
   const detailedRoadmap = summary.detailed_roadmap
-  const basicRoadmap = summary.roadmap
+  const basicRoadmap = summary.roadmap || { day30: [], day60: [], day90: [] }
 
   // If we have detailed roadmap, show that
   if (detailedRoadmap && detailedRoadmap.phases) {

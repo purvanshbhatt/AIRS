@@ -291,6 +291,9 @@ class FrameworkMappedFinding(BaseModel):
     finding_id: str
     title: str
     severity: str
+    domain: Optional[str] = None
+    nist_function: Optional[str] = None
+    nist_category: Optional[str] = None
     mitre_refs: List[FrameworkRef] = []
     cis_refs: List[FrameworkRef] = []
     owasp_refs: List[FrameworkRef] = []
@@ -304,6 +307,7 @@ class FrameworkCoverage(BaseModel):
     ig1_coverage_pct: Optional[float] = None
     ig2_coverage_pct: Optional[float] = None
     ig3_coverage_pct: Optional[float] = None
+    nist_csf_categories: Optional[int] = None
 
 
 class FrameworkMapping(BaseModel):
@@ -485,7 +489,7 @@ class AssessmentSummaryResponse(BaseModel):
     # These fields indicate the current LLM configuration status
     llm_enabled: bool = False
     llm_provider: Optional[str] = None  # e.g., "google", "openai"
-    llm_model: Optional[str] = None     # e.g., "gemini-3-flash-preview"
+    llm_model: Optional[str] = None     # e.g., "gemini-3-flash"
     llm_mode: LLMMode = LLMMode.DISABLED  # "demo" | "prod" | "disabled"
     llm_status: Optional[str] = None       # "pending" | "completed" | "failed"
 

@@ -25,7 +25,7 @@ Feature flags:
   - AIRS_USE_LLM: Enable/disable LLM features (default: False)
   - DEMO_MODE: Allow LLM without strict validation (default: False)
   - GEMINI_API_KEY: API key for Google Gemini (optional in demo mode)
-  - LLM_MODEL: Model to use (default: gemini-3-flash-preview)
+  - LLM_MODEL: Model to use (default: gemini-3-flash)
 """
 
 import logging
@@ -129,7 +129,7 @@ def _generate_llm_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
         logger.warning("No valid credentials for Gemini. Using fallback.")
         return _generate_fallback_narrative(summary_payload, llm_failed=True)
     
-    # Use model from settings (default: gemini-3-flash-preview)
+    # Use model from settings (default: gemini-3-flash)
     model_name = settings.LLM_MODEL
     
     # Extract data from payload
