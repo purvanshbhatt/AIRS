@@ -305,12 +305,6 @@ class TestFindingRewrites:
 class TestNarrativeAPI:
     """Integration tests for narrative API endpoints."""
     
-    @pytest.fixture
-    def client(self):
-        from fastapi.testclient import TestClient
-        from app.main import app
-        return TestClient(app)
-    
     def test_llm_status_disabled(self, client):
         """Status endpoint should show LLM disabled."""
         response = client.get("/api/narratives/status")
