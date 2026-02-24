@@ -24,6 +24,7 @@ class EnterprisePilotLeadCreate(BaseModel):
     team_size: Optional[str] = Field(default=None, max_length=64)
     current_security_tools: Optional[str] = Field(default=None, max_length=4000)
     ai_usage_description: Optional[str] = Field(default=None, max_length=4000)
+    current_siem_provider: Optional[str] = Field(default=None, max_length=100)
 
 
 class PilotRequestResponse(BaseModel):
@@ -36,6 +37,7 @@ class PilotRequestResponse(BaseModel):
     industry: Optional[str] = None
     company_size: Optional[str] = None
     ai_usage_description: Optional[str] = None
+    current_siem_provider: Optional[str] = None
     created_at: datetime
 
     class Config:

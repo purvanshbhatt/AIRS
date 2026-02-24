@@ -126,6 +126,9 @@ export interface FindingSummary {
   // NIST CSF 2.0 mapping (v2.0)
   nist_function?: string;   // e.g. "DE", "PR", "RS", "RC"
   nist_category?: string;   // e.g. "DE.CM-1", "PR.AA-5"
+  // SIEM verification status (v0.3-enterprise)
+  verification_status?: 'SELF_REPORTED' | 'VERIFIED' | 'PENDING';
+  verification_source?: string;  // e.g., "Splunk", "Microsoft Sentinel"
 }
 
 export interface AssessmentSummary {
@@ -319,12 +322,30 @@ export interface DetailedRoadmapItem {
 // Detailed roadmap wrapper with phases structure
 export interface DetailedRoadmapPhase {
   title: string;
+  name?: string;  // Display name e.g. "Immediate (0–30 Days)"
+  description?: string;
+  item_count?: number;
+  effort_hours?: number;
   items: DetailedRoadmapItem[];
 }
 
+export interface DetailedRoadmapSummary {
+  total_items: number;
+  day30_count: number;
+  day60_count: number;
+  day90_count: number;
+  critical_items?: number;
+  quick_wins?: number;
+  total_effort_hours?: number;
+  total_risk_reduction?: string;
+  by_priority?: Record<string, number>;
+  by_effort?: Record<string, number>;
+  generated_at?: string;
+}
+
 export interface DetailedRoadmap {
-  phases: DetailedRoadmapPhase[];
-  summary?: string;
+  phases: Record<string, DetailedRoadmapPhase>;  // Keyed by "day30", "day60", "day90"
+  summary?: DetailedRoadmapSummary;
 }
 
 // Analytics types
@@ -504,6 +525,7 @@ export interface EnterprisePilotLeadInput {
   team_size?: string;
   current_security_tools?: string;
   ai_usage_description?: string;
+  current_siem_provider?: string;
 }
 
 // Methodology endpoint response (Phase 4)
@@ -548,4 +570,26 @@ export interface SiemExportPayload {
   score: number;
   generated_at: string;
   findings: SiemExportFinding[];
+}
+
+// =============================================================================
+// Question Suggestions
+// =============================================================================
+
+export interface SuggestedQuestion {
+  id: string;
+  question_text: string;
+  domain_id: string;
+  framework_tags: string[];
+  maturity_level: 'basic' | 'managed' | 'advanced';
+  effort_level: 'low' | 'medium' | 'high';
+  impact_level: 'low' | 'medium' | 'high';
+  control_function: 'govern' | 'identify' | 'protect' | 'detect' | 'respond' | 'recover';
+}
+
+export interface SuggestionsResponse {
+  suggestions: SuggestedQuestion[];
+  total_count: number;
+  org_maturity: string | null;
+  weakest_functions: string[] | null;
 }

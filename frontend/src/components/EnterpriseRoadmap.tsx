@@ -30,6 +30,20 @@ interface EnrichedItem extends DetailedRoadmapItem {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Map NIST CSF 2.0 function prefix to Tailwind color classes */
+function getNistFunctionColors(category: string): string {
+  const fn = (category || '').split('.')[0]?.toUpperCase()
+  switch (fn) {
+    case 'GV': return 'bg-slate-50 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+    case 'ID': return 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+    case 'PR': return 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+    case 'DE': return 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+    case 'RS': return 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800'
+    case 'RC': return 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+    default:   return 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+  }
+}
+
 const EFFORT_MAP: Record<string, number> = {
   low: 1, minimal: 1,
   medium: 3, moderate: 3,
@@ -125,7 +139,7 @@ function TimelineLaneCard({
                     {item.severity || item.priority}
                   </Badge>
                   {item.nist_category && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getNistFunctionColors(item.nist_category)}`}>
                       NIST CSF: {item.nist_category}
                     </span>
                   )}

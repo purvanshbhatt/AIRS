@@ -19,6 +19,7 @@ import {
   Calendar,
   Clock,
   ChevronRight,
+  ChevronDown,
   Zap,
   Sparkles,
   Lightbulb,
@@ -29,6 +30,7 @@ import {
   FileWarning,
   Plus,
   ShieldAlert,
+  HelpCircle,
 } from 'lucide-react'
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '../components/ui'
@@ -677,6 +679,17 @@ export function FindingsTab({ summary }: FindingsTabProps) {
                           NIST CSF: {(f as any).nist_category}
                         </span>
                       )}
+                      {f.verification_status === 'VERIFIED' && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                          <CheckCircle className="h-3 w-3" />
+                          Verified via SIEM{f.verification_source ? ` (${f.verification_source})` : ''}
+                        </span>
+                      )}
+                      {f.verification_status === 'PENDING' && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                          Pending Verification
+                        </span>
+                      )}
                     </div>
                     <h4 className="font-medium text-gray-900 dark:text-gray-100">{f.title}</h4>
                     {f.description && (
@@ -734,9 +747,31 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
   const uniqueMitre = new Set<string>()
   const uniqueCIS = new Set<string>()
   const uniqueOWASP = new Set<string>()
+  const uniqueNIST = new Set<string>()
   const mitreTechniqueNames: Record<string, string> = {}
   const cisTechniqueNames: Record<string, string> = {}
   const owaspNames: Record<string, string> = {}
+  const nistCategoryNames: Record<string, string> = {}
+  
+  // NIST CSF 2.0 Function groupings
+  const nistByFunction: Record<string, Set<string>> = {
+    GV: new Set(), // Govern
+    ID: new Set(), // Identify
+    PR: new Set(), // Protect
+    DE: new Set(), // Detect
+    RS: new Set(), // Respond
+    RC: new Set(), // Recover
+  }
+  
+  // Track findings by NIST function for detail view
+  const findingsByNistFunction: Record<string, FrameworkMappedFinding[]> = {
+    GV: [], // Govern
+    ID: [], // Identify
+    PR: [], // Protect
+    DE: [], // Detect
+    RS: [], // Respond
+    RC: [], // Recover
+  }
   
   findings.forEach((f: FrameworkMappedFinding) => {
     f.mitre_refs?.forEach((ref: FrameworkRef) => {
@@ -751,6 +786,22 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
       uniqueOWASP.add(ref.id)
       owaspNames[ref.id] = ref.name
     })
+    // Collect NIST CSF 2.0 categories from findings
+    const nistCat = (f as any).nist_category || f.nist_category
+    if (nistCat && typeof nistCat === 'string') {
+      uniqueNIST.add(nistCat)
+      // Extract function from category (e.g., "DE.CM-1" → "DE")
+      const funcCode = nistCat.split('.')[0]?.toUpperCase()
+      if (funcCode && nistByFunction[funcCode]) {
+        nistByFunction[funcCode].add(nistCat)
+        // Add finding to function group (avoid duplicates)
+        if (!findingsByNistFunction[funcCode].find(existing => existing.finding_id === f.finding_id)) {
+          findingsByNistFunction[funcCode].push(f)
+        }
+      }
+      // Store descriptive name
+      nistCategoryNames[nistCat] = nistCat
+    }
   })
   
   // Use computed values as source of truth
@@ -768,7 +819,12 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
   const owaspTotal = coverage?.owasp_total || 10
   const owaspPct = owaspTotal > 0 ? (owaspCount / owaspTotal * 100) : 0
   const owaspList = Array.from(uniqueOWASP).slice(0, 5)
-  const nistPct = Math.min(100, Math.max(0, Math.round((summary.overall_score + cisPct + owaspPct) / 3)))
+
+  // NIST CSF 2.0 computed values
+  const nistCount = uniqueNIST.size
+  const nistTotal = 23 // Total NIST CSF 2.0 categories across all functions
+  const nistCsfPct = nistTotal > 0 ? (nistCount / nistTotal * 100) : 0
+  const nistList = Array.from(uniqueNIST).slice(0, 6)
 
   return (
     <div className="space-y-6">
@@ -777,14 +833,15 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
           <CardTitle>Framework Coverage Snapshot</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <FrameworkCoverageBar label="MITRE ATT&CK" percent={mitrePct} colorClass="bg-red-500" />
           <FrameworkCoverageBar label="CIS Controls" percent={cisPct} colorClass="bg-blue-500" />
-          <FrameworkCoverageBar label="NIST AI RMF (Derived)" percent={nistPct} colorClass="bg-emerald-500" />
           <FrameworkCoverageBar label="OWASP LLM" percent={owaspPct} colorClass="bg-purple-500" />
+          <FrameworkCoverageBar label="NIST CSF 2.0" percent={nistCsfPct} colorClass="bg-teal-500" />
         </CardContent>
       </Card>
 
       {/* Coverage Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* MITRE Coverage */}
         <Card>
           <CardContent className="py-6">
@@ -802,6 +859,14 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               <span className="font-medium text-gray-700 dark:text-gray-300">{mitreCount}</span> of <span className="font-medium text-gray-700 dark:text-gray-300">{mitreTotal}</span> techniques referenced
             </div>
+            <details className="mt-1.5 group">
+              <summary className="text-[10px] text-blue-500 dark:text-blue-400 cursor-pointer hover:underline flex items-center gap-1 list-none [&::-webkit-details-marker]:hidden">
+                <HelpCircle className="h-3 w-3" /> What does this mean?
+              </summary>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">
+                These are MITRE ATT&CK techniques directly referenced by your assessment findings. A higher count indicates broader adversary technique coverage. This is not a measure of total organizational security maturity.
+              </p>
+            </details>
 
             {/* Top Techniques List */}
             {mitreList.length > 0 && (
@@ -837,6 +902,14 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               <span className="font-medium text-gray-700 dark:text-gray-300">{cisCount}</span> of <span className="font-medium text-gray-700 dark:text-gray-300">{cisTotal}</span> controls referenced
             </div>
+            <details className="mt-1.5 group">
+              <summary className="text-[10px] text-blue-500 dark:text-blue-400 cursor-pointer hover:underline flex items-center gap-1 list-none [&::-webkit-details-marker]:hidden">
+                <HelpCircle className="h-3 w-3" /> What does this mean?
+              </summary>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">
+                These are CIS Controls v8 safeguards referenced by your assessment findings across implementation groups (IG1–IG3). Higher coverage indicates alignment with industry-standard security baselines.
+              </p>
+            </details>
             {coverage && (
               <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400 mt-2">
                 <div>IG1: {coverage.ig1_coverage_pct?.toFixed(0) || 0}%</div>
@@ -878,6 +951,14 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               <span className="font-medium text-gray-700 dark:text-gray-300">{owaspCount}</span> of <span className="font-medium text-gray-700 dark:text-gray-300">{owaspTotal}</span> categories referenced ({owaspPct.toFixed(0)}%)
             </div>
+            <details className="mt-1.5 group">
+              <summary className="text-[10px] text-blue-500 dark:text-blue-400 cursor-pointer hover:underline flex items-center gap-1 list-none [&::-webkit-details-marker]:hidden">
+                <HelpCircle className="h-3 w-3" /> What does this mean?
+              </summary>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">
+                These are OWASP Top 10 risk categories identified in your assessment. Each category represents a class of application security risks ranked by prevalence and impact.
+              </p>
+            </details>
             {/* Top OWASP List */}
             {owaspList.length > 0 && (
               <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
@@ -896,7 +977,131 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
             )}
           </CardContent>
         </Card>
+
+        {/* NIST CSF 2.0 */}
+        <Card>
+          <CardContent className="py-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+                <ShieldCheck className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+              </div>
+              <div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">NIST CSF 2.0</div>
+                <div className="text-2xl font-bold dark:text-gray-100">{nistCount} categories</div>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <span className="font-medium text-gray-700 dark:text-gray-300">{nistCount}</span> of <span className="font-medium text-gray-700 dark:text-gray-300">{nistTotal}</span> categories referenced ({nistCsfPct.toFixed(0)}%)
+            </div>
+            <details className="mt-1.5 group">
+              <summary className="text-[10px] text-blue-500 dark:text-blue-400 cursor-pointer hover:underline flex items-center gap-1 list-none [&::-webkit-details-marker]:hidden">
+                <HelpCircle className="h-3 w-3" /> What does this mean?
+              </summary>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 leading-relaxed">
+                These are NIST CSF 2.0 categories mapped across six core functions (Govern, Identify, Protect, Detect, Respond, Recover). Coverage indicates how many framework categories your assessment findings address.
+              </p>
+            </details>
+            {/* Function Breakdown */}
+            <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <div className="flex justify-between"><span>Govern (GV)</span><span>{nistByFunction.GV.size}</span></div>
+              <div className="flex justify-between"><span>Identify (ID)</span><span>{nistByFunction.ID.size}</span></div>
+              <div className="flex justify-between"><span>Protect (PR)</span><span>{nistByFunction.PR.size}</span></div>
+              <div className="flex justify-between"><span>Detect (DE)</span><span>{nistByFunction.DE.size}</span></div>
+              <div className="flex justify-between"><span>Respond (RS)</span><span>{nistByFunction.RS.size}</span></div>
+              <div className="flex justify-between"><span>Recover (RC)</span><span>{nistByFunction.RC.size}</span></div>
+            </div>
+            {/* Top Categories List */}
+            {nistList.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-1">Referenced Categories</p>
+                <div className="flex flex-wrap gap-1">
+                  {nistList.map((cat: string) => (
+                    <Badge key={cat} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white dark:bg-gray-800" title={nistCategoryNames[cat]}>
+                      {cat}
+                    </Badge>
+                  ))}
+                  {uniqueNIST.size > 6 && (
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center">+{uniqueNIST.size - 6} more</span>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* NIST CSF 2.0 Detailed View - Findings Grouped by Function */}
+      {nistCount > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+              <CardTitle>NIST CSF 2.0 Findings by Function</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { code: 'GV', name: 'Govern', color: 'slate' },
+                { code: 'ID', name: 'Identify', color: 'blue' },
+                { code: 'PR', name: 'Protect', color: 'green' },
+                { code: 'DE', name: 'Detect', color: 'amber' },
+                { code: 'RS', name: 'Respond', color: 'orange' },
+                { code: 'RC', name: 'Recover', color: 'purple' },
+              ].map(func => {
+                const funcFindings = findingsByNistFunction[func.code] || []
+                const funcCategories = Array.from(nistByFunction[func.code] || [])
+                if (funcFindings.length === 0) return null
+                
+                return (
+                  <details key={func.code} className="group border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <summary className={`flex items-center justify-between p-4 cursor-pointer bg-${func.color}-50 dark:bg-${func.color}-900/20 rounded-lg group-open:rounded-b-none`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`px-2 py-1 bg-${func.color}-100 dark:bg-${func.color}-900/40 rounded text-${func.color}-700 dark:text-${func.color}-300 font-mono text-sm font-bold`}>
+                          {func.code}
+                        </div>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{func.name}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          ({funcFindings.length} finding{funcFindings.length !== 1 ? 's' : ''})
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {funcCategories.length} categor{funcCategories.length !== 1 ? 'ies' : 'y'}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-gray-400 group-open:rotate-90 transition-transform" />
+                      </div>
+                    </summary>
+                    <div className="p-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
+                      {/* Categories in this function */}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {funcCategories.map(cat => (
+                          <Badge key={cat} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-white dark:bg-gray-800">
+                            {cat}
+                          </Badge>
+                        ))}
+                      </div>
+                      {/* Findings */}
+                      {funcFindings.map((f, idx) => (
+                        <div key={f.finding_id || idx} className="pl-4 border-l-2 border-teal-300 dark:border-teal-700">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant={getSeverityVariant(f.severity)} className="text-[10px]">{f.severity}</Badge>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{f.domain}</span>
+                            {(f as any).nist_category && (
+                              <span className="text-xs font-mono text-teal-600 dark:text-teal-400">{(f as any).nist_category}</span>
+                            )}
+                          </div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{f.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Findings with Framework References */}
       <Card>
@@ -1090,16 +1295,15 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                       if (added || tracking) return
                       setTracking(true)
                       try {
+                        const itemPriority = (item.severity || item.priority || 'medium').toLowerCase()
                         await createRoadmapItem(summary.organization_id, {
                           title: item.title,
                           description: item.action,
                           status: 'todo',
-                          priority: ['critical', 'high'].includes(
-                            item.severity.toLowerCase()
-                          )
+                          priority: ['critical', 'high'].includes(itemPriority)
                             ? 'high'
                             : 'medium',
-                          effort: item.effort.toLowerCase() as any,
+                          effort: (item.effort || 'medium').toLowerCase() as any,
                         })
                         setAdded(true)
                       } catch (e) {
@@ -1109,6 +1313,9 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                       }
                     }
 
+                    // Use severity or priority for display
+                    const displaySeverity = item.severity || item.priority || 'medium'
+
                     return (
                       <div
                         key={item.finding_id || i}
@@ -1117,8 +1324,8 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                         <div className="flex items-start justify-between gap-4 mb-2">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <Badge variant={getSeverityVariant(item.severity)}>
-                                {item.severity}
+                              <Badge variant={getSeverityVariant(displaySeverity)}>
+                                {displaySeverity}
                               </Badge>
                               <Badge variant="outline">{item.effort} effort</Badge>
                               {item.timeline_label && (
@@ -1394,6 +1601,25 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">{path.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Why This Matters — business disruption context */}
+                  <div className="mb-3 p-2.5 bg-amber-50/60 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">Why this matters: </span>
+                        <span className="text-[11px] text-amber-600/90 dark:text-amber-400/90">
+                          {path.impact === 'Critical'
+                            ? 'This path could lead to full environment compromise — operational shutdown, data exfiltration, and regulatory penalties including breach notification requirements.'
+                            : path.impact === 'High'
+                            ? 'Exploitation risks significant business disruption — prolonged downtime, lateral movement across systems, and potential data loss requiring incident response activation.'
+                            : path.impact === 'Medium'
+                            ? 'This path enables partial system compromise — limited data exposure, service degradation, and increased dwell time for adversaries within the environment.'
+                            : 'If exploited, this path could result in reconnaissance footholds or minor service interruptions that may escalate if left unaddressed.'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

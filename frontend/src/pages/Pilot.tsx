@@ -32,6 +32,7 @@ interface EnterpriseFormState {
   team_size: string;
   current_security_tools: string;
   ai_usage_description: string;
+  current_siem_provider: string;
 }
 
 const defaultState: EnterpriseFormState = {
@@ -43,6 +44,7 @@ const defaultState: EnterpriseFormState = {
   team_size: '',
   current_security_tools: '',
   ai_usage_description: '',
+  current_siem_provider: '',
 };
 
 // ---------------------------------------------------------------------------
@@ -116,6 +118,7 @@ export default function PilotPage() {
         team_size: form.team_size || undefined,
         current_security_tools: form.current_security_tools || undefined,
         ai_usage_description: form.ai_usage_description || undefined,
+        current_siem_provider: form.current_siem_provider || undefined,
       });
       setSubmitted(true);
       setForm(defaultState);
@@ -321,6 +324,32 @@ export default function PilotPage() {
                           onChange={update('current_security_tools')}
                           placeholder="SIEM, EDR, CNAPP, cloud monitoring stack…"
                         />
+                      </div>
+
+                      {/* SIEM Provider */}
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                          Current SIEM Provider <span className="text-slate-400 font-normal">(optional)</span>
+                        </label>
+                        <select
+                          className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                          value={form.current_siem_provider}
+                          onChange={update('current_siem_provider')}
+                        >
+                          <option value="">Select SIEM provider…</option>
+                          <option>Microsoft Sentinel</option>
+                          <option>Splunk</option>
+                          <option>IBM QRadar</option>
+                          <option>Elastic SIEM</option>
+                          <option>Google Chronicle</option>
+                          <option>Sumo Logic</option>
+                          <option>Datadog</option>
+                          <option>CrowdStrike Falcon LogScale</option>
+                          <option>Exabeam</option>
+                          <option>LogRhythm</option>
+                          <option>None – Planning to deploy</option>
+                          <option>Other</option>
+                        </select>
                       </div>
 
                       {/* AI usage */}

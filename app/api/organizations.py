@@ -204,6 +204,70 @@ async def toggle_analytics(
 # Phase 7: Audit export
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Question Suggestions
+# ---------------------------------------------------------------------------
+
+from app.schemas.suggestions import SuggestedQuestion, SuggestionsResponse
+from app.services.question_suggestions import get_suggestions
+
+
+@router.get(
+    "/{org_id}/suggested-questions",
+    response_model=SuggestionsResponse,
+    summary="Get Suggested Questions",
+    description=(
+        "Return deterministic, rule-based question suggestions for the "
+        "organization based on its weakest control functions and maturity."
+    ),
+    responses={
+        200: {"description": "Suggestions returned"},
+        404: {"description": "Organization not found"},
+    },
+)
+async def list_suggested_questions(
+    org_id: str,
+    max_results: int = 10,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """GET /api/orgs/{org_id}/suggested-questions"""
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Organization not found: {org_id}",
+        )
+
+    # Cap max_results to avoid abuse
+    safe_max = max(1, min(max_results, 30))
+    suggestions = get_suggestions(db, org_id, max_results=safe_max, industry=org.industry)
+
+    # Derive org maturity & target functions from the suggestions
+    org_maturity = None
+    weakest_functions: list[str] = []
+    if suggestions:
+        from app.services.question_suggestions import (
+            _compute_function_scores_from_db,
+            _org_maturity_label,
+        )
+        fn_scores = _compute_function_scores_from_db(db, org_id)
+        all_scores = [v for v in fn_scores.values() if v > 0]
+        org_avg = sum(all_scores) / len(all_scores) if all_scores else 0.0
+        org_maturity = _org_maturity_label(org_avg)
+        ranked = sorted(fn_scores.items(), key=lambda x: x[1])
+        threshold = ranked[0][1] + 10.0
+        weakest_functions = [fn for fn, sc in ranked if sc <= threshold]
+
+    return SuggestionsResponse(
+        suggestions=suggestions,
+        total_count=len(suggestions),
+        org_maturity=org_maturity,
+        weakest_functions=weakest_functions or None,
+    )
+
+
 @router.get(
     "/{org_id}/audit/export",
     summary="Export Audit Trail",

@@ -1,4 +1,5 @@
-import { Shield, ExternalLink, AlertTriangle, CheckCircle } from 'lucide-react';
+import React from 'react';
+import { Shield, ExternalLink, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 
 export default function DocsFrameworks() {
     return (
@@ -176,6 +177,110 @@ export default function DocsFrameworks() {
                         className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline"
                     >
                         Learn more about OWASP Top 10
+                        <ExternalLink className="w-4 h-4" />
+                    </a>
+                </div>
+            </section>
+
+            {/* NIST CSF 2.0 */}
+            <section>
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+                        <Shield className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                        NIST Cybersecurity Framework 2.0
+                    </h2>
+                </div>
+
+                <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        Every assessment question maps to one of the six NIST CSF 2.0 lifecycle functions,
+                        providing end-to-end coverage across the cybersecurity risk management lifecycle.
+                        This ensures findings address governance, prevention, detection, and recovery equally.
+                    </p>
+
+                    {/* Lifecycle Diagram */}
+                    <div className="mb-6">
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-4">CSF 2.0 Lifecycle Functions:</h3>
+                        <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                            {[
+                                { code: 'GV', name: 'Govern', color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600', description: 'Establish and monitor cybersecurity risk management strategy, expectations, and policy' },
+                                { code: 'ID', name: 'Identify', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700', description: 'Understand organizational context, assets, and risk to prioritize efforts' },
+                                { code: 'PR', name: 'Protect', color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700', description: 'Implement safeguards to ensure delivery of critical services' },
+                                { code: 'DE', name: 'Detect', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700', description: 'Identify the occurrence of cybersecurity events in a timely manner' },
+                                { code: 'RS', name: 'Respond', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700', description: 'Take action regarding a detected cybersecurity incident' },
+                                { code: 'RC', name: 'Recover', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700', description: 'Restore capabilities or services impaired by a cybersecurity incident' },
+                            ].map((func, index) => (
+                                <React.Fragment key={func.code}>
+                                    <div className={`px-4 py-3 rounded-lg border ${func.color} text-center min-w-[100px]`}>
+                                        <div className="text-lg font-bold font-mono">{func.code}</div>
+                                        <div className="text-sm font-medium">{func.name}</div>
+                                    </div>
+                                    {index < 5 && (
+                                        <RefreshCw className="w-4 h-4 text-gray-300 dark:text-gray-600 hidden sm:block" />
+                                    )}
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Function Details */}
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        {[
+                            { code: 'GV', name: 'Govern', desc: 'Establish and monitor cybersecurity risk management strategy, expectations, and policy.', color: 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/20' },
+                            { code: 'ID', name: 'Identify', desc: 'Understand organizational context, assets, and risk to prioritize cybersecurity efforts.', color: 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20' },
+                            { code: 'PR', name: 'Protect', desc: 'Implement safeguards such as MFA, PAM, and access controls to ensure delivery of services.', color: 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20' },
+                            { code: 'DE', name: 'Detect', desc: 'Identify cybersecurity events through EDR, log monitoring, and alert triage processes.', color: 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20' },
+                            { code: 'RS', name: 'Respond', desc: 'Take action on detected incidents through IR playbooks, communication plans, and containment.', color: 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20' },
+                            { code: 'RC', name: 'Recover', desc: 'Restore impaired capabilities via backup recovery, RTO targets, and DR planning.', color: 'border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20' },
+                        ].map((func) => (
+                            <div key={func.code} className={`p-3 rounded-lg border ${func.color}`}>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-mono font-bold">{func.code}</span>
+                                    <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{func.name}</span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">{func.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Domain Mapping */}
+                    <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+                            How Assessment Domains Map to NIST CSF 2.0:
+                        </h4>
+                        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-2">
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-amber-700 dark:text-amber-300">DE</span>
+                                <span>Telemetry &amp; Logging — Detect: Continuous Monitoring (DE.CM)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-amber-700 dark:text-amber-300">DE</span>
+                                <span>Detection Coverage — Detect: Adverse Event Analysis (DE.AE)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-green-700 dark:text-green-300">PR</span>
+                                <span>Identity Visibility — Protect: Identity Management &amp; Access Control (PR.AA)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-orange-700 dark:text-orange-300">RS</span>
+                                <span>IR Playbooks &amp; Process — Respond: Incident Management (RS.MA)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-purple-700 dark:text-purple-300">RC</span>
+                                <span>Backup/Recovery &amp; Resilience — Recover: Incident Recovery Plan Execution (RC.RP)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a
+                        href="https://www.nist.gov/cyberframework"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline"
+                    >
+                        Learn more about NIST CSF 2.0
                         <ExternalLink className="w-4 h-4" />
                     </a>
                 </div>

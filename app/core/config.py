@@ -98,6 +98,16 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-3-flash-preview"  # Alias for backwards compatibility
     LLM_MAX_TOKENS: int = 1000
     LLM_TEMPERATURE: float = 0.7
+    
+    # ===========================================
+    # Implementation Assistance Mode
+    # ===========================================
+    # When enabled, LLM-generated narratives include direct implementation
+    # guide links from CISA, NIST, and OWASP in remediation priorities.
+    # When disabled (default), links are omitted to preserve consulting
+    # upsell positioning — clients receive actionable recommendations
+    # without self-service resource pointers.
+    IMPLEMENTATION_ASSISTANCE_MODE: bool = False
 
     model_config = SettingsConfigDict(
         case_sensitive=True,

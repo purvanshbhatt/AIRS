@@ -42,6 +42,7 @@ import {
   AnalyticsTab,
 } from '../components/ResultsTabs'
 import { EnterpriseRoadmap } from '../components/EnterpriseRoadmap'
+import { SuggestedQuestionsPanel } from '../components/SuggestedQuestionsPanel'
 
 // Tab definitions
 const tabs = [
@@ -364,6 +365,11 @@ export default function Results() {
           </Button>
         </div>
       </div>
+
+      {/* Suggested Questions — below readiness score, above tabs */}
+      {summary.organization_id && (
+        <SuggestedQuestionsPanel orgId={summary.organization_id} />
+      )}
 
       {/* Tab Navigation */}
       <div className="border-b border-gray-200 dark:border-slate-800">

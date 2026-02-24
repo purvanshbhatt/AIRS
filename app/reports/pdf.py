@@ -674,26 +674,33 @@ class ProfessionalPDFGenerator:
         elements.append(Spacer(1, 8))
 
         priorities: List[str] = []
-        phases = get_attr(detailed_roadmap, "phases", []) or []
-        for phase in phases:
+        seen_recommendations: set = set()
+        
+        # Iterate over detailed_roadmap phases (dict keyed by day30, day60, day90)
+        phases = get_attr(detailed_roadmap, "phases", {}) or {}
+        for phase_key in ("day30", "day60", "day90"):
+            phase = get_attr(phases, phase_key, {})
             for item in (get_attr(phase, "items", []) or []):
-                action = get_attr(item, "action", None) or get_attr(item, "title", "")
-                if action:
-                    priorities.append(str(action))
+                # Prefer unique recommendation, then action, then title
+                rec = get_attr(item, "recommendation", None) or get_attr(item, "action", None) or get_attr(item, "title", "")
+                if rec and rec not in seen_recommendations:
+                    priorities.append(str(rec))
+                    seen_recommendations.add(rec)
                 if len(priorities) >= 3:
                     break
             if len(priorities) >= 3:
                 break
-        if not priorities:
-            for phase_name in ("day30", "day60", "day90"):
-                for item in (get_attr(roadmap, phase_name, []) or []):
-                    action = get_attr(item, "action", None) or get_attr(item, "title", "")
-                    if action:
-                        priorities.append(str(action))
-                    if len(priorities) >= 3:
-                        break
+        
+        # Fallback: pull unique recommendations from top findings directly
+        if len(priorities) < 3:
+            for finding in findings[:5]:
+                rec = get_attr(finding, "recommendation", None)
+                if rec and rec not in seen_recommendations:
+                    priorities.append(str(rec))
+                    seen_recommendations.add(rec)
                 if len(priorities) >= 3:
                     break
+        
         if not priorities:
             priorities = [
                 "Triage and remediate critical exposure points first.",
@@ -727,6 +734,7 @@ class ProfessionalPDFGenerator:
                 ["MITRE ATT&CK Techniques", str(get_attr(coverage, "mitre_techniques_total", 0) or 0)],
                 ["CIS Controls", str(get_attr(coverage, "cis_controls_total", 0) or 0)],
                 ["OWASP Mappings", str(get_attr(coverage, "owasp_total", 0) or 0)],
+                ["NIST CSF 2.0 Categories", str(get_attr(coverage, "nist_csf_categories", 0) or 0)],
             ],
             colWidths=[3.4 * inch, 2.1 * inch],
         )
@@ -749,19 +757,20 @@ class ProfessionalPDFGenerator:
         elements.append(framework_table)
         elements.append(Spacer(1, 8))
 
-        detailed_rows = [["Finding", "MITRE", "CIS", "OWASP"]]
+        detailed_rows = [["Finding", "MITRE", "CIS", "OWASP", "NIST CSF"]]
         for finding in findings[:3]:
             framework_refs = get_attr(finding, "framework_refs", {}) or {}
             mitre = summarize_framework_refs(get_attr(framework_refs, "mitre", []))
             cis = summarize_framework_refs(get_attr(framework_refs, "cis", []))
             owasp = summarize_framework_refs(get_attr(framework_refs, "owasp", []))
+            nist_csf = get_attr(finding, "nist_category", "") or "-"
             title = str(get_attr(finding, "title", "Unspecified finding"))[:54]
-            detailed_rows.append([title, mitre, cis, owasp])
+            detailed_rows.append([title, mitre, cis, owasp, nist_csf])
 
         if len(detailed_rows) == 1:
-            detailed_rows.append(["No prioritized findings available", "None", "None", "None"])
+            detailed_rows.append(["No prioritized findings available", "None", "None", "None", "-"])
 
-        detail_table = Table(detailed_rows, colWidths=[2.8 * inch, 1.0 * inch, 1.0 * inch, 1.0 * inch])
+        detail_table = Table(detailed_rows, colWidths=[2.4 * inch, 0.9 * inch, 0.9 * inch, 0.9 * inch, 0.9 * inch])
         detail_table.setStyle(
             TableStyle(
                 [

@@ -402,9 +402,12 @@ class DetailedRoadmapItem(BaseModel):
 
 
 class DetailedRoadmapPhase(BaseModel):
-    """Roadmap phase with items."""
+    """Roadmap phase with items and metadata for executive presentation."""
     title: str
+    name: Optional[str] = None  # Display name e.g. "Immediate (0–30 Days)"
     description: Optional[str] = None
+    item_count: int = 0  # Count of items in this phase
+    effort_hours: int = 0  # Estimated total effort hours
     items: List[DetailedRoadmapItem] = []
 
 
@@ -414,14 +417,19 @@ class DetailedRoadmapSummary(BaseModel):
     day30_count: int
     day60_count: int
     day90_count: int
+    # UI-expected fields
+    critical_items: Optional[int] = 0
+    quick_wins: Optional[int] = 0
+    total_effort_hours: Optional[int] = 0
+    total_risk_reduction: Optional[str] = None
     by_priority: Dict[str, int] = {}
     by_effort: Dict[str, int] = {}
     generated_at: str
 
 
 class DetailedRoadmap(BaseModel):
-    """Complete detailed roadmap."""
-    phases: List[DetailedRoadmapPhase] = []
+    """Complete detailed roadmap with phases keyed by day30/day60/day90."""
+    phases: Dict[str, DetailedRoadmapPhase] = {}
     summary: Optional[DetailedRoadmapSummary] = None
 
 

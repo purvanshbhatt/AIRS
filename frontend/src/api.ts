@@ -678,3 +678,12 @@ export const downloadAuditExport = async (orgId: string): Promise<Blob> => {
   }
   return response.blob();
 };
+
+// =============================================================================
+// QUESTION SUGGESTIONS
+// =============================================================================
+
+export const getSuggestedQuestions = (orgId: string, maxResults = 10) =>
+  request<import('./types').SuggestionsResponse>(
+    `/api/orgs/${orgId}/suggested-questions?max_results=${maxResults}`
+  );

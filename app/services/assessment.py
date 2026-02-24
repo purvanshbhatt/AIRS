@@ -227,6 +227,11 @@ class AssessmentService:
             # Get question details for better finding
             question_info, _ = get_question(rec["question_id"])
             
+            # Extract NIST CSF 2.0 mapping from question
+            nist_category = question_info.get("nist_category") if question_info else None
+            nist_func_info = get_domain_nist_function(rec["domain_id"])
+            nist_function = nist_func_info.get("id") if nist_func_info else None
+            
             finding = Finding(
                 assessment_id=assessment_id,
                 title=f"Gap: {rec['finding'][:100]}",
@@ -237,7 +242,9 @@ class AssessmentService:
                 question_id=rec["question_id"],
                 evidence=f"Current value: {rec['current_answer']}",
                 recommendation=self._generate_recommendation(rec),
-                priority=str(rec["priority"])
+                priority=str(rec["priority"]),
+                nist_category=nist_category,
+                nist_function=nist_function
             )
             self.db.add(finding)
             saved_findings.append(finding)
@@ -475,6 +482,14 @@ class AssessmentService:
         
         # Generate framework mapping with coverage stats
         coverage_stats = get_all_unique_techniques(finding_rule_ids)
+        
+        # Count unique NIST CSF 2.0 categories from findings
+        unique_nist_categories = set()
+        for f in findings:
+            nist_cat = f.get("nist_category")
+            if nist_cat:
+                unique_nist_categories.add(nist_cat)
+        
         framework_mapping = {
             "findings": [
                 {
@@ -493,7 +508,8 @@ class AssessmentService:
                 "owasp_total": coverage_stats["owasp_total"],
                 "ig1_coverage_pct": coverage_stats["ig1_coverage_pct"],
                 "ig2_coverage_pct": coverage_stats["ig2_coverage_pct"],
-                "ig3_coverage_pct": coverage_stats["ig3_coverage_pct"]
+                "ig3_coverage_pct": coverage_stats["ig3_coverage_pct"],
+                "nist_csf_categories": len(unique_nist_categories)
             }
         }
         

@@ -182,6 +182,13 @@ def _generate_llm_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
     high_count = sum(1 for f in findings if f.get("severity", "").lower() == "high")
     medium_count = sum(1 for f in findings if f.get("severity", "").lower() == "medium")
     
+    # Build resource links instruction based on implementation assistance mode
+    if settings.IMPLEMENTATION_ASSISTANCE_MODE:
+        resource_links_instruction = """   - A direct implementation guide link from one of: CISA (https://www.cisa.gov/stopransomware),
+     NIST (https://csrc.nist.gov/publications), or OWASP (https://owasp.org/www-project-top-ten/)"""
+    else:
+        resource_links_instruction = "   - The expected business outcome if this priority is completed within 30 days"
+
     # Generate executive summary
     exec_prompt = f"""Write a professional executive narrative for {org_name}'s AI Security Readiness Assessment.
 Use enterprise risk terminology throughout: Operational Resilience, Risk Posture, Governance Maturity,
@@ -207,10 +214,25 @@ Output requirements (must follow exactly):
 4. Under that heading, provide exactly 3 bullet points. Each bullet MUST include:
    - The specific action (using enterprise language about control effectiveness or operational resilience)
    - The risk category addressed (e.g. Credential Compromise, Ransomware Recovery)
-   - A direct implementation guide link from one of: CISA (https://www.cisa.gov/stopransomware),
-     NIST (https://csrc.nist.gov/publications), or OWASP (https://owasp.org/www-project-top-ten/)
+{resource_links_instruction}
 5. Do not repeat raw questionnaire answers; focus on business impact and next actions.
 6. Do not include any numeric values other than those provided above."""
+
+    # Build roadmap resource references based on implementation assistance mode
+    if settings.IMPLEMENTATION_ASSISTANCE_MODE:
+        roadmap_references = """- IMMEDIATE (0-30 DAYS): Critical risk reduction and quick wins. Reference specific CISA or NIST guidance
+  where applicable (e.g. https://www.cisa.gov/stopransomware).
+- NEAR-TERM (30-90 DAYS): Foundation building, Control Effectiveness improvements, and process
+  maturation. Reference relevant NIST CSF 2.0 categories.
+- STRATEGIC (90+ DAYS): Governance Maturity advancement, Operational Resilience, and long-term Risk
+  Posture hardening. Reference OWASP or NIST SP publications where relevant."""
+    else:
+        roadmap_references = """- IMMEDIATE (0-30 DAYS): Critical risk reduction and quick wins. Focus on specific actions,
+  responsible teams, and expected measurable outcomes.
+- NEAR-TERM (30-90 DAYS): Foundation building, Control Effectiveness improvements, and process
+  maturation. Highlight dependencies and success criteria.
+- STRATEGIC (90+ DAYS): Governance Maturity advancement, Operational Resilience, and long-term Risk
+  Posture hardening. Describe target maturity state and KPIs."""
 
     # Generate roadmap narrative
     roadmap_prompt = f"""Create a tiered remediation roadmap narrative for {org_name} using enterprise
@@ -226,12 +248,7 @@ TOP FINDINGS TO ADDRESS:
 {findings_context if findings_context else "No significant findings requiring immediate attention."}
 
 Write a clear, actionable remediation roadmap with three tiers:
-- IMMEDIATE (0-30 DAYS): Critical risk reduction and quick wins. Reference specific CISA or NIST guidance
-  where applicable (e.g. https://www.cisa.gov/stopransomware).
-- NEAR-TERM (30-90 DAYS): Foundation building, Control Effectiveness improvements, and process
-  maturation. Reference relevant NIST CSF 2.0 categories.
-- STRATEGIC (90+ DAYS): Governance Maturity advancement, Operational Resilience, and long-term Risk
-  Posture hardening. Reference OWASP or NIST SP publications where relevant.
+{roadmap_references}
 
 Use business-friendly language. Be specific about actions and expected outcomes.
 Format as clear paragraphs, not bullet lists."""

@@ -291,30 +291,50 @@ def generate_detailed_roadmap(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
     for phase_key in phases:
         phases[phase_key].sort(key=lambda x: priority_order.get(x.priority, 4))
     
+    # Helper to compute effort hours from item effort levels
+    def sum_effort_hours(phase_items: List[RoadmapItem]) -> int:
+        effort_hours_map = {"low": 8, "medium": 24, "high": 80}  # Conservative estimates
+        return sum(effort_hours_map.get(i.effort, 24) for i in phase_items)
+
     # Build structured output with enterprise timeline labels
+    # phases is a DICT keyed by "day30", "day60", "day90" for frontend compatibility
     result = {
-        "phases": [
-            {
-                "title": "Immediate — 0\u201330 Days",
+        "phases": {
+            "day30": {
+                "title": "Immediate — 0–30 Days",
+                "name": "Immediate (0–30 Days)",
                 "description": "Critical risk-reduction and quick wins — highest Control Effectiveness ROI",
+                "item_count": len(phases["30"]),
+                "effort_hours": sum_effort_hours(phases["30"]),
                 "items": [roadmap_item_to_dict(item) for item in phases["30"]]
             },
-            {
-                "title": "Near-term — 30\u201390 Days",
+            "day60": {
+                "title": "Near-term — 30–90 Days",
+                "name": "Near-term (30–90 Days)",
                 "description": "Foundation building, Governance Maturity improvements, and process hardening",
+                "item_count": len(phases["60"]),
+                "effort_hours": sum_effort_hours(phases["60"]),
                 "items": [roadmap_item_to_dict(item) for item in phases["60"]]
             },
-            {
+            "day90": {
                 "title": "Strategic — 90+ Days",
+                "name": "Strategic (90+ Days)",
                 "description": "Operational Resilience advancement and long-term Risk Posture optimisation",
+                "item_count": len(phases["90"]),
+                "effort_hours": sum_effort_hours(phases["90"]),
                 "items": [roadmap_item_to_dict(item) for item in phases["90"]]
             }
-        ],
+        },
         "summary": {
             "total_items": len(items),
             "day30_count": len(phases["30"]),
             "day60_count": len(phases["60"]),
             "day90_count": len(phases["90"]),
+            # Fields expected by RoadmapTab UI
+            "critical_items": sum(1 for i in items if i.priority == "critical"),
+            "quick_wins": sum(1 for i in items if i.effort == "low" and i.priority in ("critical", "high")),
+            "total_effort_hours": sum_effort_hours(phases["30"]) + sum_effort_hours(phases["60"]) + sum_effort_hours(phases["90"]),
+            "total_risk_reduction": "High" if any(i.priority == "critical" for i in items) else "Medium",
             "by_priority": {
                 "critical": sum(1 for i in items if i.priority == "critical"),
                 "high": sum(1 for i in items if i.priority == "high"),

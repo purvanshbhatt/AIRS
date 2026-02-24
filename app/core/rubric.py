@@ -104,20 +104,15 @@ RUBRIC = {
             "questions": [
                 {
                     "id": "dc_01",
-                    # Supports both legacy numeric % and new maturity-tier strings:
-                    #   ">90%" (Measured)  → 1.0 pts  — known high coverage
-                    #   "60-90%"           → 0.75 pts  — known moderate coverage
-                    #   "<60%"             → 0.25 pts  — known low coverage
-                    #   "Not Measured"     → 0.0 pts   — penalised for lack of visibility
-                    "text": "What is your EDR endpoint coverage? Select the maturity tier that best applies.",
+                    "text": "What is your endpoint detection (EDR/XDR) coverage relative to your full asset inventory?",
                     "type": "percentage",
                     "points": 1,
                     "nist_category": "DE.CM-1",
                     "tier_options": [
-                        {"value": ">90%",        "label": ">90% (Measured — Full Coverage)",    "score": 1.0},
-                        {"value": "60-90%",       "label": "60–90% (Measured — Partial Coverage)", "score": 0.75},
-                        {"value": "<60%",         "label": "<60% (Measured — Limited Coverage)", "score": 0.25},
-                        {"value": "Not Measured", "label": "Not Measured (Unknown)",             "score": 0.0},
+                        {"value": ">95%",        "label": ">95% (Enterprise Standard)",         "score": 1.0},
+                        {"value": "80-95%",       "label": "80-95% (Measured Gap)",              "score": 0.75},
+                        {"value": "<80%",         "label": "<80% (High Risk)",                   "score": 0.25},
+                        {"value": "Unknown / Not Measured", "label": "Unknown / Not Measured",     "score": 0.0},
                     ],
                     "thresholds": {
                         "0": 0,
@@ -278,10 +273,16 @@ RUBRIC = {
             "questions": [
                 {
                     "id": "rs_01",
-                    "text": "Are critical systems backed up regularly?",
-                    "type": "boolean",
+                    "text": "Are critical systems backed up according to a 3-2-1 strategy (3 copies, 2 media, 1 offsite/immutable)?",
+                    "type": "percentage",
                     "points": 1,
-                    "nist_category": "PR.DS-11"
+                    "nist_category": "PR.DS-11",
+                    "tier_options": [
+                        {"value": "Full 3-2-1 Compliance", "label": "Full 3-2-1 Compliance (Immutable/Offsite)", "score": 1.0},
+                        {"value": "Partial",               "label": "Partial (Missing Offsite or Immutable)",  "score": 0.5},
+                        {"value": "Minimal",               "label": "Minimal (Local Backups Only)",            "score": 0.1},
+                        {"value": "Unknown / Not Measured", "label": "Unknown / Not Measured",                "score": 0.0},
+                    ]
                 },
                 {
                     "id": "rs_02",
@@ -306,20 +307,15 @@ RUBRIC = {
                 },
                 {
                     "id": "rs_05",
-                    # Supports both legacy numeric hours and new maturity-tier strings:
-                    #   "<4hrs"     → 1.0 pts   — excellent operational resilience
-                    #   "4-24hrs"   → 0.75 pts  — good RTO
-                    #   "24hrs+"    → 0.25 pts  — needs improvement
-                    #   "Undefined" → 0.0 pts   — no RTO defined
-                    "text": "What is your Recovery Time Objective (RTO) for critical systems? Select the tier that applies.",
+                    "text": "What is your validated Recovery Time Objective (RTO) for mission-critical applications?",
                     "type": "numeric",
                     "points": 1,
                     "nist_category": "RC.RP-1",
                     "tier_options": [
-                        {"value": "<4hrs",     "label": "<4 Hours (Excellent Operational Resilience)",  "score": 1.0},
-                        {"value": "4-24hrs",   "label": "4–24 Hours (Good RTO)",                         "score": 0.75},
-                        {"value": "24hrs+",    "label": "24 Hours+ (Needs Improvement)",                 "score": 0.25},
-                        {"value": "Undefined", "label": "Undefined / Not Measured",                     "score": 0.0},
+                        {"value": "<4hrs",     "label": "<4 Hours (Resilient)",             "score": 1.0},
+                        {"value": "4-24hrs",   "label": "4-24 Hours (Moderate)",            "score": 0.75},
+                        {"value": "24-72hrs",  "label": "24-72 Hours (Degraded)",           "score": 0.25},
+                        {"value": "Undefined / No Target", "label": "Undefined / No Target", "score": 0.0},
                     ],
                     "thresholds": {
                         "0": 1,      # Immediate (undefined = worst)
