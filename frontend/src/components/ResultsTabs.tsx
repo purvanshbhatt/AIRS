@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Shield,
+  ShieldCheck,
   Target,
   TrendingUp,
   Calendar,
@@ -125,10 +126,10 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, suggestedBaseline, onRefreshNarrative, isRefreshingNarrative }: OverviewTabProps) {
-  const { tier, domain_scores, findings, executive_summary } = summary
+  const { tier, domain_scores = [], findings = [], executive_summary = '' } = summary
   const topFailures = findings.slice(0, 5)
   const readinessLevel = getReadinessLevelFromScore(summary.overall_score)
-  const topRemediationPriorities = [...summary.roadmap.day30, ...summary.roadmap.day60, ...summary.roadmap.day90]
+  const topRemediationPriorities = [...(summary.roadmap?.day30 || []), ...(summary.roadmap?.day60 || []), ...(summary.roadmap?.day90 || [])]
     .map((item) => item.action || item.title)
     .filter(Boolean)
     .slice(0, 3)
@@ -1218,7 +1219,7 @@ interface RoadmapTabProps {
 
 export function RoadmapTab({ summary }: RoadmapTabProps) {
   const detailedRoadmap = summary.detailed_roadmap
-  const basicRoadmap = summary.roadmap
+  const basicRoadmap = summary.roadmap || { day30: [], day60: [], day90: [] }
 
   // If we have detailed roadmap, show that
   if (detailedRoadmap && detailedRoadmap.phases) {
