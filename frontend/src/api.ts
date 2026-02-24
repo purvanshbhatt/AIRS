@@ -687,3 +687,95 @@ export const getSuggestedQuestions = (orgId: string, maxResults = 10) =>
   request<import('./types').SuggestionsResponse>(
     `/api/orgs/${orgId}/suggested-questions?max_results=${maxResults}`
   );
+
+// =============================================================================
+// GOVERNANCE — Organization Profile
+// =============================================================================
+
+export const getOrganizationProfile = (orgId: string) =>
+  request<import('./types').OrganizationProfile>(
+    `/api/governance/${orgId}/profile`
+  );
+
+export const updateOrganizationProfile = (orgId: string, data: import('./types').OrganizationProfileUpdate) =>
+  request<import('./types').OrganizationProfile>(
+    `/api/governance/${orgId}/profile`,
+    { method: 'PUT', body: JSON.stringify(data) }
+  );
+
+// =============================================================================
+// GOVERNANCE — Compliance Applicability
+// =============================================================================
+
+export const getApplicableFrameworks = (orgId: string) =>
+  request<import('./types').ComplianceApplicabilityResponse>(
+    `/api/governance/${orgId}/applicable-frameworks`
+  );
+
+// =============================================================================
+// GOVERNANCE — Uptime Tier Analysis
+// =============================================================================
+
+export const getUptimeAnalysis = (orgId: string) =>
+  request<import('./types').UptimeTierAnalysis>(
+    `/api/governance/${orgId}/uptime-analysis`
+  );
+
+// =============================================================================
+// GOVERNANCE — Audit Calendar
+// =============================================================================
+
+export const getAuditCalendar = (orgId: string) =>
+  request<import('./types').AuditCalendarListResponse>(
+    `/api/governance/${orgId}/audit-calendar`
+  );
+
+export const createAuditCalendarEntry = (orgId: string, data: import('./types').AuditCalendarCreate) =>
+  request<import('./types').AuditCalendarEntry>(
+    `/api/governance/${orgId}/audit-calendar`,
+    { method: 'POST', body: JSON.stringify(data) }
+  );
+
+export const updateAuditCalendarEntry = (orgId: string, entryId: string, data: Partial<import('./types').AuditCalendarCreate>) =>
+  request<import('./types').AuditCalendarEntry>(
+    `/api/governance/${orgId}/audit-calendar/${entryId}`,
+    { method: 'PUT', body: JSON.stringify(data) }
+  );
+
+export const deleteAuditCalendarEntry = (orgId: string, entryId: string) =>
+  request<void>(
+    `/api/governance/${orgId}/audit-calendar/${entryId}`,
+    { method: 'DELETE' }
+  );
+
+export const getAuditForecast = (orgId: string, entryId: string) =>
+  request<import('./types').AuditForecast>(
+    `/api/governance/${orgId}/audit-calendar/${entryId}/forecast`
+  );
+
+// =============================================================================
+// GOVERNANCE — Tech Stack Lifecycle
+// =============================================================================
+
+export const getTechStack = (orgId: string) =>
+  request<import('./types').TechStackListResponse>(
+    `/api/governance/${orgId}/tech-stack`
+  );
+
+export const createTechStackItem = (orgId: string, data: import('./types').TechStackItemCreate) =>
+  request<import('./types').TechStackItem>(
+    `/api/governance/${orgId}/tech-stack`,
+    { method: 'POST', body: JSON.stringify(data) }
+  );
+
+export const updateTechStackItem = (orgId: string, itemId: string, data: Partial<import('./types').TechStackItemCreate>) =>
+  request<import('./types').TechStackItem>(
+    `/api/governance/${orgId}/tech-stack/${itemId}`,
+    { method: 'PUT', body: JSON.stringify(data) }
+  );
+
+export const deleteTechStackItem = (orgId: string, itemId: string) =>
+  request<void>(
+    `/api/governance/${orgId}/tech-stack/${itemId}`,
+    { method: 'DELETE' }
+  );

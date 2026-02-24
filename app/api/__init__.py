@@ -8,6 +8,9 @@ from app.api import (
     integrations,
     external,
     pilot,
+    governance,
+    audit_calendar,
+    tech_stack,
 )
 from app.api.v1 import router as v1_router
 
@@ -24,3 +27,8 @@ router.include_router(external.router, tags=["external"])
 router.include_router(pilot.router, tags=["pilot"])
 # v1 versioned routes (e.g. /api/v1/methodology)
 router.include_router(v1_router, prefix="/v1", tags=["v1"])
+
+# Governance expansion modules
+router.include_router(governance.router, prefix="/governance", tags=["governance"])
+router.include_router(audit_calendar.router, prefix="/governance", tags=["audit-calendar"])
+router.include_router(tech_stack.router, prefix="/governance", tags=["tech-stack"])

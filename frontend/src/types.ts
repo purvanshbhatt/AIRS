@@ -594,3 +594,152 @@ export interface SuggestionsResponse {
   org_maturity: string | null;
   weakest_functions: string[] | null;
 }
+
+// =============================================================================
+// Governance Expansion — Organization Profile
+// =============================================================================
+
+export interface OrganizationProfile {
+  org_id: string;
+  revenue_band?: string;
+  employee_count?: number;
+  geo_regions: string[];
+  processes_pii: boolean;
+  processes_phi: boolean;
+  processes_cardholder_data: boolean;
+  handles_dod_data: boolean;
+  uses_ai_in_production: boolean;
+  government_contractor: boolean;
+  financial_services: boolean;
+  application_tier?: string;
+  sla_target?: number;
+}
+
+export interface OrganizationProfileUpdate {
+  revenue_band?: string;
+  employee_count?: number;
+  geo_regions?: string[];
+  processes_pii?: boolean;
+  processes_phi?: boolean;
+  processes_cardholder_data?: boolean;
+  handles_dod_data?: boolean;
+  uses_ai_in_production?: boolean;
+  government_contractor?: boolean;
+  financial_services?: boolean;
+  application_tier?: string;
+  sla_target?: number;
+}
+
+// =============================================================================
+// Governance Expansion — Compliance Applicability
+// =============================================================================
+
+export interface ApplicableFramework {
+  framework: string;
+  reason: string;
+  mandatory: boolean;
+  reference_url?: string;
+}
+
+export interface ComplianceApplicabilityResponse {
+  org_id: string;
+  frameworks: ApplicableFramework[];
+  total: number;
+}
+
+// =============================================================================
+// Governance Expansion — Uptime Tier Analysis
+// =============================================================================
+
+export interface UptimeTierAnalysis {
+  application_tier: string;
+  tier_sla?: number;
+  sla_target?: number;
+  gap_pct?: number;
+  status: 'on_track' | 'at_risk' | 'unrealistic' | 'not_configured';
+  message: string;
+}
+
+// =============================================================================
+// Governance Expansion — Audit Calendar
+// =============================================================================
+
+export interface AuditCalendarEntry {
+  id: string;
+  org_id: string;
+  framework: string;
+  audit_date: string;
+  audit_type: 'external' | 'internal';
+  reminder_days_before: number;
+  notes?: string;
+  days_until_audit: number;
+  is_upcoming: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuditCalendarCreate {
+  framework: string;
+  audit_date: string;
+  audit_type: 'external' | 'internal';
+  reminder_days_before?: number;
+  notes?: string;
+}
+
+export interface AuditCalendarListResponse {
+  entries: AuditCalendarEntry[];
+  upcoming_count: number;
+  total: number;
+}
+
+export interface AuditForecast {
+  audit_id: string;
+  framework: string;
+  audit_date: string;
+  days_until_audit: number;
+  related_findings_count: number;
+  critical_high_count: number;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  recommendation: string;
+}
+
+// =============================================================================
+// Governance Expansion — Tech Stack Lifecycle
+// =============================================================================
+
+export interface TechStackItem {
+  id: string;
+  org_id: string;
+  component_name: string;
+  version?: string;
+  lts_status: 'lts' | 'active' | 'deprecated' | 'eol';
+  major_versions_behind: number;
+  category?: string;
+  notes?: string;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TechStackItemCreate {
+  component_name: string;
+  version?: string;
+  lts_status?: 'lts' | 'active' | 'deprecated' | 'eol';
+  major_versions_behind?: number;
+  category?: string;
+  notes?: string;
+}
+
+export interface TechStackSummary {
+  eol_count: number;
+  deprecated_count: number;
+  outdated_count: number;
+  risk_breakdown: Record<string, number>;
+  upgrade_governance_summary: string;
+}
+
+export interface TechStackListResponse {
+  items: TechStackItem[];
+  summary: TechStackSummary;
+  total: number;
+}

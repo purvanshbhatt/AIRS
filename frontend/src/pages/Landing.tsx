@@ -12,6 +12,9 @@ import {
   Clock,
   Target,
   TrendingUp,
+  ShieldCheck,
+  Calendar,
+  Cpu,
 } from 'lucide-react';
 import ThemeToggle from '../components/ui/ThemeToggle';
 
@@ -23,10 +26,22 @@ const features = [
       'Evaluate your security posture across 5 critical domains with 30+ targeted questions designed by incident response experts.',
   },
   {
+    icon: ShieldCheck,
+    title: 'Compliance Intelligence',
+    description:
+      'Auto-detect applicable frameworks — SOC 2, HIPAA, PCI-DSS, CMMC, GDPR — based on your organization profile. Know what\'s mandatory vs. recommended.',
+  },
+  {
     icon: BarChart3,
     title: 'Instant Scoring & Insights',
     description:
       'Get immediate visibility into your readiness level with weighted scores, maturity ratings, and prioritized findings.',
+  },
+  {
+    icon: Calendar,
+    title: 'Audit Calendar & Forecasts',
+    description:
+      'Schedule upcoming audits, get countdown alerts, and run pre-audit risk forecasts that cross-reference your live findings.',
   },
   {
     icon: FileText,
@@ -34,12 +49,18 @@ const features = [
     description:
       'Generate professional PDF reports with AI-powered narratives, actionable recommendations, and benchmark comparisons.',
   },
+  {
+    icon: Cpu,
+    title: 'Tech Stack Lifecycle',
+    description:
+      'Track component versions and LTS status. Get deterministic risk classification for EOL, deprecated, and outdated dependencies.',
+  },
 ];
 
 const stats = [
+  { value: '9+', label: 'Compliance Frameworks' },
   { value: '5', label: 'Security Domains' },
   { value: '30+', label: 'Assessment Questions' },
-  { value: '15+', label: 'Detection Rules' },
   { value: '<5min', label: 'Time to Complete' },
 ];
 
@@ -106,36 +127,34 @@ export default function Landing() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
-              Open Source Security Assessment
+              Continuous Readiness & Compliance Intelligence
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-slate-100 tracking-tight mb-6">
-              Know Your{' '}
+              Continuous Readiness{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">
-                AI Incident Readiness
+                Intelligence
               </span>{' '}
-              Score
+              for Security & AI Risk
             </h1>
             <p className="text-xl text-gray-600 dark:text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Assess your organization's security posture in minutes. Get actionable insights,
-              identify gaps, and generate executive-ready reports powered by AI.
+              Assess readiness, auto-detect applicable compliance frameworks, track audit
+              timelines, and manage tech stack risk — all from a single platform powered by AI.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                to="/assessment/new"
+                to="/pilot"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white text-lg font-semibold rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5"
               >
-                Run Assessment
+                Request Pilot
                 <ChevronRight className="w-5 h-5" />
               </Link>
-              <a
-                href="https://www.github.com/purvanshbhatt/AIRS"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-4 text-gray-700 dark:text-slate-300 text-lg font-medium hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-2 px-6 py-4 text-gray-700 dark:text-slate-300 text-lg font-medium rounded-xl border border-gray-300 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
-                <Github className="w-5 h-5" />
-                View on GitHub
-              </a>
+                View Demo
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
           </div>
         </div>
@@ -160,11 +179,11 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
-              Everything You Need to Assess Readiness
+              Readiness, Compliance & Risk — Unified
             </h2>
             <p className="text-lg text-gray-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Built by security professionals for security professionals. Get from zero to
-              actionable insights in under 5 minutes.
+              Built by GRC professionals for security teams. Deterministic scoring you can trust,
+              with AI where it adds value — executive summaries, audit forecasts, and upgrade governance.
             </p>
           </div>
 
@@ -334,7 +353,7 @@ export default function Landing() {
               </div>
               <span className="text-white font-semibold">ResilAI</span>
               <span className="text-gray-500">|</span>
-              <span className="text-gray-400 text-sm">AI Incident Readiness Score</span>
+              <span className="text-gray-400 text-sm">Continuous Readiness Intelligence</span>
             </div>
 
             <div className="flex items-center gap-6">

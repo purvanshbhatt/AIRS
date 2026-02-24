@@ -20,6 +20,8 @@ import {
   TrendingUp,
   Clock,
   Sparkles,
+  ShieldCheck,
+  Calendar,
 } from 'lucide-react';
 import {
   getOrganizations,
@@ -27,9 +29,11 @@ import {
   getSystemStatus,
   listApiKeys,
   listWebhooks,
+  getApplicableFrameworks,
+  getAuditCalendar,
   ApiRequestError,
 } from '../api';
-import type { Organization, Assessment } from '../types';
+import type { Organization, Assessment, ApplicableFramework, AuditCalendarEntry } from '../types';
 
 interface DashboardStats {
   totalOrgs: number;
@@ -85,6 +89,8 @@ export default function Dashboard() {
   });
   const [recentAssessments, setRecentAssessments] = useState<Assessment[]>([]);
   const [recentOrgs, setRecentOrgs] = useState<Organization[]>([]);
+  const [applicableFrameworks, setApplicableFrameworks] = useState<ApplicableFramework[]>([]);
+  const [upcomingAudits, setUpcomingAudits] = useState<AuditCalendarEntry[]>([]);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -169,6 +175,17 @@ export default function Dashboard() {
 
     loadOrgIntegrationSnapshot();
   }, [selectedOrgId, organizations, isDemoMode]);
+
+  // Load governance widgets when org changes
+  useEffect(() => {
+    if (!selectedOrgId) return;
+    getApplicableFrameworks(selectedOrgId)
+      .then((data) => setApplicableFrameworks(data.frameworks))
+      .catch(() => setApplicableFrameworks([]));
+    getAuditCalendar(selectedOrgId)
+      .then((data) => setUpcomingAudits(data.entries.filter((e) => e.is_upcoming).slice(0, 3)))
+      .catch(() => setUpcomingAudits([]));
+  }, [selectedOrgId]);
 
   if (loading) {
     return (
@@ -492,6 +509,105 @@ export default function Dashboard() {
                         <p className="text-xs text-gray-500 dark:text-slate-400">
                           {org.industry || 'No industry'} | {new Date(org.created_at).toLocaleDateString()}
                         </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Governance Quick Glance */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-indigo-500" />
+                    Applicable Frameworks
+                  </CardTitle>
+                  <Link
+                    to={`/dashboard/governance?org=${selectedOrgId}`}
+                    className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                  >
+                    Configure <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {applicableFrameworks.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-slate-400 italic py-4">
+                    Complete your governance profile to see applicable frameworks
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {applicableFrameworks.slice(0, 5).map((fw) => (
+                      <div
+                        key={fw.framework}
+                        className="flex items-center justify-between p-2 rounded-lg border border-gray-100 dark:border-slate-800"
+                      >
+                        <span className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                          {fw.framework}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full ${
+                            fw.mandatory
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          }`}
+                        >
+                          {fw.mandatory ? 'Mandatory' : 'Recommended'}
+                        </span>
+                      </div>
+                    ))}
+                    {applicableFrameworks.length > 5 && (
+                      <p className="text-xs text-gray-500 text-center mt-1">
+                        +{applicableFrameworks.length - 5} more
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-amber-500" />
+                    Upcoming Audits
+                  </CardTitle>
+                  <Link
+                    to={`/dashboard/audit-calendar?org=${selectedOrgId}`}
+                    className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                  >
+                    View calendar <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {upcomingAudits.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-slate-400 italic py-4">
+                    No upcoming audits scheduled
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {upcomingAudits.map((audit) => (
+                      <div
+                        key={audit.id}
+                        className="flex items-center justify-between p-2 rounded-lg border border-amber-100 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-900/10"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                            {audit.framework}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">
+                            {new Date(audit.audit_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full">
+                          {audit.days_until_audit}d
+                        </span>
                       </div>
                     ))}
                   </div>
