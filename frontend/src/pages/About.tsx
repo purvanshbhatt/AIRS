@@ -53,7 +53,7 @@ export default function About() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-slate-700 dark:text-slate-300">
-              Findings are mapped to MITRE ATT&CK techniques, CIS Controls references, and OWASP risk categories so teams can align internal and external reporting.
+              Findings are mapped to MITRE ATT&CK techniques, CIS Controls references, NIST CSF 2.0 and OWASP risk categories so teams can align internal and external reporting.
             </CardContent>
           </Card>
 
