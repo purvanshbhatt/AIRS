@@ -15,7 +15,7 @@
         }
       ],
       "predeploy": [
-        "cd frontend && npm run build:staging"
+        "cd frontend && npm run build:production"
       ]
     },
     {
