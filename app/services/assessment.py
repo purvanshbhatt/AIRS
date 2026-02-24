@@ -496,6 +496,9 @@ class AssessmentService:
                     "finding_id": f["id"],
                     "title": f["title"],
                     "severity": f["severity"],
+                    "domain": f.get("domain"),
+                    "nist_function": f.get("nist_function"),
+                    "nist_category": f.get("nist_category"),
                     "mitre_refs": f["framework_refs"].get("mitre", []),
                     "cis_refs": f["framework_refs"].get("cis", []),
                     "owasp_refs": f["framework_refs"].get("owasp", [])
