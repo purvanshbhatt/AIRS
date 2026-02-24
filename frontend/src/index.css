@@ -1,7 +1,7 @@
 @import "tailwindcss";
-
 /* Import Inter font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Custom theme configuration */
 @theme {
@@ -64,8 +64,51 @@ html {
 
 body {
   font-family: var(--font-family-sans);
-  background-color: var(--color-gray-50);
-  color: var(--color-gray-900);
+  background-color: #f8fafc;
+  color: #0f172a;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+html.dark body {
+  background-color: #020617;
+  color: #e2e8f0;
+}
+
+/* Dark-mode fallback mappings for legacy classes without explicit dark: variants */
+html.dark [class~="text-gray-900"]:not([class*="dark:text-"]) { color: #f8fafc; }
+html.dark [class~="text-gray-800"]:not([class*="dark:text-"]) { color: #e2e8f0; }
+html.dark [class~="text-gray-700"]:not([class*="dark:text-"]) { color: #cbd5e1; }
+html.dark [class~="text-gray-600"]:not([class*="dark:text-"]) { color: #94a3b8; }
+html.dark [class~="text-gray-500"]:not([class*="dark:text-"]) { color: #94a3b8; }
+html.dark [class~="text-gray-400"]:not([class*="dark:text-"]) { color: #64748b; }
+html.dark [class~="text-slate-900"]:not([class*="dark:text-"]) { color: #f8fafc; }
+html.dark [class~="text-slate-800"]:not([class*="dark:text-"]) { color: #e2e8f0; }
+html.dark [class~="text-slate-700"]:not([class*="dark:text-"]) { color: #cbd5e1; }
+html.dark [class~="text-slate-600"]:not([class*="dark:text-"]) { color: #94a3b8; }
+html.dark [class~="text-slate-500"]:not([class*="dark:text-"]) { color: #64748b; }
+html.dark [class~="bg-white"]:not([class*="dark:bg-"]) { background-color: #0f172a; }
+html.dark [class~="bg-gray-50"]:not([class*="dark:bg-"]) { background-color: #111827; }
+html.dark [class~="bg-gray-100"]:not([class*="dark:bg-"]) { background-color: #1e293b; }
+html.dark [class~="bg-slate-50"]:not([class*="dark:bg-"]) { background-color: #0f172a; }
+html.dark [class~="bg-slate-100"]:not([class*="dark:bg-"]) { background-color: #111827; }
+html.dark [class~="border-gray-100"]:not([class*="dark:border-"]) { border-color: #1e293b; }
+html.dark [class~="border-gray-200"]:not([class*="dark:border-"]) { border-color: #334155; }
+html.dark [class~="border-gray-300"]:not([class*="dark:border-"]) { border-color: #475569; }
+html.dark [class~="border-slate-100"]:not([class*="dark:border-"]) { border-color: #1e293b; }
+html.dark [class~="border-slate-200"]:not([class*="dark:border-"]) { border-color: #334155; }
+html.dark [class~="border-slate-300"]:not([class*="dark:border-"]) { border-color: #475569; }
+
+/* Ensure form controls stay readable in dark mode even on legacy pages. */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select {
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"])::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8;
 }
 
 /* Animation keyframes */

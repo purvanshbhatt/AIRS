@@ -13,6 +13,7 @@ import {
   Target,
   TrendingUp,
 } from 'lucide-react';
+import ThemeToggle from '../components/ui/ThemeToggle';
 
 const features = [
   {
@@ -44,21 +45,46 @@ const stats = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">AIRS</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-slate-100">ResilAI</span>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <Link
+                to="/about"
+                className="text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
+              >
+                About
+              </Link>
+              <Link
+                to="/security"
+                className="text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
+              >
+                Security
+              </Link>
+              <Link
+                to="/status"
+                className="text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
+              >
+                Status
+              </Link>
+              <Link
+                to="/pilot"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+              >
+                Request Enterprise Pilot
+              </Link>
               <Link
                 to="/dashboard"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-sm font-medium text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
               >
                 Dashboard
               </Link>
@@ -78,18 +104,18 @@ export default function Landing() {
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium mb-6">
               <Zap className="w-4 h-4" />
               Open Source Security Assessment
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-slate-100 tracking-tight mb-6">
               Know Your{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">
                 AI Incident Readiness
               </span>{' '}
               Score
             </h1>
-            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
               Assess your organization's security posture in minutes. Get actionable insights,
               identify gaps, and generate executive-ready reports powered by AI.
             </p>
@@ -98,14 +124,14 @@ export default function Landing() {
                 to="/assessment/new"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white text-lg font-semibold rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5"
               >
-                Run Demo Assessment
+                Run Assessment
                 <ChevronRight className="w-5 h-5" />
               </Link>
               <a
-                href="https://github.com"
+                href="https://www.github.com/purvanshbhatt/AIRS"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-4 text-gray-700 text-lg font-medium hover:text-gray-900 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-4 text-gray-700 dark:text-slate-300 text-lg font-medium hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
               >
                 <Github className="w-5 h-5" />
                 View on GitHub
@@ -116,13 +142,13 @@ export default function Landing() {
       </section>
 
       {/* Stats Bar */}
-      <section className="py-12 bg-gray-50 border-y border-gray-100">
+      <section className="py-12 bg-gray-50 dark:bg-slate-900 border-y border-gray-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="text-3xl sm:text-4xl font-bold text-primary-600">{stat.value}</p>
-                <p className="text-sm text-gray-600 mt-1">{stat.label}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300 mt-1">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -133,10 +159,10 @@ export default function Landing() {
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">
               Everything You Need to Assess Readiness
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-slate-300 max-w-2xl mx-auto">
               Built by security professionals for security professionals. Get from zero to
               actionable insights in under 5 minutes.
             </p>
@@ -146,13 +172,13 @@ export default function Landing() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group p-8 bg-white rounded-2xl border border-gray-200 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-300"
+                className="group p-8 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 hover:border-primary-200 dark:hover:border-primary-800 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-300"
               >
-                <div className="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-110 transition-all duration-300">
+                <div className="w-14 h-14 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-110 transition-all duration-300">
                   <feature.icon className="w-7 h-7 text-primary-600 group-hover:text-white transition-colors" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-slate-300 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -160,18 +186,18 @@ export default function Landing() {
       </section>
 
       {/* Report Preview Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white dark:from-slate-900 dark:to-slate-950">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-success-50 text-success-700 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-success-50 text-success-700 dark:bg-success-900/30 dark:text-success-300 rounded-full text-sm font-medium mb-6">
                 <TrendingUp className="w-4 h-4" />
                 AI-Powered Insights
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-6">
                 Professional Reports in Seconds
               </h2>
-              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg text-gray-600 dark:text-slate-300 mb-8 leading-relaxed">
                 Generate comprehensive PDF reports that executives and auditors love. Includes
                 domain-by-domain analysis, severity-ranked findings, and AI-generated narratives.
               </p>
@@ -184,7 +210,7 @@ export default function Landing() {
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-success-500 flex-shrink-0" />
-                    <span className="text-gray-700">{item}</span>
+                    <span className="text-gray-700 dark:text-slate-300">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -193,21 +219,21 @@ export default function Landing() {
             {/* Report Preview Placeholder */}
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary-600/20 to-primary-400/20 rounded-3xl blur-2xl" />
-              <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-                {/* Mock Report Header */}
+              <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 overflow-hidden">
+                {/* Example Report Header */}
                 <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                       <Shield className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-white font-semibold">AIRS Assessment Report</p>
+                      <p className="text-white font-semibold">ResilAI Assessment Report</p>
                       <p className="text-white/70 text-sm">AI Incident Readiness Score</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Mock Report Content */}
+                {/* Example Report Content */}
                 <div className="p-6 space-y-6">
                   {/* Score Circle */}
                   <div className="flex items-center gap-6">
@@ -215,12 +241,12 @@ export default function Landing() {
                       <span className="text-3xl font-bold text-success-600">78</span>
                     </div>
                     <div>
-                      <p className="text-lg font-semibold text-gray-900">Overall Score</p>
-                      <p className="text-sm text-gray-500">Maturity Level: Managed</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">Overall Score</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-300">Maturity Level: Managed</p>
                     </div>
                   </div>
 
-                  {/* Mock Domain Bars */}
+                  {/* Example Domain Bars */}
                   <div className="space-y-3">
                     {[
                       { name: 'Telemetry & Logging', score: 85 },
@@ -229,10 +255,10 @@ export default function Landing() {
                     ].map((domain) => (
                       <div key={domain.name}>
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-700">{domain.name}</span>
-                          <span className="font-medium text-gray-900">{domain.score}%</span>
+                          <span className="text-gray-700 dark:text-slate-300">{domain.name}</span>
+                          <span className="font-medium text-gray-900 dark:text-slate-100">{domain.score}%</span>
                         </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary-500 rounded-full"
                             style={{ width: `${domain.score}%` }}
@@ -242,15 +268,15 @@ export default function Landing() {
                     ))}
                   </div>
 
-                  {/* Mock Finding */}
-                  <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
+                  {/* Example Finding */}
+                  <div className="p-4 bg-warning-50 border border-warning-200 dark:bg-warning-900/20 dark:border-warning-800 rounded-lg">
                     <div className="flex items-start gap-3">
                       <div className="w-6 h-6 bg-warning-500 rounded text-white flex items-center justify-center text-xs font-bold">
                         !
                       </div>
                       <div>
-                        <p className="font-medium text-warning-900">MFA Not Enforced</p>
-                        <p className="text-sm text-warning-700">
+                        <p className="font-medium text-warning-900 dark:text-warning-200">MFA Not Enforced</p>
+                        <p className="text-sm text-warning-700 dark:text-warning-300">
                           Multi-factor authentication should be required for all users...
                         </p>
                       </div>
@@ -267,17 +293,17 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gradient-to-b dark:from-slate-950 dark:to-slate-900">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full text-sm font-medium mb-6">
             <Clock className="w-4 h-4" />
             Takes less than 5 minutes
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
             Ready to Assess Your Security Posture?
           </h2>
-          <p className="text-lg text-gray-600 mb-10">
-            Start with a demo assessment using sample data, or create your organization to track
+          <p className="text-lg text-gray-600 dark:text-slate-200 mb-10">
+            Start with an assessment using synthetic example data, or create your organization to track
             progress over time.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -290,7 +316,7 @@ export default function Landing() {
             </Link>
             <Link
               to="/org/new"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-700 text-lg font-medium rounded-xl border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 text-lg font-medium rounded-xl border border-gray-300 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               Create Organization
             </Link>
@@ -306,14 +332,14 @@ export default function Landing() {
               <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <span className="text-white font-semibold">AIRS</span>
-              <span className="text-gray-500">•</span>
+              <span className="text-white font-semibold">ResilAI</span>
+              <span className="text-gray-500">|</span>
               <span className="text-gray-400 text-sm">AI Incident Readiness Score</span>
             </div>
 
             <div className="flex items-center gap-6">
               <a
-                href="https://github.com"
+                href="https://www.github.com/purvanshbhatt/AIRS"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
@@ -322,7 +348,7 @@ export default function Landing() {
                 <span className="text-sm">GitHub</span>
               </a>
               <a
-                href="mailto:contact@example.com"
+                href="mailto:purvansh95b@gmail.com"
                 className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
                 <Mail className="w-5 h-5" />
@@ -331,7 +357,7 @@ export default function Landing() {
             </div>
 
             <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} AIRS. Open source under MIT license.
+              (c) {new Date().getFullYear()} ResilAI. Open source under GNU AGPL-3.0 license.
             </p>
           </div>
         </div>
@@ -339,3 +365,5 @@ export default function Landing() {
     </div>
   );
 }
+
+

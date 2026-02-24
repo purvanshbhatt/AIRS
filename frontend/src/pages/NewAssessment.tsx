@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   getOrganizations,
@@ -60,7 +60,7 @@ const domainColors: Record<string, string> = {
 };
 
 // LocalStorage key
-const DRAFT_KEY = 'airs_assessment_draft';
+const DRAFT_KEY = 'ResilAI_assessment_draft';
 
 interface DraftData {
   orgId: string;
@@ -96,8 +96,16 @@ export default function NewAssessment() {
         const saved = localStorage.getItem(DRAFT_KEY);
         if (saved) {
           try {
-            JSON.parse(saved); // Validate JSON
-            setHasDraft(true);
+            const parsed = JSON.parse(saved);
+            // Validate that the draft's org still exists in the current org list
+            const orgStillExists = orgsData.some((o: { id: string }) => o.id === parsed.orgId);
+            if (orgStillExists) {
+              setHasDraft(true);
+            } else {
+              // Stale draft — the org was deleted or the DB was reset (e.g. container restart).
+              // Remove the draft silently so the user gets a clean start.
+              localStorage.removeItem(DRAFT_KEY);
+            }
           } catch {
             localStorage.removeItem(DRAFT_KEY);
           }
@@ -220,7 +228,22 @@ export default function NewAssessment() {
 
       navigate(`/results/${assessment.id}`);
     } catch (err) {
-      if (err instanceof ApiRequestError) {
+      const isOrgNotFound =
+        err instanceof ApiRequestError &&
+        err.message?.toLowerCase().includes('organization not found');
+
+      if (isOrgNotFound) {
+        // The selected org is stale (e.g. server restarted and wiped in-memory DB).
+        // Clear the bad org selection and draft so the user can pick a fresh one.
+        localStorage.removeItem(DRAFT_KEY);
+        setHasDraft(false);
+        setOrgId('');
+        setStep('setup');
+        setError(
+          'The selected organization no longer exists on the server. ' +
+          'This can happen after a server restart. Please select your organization again.'
+        );
+      } else if (err instanceof ApiRequestError) {
         setError(err.toDisplayMessage());
       } else {
         setError(err instanceof Error ? err.message : 'Failed to submit assessment');
@@ -283,7 +306,7 @@ export default function NewAssessment() {
             />
 
             {!loading && orgs.length === 0 && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 No organizations found.{' '}
                 <Link to="/org/new" className="text-primary-600 hover:text-primary-700 font-medium">
                   Create one first
@@ -328,15 +351,15 @@ export default function NewAssessment() {
           <CardContent className="py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{title}</h1>
-                <p className="text-sm text-gray-500">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">{title}</h1>
+                <p className="text-sm text-gray-500 dark:text-slate-400">
                   {orgs.find((o) => o.id === orgId)?.name || 'Organization'}
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="text-2xl font-bold text-primary-600">{progress.percentage}%</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     {progress.answered} of {progress.total} answered
                   </p>
                 </div>
@@ -347,7 +370,7 @@ export default function NewAssessment() {
                       cy="50"
                       r="40"
                       fill="none"
-                      className="stroke-gray-200"
+                      className="stroke-gray-200 dark:stroke-slate-700"
                       strokeWidth="8"
                     />
                     <circle
@@ -367,7 +390,7 @@ export default function NewAssessment() {
             </div>
 
             {/* Progress bar */}
-            <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="mt-4 h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary-500 transition-all duration-300"
                 style={{ width: `${progress.percentage}%` }}
@@ -390,7 +413,7 @@ export default function NewAssessment() {
             <Accordion defaultOpen={[domains[0]?.[0]]}>
               {domains.map(([domainId, domain]) => {
                 const Icon = domainIcons[domainId] || Shield;
-                const color = domainColors[domainId] || 'bg-gray-500';
+                const color = domainColors[domainId] || 'bg-gray-50 dark:bg-slate-900';
                 const domainProgress = getDomainProgress(domain);
                 const isComplete = domainProgress.answered === domainProgress.total;
 
@@ -405,8 +428,8 @@ export default function NewAssessment() {
                             <Icon className="w-4 h-4 text-white" />
                           </div>
                           <div className="text-left">
-                            <p className="font-medium text-gray-900">{domain.name}</p>
-                            <p className="text-xs text-gray-500">{domain.description}</p>
+                            <p className="font-medium text-gray-900 dark:text-slate-100">{domain.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-slate-400">{domain.description}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -425,14 +448,14 @@ export default function NewAssessment() {
                         {domain.questions.map((question, idx) => (
                           <div
                             key={question.id}
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-slate-900 rounded-lg"
                           >
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900">
+                              <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
                                 {idx + 1}. {question.text}
                               </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {question.points} point{question.points !== 1 ? 's' : ''} •{' '}
+                              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                {question.points} point{question.points !== 1 ? 's' : ''} -{' '}
                                 {question.type}
                               </p>
                             </div>
@@ -445,7 +468,7 @@ export default function NewAssessment() {
                                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                     answers[question.id] === false
                                       ? 'bg-danger-100 text-danger-700 ring-2 ring-danger-500'
-                                      : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                      : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-800'
                                   }`}
                                 >
                                   No
@@ -456,7 +479,7 @@ export default function NewAssessment() {
                                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                     answers[question.id] === true
                                       ? 'bg-success-100 text-success-700 ring-2 ring-success-500'
-                                      : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                      : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-800'
                                   }`}
                                 >
                                   Yes
@@ -473,13 +496,13 @@ export default function NewAssessment() {
                                     handleAnswer(question.id, parseFloat(e.target.value) || 0)
                                   }
                                   placeholder={question.type === 'percentage' ? '0-100' : 'Enter value'}
-                                  className="w-28 px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                  className="w-28 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                 />
                                 {question.type === 'percentage' && (
-                                  <span className="text-gray-500 text-sm">%</span>
+                                  <span className="text-gray-500 dark:text-slate-400 text-sm">%</span>
                                 )}
                                 {question.type === 'numeric' && question.id.includes('retention') && (
-                                  <span className="text-gray-500 text-sm">days</span>
+                                  <span className="text-gray-500 dark:text-slate-400 text-sm">days</span>
                                 )}
                               </div>
                             )}
@@ -534,7 +557,7 @@ export default function NewAssessment() {
         </div>
 
         {progress.percentage < 100 && (
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-gray-500 dark:text-slate-400">
             Complete all {progress.total - progress.answered} remaining questions to submit
           </p>
         )}
@@ -548,7 +571,7 @@ export default function NewAssessment() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading assessment...</p>
+          <p className="text-gray-600 dark:text-slate-300">Loading assessment...</p>
         </div>
       </div>
     );
@@ -556,3 +579,4 @@ export default function NewAssessment() {
 
   return step === 'setup' ? renderSetup() : renderQuestions();
 }
+

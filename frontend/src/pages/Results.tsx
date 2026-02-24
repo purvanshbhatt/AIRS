@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
-import { getAssessmentSummary, downloadReport, createReport, ApiRequestError } from '../api'
+import { useParams, Link } from 'react-router-dom'
+import {
+  getAssessmentSummary,
+  downloadReport,
+  downloadExecutiveSummary,
+  exportAssessmentForSiem,
+  createReport,
+  ApiRequestError,
+} from '../api'
 import type { AssessmentSummary } from '../types'
 import {
   Card,
@@ -24,6 +31,7 @@ import {
   Route,
   TrendingUp,
   AlertTriangle,
+  Map,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import {
@@ -33,6 +41,8 @@ import {
   RoadmapTab,
   AnalyticsTab,
 } from '../components/ResultsTabs'
+import { EnterpriseRoadmap } from '../components/EnterpriseRoadmap'
+import { SuggestedQuestionsPanel } from '../components/SuggestedQuestionsPanel'
 
 // Tab definitions
 const tabs = [
@@ -41,14 +51,23 @@ const tabs = [
   { id: 'framework', label: 'Framework Mapping', icon: Shield },
   { id: 'roadmap', label: 'Roadmap', icon: Route },
   { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+  { id: 'enterprise', label: 'Enterprise Roadmap', icon: Map },
 ]
+
+function getReadinessLevel(score: number): { label: string; variant: 'danger' | 'warning' | 'primary' | 'success' } {
+  if (score <= 40) return { label: 'Critical', variant: 'danger' }
+  if (score <= 60) return { label: 'At Risk', variant: 'warning' }
+  if (score <= 80) return { label: 'Managed', variant: 'primary' }
+  return { label: 'Resilient', variant: 'success' }
+}
 
 export default function Results() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const [summary, setSummary] = useState<AssessmentSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
+  const [executiveDownloading, setExecutiveDownloading] = useState(false)
+  const [exportingSiem, setExportingSiem] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -83,7 +102,7 @@ export default function Results() {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `AIRS_Report_${id}.pdf`
+      link.download = `ResilAI_Report_${id}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -96,6 +115,53 @@ export default function Results() {
       }
     } finally {
       setDownloading(false)
+    }
+  }
+
+  const handleDownloadExecutiveSummary = async () => {
+    setExecutiveDownloading(true)
+    try {
+      const blob = await downloadExecutiveSummary(id!)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ResilAI_Executive_Risk_Summary_${id}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage())
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to download executive summary')
+      }
+    } finally {
+      setExecutiveDownloading(false)
+    }
+  }
+
+  const handleExportForSiem = async () => {
+    setExportingSiem(true)
+    try {
+      const payload = await exportAssessmentForSiem(id!)
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ResilAI_SIEM_Export_${id}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage())
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to export findings')
+      }
+    } finally {
+      setExportingSiem(false)
     }
   }
 
@@ -160,7 +226,7 @@ export default function Results() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading assessment results...</p>
+          <p className="text-gray-600 dark:text-slate-300">Analyzing AI security posture...</p>
         </div>
       </div>
     )
@@ -173,8 +239,8 @@ export default function Results() {
           <Card className="max-w-md w-full">
             <CardContent className="py-12 text-center">
               <Shield className="h-16 w-16 text-warning-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-              <p className="text-gray-600 mb-6">{error}</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">Access Denied</h2>
+              <p className="text-gray-600 dark:text-slate-300 mb-6">{error}</p>
               <div className="flex flex-col gap-3">
                 <Link to="/dashboard">
                   <Button className="w-full gap-2">
@@ -198,8 +264,8 @@ export default function Results() {
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
             <FileText className="h-16 w-16 text-danger-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Assessment</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">Error Loading Assessment</h2>
+            <p className="text-gray-600 dark:text-slate-300 mb-6">{error}</p>
             <Link to="/dashboard">
               <Button>Back to Dashboard</Button>
             </Link>
@@ -214,8 +280,8 @@ export default function Results() {
       <Card className="max-w-md mx-auto mt-12">
         <CardContent className="py-12 text-center">
           <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Assessment Not Found</h2>
-          <p className="text-gray-600 mb-6">The requested assessment could not be loaded</p>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">Assessment Not Found</h2>
+          <p className="text-gray-600 dark:text-slate-300 mb-6">The requested assessment could not be loaded</p>
           <Link to="/dashboard">
             <Button>Back to Dashboard</Button>
           </Link>
@@ -224,22 +290,28 @@ export default function Results() {
     )
   }
 
+  const readinessLevel = getReadinessLevel(summary.overall_score)
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white rounded-xl border border-gray-200 p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-6">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
             <Building2 className="h-4 w-4" />
             <span>{summary.organization_name || 'Organization'}</span>
-            <span className="text-gray-300">•</span>
+            <span className="text-gray-300 dark:text-slate-600">|</span>
             <Clock className="h-4 w-4" />
             <span>{formatDate(summary.created_at)}</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
             {summary.title || 'AI Readiness Assessment'}
           </h1>
-          <p className="text-gray-600">Assessment ID: {id?.slice(0, 8)}...</p>
+          <div className="flex items-center gap-2">
+            <Badge variant={readinessLevel.variant}>Readiness Level: {readinessLevel.label}</Badge>
+            <Badge variant="outline">Readiness Score: {Math.round(summary.overall_score)}</Badge>
+          </div>
+          <p className="text-gray-600 dark:text-slate-300">Assessment ID: {id?.slice(0, 8)}...</p>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -271,11 +343,36 @@ export default function Results() {
             <Download className="h-4 w-4" />
             {downloading ? 'Downloading...' : 'Download PDF'}
           </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleDownloadExecutiveSummary}
+            disabled={executiveDownloading}
+            className="gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            {executiveDownloading ? 'Downloading...' : 'Download Executive Summary (1-Page)'}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleExportForSiem}
+            disabled={exportingSiem}
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {exportingSiem ? 'Exporting...' : 'Export for SIEM'}
+          </Button>
         </div>
       </div>
 
+      {/* Suggested Questions — below readiness score, above tabs */}
+      {summary.organization_id && (
+        <SuggestedQuestionsPanel orgId={summary.organization_id} />
+      )}
+
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-slate-800">
         <nav className="flex space-x-1 overflow-x-auto pb-px" aria-label="Results tabs">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -288,7 +385,7 @@ export default function Results() {
                   'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors',
                   isActive
                     ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:border-gray-300 dark:hover:border-slate-700'
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -320,6 +417,7 @@ export default function Results() {
         {activeTab === 'framework' && <FrameworkTab summary={summary} />}
         {activeTab === 'roadmap' && <RoadmapTab summary={summary} />}
         {activeTab === 'analytics' && <AnalyticsTab summary={summary} />}
+        {activeTab === 'enterprise' && <EnterpriseRoadmap summary={summary} />}
       </div>
 
       {/* Actions Footer */}
@@ -340,3 +438,5 @@ export default function Results() {
     </div>
   )
 }
+
+

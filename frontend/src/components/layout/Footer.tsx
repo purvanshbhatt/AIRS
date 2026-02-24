@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Github, FileText, Lock, Shield, Activity } from 'lucide-react';
+import { Github, FileText, Lock, Shield, Activity, Mail } from 'lucide-react';
+import { getSystemStatus } from '../../api';
+import type { SystemStatus } from '../../types';
 
 interface FooterLink {
     label: string;
@@ -9,20 +12,30 @@ interface FooterLink {
 }
 
 const footerLinks: FooterLink[] = [
+    { label: 'About', href: '/about', icon: FileText },
     { label: 'Docs', href: '/docs', icon: FileText },
+    { label: 'Request Enterprise Pilot', href: '/pilot', icon: Activity },
     { label: 'Privacy', href: '/docs/security#privacy', icon: Lock },
-    { label: 'Security', href: '/docs/security', icon: Shield },
-    { label: 'GitHub', href: 'https://github.com', icon: Github, external: true },
-    { label: 'Status', href: '/docs/api', icon: Activity },
+    { label: 'Security', href: '/security', icon: Shield },
+    { label: 'GitHub', href: 'https://www.github.com/purvanshbhatt/AIRS', icon: Github, external: true },
+    { label: 'Contact', href: 'mailto:purvansh95b@gmail.com', icon: Mail, external: true },
+    { label: 'Status', href: '/status', icon: Activity },
 ];
 
 export function Footer() {
-    const currentYear = new Date().getFullYear();
+    const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+
+    useEffect(() => {
+        getSystemStatus()
+            .then(setSystemStatus)
+            .catch(() => {
+                setSystemStatus(null);
+            });
+    }, []);
 
     return (
         <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4 lg:px-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                {/* Links */}
                 <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                     {footerLinks.map(({ label, href, icon: Icon, external }) =>
                         external ? (
@@ -49,9 +62,9 @@ export function Footer() {
                     )}
                 </nav>
 
-                {/* Copyright */}
                 <p className="text-xs text-gray-400 dark:text-gray-500">
-                    © {currentYear} AIRS. Open source under MIT license.
+                    ResilAI Public Beta | Aligned to CIS | NIST | OWASP | GNU AGPL-3.0 | (c) 2026 ResilAI
+                    {systemStatus ? ` | v${systemStatus.version || 'dev'} (${systemStatus.environment})` : ''}
                 </p>
             </div>
         </footer>

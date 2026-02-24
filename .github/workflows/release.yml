@@ -1,0 +1,75 @@
+﻿name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine next tag
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          EXISTING_TAG="$(git tag --points-at HEAD | grep '^v' | head -n 1 || true)"
+          if [[ -n "$EXISTING_TAG" ]]; then
+            echo "tag=$EXISTING_TAG" >> "$GITHUB_OUTPUT"
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          NEXT_TAG="$(python - <<'PY'
+import re
+import subprocess
+
+tags = subprocess.check_output(["git", "tag", "--list", "v*"], text=True).split()
+versions = []
+for t in tags:
+    m = re.match(r"^v(\d+)\.(\d+)(?:\.(\d+))?(?:[-].*)?$", t.strip())
+    if m:
+        major = int(m.group(1))
+        minor = int(m.group(2))
+        patch = int(m.group(3) or 0)
+        versions.append((major, minor, patch))
+
+if versions:
+    major, minor, patch = max(versions)
+    patch += 1
+else:
+    major, minor, patch = (0, 1, 0)
+
+print(f"v{major}.{minor}.{patch}")
+PY
+)"
+
+          git tag -a "$NEXT_TAG" -m "Release $NEXT_TAG"
+          git push origin "$NEXT_TAG"
+
+          echo "tag=$NEXT_TAG" >> "$GITHUB_OUTPUT"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false

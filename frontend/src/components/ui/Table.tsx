@@ -25,7 +25,7 @@ export interface TableHeaderProps extends HTMLAttributes<HTMLTableSectionElement
 
 export const TableHeader = forwardRef<HTMLTableSectionElement, TableHeaderProps>(
   ({ className, children, ...props }, ref) => (
-    <thead ref={ref} className={clsx('bg-gray-50', className)} {...props}>
+    <thead ref={ref} className={clsx('bg-gray-50 dark:bg-slate-900', className)} {...props}>
       {children}
     </thead>
   )
@@ -53,7 +53,7 @@ export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
   ({ className, children, ...props }, ref) => (
     <tr
       ref={ref}
-      className={clsx('border-b border-gray-100 transition-colors hover:bg-gray-50/50', className)}
+      className={clsx('border-b border-gray-100 dark:border-slate-800 transition-colors hover:bg-gray-50/50 dark:hover:bg-slate-900/40', className)}
       {...props}
     >
       {children}
@@ -71,7 +71,7 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
     <th
       ref={ref}
       className={clsx(
-        'h-11 px-4 text-left align-middle font-medium text-gray-500 text-xs uppercase tracking-wider',
+        'h-11 px-4 text-left align-middle font-medium text-gray-500 dark:text-slate-400 text-xs uppercase tracking-wider',
         className
       )}
       {...props}
@@ -88,7 +88,7 @@ export interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
 
 export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
   ({ className, children, ...props }, ref) => (
-    <td ref={ref} className={clsx('px-4 py-3 align-middle text-gray-900', className)} {...props}>
+    <td ref={ref} className={clsx('px-4 py-3 align-middle text-gray-900 dark:text-slate-100', className)} {...props}>
       {children}
     </td>
   )

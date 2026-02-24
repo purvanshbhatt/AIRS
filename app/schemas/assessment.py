@@ -110,6 +110,9 @@ class FindingResponse(BaseModel):
     evidence: Optional[str] = None
     recommendation: Optional[str] = None
     priority: Optional[str] = None
+    # NIST CSF 2.0 mapping fields
+    nist_function: Optional[str] = None   # e.g. "DE", "PR", "RC"
+    nist_category: Optional[str] = None   # e.g. "DE.CM-1", "PR.AA-5"
     created_at: datetime
     
     class Config:
@@ -221,6 +224,10 @@ class DomainScoreSummary(BaseModel):
     weight: float
     earned_points: Optional[float] = None
     max_points: Optional[float] = None
+    # NIST CSF 2.0 lifecycle mapping
+    nist_function: Optional[str] = None        # e.g. "DE"
+    nist_function_name: Optional[str] = None   # e.g. "Detect"
+    nist_categories: Optional[List[str]] = None
 
 
 class FindingSummary(BaseModel):
@@ -269,6 +276,14 @@ class FindingSummaryWithFramework(BaseModel):
     recommendation: Optional[str] = None
     description: Optional[str] = None
     framework_refs: Optional[Dict[str, List[Dict]]] = None
+    # NIST CSF 2.0 mapping
+    nist_function: Optional[str] = None   # e.g. "DE"
+    nist_category: Optional[str] = None   # e.g. "DE.CM-1"
+    # Remediation timeline tier (Immediate / Near-term / Strategic)
+    remediation_timeline: Optional[str] = None
+    # Effort vs Impact for prioritisation
+    effort: Optional[str] = None   # low | medium | high
+    impact: Optional[str] = None   # low | medium | high
 
 
 class FrameworkMappedFinding(BaseModel):
@@ -311,6 +326,7 @@ class AttackPath(BaseModel):
     description: Optional[str] = None
     risk_level: str
     techniques: List[Dict[str, str]] = []
+    steps: List[AttackStep] = []
     enabling_gaps: List[str] = []
     likelihood: Optional[int] = None
     impact: Optional[int] = None
@@ -319,8 +335,13 @@ class AttackPath(BaseModel):
 class GapCategory(BaseModel):
     """Gap category with list of gaps."""
     name: str
+    category: Optional[str] = None
     gaps: List[str] = []
+    gap_count: Optional[int] = None
     severity: Optional[str] = None
+    is_critical: Optional[bool] = None
+    description: Optional[str] = None
+    findings: List[Dict[str, Any]] = []
 
 
 class GapAnalysis(BaseModel):
@@ -334,6 +355,11 @@ class RiskSummary(BaseModel):
     overall_risk_level: str
     key_risks: List[str] = []
     mitigating_factors: List[str] = []
+    attack_paths_enabled: Optional[int] = None
+    total_gaps_identified: Optional[int] = None
+    severity_counts: Dict[str, int] = {}
+    findings_count: Optional[int] = None
+    total_risk_score: Optional[int] = None
 
 
 class AnalyticsSummary(BaseModel):
@@ -346,6 +372,9 @@ class AnalyticsSummary(BaseModel):
     risk_summary: Optional[RiskSummary] = None
     top_risks: List[str] = []
     improvement_recommendations: List[str] = []
+    # Contract-integrity fields (v2 additions — additive, non-breaking)
+    gap_category: Optional[str] = None   # Primary gap category from GapAnalysis
+    maturity_tier: Optional[str] = None  # Overall maturity tier label (Initial/Developing/…)
 
 
 class DetailedRoadmapItem(BaseModel):
@@ -355,10 +384,16 @@ class DetailedRoadmapItem(BaseModel):
     action: str
     priority: str
     phase: str
+    # Enterprise timeline labels: Immediate | Near-term | Strategic
+    timeline_label: Optional[str] = None
+    timeline_range: Optional[str] = None
     effort: str
     effort_estimate: Optional[str] = None
+    # Risk Reduction Impact: low | medium | high
+    risk_impact: Optional[str] = None
     domain: Optional[str] = None
     finding_id: Optional[str] = None
+    nist_category: Optional[str] = None
     owner: Optional[str] = None
     dependencies: List[str] = []
     milestones: List[str] = []
@@ -367,9 +402,12 @@ class DetailedRoadmapItem(BaseModel):
 
 
 class DetailedRoadmapPhase(BaseModel):
-    """Roadmap phase with items."""
+    """Roadmap phase with items and metadata for executive presentation."""
     title: str
+    name: Optional[str] = None  # Display name e.g. "Immediate (0–30 Days)"
     description: Optional[str] = None
+    item_count: int = 0  # Count of items in this phase
+    effort_hours: int = 0  # Estimated total effort hours
     items: List[DetailedRoadmapItem] = []
 
 
@@ -379,14 +417,19 @@ class DetailedRoadmapSummary(BaseModel):
     day30_count: int
     day60_count: int
     day90_count: int
+    # UI-expected fields
+    critical_items: Optional[int] = 0
+    quick_wins: Optional[int] = 0
+    total_effort_hours: Optional[int] = 0
+    total_risk_reduction: Optional[str] = None
     by_priority: Dict[str, int] = {}
     by_effort: Dict[str, int] = {}
     generated_at: str
 
 
 class DetailedRoadmap(BaseModel):
-    """Complete detailed roadmap."""
-    phases: List[DetailedRoadmapPhase] = []
+    """Complete detailed roadmap with phases keyed by day30/day60/day90."""
+    phases: Dict[str, DetailedRoadmapPhase] = {}
     summary: Optional[DetailedRoadmapSummary] = None
 
 
@@ -394,6 +437,7 @@ class AssessmentSummaryResponse(BaseModel):
     """Comprehensive assessment summary for executive dashboard."""
     # API version for forward compatibility
     api_version: str = "1.0"
+    product: Dict[str, Optional[str]]
     
     # Metadata
     id: str
@@ -441,6 +485,7 @@ class AssessmentSummaryResponse(BaseModel):
     # These fields indicate the current LLM configuration status
     llm_enabled: bool = False
     llm_provider: Optional[str] = None  # e.g., "google", "openai"
-    llm_model: Optional[str] = None     # e.g., "gemini-2.0-flash"
+    llm_model: Optional[str] = None     # e.g., "gemini-3-flash-preview"
     llm_mode: LLMMode = LLMMode.DISABLED  # "demo" | "prod" | "disabled"
+    llm_status: Optional[str] = None       # "pending" | "completed" | "failed"
 

@@ -49,7 +49,7 @@ export function TabsList({ className, children, ...props }: TabsListProps) {
   return (
     <div
       className={clsx(
-        'inline-flex items-center gap-1 rounded-lg bg-gray-100 p-1',
+        'inline-flex items-center gap-1 rounded-lg bg-gray-100 dark:bg-slate-800 p-1',
         className
       )}
       role="tablist"
@@ -79,8 +79,8 @@ export function TabsTrigger({ value, disabled, className, children, ...props }: 
       className={clsx(
         'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
         isActive
-          ? 'bg-white text-gray-900 shadow-sm'
-          : 'text-gray-600 hover:text-gray-900',
+          ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
+          : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100',
         className
       )}
       onClick={() => setActiveTab(value)}

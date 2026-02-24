@@ -126,14 +126,19 @@ class LLMNarrativeGenerator:
         """Lazy-load Google Gemini client."""
         if not self._client and self.enabled:
             try:
-                import google.generativeai as genai
-                # Configure with API key if available, otherwise ADC
-                if self.api_key:
-                    genai.configure(api_key=self.api_key)
-                # ADC is used automatically on Cloud Run if no API key
-                self._client = genai.GenerativeModel(self.model)
+                from google import genai
+                if settings.GCP_PROJECT_ID:
+                    self._client = genai.Client(
+                        vertexai=True,
+                        project=settings.GCP_PROJECT_ID,
+                        location="us-central1",
+                    )
+                elif self.api_key:
+                    self._client = genai.Client(api_key=self.api_key)
+                else:
+                    raise RuntimeError("No Gemini credentials configured")
             except ImportError:
-                logger.warning("Google GenerativeAI package not installed. Run: pip install google-generativeai")
+                logger.warning("google-genai package not installed. Run: pip install google-genai")
                 self.enabled = False
             except Exception as e:
                 logger.error(f"Failed to initialize Gemini client: {e}")
@@ -149,19 +154,18 @@ class LLMNarrativeGenerator:
     
     def _generate_content(self, prompt: str, max_tokens: int = None) -> tuple[str, Optional[int]]:
         """Generate content using Gemini."""
-        import google.generativeai as genai
-        
-        generation_config = genai.GenerationConfig(
-            temperature=self.temperature,
+        from google.genai import types
+
+        response = self._get_client().models.generate_content(
+            model=self.model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=self.temperature,
+                max_output_tokens=max_tokens or self.max_tokens,
+            ),
         )
-        
-        response = self._get_client().generate_content(
-            prompt,
-            generation_config=generation_config
-        )
-        
-        content = response.text
-        # Gemini doesn't provide token count the same way, estimate from response
+
+        content = response.text or ""
         tokens_used = None
         if hasattr(response, 'usage_metadata'):
             tokens_used = getattr(response.usage_metadata, 'total_token_count', None)

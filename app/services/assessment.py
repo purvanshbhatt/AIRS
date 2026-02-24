@@ -21,11 +21,12 @@ from app.schemas.assessment import (
     FindingCreate,
 )
 from app.services.scoring import calculate_scores, get_recommendations
-from app.core.rubric import get_rubric, get_question
+from app.core.rubric import get_rubric, get_question, get_domain_nist_function, NIST_FUNCTIONS
 from app.services.ai_narrative import generate_narrative
 from app.services.analytics import generate_analytics
 from app.services.roadmap import generate_detailed_roadmap, generate_simple_roadmap
 from app.core.frameworks import get_framework_refs, get_all_unique_techniques
+from app.core.product import get_product_info
 
 
 def load_baseline_profiles() -> Dict[str, Dict[str, float]]:
@@ -226,6 +227,11 @@ class AssessmentService:
             # Get question details for better finding
             question_info, _ = get_question(rec["question_id"])
             
+            # Extract NIST CSF 2.0 mapping from question
+            nist_category = question_info.get("nist_category") if question_info else None
+            nist_func_info = get_domain_nist_function(rec["domain_id"])
+            nist_function = nist_func_info.get("id") if nist_func_info else None
+            
             finding = Finding(
                 assessment_id=assessment_id,
                 title=f"Gap: {rec['finding'][:100]}",
@@ -236,7 +242,9 @@ class AssessmentService:
                 question_id=rec["question_id"],
                 evidence=f"Current value: {rec['current_answer']}",
                 recommendation=self._generate_recommendation(rec),
-                priority=str(rec["priority"])
+                priority=str(rec["priority"]),
+                nist_category=nist_category,
+                nist_function=nist_function
             )
             self.db.add(finding)
             saved_findings.append(finding)
@@ -374,10 +382,12 @@ class AssessmentService:
         # Determine readiness tier
         tier = self._get_readiness_tier(overall_score)
         
-        # Build domain scores with 0-5 scale
+        rubric = get_rubric()
+        # Build domain scores with 0-5 scale and NIST CSF 2.0 lifecycle mapping
         domain_scores = []
         for score in assessment.scores:
-            # score.score is already on 0-5 scale from scoring service
+            nist_info = get_domain_nist_function(score.domain_id)
+            rubric_domain = rubric["domains"].get(score.domain_id, {})
             domain_scores.append({
                 "domain_id": score.domain_id,
                 "domain_name": score.domain_name,
@@ -385,7 +395,11 @@ class AssessmentService:
                 "score_5": score.score,  # Original 0-5 scale
                 "weight": score.weight,
                 "earned_points": score.raw_points,
-                "max_points": score.max_raw_points
+                "max_points": score.max_raw_points,
+                # NIST CSF 2.0 lifecycle function
+                "nist_function": nist_info.get("id"),
+                "nist_function_name": nist_info.get("name"),
+                "nist_categories": rubric_domain.get("nist_categories", []),
             })
         
         # Build findings list sorted by severity with framework refs
@@ -420,7 +434,10 @@ class AssessmentService:
                 "evidence": f.evidence,
                 "recommendation": f.recommendation,
                 "description": f.description,
-                "framework_refs": fw_refs
+                "framework_refs": fw_refs,
+                # NIST CSF 2.0 mapping — from DB column (if populated) else domain fallback
+                "nist_function": getattr(f, "nist_function", None),
+                "nist_category": getattr(f, "nist_category", None),
             })
         
         # Count critical + high
@@ -459,9 +476,20 @@ class AssessmentService:
         
         # Build LLM metadata (informational only - does NOT affect scoring)
         llm_metadata = self._get_llm_metadata()
+        llm_status = None
+        if llm_metadata["llm_enabled"]:
+            llm_status = "completed" if narratives.get("llm_generated") else "failed"
         
         # Generate framework mapping with coverage stats
         coverage_stats = get_all_unique_techniques(finding_rule_ids)
+        
+        # Count unique NIST CSF 2.0 categories from findings
+        unique_nist_categories = set()
+        for f in findings:
+            nist_cat = f.get("nist_category")
+            if nist_cat:
+                unique_nist_categories.add(nist_cat)
+        
         framework_mapping = {
             "findings": [
                 {
@@ -480,7 +508,8 @@ class AssessmentService:
                 "owasp_total": coverage_stats["owasp_total"],
                 "ig1_coverage_pct": coverage_stats["ig1_coverage_pct"],
                 "ig2_coverage_pct": coverage_stats["ig2_coverage_pct"],
-                "ig3_coverage_pct": coverage_stats["ig3_coverage_pct"]
+                "ig3_coverage_pct": coverage_stats["ig3_coverage_pct"],
+                "nist_csf_categories": len(unique_nist_categories)
             }
         }
         
@@ -501,8 +530,32 @@ class AssessmentService:
         ]
         detailed_roadmap = generate_detailed_roadmap(finding_dicts)
         
+        # Derive maturity_tier from overall_score for contract integrity
+        maturity_levels = get_rubric()["maturity_levels"]
+        maturity_tier = "Initial"
+        for range_key, level_info in maturity_levels.items():
+            low, high = map(int, range_key.split("-"))
+            if low <= overall_score <= high:
+                maturity_tier = level_info["name"]
+                break
+
+        # Enrich analytics with gap_category and maturity_tier
+        if analytics and isinstance(analytics, dict):
+            # Primary gap category: the most severe gap namespace
+            top_gap = None
+            for gc in (analytics.get("detection_gaps") or {}).get("categories", []):
+                if gc.get("is_critical"):
+                    top_gap = gc.get("name")
+                    break
+            if top_gap is None and analytics.get("detection_gaps"):
+                cats = analytics["detection_gaps"].get("categories", [])
+                top_gap = cats[0].get("name") if cats else None
+            analytics["gap_category"] = top_gap
+            analytics["maturity_tier"] = maturity_tier
+
         return {
             "api_version": "1.0",
+            "product": get_product_info(),
             "id": assessment.id,
             "title": assessment.title,
             "organization_id": assessment.organization_id,
@@ -524,7 +577,7 @@ class AssessmentService:
             "baseline_profiles": baseline_profiles,
             # New: Framework mapping with MITRE, CIS, OWASP refs
             "framework_mapping": framework_mapping,
-            # New: Analytics with attack paths and gaps
+            # New: Analytics with attack paths and gaps (includes gap_category + maturity_tier)
             "analytics": analytics,
             # New: Detailed roadmap with phases
             "detailed_roadmap": detailed_roadmap,
@@ -533,6 +586,7 @@ class AssessmentService:
             "llm_provider": llm_metadata["llm_provider"],
             "llm_model": llm_metadata["llm_model"],
             "llm_mode": llm_metadata["llm_mode"],
+            "llm_status": llm_status,
         }
     
     def _get_llm_metadata(self) -> Dict[str, Any]:
@@ -556,7 +610,7 @@ class AssessmentService:
         llm_enabled = settings.is_llm_enabled
         
         # Provider and model (only if enabled)
-        llm_provider = "google" if llm_enabled else None
+        llm_provider = settings.LLM_PROVIDER if llm_enabled else None
         llm_model = settings.LLM_MODEL if llm_enabled else None
         
         return {

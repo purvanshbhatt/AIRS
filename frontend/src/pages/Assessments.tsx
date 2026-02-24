@@ -75,12 +75,12 @@ export default function Assessments() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <ClipboardList className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+            <ClipboardList className="w-5 h-5 text-gray-600 dark:text-slate-300" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Assessments</h1>
-            <p className="text-gray-500 text-sm">Manage your security assessments</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Assessments</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">Manage your security assessments</p>
           </div>
         </div>
         <ListSkeleton count={5} />
@@ -108,8 +108,8 @@ export default function Assessments() {
             <ClipboardList className="w-5 h-5 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Assessments</h1>
-            <p className="text-gray-500 text-sm">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Assessments</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">
               {assessments.length} assessment{assessments.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -127,7 +127,7 @@ export default function Assessments() {
           <EmptyState
             icon={ClipboardList}
             title="No assessments yet"
-            description="Start your first security assessment to evaluate your organization's incident readiness."
+            description="Run your first assessment to generate a readiness score."
             action={{
               label: 'Start Assessment',
               href: '/dashboard/assessment/new',
@@ -146,20 +146,20 @@ export default function Assessments() {
                 placeholder="Search by title or organization..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
 
             {/* Status Filter */}
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-gray-400" />
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
                 <button
                   onClick={() => setStatusFilter('all')}
                   className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                     statusFilter === 'all'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 shadow-sm'
+                      : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100'
                   }`}
                 >
                   All ({assessments.length})
@@ -168,8 +168,8 @@ export default function Assessments() {
                   onClick={() => setStatusFilter('completed')}
                   className={`px-3 py-1.5 text-sm rounded-md transition-colors flex items-center gap-1.5 ${
                     statusFilter === 'completed'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 shadow-sm'
+                      : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100'
                   }`}
                 >
                   <FileCheck className="w-3.5 h-3.5" />
@@ -179,8 +179,8 @@ export default function Assessments() {
                   onClick={() => setStatusFilter('draft')}
                   className={`px-3 py-1.5 text-sm rounded-md transition-colors flex items-center gap-1.5 ${
                     statusFilter === 'draft'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 shadow-sm'
+                      : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100'
                   }`}
                 >
                   <Clock className="w-3.5 h-3.5" />
@@ -195,7 +195,7 @@ export default function Assessments() {
             {filteredAssessments.length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center">
-                  <p className="text-gray-500">No assessments match your filters</p>
+                  <p className="text-gray-500 dark:text-slate-400">No assessments match your filters</p>
                 </CardContent>
               </Card>
             ) : (
@@ -227,8 +227,8 @@ export default function Assessments() {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{assessment.title}</p>
-                            <p className="text-sm text-gray-500">
+                            <p className="font-medium text-gray-900 dark:text-slate-100">{assessment.title}</p>
+                            <p className="text-sm text-gray-500 dark:text-slate-400">
                               {assessment.organization_name || 'Unknown organization'} •{' '}
                               {new Date(assessment.created_at).toLocaleDateString()}
                             </p>
@@ -238,10 +238,10 @@ export default function Assessments() {
                         <div className="flex items-center gap-4">
                           {assessment.status === 'completed' && assessment.overall_score != null && (
                             <div className="text-right">
-                              <p className="text-lg font-bold text-gray-900">
+                              <p className="text-lg font-bold text-gray-900 dark:text-slate-100">
                                 {Math.round(assessment.overall_score)}%
                               </p>
-                              <p className="text-xs text-gray-500">Score</p>
+                              <p className="text-xs text-gray-500 dark:text-slate-400">Score</p>
                             </div>
                           )}
 
@@ -255,7 +255,7 @@ export default function Assessments() {
                             {assessment.status === 'completed' ? 'Completed' : 'Resume Draft'}
                           </span>
 
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
+                          <ChevronRight className="w-5 h-5 text-gray-400 dark:text-slate-500" />
                         </div>
                       </div>
                     </CardContent>

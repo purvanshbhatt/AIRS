@@ -57,7 +57,7 @@ export function Accordion({
 
   return (
     <AccordionContext.Provider value={{ openItems, toggle, type }}>
-      <div className={clsx('divide-y divide-gray-200', className)} {...props}>
+      <div className={clsx('divide-y divide-gray-200 dark:divide-slate-800', className)} {...props}>
         {children}
       </div>
     </AccordionContext.Provider>
@@ -110,7 +110,7 @@ export function AccordionTrigger({ className, children, ...props }: AccordionTri
     <button
       type="button"
       className={clsx(
-        'flex w-full items-center justify-between py-3 text-left text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors',
+        'flex w-full items-center justify-between py-3 text-left text-sm font-medium text-gray-900 dark:text-slate-100 hover:text-primary-600 dark:hover:text-primary-300 transition-colors',
         className
       )}
       onClick={() => toggle(value)}
@@ -120,7 +120,7 @@ export function AccordionTrigger({ className, children, ...props }: AccordionTri
       {children}
       <ChevronDown
         className={clsx(
-          'h-4 w-4 text-gray-500 transition-transform duration-200 flex-shrink-0',
+          'h-4 w-4 text-gray-500 dark:text-slate-400 transition-transform duration-200 flex-shrink-0',
           isOpen && 'rotate-180'
         )}
       />
@@ -137,7 +137,7 @@ export function AccordionContent({ className, children, ...props }: AccordionCon
   if (!isOpen) return null;
 
   return (
-    <div className={clsx('pb-3 text-sm text-gray-600', className)} {...props}>
+    <div className={clsx('pb-3 text-sm text-gray-600 dark:text-slate-300', className)} {...props}>
       {children}
     </div>
   );

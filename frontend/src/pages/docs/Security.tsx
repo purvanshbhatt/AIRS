@@ -13,7 +13,7 @@ export default function DocsSecurity() {
                     Security & Privacy
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
-                    Learn how AIRS protects your data, handles authentication,
+                    Learn how ResilAI protects your data, handles authentication,
                     and ensures tenant isolation.
                 </p>
             </div>
@@ -31,7 +31,7 @@ export default function DocsSecurity() {
 
                 <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        AIRS uses Firebase Authentication for secure user identity management.
+                        ResilAI uses Firebase Authentication for secure user identity management.
                     </p>
 
                     <ul className="space-y-3">
@@ -40,7 +40,7 @@ export default function DocsSecurity() {
                             { title: 'Social Providers', desc: 'Optional Google, Microsoft, and GitHub OAuth integration' },
                             { title: 'MFA Support', desc: 'Multi-factor authentication available for enhanced security' },
                             { title: 'Session Management', desc: 'JWT tokens with configurable expiration and refresh' },
-                            { title: 'Demo Mode', desc: 'Run assessments without authentication for evaluation' },
+                            { title: 'Public Beta Mode', desc: 'Run assessments in a synthetic-data environment for evaluation' },
                         ].map((item) => (
                             <li key={item.title} className="flex items-start gap-3">
                                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
@@ -112,7 +112,7 @@ export default function DocsSecurity() {
 
                 <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        AIRS stores data securely in Google Cloud infrastructure.
+                        ResilAI stores data securely in Google Cloud infrastructure.
                     </p>
 
                     <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
@@ -170,7 +170,7 @@ export default function DocsSecurity() {
                         </li>
                         <li className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                            <span>Demo mode assessments are stored locally and not persisted to backend</span>
+                            <span>Public Beta synthetic assessments can be isolated from production persistence</span>
                         </li>
                     </ul>
                 </div>
@@ -211,3 +211,4 @@ export default function DocsSecurity() {
         </div>
     );
 }
+

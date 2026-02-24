@@ -13,10 +13,12 @@ endif
 VENV := venv
 PROJECT_ID := gen-lang-client-0384513977
 REGION := us-central1
-SERVICE_NAME := airs-api-staging
+SERVICE_NAME := airs-api-staging-0384513977
 PROD_SERVICE_NAME := airs-api
 STAGING_ENV_FILE := gcp/env.staging.yaml
 PROD_ENV_FILE := gcp/env.prod.yaml
+STAGING_SECRETS ?=
+PROD_SECRETS ?=
 FRONTEND_DIR := frontend
 
 # ============================================
@@ -87,11 +89,11 @@ run:
 
 # Deploy to staging Cloud Run service (safe default)
 deploy-staging:
-	bash ./scripts/deploy_cloud_run.sh --service $(SERVICE_NAME) --region $(REGION) --env-file $(STAGING_ENV_FILE) --project $(PROJECT_ID)
+	bash ./scripts/deploy_cloud_run.sh --service $(SERVICE_NAME) --region $(REGION) --env-file $(STAGING_ENV_FILE) --project $(PROJECT_ID) $(if $(STAGING_SECRETS),--set-secrets $(STAGING_SECRETS),)
 
 # Deploy to production Cloud Run service (requires explicit --prod guard in script)
 deploy-prod:
-	bash ./scripts/deploy_cloud_run.sh --service $(PROD_SERVICE_NAME) --region $(REGION) --env-file $(PROD_ENV_FILE) --project $(PROJECT_ID) --prod
+	bash ./scripts/deploy_cloud_run.sh --service $(PROD_SERVICE_NAME) --region $(REGION) --env-file $(PROD_ENV_FILE) --project $(PROJECT_ID) $(if $(PROD_SECRETS),--set-secrets $(PROD_SECRETS),) --prod
 
 # Backwards-compatible alias for production deploy
 deploy-gcp:

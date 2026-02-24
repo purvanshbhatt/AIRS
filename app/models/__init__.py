@@ -6,6 +6,19 @@ from app.models.answer import Answer
 from app.models.score import Score
 from app.models.finding import Finding, Severity, FindingStatus
 from app.models.report import Report
+from app.models.api_key import ApiKey
+from app.models.webhook import Webhook
+from app.models.roadmap_item import RoadmapItem
+from app.models.external_finding import ExternalFinding
+from app.models.audit_event import AuditEvent
+from app.models.pilot_request import PilotRequest
+from app.models.question_metadata import (
+    QuestionMetadata,
+    MaturityLevel,
+    EffortLevel,
+    ImpactLevel,
+    ControlFunction,
+)
 
 __all__ = [
     "Organization",
@@ -17,4 +30,15 @@ __all__ = [
     "Severity",
     "FindingStatus",
     "Report",
+    "ApiKey",
+    "Webhook",
+    "RoadmapItem",
+    "ExternalFinding",
+    "AuditEvent",
+    "PilotRequest",
+    "QuestionMetadata",
+    "MaturityLevel",
+    "EffortLevel",
+    "ImpactLevel",
+    "ControlFunction",
 ]

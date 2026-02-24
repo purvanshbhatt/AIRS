@@ -7,6 +7,7 @@ from app.core.logging import setup_logging, event_logger
 from app.core.cors import get_allowed_origins, log_cors_config
 from app.core.middleware import (
     RequestIdMiddleware,
+    SecurityHeadersMiddleware,
     global_exception_handler,
     http_exception_handler,
     validation_exception_handler,
@@ -64,13 +65,16 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="AIRS - AI Incident Readiness Score API",
+    description="ResilAI - AI Incident Readiness Score API",
     version="1.0.0",
     debug=settings.DEBUG,
 )
 
 # Add request ID middleware (must be first to capture all requests)
 app.add_middleware(RequestIdMiddleware)
+
+# Add security response headers
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Get validated CORS origins - single source of truth
 # This validates scheme, hostname, and blocks wildcards in production
@@ -107,7 +111,7 @@ app.include_router(api_router, prefix="/api")
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Welcome to AIRS"}
+    return {"message": f"Welcome to {settings.APP_NAME}"}
 
 
 if __name__ == "__main__":

@@ -25,15 +25,19 @@ Feature flags:
   - AIRS_USE_LLM: Enable/disable LLM features (default: False)
   - DEMO_MODE: Allow LLM without strict validation (default: False)
   - GEMINI_API_KEY: API key for Google Gemini (optional in demo mode)
-  - LLM_MODEL: Model to use (default: gemini-3-pro-preview)
+  - LLM_MODEL: Model to use (default: gemini-3-flash-preview)
 """
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+LLM_TIMEOUT_SECONDS = 30
+LLM_MAX_RETRIES = 2
+LLM_INITIAL_BACKOFF = 1.0
 
 
 def generate_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -67,7 +71,7 @@ def generate_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
     
     if not use_llm:
         logger.debug("LLM disabled - using deterministic fallback narratives")
-        return _generate_fallback_narrative(summary_payload)
+        return _generate_fallback_narrative(summary_payload, llm_failed=False)
     
     # Log demo mode warning
     if settings.is_demo_mode:
@@ -77,7 +81,7 @@ def generate_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
         return _generate_llm_narrative(summary_payload)
     except Exception as e:
         logger.error(f"LLM narrative generation failed: {e}. Falling back to deterministic text.")
-        return _generate_fallback_narrative(summary_payload)
+        return _generate_fallback_narrative(summary_payload, llm_failed=True)
 
 
 def _generate_llm_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -91,57 +95,42 @@ def _generate_llm_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     import time
     
-    # Try new SDK first (google-genai)
     try:
         from google import genai
         from google.genai import types
-        USE_NEW_SDK = True
     except ImportError:
-        # Fallback to old SDK (google-generativeai) if new one not available
-        try:
-            import google.generativeai as genai_old
-            USE_NEW_SDK = False
-        except ImportError:
-            logger.warning("No Google AI SDK available. Using fallback.")
-            return _generate_fallback_narrative(summary_payload)
+        logger.warning("google-genai SDK not available. Using fallback.")
+        return _generate_fallback_narrative(summary_payload, llm_failed=True)
     
     # Initialize client based on available credentials
     client = None
-    if USE_NEW_SDK:
-        # Prefer Vertex AI mode if GCP project is set
-        if settings.GCP_PROJECT_ID:
-            try:
-                client = genai.Client(
-                    vertexai=True,
-                    project=settings.GCP_PROJECT_ID,
-                    location=getattr(settings, 'GCP_REGION', 'us-central1')
-                )
-                logger.info(f"Using Vertex AI mode with project {settings.GCP_PROJECT_ID}")
-            except Exception as e:
-                logger.warning(f"Vertex AI init failed: {e}, trying API key mode")
-        
-        # Fallback to API key mode
-        if client is None and settings.GEMINI_API_KEY:
-            try:
-                client = genai.Client(api_key=settings.GEMINI_API_KEY)
-                logger.info("Using API key mode for Gemini")
-            except Exception as e:
-                logger.error(f"API key init failed: {e}")
-                return _generate_fallback_narrative(summary_payload)
-        
-        if client is None:
-            logger.warning("No valid credentials for Gemini. Using fallback.")
-            return _generate_fallback_narrative(summary_payload)
-    else:
-        # Old SDK configuration
-        genai_old.configure(api_key=settings.GEMINI_API_KEY)
+    # Prefer Vertex AI mode if GCP project is set
+    if settings.GCP_PROJECT_ID:
+        try:
+            client = genai.Client(
+                vertexai=True,
+                project=settings.GCP_PROJECT_ID,
+                location=getattr(settings, 'GCP_REGION', 'us-central1')
+            )
+            logger.info(f"Using Vertex AI mode with project {settings.GCP_PROJECT_ID}")
+        except Exception as e:
+            logger.warning(f"Vertex AI init failed: {e}, trying API key mode")
+
+    # Fallback to API key mode
+    if client is None and settings.GEMINI_API_KEY:
+        try:
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            logger.info("Using API key mode for Gemini")
+        except Exception as e:
+            logger.error(f"API key init failed: {e}")
+            return _generate_fallback_narrative(summary_payload, llm_failed=True)
+
+    if client is None:
+        logger.warning("No valid credentials for Gemini. Using fallback.")
+        return _generate_fallback_narrative(summary_payload, llm_failed=True)
     
-    # Get model name (use gemini-2.0-flash as default for new SDK)
+    # Use model from settings (default: gemini-3-flash-preview)
     model_name = settings.LLM_MODEL
-    if USE_NEW_SDK and model_name.startswith("gemini-3"):
-        # gemini-3.0-pro doesn't exist yet, use gemini-2.0-flash
-        model_name = "gemini-2.0-flash"
-        logger.info(f"Overriding model to {model_name} for new SDK compatibility")
     
     # Extract data from payload
     overall_score = summary_payload.get("overall_score", 0)
@@ -193,8 +182,17 @@ def _generate_llm_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
     high_count = sum(1 for f in findings if f.get("severity", "").lower() == "high")
     medium_count = sum(1 for f in findings if f.get("severity", "").lower() == "medium")
     
+    # Build resource links instruction based on implementation assistance mode
+    if settings.IMPLEMENTATION_ASSISTANCE_MODE:
+        resource_links_instruction = """   - A direct implementation guide link from one of: CISA (https://www.cisa.gov/stopransomware),
+     NIST (https://csrc.nist.gov/publications), or OWASP (https://owasp.org/www-project-top-ten/)"""
+    else:
+        resource_links_instruction = "   - The expected business outcome if this priority is completed within 30 days"
+
     # Generate executive summary
-    exec_prompt = f"""Write a professional 2-3 paragraph executive summary for {org_name}'s AI Security Readiness Assessment.
+    exec_prompt = f"""Write a professional executive narrative for {org_name}'s AI Security Readiness Assessment.
+Use enterprise risk terminology throughout: Operational Resilience, Risk Posture, Governance Maturity,
+and Control Effectiveness.
 
 ASSESSMENT RESULTS (DO NOT CHANGE THESE NUMBERS):
 - Overall Score: {overall_score:.1f}/100
@@ -208,15 +206,37 @@ DOMAIN SCORES:
 TOP FINDINGS:
 {findings_context if findings_context else "No significant findings identified."}
 
-Write in a professional, consultant tone suitable for board presentation. Focus on:
-1. Overall security posture assessment
-2. Key strengths and areas of concern
-3. High-level strategic recommendation
+Output requirements (must follow exactly):
+1. Start with a heading line: "Readiness Score"
+2. Include 2 short paragraphs describing Risk Posture, Governance Maturity, and Control Effectiveness
+   implications. Focus on business impact and executive actions rather than repeating raw scores.
+3. Add a heading: "Top 3 Remediation Priorities"
+4. Under that heading, provide exactly 3 bullet points. Each bullet MUST include:
+   - The specific action (using enterprise language about control effectiveness or operational resilience)
+   - The risk category addressed (e.g. Credential Compromise, Ransomware Recovery)
+{resource_links_instruction}
+5. Do not repeat raw questionnaire answers; focus on business impact and next actions.
+6. Do not include any numeric values other than those provided above."""
 
-Be concise and actionable. Do not include any numeric values other than those provided above."""
+    # Build roadmap resource references based on implementation assistance mode
+    if settings.IMPLEMENTATION_ASSISTANCE_MODE:
+        roadmap_references = """- IMMEDIATE (0-30 DAYS): Critical risk reduction and quick wins. Reference specific CISA or NIST guidance
+  where applicable (e.g. https://www.cisa.gov/stopransomware).
+- NEAR-TERM (30-90 DAYS): Foundation building, Control Effectiveness improvements, and process
+  maturation. Reference relevant NIST CSF 2.0 categories.
+- STRATEGIC (90+ DAYS): Governance Maturity advancement, Operational Resilience, and long-term Risk
+  Posture hardening. Reference OWASP or NIST SP publications where relevant."""
+    else:
+        roadmap_references = """- IMMEDIATE (0-30 DAYS): Critical risk reduction and quick wins. Focus on specific actions,
+  responsible teams, and expected measurable outcomes.
+- NEAR-TERM (30-90 DAYS): Foundation building, Control Effectiveness improvements, and process
+  maturation. Highlight dependencies and success criteria.
+- STRATEGIC (90+ DAYS): Governance Maturity advancement, Operational Resilience, and long-term Risk
+  Posture hardening. Describe target maturity state and KPIs."""
 
     # Generate roadmap narrative
-    roadmap_prompt = f"""Create a 30/60/90 day remediation roadmap narrative for {org_name}.
+    roadmap_prompt = f"""Create a tiered remediation roadmap narrative for {org_name} using enterprise
+risk language: Operational Resilience, Risk Posture, Governance Maturity, and Control Effectiveness.
 
 CURRENT STATE:
 - Overall Score: {overall_score:.1f}/100 ({tier_label})
@@ -227,46 +247,32 @@ CURRENT STATE:
 TOP FINDINGS TO ADDRESS:
 {findings_context if findings_context else "No significant findings requiring immediate attention."}
 
-Write a clear, actionable roadmap with:
-- FIRST 30 DAYS: Immediate priorities and quick wins
-- DAYS 31-60: Foundation building and process improvements  
-- DAYS 61-90: Maturity advancement and long-term initiatives
+Write a clear, actionable remediation roadmap with three tiers:
+{roadmap_references}
 
 Use business-friendly language. Be specific about actions and expected outcomes.
 Format as clear paragraphs, not bullet lists."""
 
     # Retry logic with exponential backoff
-    max_retries = 2
-    timeout_seconds = 30
-    
+    max_retries = LLM_MAX_RETRIES
+
     def generate_with_retry(prompt: str, retry_count: int = 0) -> Optional[str]:
         """Generate content with retry logic."""
         try:
-            if USE_NEW_SDK:
-                # New SDK (google-genai) call
-                config = types.GenerateContentConfig(
-                    temperature=settings.LLM_TEMPERATURE,
-                    max_output_tokens=settings.LLM_MAX_TOKENS,
-                )
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                    config=config,
-                )
-                return response.text.strip() if response.text else None
-            else:
-                # Old SDK (google-generativeai) call
-                model = genai_old.GenerativeModel(model_name)
-                generation_config = genai_old.GenerationConfig(
-                    temperature=settings.LLM_TEMPERATURE,
-                    max_output_tokens=settings.LLM_MAX_TOKENS,
-                )
-                response = model.generate_content(prompt, generation_config=generation_config)
-                return response.text.strip() if response.text else None
-                
+            config = types.GenerateContentConfig(
+                temperature=settings.LLM_TEMPERATURE,
+                max_output_tokens=settings.LLM_MAX_TOKENS,
+            )
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=config,
+            )
+            return response.text.strip() if response.text else None
+
         except Exception as e:
             if retry_count < max_retries:
-                wait_time = 2 ** retry_count  # Exponential backoff: 1s, 2s
+                wait_time = LLM_INITIAL_BACKOFF * (2 ** retry_count)
                 logger.warning(f"LLM request failed (attempt {retry_count + 1}): {e}. Retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 return generate_with_retry(prompt, retry_count + 1)
@@ -287,14 +293,14 @@ Format as clear paragraphs, not bullet lists."""
             }
         else:
             logger.warning("One or more LLM responses were empty. Using fallback.")
-            return _generate_fallback_narrative(summary_payload)
+            return _generate_fallback_narrative(summary_payload, llm_failed=True)
         
     except Exception as e:
         logger.error(f"Gemini API call failed: {e}")
-        return _generate_fallback_narrative(summary_payload)
+        return _generate_fallback_narrative(summary_payload, llm_failed=True)
 
 
-def _generate_fallback_narrative(summary_payload: Dict[str, Any]) -> Dict[str, Any]:
+def _generate_fallback_narrative(summary_payload: Dict[str, Any], llm_failed: bool = False) -> Dict[str, Any]:
     """
     Generate deterministic fallback narratives when LLM is unavailable.
     
@@ -321,38 +327,61 @@ def _generate_fallback_narrative(summary_payload: Dict[str, Any]) -> Dict[str, A
     
     # Build executive summary based on tier
     if tier_label == "Critical":
-        exec_summary = (
-            f"{org_name} received an overall AI readiness score of {overall_score:.0f}/100, "
-            f"placing them in the Critical tier. This assessment identified {len(findings)} findings, "
-            f"including {critical_count} critical and {high_count} high-severity issues that require "
-            f"immediate attention. Key areas of concern include {' and '.join(weak_domain_names)}. "
-            f"Urgent action is recommended to address fundamental security gaps before expanding AI initiatives."
+        context_text = (
+            f"{org_name} received an overall score of {overall_score:.0f}/100 and is in the Critical tier. "
+            f"{len(findings)} findings were identified, including {critical_count} critical and {high_count} high-severity issues. "
+            f"The largest Control Effectiveness gaps are in {' and '.join(weak_domain_names)}. "
+            "Risk Posture is at maximum exposure — immediate executive action is required to restore "
+            "Operational Resilience."
         )
     elif tier_label == "Needs Work":
-        exec_summary = (
-            f"{org_name}'s AI readiness assessment resulted in a score of {overall_score:.0f}/100, "
-            f"indicating the organization Needs Work before production AI deployment. "
-            f"The assessment identified {len(findings)} findings across multiple domains. "
-            f"While {' and '.join(strong_domain_names)} show adequate maturity, "
-            f"{' and '.join(weak_domain_names)} require focused improvement. "
-            f"A structured remediation program is recommended over the next 60-90 days."
+        context_text = (
+            f"{org_name} scored {overall_score:.0f}/100 and is in the Needs Work tier. "
+            f"The assessment identified {len(findings)} findings across multiple security domains. "
+            f"While {' and '.join(strong_domain_names)} demonstrate reasonable Control Effectiveness, "
+            f"{' and '.join(weak_domain_names)} carry the highest Operational Resilience risk and require "
+            "focused remediation to improve Governance Maturity."
         )
     elif tier_label == "Good":
-        exec_summary = (
-            f"{org_name} achieved a Good readiness score of {overall_score:.0f}/100, "
-            f"demonstrating solid foundational security practices for AI operations. "
-            f"Strong performance was observed in {' and '.join(strong_domain_names)}. "
-            f"The {len(findings)} identified findings are primarily optimization opportunities "
-            f"rather than critical gaps. Continued investment in {' and '.join(weak_domain_names)} "
-            f"will further strengthen the organization's AI security posture."
+        context_text = (
+            f"{org_name} scored {overall_score:.0f}/100 and is in the Good tier with strong Control Effectiveness "
+            f"in {' and '.join(strong_domain_names)}. "
+            f"The {len(findings)} remaining findings are primarily Governance Maturity and optimisation gaps "
+            f"concentrated in {' and '.join(weak_domain_names)}."
         )
     else:  # Strong
+        context_text = (
+            f"{org_name} scored {overall_score:.0f}/100 and is in the Strong tier, indicating a mature Risk Posture "
+            f"and high Control Effectiveness across assessed domains. "
+            f"Only {len(findings)} lower-priority findings were identified, with the strongest Operational Resilience "
+            f"in {' and '.join(strong_domain_names)}."
+        )
+
+    priorities = [
+        f"Close highest Operational Resilience gaps in {weak_domain_names[0] if weak_domain_names else 'core controls'} "
+        f"with executive sponsorship. Reference: https://www.cisa.gov/stopransomware",
+        "Assign control owners and delivery dates for critical and high-severity remediation items to improve "
+        "Governance Maturity. Reference: https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final",
+        "Establish a 30/60/90-day operating cadence with measurable Risk Posture checkpoints. "
+        "Reference: https://www.nist.gov/cyberframework",
+    ]
+    if llm_failed:
         exec_summary = (
-            f"{org_name} has achieved a Strong AI readiness score of {overall_score:.0f}/100, "
-            f"reflecting excellent security practices across all assessed domains. "
-            f"The organization demonstrates mature capabilities in {' and '.join(strong_domain_names)}, "
-            f"with only {len(findings)} minor findings identified. "
-            f"The focus should shift to maintaining this posture and exploring advanced security capabilities."
+            "Readiness Score\n"
+            f"{org_name} is currently rated {tier_label} at {overall_score:.0f}/100.\n\n"
+            "Executive narrative unavailable. Based on analysis, priority should focus on:\n"
+            "1. Access controls\n"
+            "2. Monitoring\n"
+            "3. Incident response planning"
+        )
+    else:
+        exec_summary = (
+            "Readiness Score\n"
+            f"{context_text}\n\n"
+            "Top 3 Remediation Priorities\n"
+            f"- {priorities[0]}\n"
+            f"- {priorities[1]}\n"
+            f"- {priorities[2]}"
         )
     
     # Build roadmap narrative

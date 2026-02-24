@@ -18,7 +18,7 @@ export default function DocsOverview() {
                     <span className="text-sm font-medium">Documentation</span>
                 </div>
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                    AIRS Documentation
+                    ResilAI Documentation
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
                     AI Incident Readiness Score — a comprehensive self-assessment tool that evaluates
@@ -26,14 +26,14 @@ export default function DocsOverview() {
                 </p>
             </div>
 
-            {/* What is AIRS */}
+            {/* What is ResilAI */}
             <section>
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                    What is AIRS?
+                    What is ResilAI?
                 </h2>
                 <div className="prose dark:prose-invert max-w-none">
                     <p className="text-gray-600 dark:text-gray-400">
-                        AIRS is an open-source security assessment platform designed to help organizations
+                        ResilAI is an open-source security assessment platform designed to help organizations
                         understand their incident response readiness. By answering 30 targeted questions
                         across 5 security domains, you receive an actionable readiness score,
                         prioritized recommendations, and executive-ready reports.
@@ -101,7 +101,7 @@ export default function DocsOverview() {
                             </li>
                             <li className="flex items-center gap-2">
                                 <CheckCircle className="w-4 h-4 text-primary-600" />
-                                Receive your AIRS score and maturity level
+                                Receive your ResilAI score and maturity level
                             </li>
                             <li className="flex items-center gap-2">
                                 <CheckCircle className="w-4 h-4 text-primary-600" />
@@ -150,3 +150,4 @@ export default function DocsOverview() {
         </div>
     );
 }
+

@@ -33,6 +33,9 @@ class Assessment(Base):
     status = Column(SQLEnum(AssessmentStatus), default=AssessmentStatus.DRAFT)
     title = Column(String(255), nullable=True)
     
+    # Schema versioning: 1=legacy numeric answers, 2=maturity-tier answers (v2.0)
+    schema_version = Column(Integer, nullable=False, default=1, server_default="1")
+
     # Scoring results (populated after scoring)
     overall_score = Column(Float, nullable=True)
     maturity_level = Column(Integer, nullable=True)
@@ -49,6 +52,7 @@ class Assessment(Base):
     scores = relationship("Score", back_populates="assessment", cascade="all, delete-orphan")
     findings = relationship("Finding", back_populates="assessment", cascade="all, delete-orphan")
     reports = relationship("Report", back_populates="assessment", cascade="all, delete-orphan")
+    roadmap_items = relationship("RoadmapItem", back_populates="assessment", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Assessment(id={self.id}, org={self.organization_id}, score={self.overall_score})>"

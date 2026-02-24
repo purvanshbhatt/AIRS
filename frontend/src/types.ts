@@ -5,6 +5,8 @@ export interface Organization {
   name: string;
   industry?: string;
   size?: string;
+  integration_status?: string;
+  analytics_enabled?: boolean;
   created_at: string;
 }
 
@@ -121,10 +123,17 @@ export interface FindingSummary {
   evidence?: string;
   recommendation?: string;
   description?: string;
+  // NIST CSF 2.0 mapping (v2.0)
+  nist_function?: string;   // e.g. "DE", "PR", "RS", "RC"
+  nist_category?: string;   // e.g. "DE.CM-1", "PR.AA-5"
+  // SIEM verification status (v0.3-enterprise)
+  verification_status?: 'SELF_REPORTED' | 'VERIFIED' | 'PENDING';
+  verification_source?: string;  // e.g., "Splunk", "Microsoft Sentinel"
 }
 
 export interface AssessmentSummary {
   api_version: string;
+  product?: ProductInfo;
   id: string;
   title?: string;
   organization_id: string;
@@ -304,17 +313,39 @@ export interface DetailedRoadmapItem {
   success_criteria?: string;
   domain?: string;
   finding_id?: string;
+  // Enterprise roadmap fields (v2.0)
+  timeline_label?: string;  // e.g. "Immediate", "Near-term", "Strategic"
+  risk_impact?: string;     // e.g. "Critical Risk Reduction", "High Impact"
+  nist_category?: string;   // e.g. "DE.CM-1", "PR.AA-5"
 }
 
 // Detailed roadmap wrapper with phases structure
 export interface DetailedRoadmapPhase {
   title: string;
+  name?: string;  // Display name e.g. "Immediate (0–30 Days)"
+  description?: string;
+  item_count?: number;
+  effort_hours?: number;
   items: DetailedRoadmapItem[];
 }
 
+export interface DetailedRoadmapSummary {
+  total_items: number;
+  day30_count: number;
+  day60_count: number;
+  day90_count: number;
+  critical_items?: number;
+  quick_wins?: number;
+  total_effort_hours?: number;
+  total_risk_reduction?: string;
+  by_priority?: Record<string, number>;
+  by_effort?: Record<string, number>;
+  generated_at?: string;
+}
+
 export interface DetailedRoadmap {
-  phases: DetailedRoadmapPhase[];
-  summary?: string;
+  phases: Record<string, DetailedRoadmapPhase>;  // Keyed by "day30", "day60", "day90"
+  summary?: DetailedRoadmapSummary;
 }
 
 // Analytics types
@@ -339,8 +370,13 @@ export interface AttackPath {
 // Gap analysis types
 export interface GapCategory {
   name: string;
+  category?: string;
   gaps: string[];
+  gap_count?: number;
   severity?: 'critical' | 'high' | 'medium' | 'low';
+  is_critical?: boolean;
+  description?: string;
+  findings?: Array<{ title: string }>;
 }
 
 export interface GapAnalysis {
@@ -352,6 +388,11 @@ export interface RiskSummary {
   overall_risk_level: 'critical' | 'high' | 'medium' | 'low';
   key_risks: string[];
   mitigating_factors?: string[];
+  attack_paths_enabled?: number;
+  total_gaps_identified?: number;
+  severity_counts?: Record<string, number>;
+  findings_count?: number;
+  total_risk_score?: number;
 }
 
 export interface AnalyticsSummary {
@@ -363,6 +404,9 @@ export interface AnalyticsSummary {
   response_gaps?: GapAnalysis;
   identity_gaps?: GapAnalysis;
   risk_summary?: RiskSummary;
+  // Enterprise analytics contract fields (v2.0)
+  gap_category?: string;    // Primary gap category label
+  maturity_tier?: string;   // e.g. "Initial", "Developing", "Defined", "Managed", "Optimized"
 }
 
 // Tracker item for roadmap tracking
@@ -393,4 +437,159 @@ export interface ScoreTrendPoint {
   score: number;
   assessment_id: string;
   name?: string;  // Optional label for the data point
+}
+
+// Integration types
+export interface ApiKeyMetadata {
+  id: string;
+  org_id: string;
+  prefix: string;
+  scopes: string[];
+  is_active: boolean;
+  created_at: string;
+  last_used_at?: string | null;
+}
+
+export interface ApiKeyCreateResponse {
+  id: string;
+  org_id: string;
+  prefix: string;
+  scopes: string[];
+  api_key: string;
+  created_at: string;
+}
+
+export interface Webhook {
+  id: string;
+  org_id: string;
+  url: string;
+  event_types: string[];
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ExternalFinding {
+  id: string;
+  org_id: string;
+  source: string;
+  title: string;
+  severity: string;
+  created_at: string;
+  raw_json: Record<string, unknown>;
+}
+
+export interface WebhookUrlTestResponse {
+  delivered: boolean;
+  status_code?: number;
+  error?: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+}
+
+export interface ProductInfo {
+  name: string;
+  version?: string | null;
+}
+
+export interface SystemStatus {
+  version?: string | null;
+  environment: string;
+  llm_enabled: boolean;
+  demo_mode: boolean;
+  integrations_enabled: boolean;
+  last_deployment_at?: string | null;
+}
+
+export interface AuditEvent {
+  id: string;
+  org_id: string;
+  action: string;
+  actor: string;
+  timestamp: string;
+}
+
+export interface PilotRequestInput {
+  company_name: string;
+  team_size: string;
+  current_security_tools?: string;
+  email: string;
+}
+
+// Enterprise Pilot Lead (Phase 6 — extended form for /api/v1/pilot-leads)
+export interface EnterprisePilotLeadInput {
+  company_name: string;
+  contact_name: string;
+  email: string;
+  industry?: string;
+  company_size?: string;
+  team_size?: string;
+  current_security_tools?: string;
+  ai_usage_description?: string;
+  current_siem_provider?: string;
+}
+
+// Methodology endpoint response (Phase 4)
+export interface MethodologyDomain {
+  domain_id: string;
+  domain_name: string;
+  weight_pct: number;
+  nist_function?: string;
+  nist_function_name?: string;
+  nist_categories?: string[];
+  description: string;
+  question_count: number;
+  max_domain_score: number;
+}
+
+export interface MethodologyResponse {
+  rubric_version: string;
+  nist_csf_version: string;
+  methodology_basis: string[];
+  total_weight: number;
+  max_domain_score: number;
+  scoring_formula: string;
+  domains: MethodologyDomain[];
+  maturity_levels: Record<string, unknown>;
+  remediation_timelines: Record<string, unknown>;
+}
+
+export interface SiemExportFinding {
+  severity: string;
+  category?: string;
+  title: string;
+  description?: string;
+  mitre_refs: Array<Record<string, unknown>>;
+  cis_refs: Array<Record<string, unknown>>;
+  owasp_refs: Array<Record<string, unknown>>;
+  remediation?: string;
+}
+
+export interface SiemExportPayload {
+  organization?: string;
+  assessment_id: string;
+  score: number;
+  generated_at: string;
+  findings: SiemExportFinding[];
+}
+
+// =============================================================================
+// Question Suggestions
+// =============================================================================
+
+export interface SuggestedQuestion {
+  id: string;
+  question_text: string;
+  domain_id: string;
+  framework_tags: string[];
+  maturity_level: 'basic' | 'managed' | 'advanced';
+  effort_level: 'low' | 'medium' | 'high';
+  impact_level: 'low' | 'medium' | 'high';
+  control_function: 'govern' | 'identify' | 'protect' | 'detect' | 'respond' | 'recover';
+}
+
+export interface SuggestionsResponse {
+  suggestions: SuggestedQuestion[];
+  total_count: number;
+  org_maturity: string | null;
+  weakest_functions: string[] | null;
 }

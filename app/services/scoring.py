@@ -2,15 +2,40 @@
 AIRS Scoring Service
 
 Calculates readiness scores based on assessment answers.
+
+Includes a "visibility penalty" for critical metrics where "Unknown/Not Measured"
+responses indicate a governance gap. These are penalized more heavily than
+low-but-measured values to incentivize instrumentation and measurement.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from app.core.rubric import RUBRIC, get_question
 
 
 class ScoringError(Exception):
     """Raised when scoring encounters an error."""
     pass
+
+
+# Questions that are critical for operational visibility. When these are
+# answered with "Unknown/Not Measured/Undefined" variants, an additional
+# governance penalty is applied to the overall score.
+VISIBILITY_CRITICAL_QUESTIONS = {
+    "dc_01",  # EDR coverage
+    "rs_05",  # RTO
+}
+VISIBILITY_PENALTY_PER_UNKNOWN = 2.0  # Points deducted per unknown critical metric
+
+
+def _is_unknown_answer(answer: Any, question: dict) -> bool:
+    """Check if the answer indicates an unknown/not measured state."""
+    tier_options = question.get("tier_options")
+    if tier_options and isinstance(answer, str):
+        canonical = answer.strip().lower()
+        # Check against common unknown/unmeasured keywords
+        unknown_keywords = {"not measured", "undefined", "unknown", "not applicable", "n/a", "no target"}
+        return any(kw in canonical for kw in unknown_keywords)
+    return False
 
 
 def _calculate_threshold_score(value: float, thresholds: Dict[str, float], 
@@ -57,6 +82,11 @@ def _score_question(question: dict, answer: Any) -> float:
     """
     Score a single question based on its type and the provided answer.
     
+    Supports an optional ``tier_options`` field on a question for maturity-tier
+    string answers (e.g. ">90%", "<4hrs", "Not Measured").  When a tier string
+    is detected the mapped score is used directly.  Legacy numeric answers
+    continue to use the threshold lookup so backwards-compatibility is preserved.
+    
     Args:
         question: Question definition from rubric
         answer: The answer value
@@ -69,7 +99,21 @@ def _score_question(question: dict, answer: Any) -> float:
     
     if answer is None:
         return 0.0
-    
+
+    # ── Maturity-tier string handling (backward-compatible) ──
+    # If the question publishes tier_options AND the answer is a recognised
+    # tier value string, resolve to the mapped score without touching the
+    # existing threshold logic below.
+    tier_options = question.get("tier_options")
+    if tier_options and isinstance(answer, str):
+        canonical = answer.strip()
+        for opt in tier_options:
+            if opt["value"].lower() == canonical.lower():
+                return max_points * opt["score"]
+        # Unknown tier string → treat as unanswered (score 0) rather than
+        # accidentally falling through to boolean "truthy" logic.
+        return 0.0
+
     if q_type == "boolean":
         # Boolean: True = full points, False = 0
         if isinstance(answer, bool):
@@ -158,6 +202,7 @@ def calculate_scores(answers: Dict[str, Any]) -> Dict[str, Any]:
     domain_results = []
     weighted_sum = 0.0
     total_weight = 0
+    unknown_critical_metrics: List[str] = []
     
     for domain_id in RUBRIC["domains"]:
         domain_result = calculate_domain_score(domain_id, answers)
@@ -168,14 +213,24 @@ def calculate_scores(answers: Dict[str, Any]) -> Dict[str, Any]:
         weighted_contribution = (domain_result["score"] / 5) * domain_result["weight"]
         weighted_sum += weighted_contribution
         total_weight += domain_result["weight"]
+        
+        # Track unknown answers to visibility-critical questions
+        for q in domain_result["questions"]:
+            if q["question_id"] in VISIBILITY_CRITICAL_QUESTIONS:
+                question_data, _domain_id = get_question(q["question_id"])
+                if question_data and _is_unknown_answer(q["answer"], question_data):
+                    unknown_critical_metrics.append(q["question_id"])
     
-    # Overall score on 0-100 scale
-    overall_score = round(weighted_sum, 2)
+    # Apply visibility penalty for unknown critical metrics
+    visibility_penalty = len(unknown_critical_metrics) * VISIBILITY_PENALTY_PER_UNKNOWN
+    
+    # Overall score on 0-100 scale (with visibility penalty)
+    overall_score = max(0.0, round(weighted_sum - visibility_penalty, 2))
     
     # Determine maturity level
     maturity = _get_maturity_level(overall_score)
     
-    return {
+    result = {
         "overall_score": overall_score,
         "max_score": 100,
         "maturity_level": maturity["level"],
@@ -193,6 +248,16 @@ def calculate_scores(answers: Dict[str, Any]) -> Dict[str, Any]:
             "weakest_domain": min(domain_results, key=lambda x: x["score"])["domain_name"]
         }
     }
+    
+    # Add visibility penalty info if any
+    if unknown_critical_metrics:
+        result["visibility_penalty"] = {
+            "penalty_applied": visibility_penalty,
+            "unknown_critical_metrics": unknown_critical_metrics,
+            "message": f"Score reduced by {visibility_penalty} points due to {len(unknown_critical_metrics)} unmeasured critical metric(s)"
+        }
+    
+    return result
 
 
 def _get_maturity_level(score: float) -> Dict[str, Any]:

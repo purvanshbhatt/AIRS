@@ -75,12 +75,12 @@ export default function Organizations() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-gray-600 dark:text-slate-300" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Organizations</h1>
-            <p className="text-gray-500 text-sm">Manage your organizations</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Organizations</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">Manage your organizations</p>
           </div>
         </div>
         <ListSkeleton count={4} />
@@ -108,8 +108,8 @@ export default function Organizations() {
             <Building2 className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Organizations</h1>
-            <p className="text-gray-500 text-sm">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Organizations</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">
               {organizations.length} organization{organizations.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -146,7 +146,7 @@ export default function Organizations() {
                 placeholder="Search organizations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
 
@@ -161,22 +161,22 @@ export default function Organizations() {
                     onClick={() => setSelectedOrg(org)}
                     className={`w-full text-left p-4 rounded-lg border transition-colors ${
                       isSelected
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 bg-white dark:bg-slate-900'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">{org.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="font-medium text-gray-900 dark:text-slate-100">{org.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">
                           {org.industry || 'No industry'} • {org.size || 'Size not set'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                        <span className="text-xs bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 px-2 py-1 rounded">
                           {orgAssessments.length} assessment{orgAssessments.length !== 1 ? 's' : ''}
                         </span>
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                        <ChevronRight className="w-4 h-4 text-gray-400 dark:text-slate-500" />
                       </div>
                     </div>
                   </button>
@@ -184,7 +184,7 @@ export default function Organizations() {
               })}
 
               {filteredOrgs.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">
+                <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">
                   No organizations match your search
                 </p>
               )}
@@ -214,9 +214,9 @@ export default function Organizations() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Assessment History</h4>
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">Assessment History</h4>
                   {(assessmentsByOrg[selectedOrg.id] || []).length === 0 ? (
-                    <p className="text-sm text-gray-500 italic py-4">
+                    <p className="text-sm text-gray-500 dark:text-slate-400 italic py-4">
                       No assessments yet for this organization
                     </p>
                   ) : (
@@ -234,12 +234,12 @@ export default function Organizations() {
                                 ? `/dashboard/results/${assessment.id}`
                                 : `/dashboard/assessment/new?resume=${assessment.id}`
                             }
-                            className="block p-3 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-colors"
+                            className="block p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="font-medium text-gray-900">{assessment.title}</p>
-                                <p className="text-xs text-gray-500">
+                                <p className="font-medium text-gray-900 dark:text-slate-100">{assessment.title}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">
                                   {new Date(assessment.created_at).toLocaleDateString()}
                                   {assessment.overall_score != null && (
                                     <> • Score: {Math.round(assessment.overall_score)}%</>

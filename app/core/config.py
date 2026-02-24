@@ -1,5 +1,5 @@
 """
-AIRS Configuration Module
+ResilAI Configuration Module
 
 Uses pydantic-settings for type-safe configuration with validation.
 Loads .env file only in local environment mode.
@@ -18,6 +18,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Environment(str, Enum):
     """Application environment."""
     LOCAL = "local"
+    STAGING = "staging"
     PROD = "prod"
 
 
@@ -33,7 +34,9 @@ class Settings(BaseSettings):
     # Core Settings
     # ===========================================
     ENV: Environment = Environment.LOCAL
-    APP_NAME: str = "AIRS"
+    APP_NAME: str = "ResilAI"
+    APP_VERSION: Optional[str] = None
+    DEPLOYED_AT: Optional[str] = None
     DEBUG: bool = False
     
     # ===========================================
@@ -52,17 +55,18 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins
     # Example: "http://localhost:3000,https://myapp.com"
     # Use "*" to allow all origins (not recommended for production)
-    CORS_ALLOW_ORIGINS: str = "*"
+    CORS_ALLOW_ORIGINS: str = "http://localhost:5173"
     
     # ===========================================
     # GCP Settings (Optional)
     # ===========================================
     GCP_PROJECT_ID: Optional[str] = None
+    GCP_REGION: str = "us-central1"
     
     # ===========================================
     # Authentication
     # ===========================================
-    AUTH_REQUIRED: bool = False  # Set to true to require Firebase auth
+    AUTH_REQUIRED: bool = True  # Default secure: require Firebase auth
     FIREBASE_AUTH_EMULATOR_HOST: Optional[str] = None
     
     # ===========================================
@@ -75,6 +79,7 @@ class Settings(BaseSettings):
     #   - LLM generates narratives only (no score modification)
     #   - Falls back to deterministic text if LLM fails
     DEMO_MODE: bool = False
+    INTEGRATIONS_ENABLED: bool = True
     
     # ===========================================
     # LLM Feature Flags
@@ -89,10 +94,20 @@ class Settings(BaseSettings):
     AIRS_USE_LLM: bool = False
     LLM_PROVIDER: str = "gemini"
     GEMINI_API_KEY: Optional[str] = None
-    LLM_MODEL: str = "gemini-2.0-flash"
-    GEMINI_MODEL: str = "gemini-2.0-flash"  # Alias for backwards compatibility
+    LLM_MODEL: str = "gemini-3-flash-preview"
+    GEMINI_MODEL: str = "gemini-3-flash-preview"  # Alias for backwards compatibility
     LLM_MAX_TOKENS: int = 1000
     LLM_TEMPERATURE: float = 0.7
+    
+    # ===========================================
+    # Implementation Assistance Mode
+    # ===========================================
+    # When enabled, LLM-generated narratives include direct implementation
+    # guide links from CISA, NIST, and OWASP in remediation priorities.
+    # When disabled (default), links are omitted to preserve consulting
+    # upsell positioning — clients receive actionable recommendations
+    # without self-service resource pointers.
+    IMPLEMENTATION_ASSISTANCE_MODE: bool = False
 
     model_config = SettingsConfigDict(
         case_sensitive=True,
@@ -104,7 +119,14 @@ class Settings(BaseSettings):
         """Validate that production environment has required settings."""
         errors = []
         
-        if self.ENV == Environment.PROD:
+        if self.ENV in (Environment.PROD, Environment.STAGING):
+            # SECURITY: DEMO_MODE must never be enabled in prod/staging
+            if self.DEMO_MODE:
+                errors.append(
+                    f"DEMO_MODE=true is FORBIDDEN in {self.ENV.value}. "
+                    "It disables authentication. Set DEMO_MODE=false."
+                )
+
             # In production, CORS wildcard is now blocked by cors.py
             # Just log a warning here for visibility
             if self.CORS_ALLOW_ORIGINS == "*":
@@ -114,17 +136,17 @@ class Settings(BaseSettings):
                     file=sys.stderr
                 )
             
-            # In production with LLM enabled (not demo mode), API key is recommended
-            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY and not self.DEMO_MODE:
+            # In production with LLM enabled, either API key or ADC should exist
+            if self.AIRS_USE_LLM and not self.GEMINI_API_KEY and not self.GCP_PROJECT_ID:
                 print(
-                    "INFO: GEMINI_API_KEY not set. Using Application Default Credentials for Gemini.",
+                    "WARNING: AIRS_USE_LLM=true but neither GEMINI_API_KEY nor GCP_PROJECT_ID is set.",
                     file=sys.stderr
                 )
         
-        # Demo mode warnings
+        # Demo mode warnings (local only)
         if self.DEMO_MODE:
             print(
-                "WARNING: DEMO_MODE=true. LLM features enabled for demonstration purposes.",
+                "INFO: DEMO_MODE=true (local). LLM features enabled for demonstration purposes.",
                 file=sys.stderr
             )
             if self.AIRS_USE_LLM:
@@ -182,13 +204,22 @@ class Settings(BaseSettings):
 
     @property
     def is_prod(self) -> bool:
-        """Check if running in production environment."""
-        return self.ENV == Environment.PROD
+        """Check if running in production-like environment (staging or prod)."""
+        return self.ENV in (Environment.PROD, Environment.STAGING)
+
+    @property
+    def is_staging(self) -> bool:
+        """Check if running in staging environment."""
+        return self.ENV == Environment.STAGING
 
     @property
     def is_auth_required(self) -> bool:
-        """Check if authentication is required for protected endpoints."""
-        return self.AUTH_REQUIRED or self.ENV == Environment.PROD
+        """Check if authentication is required for protected endpoints.
+        
+        Auth is required when AUTH_REQUIRED=true OR in prod/staging.
+        DEMO_MODE no longer bypasses auth — it only enables LLM features.
+        """
+        return self.AUTH_REQUIRED or self.ENV in (Environment.PROD, Environment.STAGING)
 
     @property
     def is_llm_enabled(self) -> bool:
@@ -196,7 +227,10 @@ class Settings(BaseSettings):
         Check if LLM narrative generation is enabled.
         
         LLM is enabled when:
-          - AIRS_USE_LLM=true AND (GEMINI_API_KEY is set OR DEMO_MODE=true)
+          - AIRS_USE_LLM=true AND one of:
+            - DEMO_MODE=true
+            - GEMINI_API_KEY is set (direct API-key auth)
+            - GCP_PROJECT_ID is set (Vertex/ADC auth)
         
         In demo mode, LLM can run without strict API key validation,
         using ADC (Application Default Credentials) on Cloud Run.
@@ -208,11 +242,11 @@ class Settings(BaseSettings):
         """
         if not self.AIRS_USE_LLM:
             return False
-        # In demo mode, allow LLM even without explicit API key (use ADC)
+        # In demo mode, allow LLM even without explicit API key (use ADC/fallback)
         if self.DEMO_MODE:
             return True
-        # Otherwise require API key
-        return bool(self.GEMINI_API_KEY)
+        # Non-demo mode supports either API key auth or Vertex/ADC auth.
+        return bool(self.GEMINI_API_KEY or self.GCP_PROJECT_ID)
 
     @property
     def is_demo_mode(self) -> bool:

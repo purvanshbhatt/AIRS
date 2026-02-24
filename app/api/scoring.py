@@ -14,9 +14,49 @@ from app.services.scoring import (
     get_recommendations,
     validate_answers
 )
-from app.core.rubric import get_rubric, get_all_question_ids
+from app.core.rubric import get_rubric, get_all_question_ids, get_methodology
 
 router = APIRouter()
+
+
+@router.get(
+    "/rubric",
+    summary="Get Scoring Rubric",
+    description="Returns the complete scoring rubric definition including all domains, questions, weights, and scoring formulas.",
+    responses={
+        200: {"description": "Complete rubric definition with domains and questions"}
+    }
+)
+async def get_scoring_rubric():
+    """Get the complete scoring rubric definition."""
+    return get_rubric()
+
+
+@router.get(
+    "/methodology",
+    summary="Get Scoring Methodology",
+    description=(
+        "Returns the transparent scoring methodology explanation — domain weights, NIST CSF 2.0 mappings, "
+        "risk basis (MITRE ATT&CK prevalence, CISA guidance), and maturity-level definitions. "
+        "Intended to build auditor trust and support Big-4 consulting engagements."
+    ),
+    responses={
+        200: {"description": "Scoring methodology with NIST CSF 2.0 domain mappings and weight rationale"}
+    },
+    tags=["scoring"],
+)
+async def get_scoring_methodology():
+    """
+    /api/v1/methodology — transparent scoring methodology.
+
+    Exposes:
+    - Rubric version and NIST CSF version
+    - Basis for scoring weights (MITRE ATT&CK prevalence, CISA ransomware guidance, NIST impact areas)
+    - Per-domain weight, NIST function, and category mappings
+    - Maturity level definitions with Governance Maturity, Risk Posture, and Control Effectiveness labels
+    - Remediation timeline tier definitions (Immediate / Near-term / Strategic)
+    """
+    return get_methodology()
 
 
 @router.get(

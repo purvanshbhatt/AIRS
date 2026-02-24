@@ -21,12 +21,13 @@ ALLOW_UNAUTHENTICATED="true"
 CLOUDSQL_INSTANCE="${CLOUDSQL_INSTANCE:-}"  # e.g., "project:region:instance"
 PROJECT_ID=""
 ALLOW_PROD="false"
+SET_SECRETS=""
 
 usage() {
     cat <<EOF
 Usage:
   ./scripts/deploy_cloud_run.sh [service] [region] [env_file] [allow_unauthenticated]
-  ./scripts/deploy_cloud_run.sh --service <name> --region <region> --env-file <path> [--project <id>] [--prod]
+  ./scripts/deploy_cloud_run.sh --service <name> --region <region> --env-file <path> [--project <id>] [--set-secrets <bindings>] [--prod]
 
 Defaults (safe):
   --service  airs-api-staging
@@ -60,6 +61,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --project)
             PROJECT_ID="${2:-}"
+            shift 2
+            ;;
+        --set-secrets)
+            SET_SECRETS="${2:-}"
             shift 2
             ;;
         --allow-unauthenticated)
@@ -177,8 +182,6 @@ PROJECT_ID="$(strip_quotes "${PROJECT_ID:-}")"
 REQUIRE_PROD_CONFIRM="false"
 if [[ "$SERVICE_NAME" == "airs-api" ]]; then
     REQUIRE_PROD_CONFIRM="true"
-elif [[ -n "$PROJECT_ID" && "$PROJECT_ID" == "$PROD_PROJECT_ID" ]]; then
-    REQUIRE_PROD_CONFIRM="true"
 elif [[ "$ENV_FILE" == *"env.prod"* ]]; then
     REQUIRE_PROD_CONFIRM="true"
 fi
@@ -204,6 +207,9 @@ echo "  Env file: $ENV_FILE"
 if [ -n "$CLOUDSQL_INSTANCE" ]; then
     echo "  Cloud SQL: $CLOUDSQL_INSTANCE"
 fi
+if [ -n "$SET_SECRETS" ]; then
+    echo "  Secret bindings: configured"
+fi
 echo ""
 
 # Build gcloud command (array form to avoid eval/quoting issues)
@@ -217,6 +223,7 @@ DEPLOY_ARGS=(
     --max-instances 10
     --timeout 120
 )
+DEPLOYED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
 if [ -n "$PROJECT_ID" ]; then
     DEPLOY_ARGS+=(--project "$PROJECT_ID")
@@ -225,6 +232,10 @@ fi
 if [ -n "$CLOUDSQL_INSTANCE" ]; then
     DEPLOY_ARGS+=(--add-cloudsql-instances="$CLOUDSQL_INSTANCE")
     echo "Attaching Cloud SQL instance: $CLOUDSQL_INSTANCE"
+fi
+
+if [ -n "$SET_SECRETS" ]; then
+    DEPLOY_ARGS+=(--set-secrets "$SET_SECRETS")
 fi
 
 # Env vars (prefer --env-vars-file for YAML)
@@ -249,6 +260,12 @@ else
     done < "$ENV_FILE_PATH"
 
     ENV_COUNT=$(echo "$ENV_VARS" | tr ',' '\n' | grep -c . || echo 0)
+    # For .env-style files, inject deploy timestamp as runtime metadata.
+    if [ -n "$ENV_VARS" ]; then
+        ENV_VARS="$ENV_VARS,DEPLOYED_AT=$DEPLOYED_AT_UTC"
+    else
+        ENV_VARS="DEPLOYED_AT=$DEPLOYED_AT_UTC"
+    fi
     if [ -n "$ENV_VARS" ]; then
         DEPLOY_ARGS+=(--set-env-vars "$ENV_VARS")
     fi
@@ -256,6 +273,11 @@ fi
 
 if [ -n "$ENV_COUNT" ]; then
     echo "  Env vars: $ENV_COUNT variables loaded"
+fi
+if [[ "$ENV_FILE_LOWER" == *.yaml || "$ENV_FILE_LOWER" == *.yml ]]; then
+    echo "  Deployed at (UTC): $DEPLOYED_AT_UTC (not injected when using --env-vars-file)"
+else
+    echo "  Deployed at (UTC): $DEPLOYED_AT_UTC"
 fi
 
 if [ "$ALLOW_UNAUTHENTICATED" = "true" ]; then

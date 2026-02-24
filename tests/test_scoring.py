@@ -48,7 +48,7 @@ class TestScoring:
             "iv_04": True, "iv_05": True, "iv_06": True,
             "ir_01": True, "ir_02": True, "ir_03": True,
             "ir_04": True, "ir_05": True, "ir_06": True,
-            "rs_01": True, "rs_02": True, "rs_03": True,
+            "rs_01": "Full 3-2-1 Compliance", "rs_02": True, "rs_03": True,
             "rs_04": True, "rs_05": 0, "rs_06": True,  # RTO: 0 = immediate, best
         }
         

@@ -1,5 +1,5 @@
 """
-Professional PDF Report Generator for AIRS Assessments.
+Professional PDF Report Generator for ResilAI Assessments.
 
 Generates consultant-grade PDF reports with:
 - Title page with organization and date
@@ -29,6 +29,7 @@ from reportlab.graphics.charts.piecharts import Pie
 from reportlab.graphics import renderPDF
 
 from app.core.rubric import get_rubric
+from app.core.config import settings
 
 
 # =============================================================================
@@ -98,6 +99,37 @@ def get_heatmap_color(score: float) -> colors.Color:
     elif score < 4:
         return Colors.HEAT_GOOD
     return Colors.HEAT_EXCELLENT
+
+
+def summarize_framework_refs(refs: Any, limit: int = 3) -> str:
+    """Return compact comma-separated framework IDs from dict/object/list refs."""
+    if not refs:
+        return "None"
+
+    values: List[str] = []
+    if isinstance(refs, list):
+        for item in refs:
+            ref_id = str(get_attr(item, "id", "")).strip()
+            if ref_id:
+                values.append(ref_id)
+    elif isinstance(refs, dict):
+        for _, items in refs.items():
+            if isinstance(items, list):
+                for item in items:
+                    ref_id = str(get_attr(item, "id", "")).strip()
+                    if ref_id:
+                        values.append(ref_id)
+
+    unique_values = []
+    for value in values:
+        if value not in unique_values:
+            unique_values.append(value)
+
+    if not unique_values:
+        return "None"
+    if len(unique_values) <= limit:
+        return ", ".join(unique_values)
+    return f"{', '.join(unique_values[:limit])} (+{len(unique_values) - limit})"
 
 
 # =============================================================================
@@ -357,7 +389,7 @@ class ProfessionalPDFGenerator:
             leftMargin=72,
             topMargin=72,
             bottomMargin=72,
-            title="AIRS Assessment Report"
+            title=f"{settings.APP_NAME} Assessment Report"
         )
         
         story = []
@@ -365,26 +397,80 @@ class ProfessionalPDFGenerator:
         # Section 1: Title Page
         story.extend(self._build_title_page(data))
         story.append(PageBreak())
-        
-        # Section 2: Executive Summary with Score Donut
+
+        # Section 2: Executive Risk Summary (board-friendly one-pager)
+        story.extend(self._build_executive_risk_summary(data))
+        story.append(PageBreak())
+
+        # Section 3: Executive Summary with Score Donut
         story.extend(self._build_executive_summary(data))
         story.append(Spacer(1, 20))
-        
-        # Section 3: Domain Heatmap Table
+
+        # Section 4: Domain Heatmap Table
         story.extend(self._build_domain_heatmap(data))
         story.append(PageBreak())
-        
-        # Section 4: Top Findings with Severity Badges
+
+        # Section 5: Top Findings with Severity Badges
         story.extend(self._build_top_findings(data))
         story.append(Spacer(1, 20))
-        
-        # Section 5: 30/60/90 Day Roadmap
+
+        # Section 6: 30/60/90 Day Roadmap
         story.extend(self._build_roadmap(data))
         story.append(PageBreak())
-        
-        # Section 6: Appendix - All Answers
+
+        # Section 7: Appendix - All Answers
         story.extend(self._build_appendix(data))
         
+        doc.build(story)
+        return buffer.getvalue()
+
+    def generate_executive_summary_page(self, data: Dict[str, Any]) -> bytes:
+        """
+        Generate a one-page executive risk summary PDF.
+
+        This is optimized for forwarding to executive/board audiences.
+        """
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=letter,
+            rightMargin=54,
+            leftMargin=54,
+            topMargin=54,
+            bottomMargin=54,
+            title=f"{settings.APP_NAME} Executive Risk Summary",
+        )
+
+        org_name = str(get_attr(data, "organization_name", "Unknown Organization"))
+        report_date = datetime.now().strftime("%B %d, %Y")
+        subtitle = f"{settings.APP_NAME} - AI Incident Readiness Assessment"
+
+        story: List[Any] = [
+            Paragraph(settings.APP_NAME, self.styles["ReportTitle"]),
+            Paragraph(subtitle, self.styles["ReportSubtitle"]),
+            Spacer(1, 8),
+            Paragraph(f"<b>Organization:</b> {org_name}", self.styles["Metadata"]),
+            Paragraph(f"<b>Date:</b> {report_date}", self.styles["Metadata"]),
+            Paragraph(
+                "<b>Confidential - Executive Summary</b>",
+                ParagraphStyle(
+                    "ExecutiveConfidential",
+                    parent=self.styles["Metadata"],
+                    fontName="Helvetica-Bold",
+                    textColor=Colors.DARK_BLUE,
+                ),
+            ),
+            Spacer(1, 10),
+            HRFlowable(
+                width="100%",
+                thickness=1,
+                color=Colors.LIGHT_BLUE,
+                spaceBefore=0,
+                spaceAfter=10,
+            ),
+        ]
+
+        story.extend(self._build_executive_risk_summary(data))
         doc.build(story)
         return buffer.getvalue()
     
@@ -400,7 +486,7 @@ class ProfessionalPDFGenerator:
         # Top spacing
         elements.append(Spacer(1, 1 * inch))
         
-        # Add AIRS logo
+        # Add product logo
         logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
                                   'frontend', 'public', 'favicon.png')
         if os.path.exists(logo_path):
@@ -412,10 +498,10 @@ class ProfessionalPDFGenerator:
             except Exception:
                 pass  # Skip logo if it fails to load
         
-        # AIRS branding
-        elements.append(Paragraph("AIRS", self.styles['ReportTitle']))
+        # Product branding
+        elements.append(Paragraph(settings.APP_NAME, self.styles['ReportTitle']))
         elements.append(Paragraph(
-            "AI Incident Readiness Score",
+            "Executive Risk & Readiness Platform",
             self.styles['ReportSubtitle']
         ))
         
@@ -503,6 +589,224 @@ class ProfessionalPDFGenerator:
             )
         ))
         
+        return elements
+
+    def _build_executive_risk_summary(self, data: Dict[str, Any]) -> List:
+        """Build investor/board one-page executive risk summary."""
+        elements = []
+
+        analytics = get_attr(data, "analytics", {}) or {}
+        risk_summary = get_attr(analytics, "risk_summary", {}) or {}
+        framework_mapping = get_attr(data, "framework_mapping", {}) or {}
+        coverage = get_attr(framework_mapping, "coverage", {}) or {}
+        roadmap = get_attr(data, "roadmap", {}) or {}
+        detailed_roadmap = get_attr(data, "detailed_roadmap", {}) or {}
+
+        findings = get_attr(data, "findings", []) or []
+        severity_counts = dict(get_attr(risk_summary, "severity_counts", {}) or {})
+        if not severity_counts:
+            severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+            for finding in findings:
+                sev = str(get_attr(finding, "severity", "")).lower()
+                if "critical" in sev:
+                    severity_counts["critical"] += 1
+                elif "high" in sev:
+                    severity_counts["high"] += 1
+                elif "medium" in sev:
+                    severity_counts["medium"] += 1
+                elif "low" in sev:
+                    severity_counts["low"] += 1
+
+        elements.append(Paragraph("Executive Risk Summary", self.styles["SectionHeader"]))
+        elements.append(
+            Paragraph(
+                "This page summarizes current readiness and the highest-priority remediation actions for executive review.",
+                self.styles["ReportBodyText"],
+            )
+        )
+        elements.append(Spacer(1, 8))
+
+        totals_table = Table(
+            [
+                ["Readiness Score", f"{float(get_attr(data, 'overall_score', 0) or 0):.1f}/100"],
+                ["Risk Level", str(get_attr(risk_summary, "overall_risk_level", "medium")).upper()],
+                ["Total Findings", str(len(findings))],
+                ["Critical Findings", str(severity_counts.get("critical", 0))],
+                ["High Findings", str(severity_counts.get("high", 0))],
+            ],
+            colWidths=[2.4 * inch, 3.1 * inch],
+        )
+        totals_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (0, -1), Colors.DARK_BLUE),
+                    ("TEXTCOLOR", (0, 0), (0, -1), Colors.WHITE),
+                    ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("GRID", (0, 0), (-1, -1), 0.5, Colors.WHITE),
+                    ("TOPPADDING", (0, 0), (-1, -1), 8),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                    ("BACKGROUND", (1, 0), (1, -1), Colors.LIGHT_GRAY),
+                    ("TEXTCOLOR", (1, 0), (1, -1), Colors.TEXT),
+                ]
+            )
+        )
+        elements.append(totals_table)
+        elements.append(Spacer(1, 12))
+
+        gap_categories = []
+        for gap_key in ("detection_gaps", "response_gaps", "identity_gaps"):
+            gap_block = get_attr(analytics, gap_key, {}) or {}
+            for category in get_attr(gap_block, "categories", []) or []:
+                gap_categories.append(
+                    (
+                        str(get_attr(category, "name", "Unknown")),
+                        int(get_attr(category, "gap_count", len(get_attr(category, "gaps", []) or [])) or 0),
+                    )
+                )
+        gap_categories = sorted(gap_categories, key=lambda item: item[1], reverse=True)[:3]
+        if not gap_categories:
+            gap_categories = [("Monitoring and Detection", 0), ("Identity and Access", 0), ("Incident Response", 0)]
+
+        elements.append(Paragraph("Top Gap Categories", self.styles["SubsectionHeader"]))
+        for name, count in gap_categories:
+            elements.append(Paragraph(f"- {name}: {count} gap(s)", self.styles["ReportBodyText"]))
+        elements.append(Spacer(1, 8))
+
+        priorities: List[str] = []
+        seen_recommendations: set = set()
+        
+        # Iterate over detailed_roadmap phases (dict keyed by day30, day60, day90)
+        phases = get_attr(detailed_roadmap, "phases", {}) or {}
+        for phase_key in ("day30", "day60", "day90"):
+            phase = get_attr(phases, phase_key, {})
+            for item in (get_attr(phase, "items", []) or []):
+                # Prefer unique recommendation, then action, then title
+                rec = get_attr(item, "recommendation", None) or get_attr(item, "action", None) or get_attr(item, "title", "")
+                if rec and rec not in seen_recommendations:
+                    priorities.append(str(rec))
+                    seen_recommendations.add(rec)
+                if len(priorities) >= 3:
+                    break
+            if len(priorities) >= 3:
+                break
+        
+        # Fallback: pull unique recommendations from top findings directly
+        if len(priorities) < 3:
+            for finding in findings[:5]:
+                rec = get_attr(finding, "recommendation", None)
+                if rec and rec not in seen_recommendations:
+                    priorities.append(str(rec))
+                    seen_recommendations.add(rec)
+                if len(priorities) >= 3:
+                    break
+        
+        if not priorities:
+            priorities = [
+                "Triage and remediate critical exposure points first.",
+                "Assign ownership and dates for top remediation items.",
+                "Track weekly readiness progress to board-level KPIs.",
+            ]
+
+        top_risks: List[str] = []
+        for finding in findings[:3]:
+            title = str(get_attr(finding, "title", "Unspecified risk"))
+            severity = str(get_attr(finding, "severity", "medium")).upper()
+            top_risks.append(f"[{severity}] {title}")
+        if not top_risks:
+            top_risks = [
+                "No critical or high-severity risks identified in this assessment window.",
+            ]
+
+        elements.append(Paragraph("Top 3 Risks", self.styles["SubsectionHeader"]))
+        for risk in top_risks[:3]:
+            elements.append(Paragraph(f"- {risk}", self.styles["ReportBodyText"]))
+        elements.append(Spacer(1, 8))
+
+        elements.append(Paragraph("Top 3 Remediation Priorities", self.styles["SubsectionHeader"]))
+        for priority in priorities[:3]:
+            elements.append(Paragraph(f"- {priority}", self.styles["ReportBodyText"]))
+        elements.append(Spacer(1, 8))
+
+        framework_table = Table(
+            [
+                ["Framework Snapshot", "Mapped Count"],
+                ["MITRE ATT&CK Techniques", str(get_attr(coverage, "mitre_techniques_total", 0) or 0)],
+                ["CIS Controls", str(get_attr(coverage, "cis_controls_total", 0) or 0)],
+                ["OWASP Mappings", str(get_attr(coverage, "owasp_total", 0) or 0)],
+                ["NIST CSF 2.0 Categories", str(get_attr(coverage, "nist_csf_categories", 0) or 0)],
+            ],
+            colWidths=[3.4 * inch, 2.1 * inch],
+        )
+        framework_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), Colors.DARK_BLUE),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), Colors.WHITE),
+                    ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("GRID", (0, 0), (-1, -1), 0.5, Colors.WHITE),
+                    ("ALIGN", (1, 1), (1, -1), "CENTER"),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [Colors.WHITE, Colors.LIGHT_GRAY]),
+                    ("TOPPADDING", (0, 0), (-1, -1), 7),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                ]
+            )
+        )
+        elements.append(Paragraph("Framework Snapshot", self.styles["SubsectionHeader"]))
+        elements.append(framework_table)
+        elements.append(Spacer(1, 8))
+
+        detailed_rows = [["Finding", "MITRE", "CIS", "OWASP", "NIST CSF"]]
+        for finding in findings[:3]:
+            framework_refs = get_attr(finding, "framework_refs", {}) or {}
+            mitre = summarize_framework_refs(get_attr(framework_refs, "mitre", []))
+            cis = summarize_framework_refs(get_attr(framework_refs, "cis", []))
+            owasp = summarize_framework_refs(get_attr(framework_refs, "owasp", []))
+            nist_csf = get_attr(finding, "nist_category", "") or "-"
+            title = str(get_attr(finding, "title", "Unspecified finding"))[:54]
+            detailed_rows.append([title, mitre, cis, owasp, nist_csf])
+
+        if len(detailed_rows) == 1:
+            detailed_rows.append(["No prioritized findings available", "None", "None", "None", "-"])
+
+        detail_table = Table(detailed_rows, colWidths=[2.4 * inch, 0.9 * inch, 0.9 * inch, 0.9 * inch, 0.9 * inch])
+        detail_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), Colors.DARK_BLUE),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), Colors.WHITE),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 8),
+                    ("GRID", (0, 0), (-1, -1), 0.5, Colors.WHITE),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [Colors.WHITE, Colors.LIGHT_GRAY]),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ]
+            )
+        )
+        elements.append(Paragraph("Framework Reference Detail (Top Findings)", self.styles["SubsectionHeader"]))
+        elements.append(detail_table)
+        elements.append(Spacer(1, 8))
+
+        narrative = str(
+            get_attr(
+                data,
+                "executive_summary_text",
+                "",
+            )
+            or ""
+        ).strip()
+        if not narrative:
+            narrative = (
+                "Executive narrative unavailable. Based on analysis, priority should focus on: "
+                "1. Access controls 2. Monitoring 3. Incident response planning."
+            )
+        elements.append(Paragraph("Executive Narrative", self.styles["SubsectionHeader"]))
+        elements.append(Paragraph(narrative, self.styles["ReportBodyText"]))
+
         return elements
     
     # =========================================================================
@@ -804,7 +1108,8 @@ class ProfessionalPDFGenerator:
         recommendation = get_attr(finding, "recommendation", "")
         reference = get_attr(finding, "reference", "")
         domain = get_attr(finding, "domain_name", "")
-        
+        framework_refs = get_attr(finding, "framework_refs", {}) or {}
+
         severity_color = get_severity_color(severity)
         
         # Create severity badge
@@ -856,7 +1161,18 @@ class ProfessionalPDFGenerator:
                 f"<b>Recommendation:</b> {rec_text}",
                 self.styles['FindingBody']
             ))
-        
+
+        mitre = summarize_framework_refs(get_attr(framework_refs, "mitre", []), limit=4)
+        cis = summarize_framework_refs(get_attr(framework_refs, "cis", []), limit=4)
+        owasp = summarize_framework_refs(get_attr(framework_refs, "owasp", []), limit=4)
+        if any(value != "None" for value in (mitre, cis, owasp)):
+            elements.append(
+                Paragraph(
+                    f"<b>Frameworks:</b> MITRE [{mitre}] | CIS [{cis}] | OWASP [{owasp}]",
+                    self.styles['ReportSmallText']
+                )
+            )
+
         # Reference
         if reference:
             elements.append(Paragraph(

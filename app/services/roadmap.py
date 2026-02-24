@@ -23,10 +23,16 @@ class RoadmapItem:
     action: str
     priority: str  # critical, high, medium, low
     phase: str  # "30", "60", "90"
-    effort: str  # low, medium, high
-    effort_hours: str  # Estimated hours range
+    # Enterprise timeline labels (Task 3: Executive Roadmap)
+    timeline_label: str = "Immediate"  # Immediate | Near-term | Strategic
+    timeline_range: str = "0–30 days"   # Human-readable range
+    effort: str = "medium"  # low, medium, high  (Implementation Effort)
+    effort_hours: str = ""  # Estimated hours range
+    # Risk Reduction Impact (effort-vs-impact matrix)
+    risk_impact: str = "medium"  # low | medium | high
     domain: Optional[str] = None
     finding_id: Optional[str] = None
+    nist_category: Optional[str] = None
     owner: Optional[str] = None
     dependencies: List[str] = field(default_factory=list)
     milestones: List[str] = field(default_factory=list)
@@ -107,6 +113,30 @@ FINDING_DEPENDENCIES = {
 }
 
 
+# Enterprise timeline label mapping from phase key
+PHASE_TIMELINE = {
+    "30": {"label": "Immediate",  "range": "0\u201330 days"},
+    "60": {"label": "Near-term",  "range": "30\u201390 days"},
+    "90": {"label": "Strategic",  "range": "90+ days"},
+}
+
+# Effort-vs-Impact matrix: maps (severity, effort) -> risk_impact
+_RISK_IMPACT_MATRIX: dict = {
+    ("critical", "low"):    "high",
+    ("critical", "medium"): "high",
+    ("critical", "high"):   "high",
+    ("high",     "low"):    "high",
+    ("high",     "medium"): "high",
+    ("high",     "high"):   "medium",
+    ("medium",   "low"):    "medium",
+    ("medium",   "medium"): "medium",
+    ("medium",   "high"):   "low",
+    ("low",      "low"):    "medium",
+    ("low",      "medium"): "low",
+    ("low",      "high"):   "low",
+}
+
+
 def get_phase_for_finding(severity: str, effort: str) -> str:
     """
     Determine roadmap phase based on severity and effort.
@@ -147,8 +177,14 @@ def generate_roadmap_item(finding: Dict[str, Any]) -> RoadmapItem:
     effort = finding.get("remediation_effort", "medium")
     domain_id = finding.get("domain_id", finding.get("domain", ""))
     
-    # Determine phase
+    # Determine phase and enterprise timeline label
     phase = get_phase_for_finding(severity, effort)
+    timeline = PHASE_TIMELINE.get(phase, {"label": "Immediate", "range": "0\u201330 days"})
+    
+    # Effort-vs-Impact matrix
+    risk_impact = _RISK_IMPACT_MATRIX.get(
+        (severity.lower(), effort.lower()), "medium"
+    )
     
     # Map severity to priority
     priority_map = {
@@ -185,10 +221,14 @@ def generate_roadmap_item(finding: Dict[str, Any]) -> RoadmapItem:
         action=action,
         priority=priority,
         phase=phase,
+        timeline_label=timeline["label"],
+        timeline_range=timeline["range"],
         effort=effort,
         effort_hours=EFFORT_ESTIMATES.get(effort, "Unknown"),
+        risk_impact=risk_impact,
         domain=finding.get("domain_name", domain_id),
         finding_id=rule_id,
+        nist_category=finding.get("nist_category"),
         owner=owner,
         dependencies=dependencies,
         milestones=milestones,
@@ -205,10 +245,14 @@ def roadmap_item_to_dict(item: RoadmapItem) -> Dict[str, Any]:
         "action": item.action,
         "priority": item.priority,
         "phase": item.phase,
+        "timeline_label": item.timeline_label,
+        "timeline_range": item.timeline_range,
         "effort": item.effort,
         "effort_estimate": item.effort_hours,
+        "risk_impact": item.risk_impact,
         "domain": item.domain,
         "finding_id": item.finding_id,
+        "nist_category": item.nist_category,
         "owner": item.owner,
         "dependencies": item.dependencies,
         "milestones": item.milestones,
@@ -247,30 +291,50 @@ def generate_detailed_roadmap(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
     for phase_key in phases:
         phases[phase_key].sort(key=lambda x: priority_order.get(x.priority, 4))
     
-    # Build structured output
+    # Helper to compute effort hours from item effort levels
+    def sum_effort_hours(phase_items: List[RoadmapItem]) -> int:
+        effort_hours_map = {"low": 8, "medium": 24, "high": 80}  # Conservative estimates
+        return sum(effort_hours_map.get(i.effort, 24) for i in phase_items)
+
+    # Build structured output with enterprise timeline labels
+    # phases is a DICT keyed by "day30", "day60", "day90" for frontend compatibility
     result = {
-        "phases": [
-            {
-                "title": "30-Day Quick Wins",
-                "description": "Critical and high-impact items requiring immediate attention",
+        "phases": {
+            "day30": {
+                "title": "Immediate — 0–30 Days",
+                "name": "Immediate (0–30 Days)",
+                "description": "Critical risk-reduction and quick wins — highest Control Effectiveness ROI",
+                "item_count": len(phases["30"]),
+                "effort_hours": sum_effort_hours(phases["30"]),
                 "items": [roadmap_item_to_dict(item) for item in phases["30"]]
             },
-            {
-                "title": "60-Day Initiatives",
-                "description": "High-priority items with moderate implementation effort",
+            "day60": {
+                "title": "Near-term — 30–90 Days",
+                "name": "Near-term (30–90 Days)",
+                "description": "Foundation building, Governance Maturity improvements, and process hardening",
+                "item_count": len(phases["60"]),
+                "effort_hours": sum_effort_hours(phases["60"]),
                 "items": [roadmap_item_to_dict(item) for item in phases["60"]]
             },
-            {
-                "title": "90-Day Strategic Items",
-                "description": "Medium-priority improvements for sustained security posture",
+            "day90": {
+                "title": "Strategic — 90+ Days",
+                "name": "Strategic (90+ Days)",
+                "description": "Operational Resilience advancement and long-term Risk Posture optimisation",
+                "item_count": len(phases["90"]),
+                "effort_hours": sum_effort_hours(phases["90"]),
                 "items": [roadmap_item_to_dict(item) for item in phases["90"]]
             }
-        ],
+        },
         "summary": {
             "total_items": len(items),
             "day30_count": len(phases["30"]),
             "day60_count": len(phases["60"]),
             "day90_count": len(phases["90"]),
+            # Fields expected by RoadmapTab UI
+            "critical_items": sum(1 for i in items if i.priority == "critical"),
+            "quick_wins": sum(1 for i in items if i.effort == "low" and i.priority in ("critical", "high")),
+            "total_effort_hours": sum_effort_hours(phases["30"]) + sum_effort_hours(phases["60"]) + sum_effort_hours(phases["90"]),
+            "total_risk_reduction": "High" if any(i.priority == "critical" for i in items) else "Medium",
             "by_priority": {
                 "critical": sum(1 for i in items if i.priority == "critical"),
                 "high": sum(1 for i in items if i.priority == "high"),

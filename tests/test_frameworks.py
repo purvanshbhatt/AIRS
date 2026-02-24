@@ -273,15 +273,24 @@ class TestRoadmapGenerator:
         
         assert "phases" in roadmap
         assert "summary" in roadmap
-        assert len(roadmap["phases"]) == 3  # 30, 60, 90
+        # phases is now a dict keyed by "day30", "day60", "day90"
+        assert len(roadmap["phases"]) == 3
+        assert "day30" in roadmap["phases"]
+        assert "day60" in roadmap["phases"]
+        assert "day90" in roadmap["phases"]
         
         # Check phase structure
-        for phase in roadmap["phases"]:
+        for phase_key, phase in roadmap["phases"].items():
             assert "title" in phase
+            assert "name" in phase
             assert "items" in phase
+            assert "item_count" in phase
+            assert "effort_hours" in phase
         
         # Check summary
         assert roadmap["summary"]["total_items"] == 2
+        assert "critical_items" in roadmap["summary"]
+        assert "quick_wins" in roadmap["summary"]
     
     def test_simple_roadmap_structure(self):
         """Simple roadmap should have day30, day60, day90."""
@@ -353,5 +362,5 @@ class TestIntegration:
         roadmap = generate_detailed_roadmap(finding_dicts)
         
         # Should have items in multiple phases
-        total_items = sum(len(p["items"]) for p in roadmap["phases"])
+        total_items = sum(len(p["items"]) for p in roadmap["phases"].values())
         assert total_items == len(findings)

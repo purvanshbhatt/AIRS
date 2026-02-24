@@ -1,7 +1,8 @@
 """
 AIRS Middleware
 
-Production-grade middleware for request tracking, logging, and error handling.
+Production-grade middleware for request tracking, logging, security headers,
+and error handling.
 """
 
 import time
@@ -21,6 +22,22 @@ from app.core.logging import (
 )
 
 logger = logging.getLogger("airs.middleware")
+
+
+# ---- Security Headers Middleware ----
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Inject standard security response headers on every response."""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+        # HSTS: 1 year, include subdomains
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
 
 
 class RequestIdMiddleware(BaseHTTPMiddleware):
@@ -48,8 +65,13 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         skip_logging = request.url.path in self.SKIP_LOGGING_PATHS
         
         if not skip_logging:
+            org_id = request.path_params.get("org_id") or request.query_params.get("org_id")
             logger.info(
-                f"Request started: {request.method} {request.url.path}"
+                "request_start request_id=%s method=%s path=%s org_id=%s",
+                request_id,
+                request.method,
+                request.url.path,
+                org_id or "-",
             )
         
         try:
@@ -63,9 +85,15 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             response.headers["X-Request-ID"] = request_id
             
             if not skip_logging:
+                org_id = request.path_params.get("org_id") or request.query_params.get("org_id")
                 logger.info(
-                    f"Request completed: {request.method} {request.url.path} "
-                    f"status={response.status_code} duration={duration_ms:.2f}ms"
+                    "request_complete request_id=%s method=%s path=%s status=%s duration_ms=%.2f org_id=%s",
+                    request_id,
+                    request.method,
+                    request.url.path,
+                    response.status_code,
+                    duration_ms,
+                    org_id or "-",
                 )
             
             return response
@@ -76,8 +104,12 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             
             # Log error with full context
             logger.error(
-                f"Request failed: {request.method} {request.url.path} "
-                f"error={type(exc).__name__} duration={duration_ms:.2f}ms"
+                "request_failed request_id=%s method=%s path=%s error=%s duration_ms=%.2f",
+                request_id,
+                request.method,
+                request.url.path,
+                type(exc).__name__,
+                duration_ms,
             )
             
             # Re-raise to let exception handler deal with it

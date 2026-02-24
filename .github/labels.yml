@@ -1,0 +1,33 @@
+﻿- name: "type: bug"
+  color: "d73a4a"
+  description: Defect or regression
+- name: "type: feature"
+  color: "0e8a16"
+  description: New capability
+- name: "type: docs"
+  color: "1d76db"
+  description: Documentation improvements
+- name: "type: security"
+  color: "b60205"
+  description: Security-related work
+- name: "type: design-partner"
+  color: "5319e7"
+  description: Design partner or pilot requests
+- name: "status: triage"
+  color: "fbca04"
+  description: Awaiting triage
+- name: "status: in-progress"
+  color: "0052cc"
+  description: Work in progress
+- name: "status: blocked"
+  color: "d93f0b"
+  description: Blocked by dependency
+- name: "priority: high"
+  color: "b60205"
+  description: High business impact
+- name: "priority: medium"
+  color: "fbca04"
+  description: Important but not urgent
+- name: "priority: low"
+  color: "0e8a16"
+  description: Nice to have

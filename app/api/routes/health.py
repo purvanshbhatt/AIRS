@@ -3,17 +3,25 @@ Health check endpoint for Cloud Run and load balancer probes.
 """
 
 from typing import Optional, List
+import importlib.util
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.cors import get_allowed_origins, is_localhost_origin
+from app.core.product import get_product_info
+
+
+class ProductInfo(BaseModel):
+    name: str
+    version: Optional[str] = None
 
 
 class HealthResponse(BaseModel):
     """Health check response."""
     status: str
+    product: ProductInfo
 
 
 class LLMHealthResponse(BaseModel):
@@ -22,6 +30,7 @@ class LLMHealthResponse(BaseModel):
     llm_provider: Optional[str] = None
     llm_model: Optional[str] = None
     demo_mode: bool
+    runtime_check: dict
 
 
 class CORSHealthResponse(BaseModel):
@@ -31,6 +40,15 @@ class CORSHealthResponse(BaseModel):
     allowed_origins: List[str]
     request_origin: Optional[str] = None
     origin_allowed: bool
+
+
+class SystemHealthResponse(BaseModel):
+    version: Optional[str] = None
+    environment: str
+    llm_enabled: bool
+    demo_mode: bool
+    integrations_enabled: bool
+    last_deployment_at: Optional[str] = None
 
 
 router = APIRouter(tags=["health"])
@@ -52,7 +70,7 @@ async def health_check() -> HealthResponse:
     Returns a simple status for load balancer health probes.
     Cloud Run uses this to determine if the service is ready to receive traffic.
     """
-    return HealthResponse(status="ok")
+    return HealthResponse(status="ok", product=ProductInfo(**get_product_info()))
 
 
 @router.get(
@@ -72,12 +90,29 @@ async def llm_health() -> LLMHealthResponse:
     Does NOT make any LLM API calls - just returns configuration state.
     """
     llm_enabled = settings.is_llm_enabled
+    sdk_installed = importlib.util.find_spec("google.genai") is not None
+    feature_flag_enabled = bool(settings.AIRS_USE_LLM)
+    credentials_configured = bool(settings.GEMINI_API_KEY or settings.GCP_PROJECT_ID)
+    if settings.GCP_PROJECT_ID:
+        auth_mode = "vertex-adc"
+    elif settings.GEMINI_API_KEY:
+        auth_mode = "api-key"
+    else:
+        auth_mode = "none"
+    runtime_check = {
+        "sdk_installed": sdk_installed,
+        "feature_flag_enabled": feature_flag_enabled,
+        "credentials_configured": credentials_configured,
+        "auth_mode": auth_mode,
+        "client_configured": bool(feature_flag_enabled and sdk_installed and (credentials_configured or settings.is_demo_mode)),
+    }
     
     return LLMHealthResponse(
         llm_enabled=llm_enabled,
         llm_provider=settings.LLM_PROVIDER if llm_enabled else None,
         llm_model=settings.LLM_MODEL if llm_enabled else None,
-        demo_mode=settings.is_demo_mode
+        demo_mode=settings.is_demo_mode,
+        runtime_check=runtime_check,
     )
 
 
@@ -105,7 +140,7 @@ async def cors_health(request: Request) -> CORSHealthResponse:
     - Whether that origin would be allowed
     """
     is_production = settings.is_prod
-    env_name = "prod" if is_production else "local"
+    env_name = settings.ENV.value
     
     # Get the effective allowed origins
     allowed_origins = get_allowed_origins(
@@ -138,4 +173,22 @@ async def cors_health(request: Request) -> CORSHealthResponse:
         allowed_origins=allowed_origins,
         request_origin=request_origin,
         origin_allowed=origin_allowed
+    )
+
+
+@router.get(
+    "/health/system",
+    response_model=SystemHealthResponse,
+    summary="System Status",
+    description="Public system status for UI footer/build verification.",
+)
+async def system_health() -> SystemHealthResponse:
+    product = get_product_info()
+    return SystemHealthResponse(
+        version=product.get("version"),
+        environment=settings.ENV.value,
+        llm_enabled=settings.is_llm_enabled,
+        demo_mode=settings.is_demo_mode,
+        integrations_enabled=settings.INTEGRATIONS_ENABLED,
+        last_deployment_at=settings.DEPLOYED_AT,
     )

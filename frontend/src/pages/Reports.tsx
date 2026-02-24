@@ -60,7 +60,7 @@ export default function Reports() {
       const a = document.createElement('a');
       a.href = url;
       const safeTitle = report.title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
-      a.download = `AIRS_Report_${safeTitle}_${new Date(report.created_at).toISOString().split('T')[0]}.pdf`;
+      a.download = `ResilAI_Report_${safeTitle}_${new Date(report.created_at).toISOString().split('T')[0]}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -117,12 +117,12 @@ export default function Reports() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <FileText className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+            <FileText className="w-5 h-5 text-gray-600 dark:text-slate-300" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-            <p className="text-gray-500 text-sm">Download and share assessment reports</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Reports</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">Download and share assessment reports</p>
           </div>
         </div>
         <ListSkeleton count={4} />
@@ -150,8 +150,8 @@ export default function Reports() {
             <FileText className="w-5 h-5 text-indigo-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-            <p className="text-gray-500 text-sm">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Reports</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">
               {totalReports} saved report{totalReports !== 1 ? 's' : ''}
             </p>
           </div>
@@ -178,11 +178,11 @@ export default function Reports() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                      <FileText className="w-6 h-6 text-gray-600" />
+                      <FileText className="w-6 h-6 text-gray-600 dark:text-slate-300" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{report.title}</h3>
-                      <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-500">
+                      <h3 className="font-semibold text-gray-900 dark:text-slate-100">{report.title}</h3>
+                      <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-500 dark:text-slate-400">
                         <span className="flex items-center gap-1">
                           <Building2 className="w-3.5 h-3.5" />
                           {report.organization_name || 'Unknown org'}
@@ -192,7 +192,7 @@ export default function Reports() {
                           {new Date(report.created_at).toLocaleDateString()}
                         </span>
                         {report.overall_score != null && (
-                          <span className="flex items-center gap-1 font-medium text-gray-700">
+                          <span className="flex items-center gap-1 font-medium text-gray-700 dark:text-slate-300">
                             Score: {Math.round(report.overall_score)}%
                           </span>
                         )}
@@ -208,7 +208,7 @@ export default function Reports() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
                         From assessment: {report.assessment_title || 'Unknown'}
                       </p>
                     </div>
@@ -247,7 +247,7 @@ export default function Reports() {
                       size="sm"
                       onClick={() => handleDelete(report)}
                       disabled={deleting === report.id}
-                      className="gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="gap-1.5 text-red-600 dark:text-red-300 hover:text-red-700 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className={`w-4 h-4 ${deleting === report.id ? 'animate-pulse' : ''}`} />
                     </Button>
@@ -261,12 +261,12 @@ export default function Reports() {
 
       {/* Quick start hint */}
       {reports.length > 0 && (
-        <Card className="bg-gray-50 border-dashed">
+        <Card className="bg-gray-50 dark:bg-slate-900 border-dashed">
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ClipboardList className="w-5 h-5 text-gray-400" />
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-slate-300">
                   Need to run another assessment?
                 </p>
               </div>
@@ -282,3 +282,4 @@ export default function Reports() {
     </div>
   );
 }
+

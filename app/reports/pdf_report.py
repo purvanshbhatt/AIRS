@@ -15,6 +15,7 @@ from reportlab.platypus import (
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from app.reports.base import BaseReport
+from app.core.config import settings
 
 
 class PDFReportGenerator(BaseReport):
@@ -90,8 +91,8 @@ class PDFReportGenerator(BaseReport):
         elements = []
         
         elements.append(Spacer(1, 2 * inch))
-        elements.append(Paragraph("AIRS", self.styles['Title2']))
-        elements.append(Paragraph("AI Incident Readiness Score", self.styles['Title']))
+        elements.append(Paragraph(settings.APP_NAME, self.styles['Title2']))
+        elements.append(Paragraph("Executive Risk & Readiness Platform", self.styles['Title']))
         elements.append(Spacer(1, 0.5 * inch))
         elements.append(Paragraph("Assessment Report", self.styles['Heading2']))
         elements.append(Spacer(1, inch))

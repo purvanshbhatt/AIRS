@@ -47,7 +47,12 @@ class FindingRule:
     recommendation: str
     reference: Optional[str] = None  # NIST, CIS, etc.
     remediation_effort: str = "medium"  # low, medium, high
-    
+    # Risk Reduction Impact (effort vs. impact framework)
+    risk_impact: str = "medium"  # low | medium | high
+    # NIST CSF 2.0 category directly associated with this finding
+    nist_category: Optional[str] = None  # e.g. "DE.CM-1", "PR.AA-5"
+    nist_function: Optional[str] = None  # e.g. "DE", "PR"
+
 
 @dataclass
 class Finding:
@@ -61,8 +66,11 @@ class Finding:
     recommendation: str
     reference: Optional[str] = None
     remediation_effort: str = "medium"
+    risk_impact: str = "medium"
     question_ids: List[str] = None
     framework_refs: Optional[FrameworkRefs] = None
+    nist_category: Optional[str] = None
+    nist_function: Optional[str] = None
 
 
 def get_answer(answers: Dict[str, Any], question_id: str, default=None):
@@ -105,6 +113,50 @@ def get_domain_score(scores: Dict[str, Any], domain_id: str) -> float:
         elif hasattr(domain, "domain_id") and domain.domain_id == domain_id:
             return domain.score
     return 0.0
+
+
+# ---------------------------------------------------------------------------
+# Tier-string → numeric helpers (backwards-compatible)
+# ---------------------------------------------------------------------------
+_EDR_TIER_MAP: Dict[str, float] = {
+    ">90%":        95.0,
+    "60-90%":      75.0,
+    "<60%":        30.0,
+    "not measured": 0.0,
+}
+
+_RTO_TIER_MAP: Dict[str, float] = {
+    "<4hrs":    4.0,
+    "4-24hrs":  24.0,
+    "24hrs+":   96.0,
+    "undefined": 999.0,
+}
+
+
+def get_edr_pct(answers: Dict[str, Any]) -> float:
+    """Return EDR coverage as a percentage, handling both numeric and tier-string answers."""
+    raw = answers.get("dc_01")
+    if raw is None:
+        return 0.0
+    if isinstance(raw, str):
+        return _EDR_TIER_MAP.get(raw.strip().lower(), 0.0)
+    try:
+        return float(raw)
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def get_rto_hours(answers: Dict[str, Any]) -> float:
+    """Return RTO in hours, handling both numeric and tier-string answers."""
+    raw = answers.get("rs_05")
+    if raw is None:
+        return 999.0
+    if isinstance(raw, str):
+        return _RTO_TIER_MAP.get(raw.strip().lower(), 999.0)
+    try:
+        return float(raw)
+    except (ValueError, TypeError):
+        return 999.0
 
 
 # =============================================================================
@@ -201,30 +253,43 @@ FINDING_RULES: List[FindingRule] = [
         title="Inadequate EDR Coverage",
         domain_id="detection_coverage",
         severity=Severity.HIGH,
-        condition=lambda a, s: get_numeric(a, "dc_01", 0) < 80,
-        evidence_fn=lambda a, s: f"EDR agent coverage is {get_numeric(a, 'dc_01', 0):.0f}%. "
-                                  f"Target coverage should be 95%+ for effective endpoint protection.",
+        condition=lambda a, s: get_edr_pct(a) < 80,
+        evidence_fn=lambda a, s: (
+            f"EDR endpoint coverage is measured at a tier below 80% (current: ~{get_edr_pct(a):.0f}%). "
+            f"Target coverage should be >90% for effective endpoint protection and NIST DE.CM-1 compliance."
+        ),
         recommendation="Deploy EDR agents to all endpoints including workstations, servers, and VDI instances. "
                       "Prioritize high-value assets (domain controllers, file servers, developer machines). "
                       "Implement automated deployment via group policy or endpoint management tools. "
-                      "Track coverage metrics weekly and investigate any gaps.",
-        reference="NIST CSF DE.CM-4, CIS Control 10.1",
-        remediation_effort="medium"
+                      "Track coverage metrics weekly and investigate any gaps. "
+                      "Reference: https://www.cisa.gov/stopransomware and NIST SP 800-83.",
+        reference="NIST CSF 2.0 DE.CM-1, CIS Control 10.1",
+        remediation_effort="medium",
+        risk_impact="high",
+        nist_category="DE.CM-1",
+        nist_function="DE",
     ),
     
     FindingRule(
         rule_id="DC-002",
-        title="Critical EDR Gap - Less Than 50% Coverage",
+        title="Critical EDR Gap — Below 50% Coverage",
         domain_id="detection_coverage",
         severity=Severity.CRITICAL,
-        condition=lambda a, s: get_numeric(a, "dc_01", 0) < 50,
-        evidence_fn=lambda a, s: f"EDR coverage is critically low at {get_numeric(a, 'dc_01', 0):.0f}%. "
-                                  f"More than half of endpoints lack detection capabilities, creating major blind spots.",
+        condition=lambda a, s: get_edr_pct(a) < 50,
+        evidence_fn=lambda a, s: (
+            f"EDR coverage is critically low (~{get_edr_pct(a):.0f}%). "
+            f"More than half of endpoints lack detection capabilities, creating major detection blind spots."
+        ),
         recommendation="URGENT: Initiate emergency EDR deployment program. Identify and prioritize unprotected "
                       "endpoints immediately. Consider temporary compensating controls (host-based firewall rules, "
-                      "network segmentation) for high-risk unprotected systems. Escalate to leadership as critical risk.",
-        reference="NIST CSF DE.CM-4",
-        remediation_effort="high"
+                      "network segmentation) for high-risk unprotected systems. Escalate to leadership as critical "
+                      "Operational Resilience risk. "
+                      "Reference: https://www.cisa.gov/stopransomware.",
+        reference="NIST CSF 2.0 DE.CM-1",
+        remediation_effort="high",
+        risk_impact="high",
+        nist_category="DE.CM-1",
+        nist_function="DE",
     ),
     
     FindingRule(
@@ -490,50 +555,69 @@ FINDING_RULES: List[FindingRule] = [
     
     FindingRule(
         rule_id="RS-004",
-        title="Excessive Recovery Time Objective",
+        title="Insufficient Recovery Time Objective — Operational Resilience Risk",
         domain_id="resilience",
         severity=Severity.MEDIUM,
-        condition=lambda a, s: get_numeric(a, "rs_05", 999) > 72,
-        evidence_fn=lambda a, s: f"Recovery Time Objective (RTO) is {get_numeric(a, 'rs_05', 999):.0f} hours. "
-                                  f"Extended downtime significantly impacts business operations and revenue.",
+        condition=lambda a, s: get_rto_hours(a) > 72,
+        evidence_fn=lambda a, s: (
+            f"Recovery Time Objective (RTO) is {get_rto_hours(a):.0f} hours or undefined. "
+            f"Extended downtime significantly impacts Operational Resilience and business continuity."
+        ),
         recommendation="Review and reduce RTO for critical systems. Consider: pre-staged recovery environments, "
                       "automated failover capabilities, or disaster recovery as a service (DRaaS). "
-                      "Align RTO with business impact analysis. Most organizations target 24 hours or less "
-                      "for critical systems.",
-        reference="NIST SP 800-34",
-        remediation_effort="high"
+                      "Align RTO with business impact analysis — most organizations target <24 hours for critical "
+                      "systems. Reference: NIST SP 800-34 and https://www.ready.gov/business-continuity-planning.",
+        reference="NIST SP 800-34, RC.RP-1",
+        remediation_effort="high",
+        risk_impact="high",
+        nist_category="RC.RP-1",
+        nist_function="RC",
     ),
     
     FindingRule(
         rule_id="RS-005",
-        title="No Disaster Recovery Plan",
+        title="No Documented Inventory of Critical Systems or Disaster Recovery Plan",
         domain_id="resilience",
         severity=Severity.HIGH,
         condition=lambda a, s: not get_bool(a, "rs_04"),
-        evidence_fn=lambda a, s: "A documented disaster recovery plan does not exist. "
-                                  "Without a DR plan, recovery from major incidents is chaotic and prolonged.",
-        recommendation="Develop a comprehensive DR plan covering: recovery priorities, RTO/RPO targets, "
-                      "recovery procedures, communication plans, and alternate site procedures. "
-                      "Test the DR plan annually. Ensure the plan is accessible during an incident "
-                      "(not only stored on systems that may be unavailable).",
-        reference="NIST SP 800-34, ISO 22301",
-        remediation_effort="medium"
+        evidence_fn=lambda a, s: (
+            "A documented inventory of critical systems and/or Disaster Recovery plan does not exist. "
+            "Without a critical-asset inventory, RTO targets cannot be validated and DR planning is incomplete."
+        ),
+        recommendation="Step 1: Document a complete inventory of critical systems with owner, RTO, and RPO. "
+                      "Step 2: Develop a comprehensive DR plan covering recovery priorities, procedures, "
+                      "communication plans, and alternate site procedures. "
+                      "Test the DR plan annually. Reference: NIST SP 800-34, ISO 22301, and "
+                      "https://www.cisa.gov/sites/default/files/publications/Cybersecurity_Guidance.pdf.",
+        reference="NIST SP 800-34, ID.AM-2, RC.RP-1",
+        remediation_effort="medium",
+        risk_impact="high",
+        nist_category="ID.AM-2",
+        nist_function="ID",
     ),
     
     FindingRule(
         rule_id="RS-006",
-        title="Backup Credentials Not Isolated",
+        title="Backup Credential Isolation Failure — MFA/PAM Separation Missing",
         domain_id="resilience",
         severity=Severity.HIGH,
         condition=lambda a, s: not get_bool(a, "rs_06"),
-        evidence_fn=lambda a, s: "Backup system credentials are not separate from primary domain credentials. "
-                                  "If domain is compromised, attackers can access and destroy backups.",
-        recommendation="Create separate, dedicated accounts for backup administration. "
-                      "Do not join backup infrastructure to the primary domain. "
-                      "Use separate MFA tokens for backup admin access. "
-                      "Consider separate network segment for backup infrastructure.",
-        reference="CISA Ransomware Guide, CIS Control 11.4",
-        remediation_effort="medium"
+        evidence_fn=lambda a, s: (
+            "Backup management interfaces are not protected by MFA/PAM credentials separate from primary domain "
+            "accounts. If primary domain credentials are compromised, attackers can access and destroy backups, "
+            "eliminating the ability to recover from ransomware."
+        ),
+        recommendation="Implement Control Effectiveness for backup credential isolation: "
+                      "1) Create dedicated backup-admin accounts outside the primary domain. "
+                      "2) Enrol backup-admin accounts in a separate MFA tenant or hardware token. "
+                      "3) Vault backup credentials in a PAM solution inaccessible to domain admins. "
+                      "4) Segment backup infrastructure on an isolated network. "
+                      "Reference: CISA #StopRansomware Guide, CIS Control 11.4, NIST PR.AA-5.",
+        reference="CISA Ransomware Guide, CIS Control 11.4, PR.AA-5",
+        remediation_effort="medium",
+        risk_impact="high",
+        nist_category="PR.AA-5",
+        nist_function="PR",
     ),
     
     # =========================================================================
@@ -644,8 +728,11 @@ class FindingsEngine:
                         recommendation=rule.recommendation,
                         reference=rule.reference,
                         remediation_effort=rule.remediation_effort,
+                        risk_impact=getattr(rule, "risk_impact", "medium"),
                         question_ids=self._get_related_questions(rule.rule_id),
-                        framework_refs=framework_refs
+                        framework_refs=framework_refs,
+                        nist_category=rule.nist_category,
+                        nist_function=rule.nist_function,
                     )
                     findings.append(finding)
             except Exception as e:

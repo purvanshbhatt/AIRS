@@ -1,32 +1,33 @@
-# Sample Reports
+﻿# Sample Reports
 
-This directory contains sanitized sample PDF reports demonstrating AIRS capabilities.
+This directory contains sanitized sample PDF reports demonstrating ResilAI capabilities.
 
 ## Available Samples
 
 | File | Description | Score |
-|------|-------------|-------|
+| --- | --- | --- |
 | `sample_report_smb.pdf` | Small business baseline comparison | 52/100 |
 | `sample_report_enterprise.pdf` | Enterprise-grade assessment | 78/100 |
 
-## What's Included
+## Included Sections
 
-Each sample report demonstrates:
-- Executive summary with overall score and maturity level
-- Domain-by-domain breakdown (5 security domains)
-- Prioritized findings with recommendations
+Each sample report includes:
+
+- Executive summary with score and maturity level
+- Domain-by-domain breakdown
+- Prioritized findings and recommendations
 - 30/60/90 day remediation roadmap
-- Framework mappings (MITRE ATT&CK, CIS Controls)
-- Baseline comparison charts
+- Framework references (MITRE ATT&CK, CIS Controls, OWASP)
+- Baseline comparison context
 
 ## Notes
 
-- All organization names and identifying information have been anonymized
-- Scores and findings are realistic examples from demo assessments
-- Reports demonstrate both deterministic scoring and AI-generated narratives
+- Organization and identifying data is anonymized
+- Scores and findings are representative synthetic examples
+- Reports demonstrate deterministic scoring with optional AI narratives
 
-## Generating Your Own
+## Generate Your Own
 
-1. Complete an assessment at [AIRS Demo](https://gen-lang-client-0384513977.web.app)
-2. Navigate to Results → Report tab
-3. Click "Generate Report" or "Save to Library"
+1. Complete an assessment in Public Beta: `https://airs-staging-0384513977.web.app`
+2. Open the results page and go to report actions
+3. Download or save the generated report artifact
