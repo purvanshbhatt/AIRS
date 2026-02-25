@@ -61,9 +61,17 @@ except Exception as e:
     logger.warning(f"Firebase initialization error (non-fatal): {e}")
 
 # NOTE: Schema is managed by Alembic migrations (alembic upgrade head).
-# Do NOT use Base.metadata.create_all() here — it conflicts with Alembic
-# by creating tables with the latest ORM schema before migrations run.
-# For tests, conftest.py uses create_all() on an in-memory SQLite DB.
+# In production/staging with PostgreSQL, run `alembic upgrade head` before starting.
+# For SQLite (ephemeral Cloud Run filesystem), auto-create tables on startup
+# since there is no persistent migration state to track.
+def _auto_create_sqlite_tables():
+    """Create all tables for SQLite databases (ephemeral filesystem on Cloud Run)."""
+    if settings.DATABASE_URL.startswith("sqlite"):
+        import app.models  # noqa: F401 — registers all models with Base
+        Base.metadata.create_all(bind=engine)
+        logger.info("SQLite auto-create: tables initialized")
+
+_auto_create_sqlite_tables()
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -108,6 +116,10 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 # Include API routes
 app.include_router(health_router)
 app.include_router(api_router, prefix="/api")
+
+# Internal assurance endpoints (staging-only, gated by ENV check)
+from app.api.internal import router as internal_router
+app.include_router(internal_router, prefix="/internal")
 
 
 @app.get("/")
