@@ -154,7 +154,10 @@ class ValidationResult:
 
 # ── Engine functions ────────────────────────────────────────────────
 
-def compute_audit_readiness(findings: List[Finding]) -> AuditReadinessResult:
+def compute_audit_readiness(
+    findings: List[Finding],
+    org_id: Optional[str] = None,
+) -> AuditReadinessResult:
     """
     Compute audit readiness score from open findings.
 
@@ -188,10 +191,31 @@ def compute_audit_readiness(findings: List[Finding]) -> AuditReadinessResult:
     }
 
     result.score = max(0.0, 100.0 - crit_deduction - high_deduction - med_deduction)
+
+    # Structured JSON log — audit_readiness_inputs
+    if org_id:
+        logger.info(
+            "audit_readiness_inputs %s",
+            json.dumps({
+                "event": "audit_readiness_inputs",
+                "organization_id": org_id,
+                "total_open": result.total_open,
+                "critical_count": result.critical_count,
+                "high_count": result.high_count,
+                "medium_count": result.medium_count,
+                "low_count": result.low_count,
+                "deductions": result.deductions,
+                "score": result.score,
+            }),
+        )
+
     return result
 
 
-def compute_compliance(org: Organization) -> ComplianceResult:
+def compute_compliance(
+    org: Organization,
+    org_id: Optional[str] = None,
+) -> ComplianceResult:
     """
     Compute compliance applicability and derive a normalized score.
 
@@ -230,10 +254,28 @@ def compute_compliance(org: Organization) -> ComplianceResult:
         ])
         result.score = 50.0 if has_profile else 0.0
 
+    # Structured JSON log — compliance_inference_result
+    if org_id:
+        logger.info(
+            "compliance_inference_result %s",
+            json.dumps({
+                "event": "compliance_inference_result",
+                "organization_id": org_id,
+                "total_frameworks": result.total_frameworks,
+                "mandatory_count": result.mandatory_count,
+                "recommended_count": result.recommended_count,
+                "framework_names": [f["framework"] for f in result.frameworks],
+                "score": result.score,
+            }),
+        )
+
     return result
 
 
-def compute_sla_gap(org: Organization) -> SLAResult:
+def compute_sla_gap(
+    org: Organization,
+    org_id: Optional[str] = None,
+) -> SLAResult:
     """
     Compute SLA tier gap analysis.
 
@@ -256,6 +298,20 @@ def compute_sla_gap(org: Organization) -> SLAResult:
     if not tier_sla or result.sla_target is None:
         result.status = "not_configured"
         result.score = 0.0
+        if org_id:
+            logger.info(
+                "sla_gap_calculation %s",
+                json.dumps({
+                    "event": "sla_gap_calculation",
+                    "organization_id": org_id,
+                    "application_tier": result.application_tier,
+                    "tier_sla": result.tier_sla,
+                    "sla_target": result.sla_target,
+                    "gap_pct": None,
+                    "status": result.status,
+                    "score": result.score,
+                }),
+            )
         return result
 
     gap = tier_sla - result.sla_target
@@ -270,6 +326,22 @@ def compute_sla_gap(org: Organization) -> SLAResult:
     else:
         result.status = "unrealistic"
         result.score = 20.0
+
+    # Structured JSON log — sla_gap_calculation
+    if org_id:
+        logger.info(
+            "sla_gap_calculation %s",
+            json.dumps({
+                "event": "sla_gap_calculation",
+                "organization_id": org_id,
+                "application_tier": result.application_tier,
+                "tier_sla": result.tier_sla,
+                "sla_target": result.sla_target,
+                "gap_pct": result.gap_pct,
+                "status": result.status,
+                "score": result.score,
+            }),
+        )
 
     return result
 
@@ -387,16 +459,16 @@ def validate_organization(
     result.organization_name = org.name
 
     # 1. Compliance
-    result.compliance = compute_compliance(org)
+    result.compliance = compute_compliance(org, org_id=org.id)
 
     # 2. Audit readiness — gather all open findings across assessments
     all_findings: List[Finding] = []
     for assessment in org.assessments:
         all_findings.extend(assessment.findings)
-    result.audit_readiness = compute_audit_readiness(all_findings)
+    result.audit_readiness = compute_audit_readiness(all_findings, org_id=org.id)
 
     # 3. SLA gap
-    result.sla = compute_sla_gap(org)
+    result.sla = compute_sla_gap(org, org_id=org.id)
 
     # 4. Lifecycle risk
     result.lifecycle = compute_lifecycle(list(org.tech_stack_items))
