@@ -1,18 +1,37 @@
 # AIRS - Cloud Run Deployment Script (PowerShell)
 # Deploys the AIRS API to Google Cloud Run
+# Defaults to STAGING — use -Prod flag for production deployment
 
 param(
-    [string]$ServiceName = "airs-api",
     [string]$Region = "us-central1",
-    [string]$EnvFile = "gcp/env.prod",
+    [switch]$Prod,
     [switch]$AllowUnauthenticated = $true,
     [string]$CloudSqlInstance = $env:CLOUDSQL_INSTANCE  # e.g., "project:region:instance"
 )
 
 $ErrorActionPreference = "Stop"
 
+# Determine target environment
+if ($Prod) {
+    $ServiceName = "airs-api"
+    $EnvFile = "gcp/env.prod.yaml"
+    $envLabel = "PRODUCTION"
+    Write-Host ""
+    Write-Host "WARNING: You are deploying to PRODUCTION!" -ForegroundColor Red
+    Write-Host "This will affect the live demo at v0.5-demo-locked." -ForegroundColor Red
+    $confirm = Read-Host "Type 'yes' to continue"
+    if ($confirm -ne "yes") {
+        Write-Host "Aborted." -ForegroundColor Yellow
+        exit 0
+    }
+} else {
+    $ServiceName = "airs-api-staging"
+    $EnvFile = "gcp/env.staging.yaml"
+    $envLabel = "STAGING"
+}
+
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "AIRS - Cloud Run Deployment" -ForegroundColor Cyan
+Write-Host "AIRS - Cloud Run Deployment ($envLabel)" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -28,52 +47,21 @@ try {
 $EnvFilePath = Join-Path $PSScriptRoot ".." $EnvFile
 if (-not (Test-Path $EnvFilePath)) {
     Write-Host "ERROR: Environment file not found: $EnvFile" -ForegroundColor Red
-    Write-Host "Please copy gcp/env.prod.example to gcp/env.prod and fill in values." -ForegroundColor Yellow
     exit 1
 }
 
-# Read environment variables from file
-Write-Host "Reading environment variables from: $EnvFile" -ForegroundColor Green
-$envVars = @{}
-Get-Content $EnvFilePath | ForEach-Object {
-    $line = $_.Trim()
-    # Skip empty lines and comments
-    if ($line -and -not $line.StartsWith("#")) {
-        $parts = $line -split "=", 2
-        if ($parts.Count -eq 2) {
-            $envVars[$parts[0]] = $parts[1]
-        }
-    }
-}
-
-# Build env vars string for gcloud (each key=value pair separately quoted)
-$envVarsList = @()
-foreach ($key in $envVars.Keys) {
-    $envVarsList += "$key=$($envVars[$key])"
-}
-$envVarsString = $envVarsList -join ","
-
+Write-Host "Using env vars file: $EnvFile" -ForegroundColor Green
 Write-Host ""
 Write-Host "Deployment Configuration:" -ForegroundColor Yellow
 Write-Host "  Service:  $ServiceName"
 Write-Host "  Region:   $Region"
-Write-Host "  Env vars: $($envVars.Count) variables loaded"
+Write-Host "  Env file: $EnvFile"
 if ($CloudSqlInstance) {
     Write-Host "  Cloud SQL: $CloudSqlInstance" -ForegroundColor Cyan
 }
 Write-Host ""
 
-# Create temp YAML env file for gcloud (handles special characters properly)
-$tempEnvFile = [System.IO.Path]::GetTempFileName() -replace '\.tmp$', '.yaml'
-$yamlContent = ""
-foreach ($key in $envVars.Keys) {
-    $value = $envVars[$key]
-    # Quote values with special characters
-    $yamlContent += "$key`: `"$value`"`n"
-}
-Set-Content -Path $tempEnvFile -Value $yamlContent -NoNewline
-
-# Build gcloud command
+# Build gcloud command — use the YAML env-vars-file directly
 $deployArgs = @(
     "run", "deploy", $ServiceName,
     "--source", ".",
@@ -92,11 +80,9 @@ if ($CloudSqlInstance) {
     Write-Host "Attaching Cloud SQL instance: $CloudSqlInstance" -ForegroundColor Green
 }
 
-# Use env-vars-file for proper escaping of special characters
-if ($tempEnvFile) {
-    $deployArgs += "--env-vars-file"
-    $deployArgs += $tempEnvFile
-}
+# Use env-vars-file for proper YAML env config
+$deployArgs += "--env-vars-file"
+$deployArgs += $EnvFilePath
 
 if ($AllowUnauthenticated) {
     $deployArgs += "--allow-unauthenticated"
@@ -109,11 +95,6 @@ Write-Host ""
 & gcloud @deployArgs
 
 $exitCode = $LASTEXITCODE
-
-# Cleanup temp file
-if ($tempEnvFile -and (Test-Path $tempEnvFile)) {
-    Remove-Item $tempEnvFile -Force
-}
 
 if ($exitCode -ne 0) {
     Write-Host ""
