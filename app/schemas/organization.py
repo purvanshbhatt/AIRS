@@ -67,7 +67,7 @@ class OrganizationProfileUpdate(BaseModel):
     uses_ai_in_production: Optional[bool] = None
     government_contractor: Optional[bool] = None
     financial_services: Optional[bool] = None
-    application_tier: Optional[str] = Field(None, pattern="^(tier_1|tier_2|tier_3)$")
+    application_tier: Optional[str] = Field(None, pattern="^(tier_1|tier_2|tier_3|tier_4)$")
     sla_target: Optional[float] = Field(None, ge=0, le=100)
 
 
@@ -98,5 +98,9 @@ class UptimeTierAnalysis(BaseModel):
     tier_sla: Optional[float] = None       # SLA for the chosen tier (e.g. 99.9)
     sla_target: Optional[float] = None     # User-specified target
     gap_pct: Optional[float] = None        # tier_sla - sla_target (positive = surplus)
-    status: str = "not_configured"         # "on_track", "at_risk", "unrealistic", "not_configured"
+    status: str = "not_configured"         # "on_track", "at_risk", "unrealistic", "not_configured", "over_provisioned"
     message: str = ""
+    over_provisioned: bool = False         # SLA target exceeds tier need
+    cost_warning: Optional[str] = None     # Over-provision cost advisory
+    soc2_cc7_applicable: bool = False      # SOC 2 CC7 audit implication
+    soc2_cc7_note: Optional[str] = None    # CC7 guidance message

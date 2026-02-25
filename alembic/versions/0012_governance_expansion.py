@@ -18,8 +18,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "0007_governance_expansion"
-down_revision: str = "0006_add_audit_and_pilot"
+revision: str = "0012_governance_expansion"
+down_revision: str = "0011_merge_heads"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

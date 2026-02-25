@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_auth, User
 from app.services.organization import OrganizationService
-from app.services.audit_calendar import AuditCalendarService
+from app.services.governance.audit_calendar import AuditCalendarService
 from app.schemas.audit_calendar import (
     AuditCalendarCreate,
     AuditCalendarUpdate,

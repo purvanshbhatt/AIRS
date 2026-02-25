@@ -18,7 +18,7 @@ from app.schemas.organization import (
     UptimeTierAnalysis,
 )
 from app.schemas.compliance import ComplianceApplicabilityResponse
-from app.services.compliance_engine import get_applicable_frameworks
+from app.services.governance.compliance_engine import get_applicable_frameworks
 from app.services.organization import OrganizationService
 
 router = APIRouter()
@@ -31,6 +31,17 @@ TIER_SLAS = {
     "Tier 3": 99.5,
     "Tier 4": 99.0,
 }
+
+# Map normalized tier values (from schema validation) to display names
+TIER_NORMALIZE = {
+    "tier_1": "Tier 1",
+    "tier_2": "Tier 2",
+    "tier_3": "Tier 3",
+    "tier_4": "Tier 4",
+}
+
+# Tiers requiring SOC 2 CC7 (System Operations) audit attention
+SOC2_CC7_TIERS = {"Tier 1", "Tier 2"}
 
 
 def _get_org(db: Session, user: User, org_id: str) -> Organization:
@@ -181,8 +192,11 @@ async def uptime_analysis(
     """GET /api/governance/{org_id}/uptime-analysis"""
     org = _get_org(db, user, org_id)
 
-    tier = org.application_tier or "Not configured"
+    raw_tier = org.application_tier or "Not configured"
     sla_target = org.sla_target
+
+    # Normalize tier format: "tier_1" → "Tier 1"
+    tier = TIER_NORMALIZE.get(raw_tier, raw_tier)
     tier_sla = TIER_SLAS.get(tier)
 
     if not tier_sla or sla_target is None:
@@ -197,9 +211,36 @@ async def uptime_analysis(
 
     gap = tier_sla - sla_target
 
+    # SOC 2 CC7 applicability for Tier 1/2
+    soc2_cc7_applicable = tier in SOC2_CC7_TIERS
+    soc2_cc7_note = None
+    if soc2_cc7_applicable:
+        soc2_cc7_note = (
+            f"{tier} classification triggers SOC 2 CC7 (System Operations) audit requirements. "
+            f"Ensure incident response, monitoring, and recovery controls are documented."
+        )
+
+    # Over-provision detection: SLA target significantly exceeds tier requirement
+    over_provisioned = False
+    cost_warning = None
+    if gap < -0.5:
+        # Target exceeds tier SLA by more than 0.5% — likely over-provisioned
+        over_provisioned = True
+        cost_warning = (
+            f"SLA target ({sla_target}%) exceeds {tier} requirement ({tier_sla}%) by "
+            f"{abs(gap):.2f}%. Consider whether the additional infrastructure cost is justified, "
+            f"or reclassify to a higher tier."
+        )
+
     if gap <= 0:
-        status_val = "on_track"
-        message = f"SLA target ({sla_target}%) meets or exceeds {tier} requirement ({tier_sla}%)."
+        status_val = "over_provisioned" if over_provisioned else "on_track"
+        if over_provisioned:
+            message = (
+                f"SLA target ({sla_target}%) exceeds {tier} requirement ({tier_sla}%). "
+                f"Review tier classification or reduce over-provisioned infrastructure."
+            )
+        else:
+            message = f"SLA target ({sla_target}%) meets or exceeds {tier} requirement ({tier_sla}%)."
     elif gap <= 0.5:
         status_val = "at_risk"
         message = (
@@ -220,4 +261,8 @@ async def uptime_analysis(
         gap_pct=round(gap, 4),
         status=status_val,
         message=message,
+        over_provisioned=over_provisioned,
+        cost_warning=cost_warning,
+        soc2_cc7_applicable=soc2_cc7_applicable,
+        soc2_cc7_note=soc2_cc7_note,
     )

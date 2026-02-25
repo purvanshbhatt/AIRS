@@ -1,0 +1,71 @@
+{
+  "_meta": {
+    "description": "Static lifecycle intelligence — version status and EOL dates for common technologies.",
+    "note": "No live scraping. No CVE integration. Governance-only intelligence.",
+    "last_updated": "2025-01-15"
+  },
+  "python": {
+    "3.8": { "status": "eol", "eol_date": "2024-10-01" },
+    "3.9": { "status": "security", "eol_date": "2025-10-01" },
+    "3.10": { "status": "security", "eol_date": "2026-10-01" },
+    "3.11": { "status": "active", "eol_date": "2027-10-01" },
+    "3.12": { "status": "active", "eol_date": "2028-10-01" },
+    "3.13": { "status": "active", "eol_date": "2029-10-01" }
+  },
+  "node": {
+    "14": { "status": "eol", "eol_date": "2023-04-30" },
+    "16": { "status": "eol", "eol_date": "2023-09-11" },
+    "18": { "status": "lts", "eol_date": "2025-04-30" },
+    "20": { "status": "lts", "eol_date": "2026-04-30" },
+    "22": { "status": "active", "eol_date": "2027-04-30" }
+  },
+  "react": {
+    "16": { "status": "deprecated", "eol_date": "2023-06-01" },
+    "17": { "status": "deprecated", "eol_date": "2024-01-01" },
+    "18": { "status": "active", "eol_date": "2026-06-01" },
+    "19": { "status": "active", "eol_date": "2027-06-01" }
+  },
+  "postgresql": {
+    "12": { "status": "eol", "eol_date": "2024-11-14" },
+    "13": { "status": "active", "eol_date": "2025-11-13" },
+    "14": { "status": "active", "eol_date": "2026-11-12" },
+    "15": { "status": "active", "eol_date": "2027-11-11" },
+    "16": { "status": "active", "eol_date": "2028-11-09" },
+    "17": { "status": "active", "eol_date": "2029-11-08" }
+  },
+  "java": {
+    "8": { "status": "lts", "eol_date": "2030-12-01" },
+    "11": { "status": "lts", "eol_date": "2032-01-01" },
+    "17": { "status": "lts", "eol_date": "2029-09-01" },
+    "21": { "status": "lts", "eol_date": "2031-09-01" }
+  },
+  "dotnet": {
+    "6.0": { "status": "eol", "eol_date": "2024-11-12" },
+    "7.0": { "status": "eol", "eol_date": "2024-05-14" },
+    "8.0": { "status": "lts", "eol_date": "2026-11-10" },
+    "9.0": { "status": "active", "eol_date": "2026-05-12" }
+  },
+  "angular": {
+    "14": { "status": "eol", "eol_date": "2023-11-18" },
+    "15": { "status": "eol", "eol_date": "2024-05-18" },
+    "16": { "status": "deprecated", "eol_date": "2024-11-08" },
+    "17": { "status": "active", "eol_date": "2025-11-15" },
+    "18": { "status": "active", "eol_date": "2026-11-15" }
+  },
+  "mysql": {
+    "5.7": { "status": "eol", "eol_date": "2023-10-01" },
+    "8.0": { "status": "active", "eol_date": "2026-04-01" },
+    "8.4": { "status": "lts", "eol_date": "2032-04-01" }
+  },
+  "redis": {
+    "6": { "status": "deprecated", "eol_date": "2024-10-01" },
+    "7": { "status": "active", "eol_date": "2028-01-31" }
+  },
+  "kubernetes": {
+    "1.27": { "status": "eol", "eol_date": "2024-06-28" },
+    "1.28": { "status": "active", "eol_date": "2024-10-28" },
+    "1.29": { "status": "active", "eol_date": "2025-02-28" },
+    "1.30": { "status": "active", "eol_date": "2025-06-28" },
+    "1.31": { "status": "active", "eol_date": "2025-10-28" }
+  }
+}

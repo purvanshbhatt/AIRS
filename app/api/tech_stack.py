@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_auth, User
 from app.services.organization import OrganizationService
-from app.services.tech_stack import TechStackService
+from app.services.governance.tech_stack import TechStackService
 from app.schemas.tech_stack import (
     TechStackItemCreate,
     TechStackItemUpdate,

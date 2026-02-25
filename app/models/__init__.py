@@ -21,6 +21,7 @@ from app.models.question_metadata import (
 )
 from app.models.audit_calendar import AuditCalendarEntry, AuditType
 from app.models.tech_stack import TechStackItem, LtsStatus
+from app.models.framework_registry import FrameworkRegistry, FrameworkCategory
 
 __all__ = [
     "Organization",
@@ -47,4 +48,6 @@ __all__ = [
     "AuditType",
     "TechStackItem",
     "LtsStatus",
+    "FrameworkRegistry",
+    "FrameworkCategory",
 ]

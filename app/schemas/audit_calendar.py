@@ -53,6 +53,7 @@ class AuditForecast(BaseModel):
     critical_high_count: int = 0
     risk_level: str = "low"                      # "critical", "high", "medium", "low"
     recommendation: str = ""
+    audit_readiness_score: int = 100              # 0-100 composite readiness score
 
 
 class AuditCalendarListResponse(BaseModel):

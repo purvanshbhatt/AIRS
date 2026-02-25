@@ -154,10 +154,14 @@ class AuditCalendarService:
             if any(kw in text for kw in keywords):
                 related.append(f)
 
-        critical_high = sum(
-            1 for f in related
-            if f.severity in (Severity.CRITICAL, Severity.HIGH)
-        )
+        critical_count = sum(1 for f in related if f.severity == Severity.CRITICAL)
+        high_count = sum(1 for f in related if f.severity == Severity.HIGH)
+        medium_count = sum(1 for f in related if f.severity == Severity.MEDIUM)
+        critical_high = critical_count + high_count
+
+        # Audit readiness score: 100 - (critical×15) - (high×8) - (medium×3)
+        readiness = 100 - (critical_count * 15) - (high_count * 8) - (medium_count * 3)
+        audit_readiness_score = max(0, min(100, readiness))
 
         # Determine risk level
         if critical_high >= 3 or (days_until < 30 and critical_high > 0):
@@ -195,4 +199,5 @@ class AuditCalendarService:
             critical_high_count=critical_high,
             risk_level=risk_level,
             recommendation=recommendation,
+            audit_readiness_score=audit_readiness_score,
         )

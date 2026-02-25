@@ -60,8 +60,10 @@ try:
 except Exception as e:
     logger.warning(f"Firebase initialization error (non-fatal): {e}")
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# NOTE: Schema is managed by Alembic migrations (alembic upgrade head).
+# Do NOT use Base.metadata.create_all() here — it conflicts with Alembic
+# by creating tables with the latest ORM schema before migrations run.
+# For tests, conftest.py uses create_all() on an in-memory SQLite DB.
 
 app = FastAPI(
     title=settings.APP_NAME,
