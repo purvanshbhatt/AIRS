@@ -2,9 +2,11 @@
 Pydantic schemas for Organization.
 """
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Optional, List
 from datetime import datetime
+
+from app.core.sanitize import strip_dangerous
 
 
 class OrganizationBase(BaseModel):
@@ -14,7 +16,12 @@ class OrganizationBase(BaseModel):
     size: Optional[str] = Field(None, pattern="^(1-50|51-200|201-1000|1000\\+)$")
     contact_email: Optional[str] = Field(None, max_length=255)
     contact_name: Optional[str] = Field(None, max_length=255)
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=5000)
+
+    @field_validator("name", "industry", "contact_email", "contact_name", "notes", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
 
 
 class OrganizationCreate(OrganizationBase):
@@ -29,9 +36,14 @@ class OrganizationUpdate(BaseModel):
     size: Optional[str] = Field(None, pattern="^(1-50|51-200|201-1000|1000\\+)$")
     contact_email: Optional[str] = Field(None, max_length=255)
     contact_name: Optional[str] = Field(None, max_length=255)
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=5000)
     # Phase 5: Governance & Analytics Control
     analytics_enabled: Optional[bool] = None
+
+    @field_validator("name", "industry", "contact_email", "contact_name", "notes", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
 
 
 class OrganizationResponse(OrganizationBase):
@@ -59,13 +71,18 @@ class OrganizationProfileUpdate(BaseModel):
     """Schema for updating the governance profile of an organization."""
     revenue_band: Optional[str] = Field(None, max_length=50)
     employee_count: Optional[int] = Field(None, ge=0)
-    geo_regions: Optional[List[str]] = None
+    geo_regions: Optional[List[str]] = Field(None, max_length=20)
     processes_pii: Optional[bool] = None
     processes_phi: Optional[bool] = None
     processes_cardholder_data: Optional[bool] = None
     handles_dod_data: Optional[bool] = None
     uses_ai_in_production: Optional[bool] = None
     government_contractor: Optional[bool] = None
+
+    @field_validator("revenue_band", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
     financial_services: Optional[bool] = None
     application_tier: Optional[str] = Field(None, pattern="^(tier_1|tier_2|tier_3|tier_4)$")
     sla_target: Optional[float] = Field(None, ge=0, le=100)

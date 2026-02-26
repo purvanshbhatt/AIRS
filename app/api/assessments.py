@@ -35,6 +35,7 @@ from app.services.report import ReportService
 from app.services.integrations import dispatch_assessment_scored_webhooks
 from app.services.audit import record_audit_event
 from app.services.demo_seed import ensure_demo_seed_data
+from app.services.smart_annotations import generate_annotations
 from app.reports.pdf import ProfessionalPDFGenerator
 from app.models.assessment import Assessment
 from app.models.finding import Finding, Severity as FindingSeverity
@@ -459,6 +460,45 @@ async def add_finding(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
+
+
+@router.post("/{assessment_id}/findings/annotate")
+async def annotate_findings(
+    assessment_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """
+    Generate AI-powered executive context annotations for findings.
+    
+    Uses Gemini Flash to produce 1-sentence business-context blurbs.
+    Falls back to deterministic templates when LLM is unavailable.
+    """
+    service = get_assessment_service(db, user)
+    assessment = service.get(assessment_id)
+    if not assessment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Assessment not found: {assessment_id}",
+        )
+
+    findings = service.get_findings(assessment_id)
+    if not findings:
+        return {"annotations": [], "llm_generated": False}
+
+    findings_dicts = [
+        {
+            "title": f.title,
+            "severity": str(f.severity.value) if hasattr(f.severity, "value") else str(f.severity),
+            "domain": f.domain_name or f.domain_id or "",
+            "nist_category": f.nist_category or "",
+            "recommendation": f.recommendation or "",
+        }
+        for f in findings
+    ]
+
+    result = await generate_annotations(findings_dicts)
+    return result
 
 
 # ----- Reports -----

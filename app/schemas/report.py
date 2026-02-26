@@ -2,10 +2,12 @@
 Pydantic schemas for Report.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
+
+from app.core.sanitize import strip_dangerous
 
 
 class ReportType(str, Enum):
@@ -85,7 +87,12 @@ class ReportSnapshot(BaseModel):
 class ReportCreate(BaseModel):
     """Request to generate a new report."""
     report_type: ReportType = ReportType.EXECUTIVE_PDF
-    title: Optional[str] = None  # Auto-generated if not provided
+    title: Optional[str] = Field(None, max_length=255)
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
 
 
 class ReportResponse(BaseModel):

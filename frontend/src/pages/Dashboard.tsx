@@ -22,6 +22,7 @@ import {
   Sparkles,
   ShieldCheck,
   Calendar,
+  Settings,
 } from 'lucide-react';
 import {
   getOrganizations,
@@ -31,9 +32,12 @@ import {
   listWebhooks,
   getApplicableFrameworks,
   getAuditCalendar,
+  getGovernanceHealthIndex,
   ApiRequestError,
 } from '../api';
 import type { Organization, Assessment, ApplicableFramework, AuditCalendarEntry } from '../types';
+import type { GHIResponse } from '../api';
+import GHIGauge from '../components/GHIGauge';
 
 interface DashboardStats {
   totalOrgs: number;
@@ -91,6 +95,7 @@ export default function Dashboard() {
   const [recentOrgs, setRecentOrgs] = useState<Organization[]>([]);
   const [applicableFrameworks, setApplicableFrameworks] = useState<ApplicableFramework[]>([]);
   const [upcomingAudits, setUpcomingAudits] = useState<AuditCalendarEntry[]>([]);
+  const [ghiData, setGhiData] = useState<GHIResponse | null>(null);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -185,6 +190,9 @@ export default function Dashboard() {
     getAuditCalendar(selectedOrgId)
       .then((data) => setUpcomingAudits(data.entries.filter((e) => e.is_upcoming).slice(0, 3)))
       .catch(() => setUpcomingAudits([]));
+    getGovernanceHealthIndex(selectedOrgId)
+      .then((data) => setGhiData(data))
+      .catch(() => setGhiData(null));
   }, [selectedOrgId]);
 
   if (loading) {
@@ -299,13 +307,29 @@ export default function Dashboard() {
       {hasNoData ? (
         <Card>
           <EmptyState
-            icon={ClipboardList}
+            icon={ShieldCheck}
             title="Welcome to ResilAI"
-            description="Get started by creating your first organization, then run a security assessment to evaluate your incident readiness."
-            action={{
-              label: 'Create Organization',
-              href: '/dashboard/org/new',
-            }}
+            description="Set up your security workspace in three easy steps to start assessing incident readiness."
+            steps={[
+              {
+                icon: Building2,
+                title: 'Create Organization',
+                description: 'Add your company details and governance profile to get started.',
+                action: { label: 'Create', href: '/dashboard/org/new' },
+              },
+              {
+                icon: ClipboardList,
+                title: 'Run Assessment',
+                description: 'Answer the security questionnaire to evaluate your readiness posture.',
+                action: { label: 'Start', href: '/dashboard/assessment/new' },
+              },
+              {
+                icon: Settings,
+                title: 'Review & Configure',
+                description: 'Explore results, connect integrations, and set up governance frameworks.',
+                action: { label: 'Settings', href: '/dashboard/settings' },
+              },
+            ]}
           />
         </Card>
       ) : (
@@ -323,6 +347,9 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           )}
+
+          {/* ── Security Posture Snapshot (GHI Hero) ── */}
+          {ghiData && <GHIGauge data={ghiData} />}
 
           <Card padding="md">
             <p className="text-sm text-gray-500 dark:text-slate-400">Organization Profile</p>

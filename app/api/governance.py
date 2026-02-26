@@ -19,6 +19,7 @@ from app.schemas.organization import (
 )
 from app.schemas.compliance import ComplianceApplicabilityResponse
 from app.services.governance.compliance_engine import get_applicable_frameworks
+from app.services.governance.validation_engine import validate_organization
 from app.services.organization import OrganizationService
 
 router = APIRouter()
@@ -266,3 +267,39 @@ async def uptime_analysis(
         soc2_cc7_applicable=soc2_cc7_applicable,
         soc2_cc7_note=soc2_cc7_note,
     )
+
+
+# ── Governance Health Index ──────────────────────────────────────────
+
+@router.get(
+    "/{org_id}/health-index",
+    summary="Get Governance Health Index (GHI)",
+    description=(
+        "Returns the composite Governance Health Index for an organization. "
+        "GHI = (Audit × 0.4) + (Lifecycle × 0.3) + (SLA × 0.2) + (Compliance × 0.1). "
+        "All calculations are deterministic — no LLM usage."
+    ),
+    tags=["governance"],
+)
+async def get_governance_health_index(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """GET /api/governance/{org_id}/health-index"""
+    org = _get_org(db, user, org_id)
+    result = validate_organization(db, org)
+
+    return {
+        "org_id": org.id,
+        "ghi": result.governance_health_index.ghi,
+        "grade": result.governance_health_index.grade,
+        "dimensions": result.governance_health_index.dimensions,
+        "weights": result.governance_health_index.weights,
+        "audit_readiness": result.audit_readiness.to_dict(),
+        "lifecycle": result.lifecycle.to_dict(),
+        "sla": result.sla.to_dict(),
+        "compliance": result.compliance.to_dict(),
+        "passed": result.passed,
+        "issues": result.issues,
+    }

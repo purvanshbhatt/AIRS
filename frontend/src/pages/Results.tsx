@@ -43,6 +43,7 @@ import {
 } from '../components/ResultsTabs'
 import { EnterpriseRoadmap } from '../components/EnterpriseRoadmap'
 import { SuggestedQuestionsPanel } from '../components/SuggestedQuestionsPanel'
+import ProgressSteps from '../components/ProgressSteps'
 
 // Tab definitions
 const tabs = [
@@ -222,14 +223,7 @@ export default function Results() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-slate-300">Analyzing AI security posture...</p>
-        </div>
-      </div>
-    )
+    return <ProgressSteps />
   }
 
   if (error) {

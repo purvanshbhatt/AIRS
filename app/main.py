@@ -2,6 +2,9 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.core.logging import setup_logging, event_logger
 from app.core.cors import get_allowed_origins, log_cors_config
@@ -22,6 +25,9 @@ logger = logging.getLogger("airs.main")
 
 # Initialize logging first
 setup_logging()
+
+# ── Rate Limiter ──
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
 # Initialize Firebase Admin SDK (for token verification)
 def init_firebase():
@@ -79,6 +85,10 @@ app = FastAPI(
     version="1.0.0",
     debug=settings.DEBUG,
 )
+
+# Attach rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Add request ID middleware (must be first to capture all requests)
 app.add_middleware(RequestIdMiddleware)

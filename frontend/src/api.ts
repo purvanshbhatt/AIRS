@@ -806,3 +806,49 @@ export const deleteTechStackItem = (orgId: string, itemId: string) =>
     `/api/governance/${orgId}/tech-stack/${itemId}`,
     { method: 'DELETE' }
   );
+
+// =============================================================================
+// GOVERNANCE — Health Index (GHI)
+// =============================================================================
+
+export interface GHIResponse {
+  org_id: string;
+  ghi: number;
+  grade: string;
+  dimensions: {
+    audit: number;
+    lifecycle: number;
+    sla: number;
+    compliance: number;
+  };
+  weights: {
+    audit: number;
+    lifecycle: number;
+    sla: number;
+    compliance: number;
+  };
+  audit_readiness: Record<string, unknown>;
+  lifecycle: Record<string, unknown>;
+  sla: Record<string, unknown>;
+  compliance: Record<string, unknown>;
+  passed: boolean;
+  issues: string[];
+}
+
+export const getGovernanceHealthIndex = (orgId: string) =>
+  request<GHIResponse>(
+    `/api/governance/${orgId}/health-index`
+  );
+
+// ── Smart Annotations (AI executive context) ──
+
+export interface AnnotationsResponse {
+  annotations: string[];
+  llm_generated: boolean;
+}
+
+export const getSmartAnnotations = (assessmentId: string) =>
+  request<AnnotationsResponse>(
+    `/api/assessments/${assessmentId}/findings/annotate`,
+    { method: 'POST' }
+  );

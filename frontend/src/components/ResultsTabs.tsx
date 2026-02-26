@@ -34,7 +34,7 @@ import {
   HelpCircle,
 } from 'lucide-react'
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '../components/ui'
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Tooltip } from '../components/ui'
 import type {
   AssessmentSummary,
   AttackPath,
@@ -43,7 +43,8 @@ import type {
   FrameworkMappedFinding,
   FrameworkRef,
 } from '../types'
-import { createRoadmapItem } from '../api'
+import { createRoadmapItem, getSmartAnnotations } from '../api'
+import { useState, useEffect } from 'react'
 
 // Helper functions
 function getTierBg(color: string) {
@@ -309,7 +310,11 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 {isRefreshingNarrative ? (
                   <>
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-1.5 w-32 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full w-2/3 bg-primary-500 rounded-full animate-pulse" />
+                      </div>
+                    </div>
                     <p className="text-gray-600 dark:text-gray-300 font-medium">Generating AI insights...</p>
                     <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">This may take a few seconds</p>
                   </>
@@ -605,12 +610,43 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
 // ============================================================================
 // FINDINGS TAB
 // ============================================================================
+// ── NIST CSF category descriptions (for dynamic tooltips) ──
+const NIST_TOOLTIPS: Record<string, string> = {
+  ID: 'IDENTIFY — Develop organizational understanding to manage cybersecurity risk.',
+  PR: 'PROTECT — Develop and implement safeguards to ensure delivery of critical services.',
+  DE: 'DETECT — Develop and implement activities to identify cybersecurity events.',
+  RS: 'RESPOND — Take action regarding a detected cybersecurity incident.',
+  RC: 'RECOVER — Maintain plans for resilience and restore capabilities impaired by incidents.',
+  GV: 'GOVERN — Establish and monitor the organization\'s cybersecurity risk management strategy.',
+}
+
+function getNistTooltip(cat: string): string {
+  const prefix = cat?.replace(/[^A-Z]/gi, '').substring(0, 2).toUpperCase() || '';
+  return NIST_TOOLTIPS[prefix] || `NIST CSF sub-category ${cat}`;
+}
+
 interface FindingsTabProps {
   summary: AssessmentSummary;
 }
 
 export function FindingsTab({ summary }: FindingsTabProps) {
   const { findings } = summary
+  const [annotations, setAnnotations] = useState<string[]>([])
+  const [annotationsLoading, setAnnotationsLoading] = useState(false)
+  const [isLlmGenerated, setIsLlmGenerated] = useState(false)
+
+  useEffect(() => {
+    if (findings.length > 0 && summary.id) {
+      setAnnotationsLoading(true)
+      getSmartAnnotations(summary.id)
+        .then(res => {
+          setAnnotations(res.annotations || [])
+          setIsLlmGenerated(res.llm_generated || false)
+        })
+        .catch(() => setAnnotations([]))
+        .finally(() => setAnnotationsLoading(false))
+    }
+  }, [summary.id, findings.length])
 
   if (findings.length === 0) {
     return (
@@ -676,9 +712,11 @@ export function FindingsTab({ summary }: FindingsTabProps) {
                         <span className="text-xs text-gray-500 dark:text-gray-400">{f.domain}</span>
                       )}
                       {f.nist_category && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                          NIST CSF: {f.nist_category}
-                        </span>
+                        <Tooltip content={getNistTooltip(f.nist_category)} placement="top">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 cursor-help">
+                            NIST CSF: {f.nist_category}
+                          </span>
+                        </Tooltip>
                       )}
                       {f.verification_status === 'VERIFIED' && (
                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
@@ -693,6 +731,20 @@ export function FindingsTab({ summary }: FindingsTabProps) {
                       )}
                     </div>
                     <h4 className="font-medium text-gray-900 dark:text-gray-100">{f.title}</h4>
+                    {annotations[i] && (
+                      <div className="mt-1.5 flex items-start gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 mt-0.5 text-violet-500 dark:text-violet-400 flex-shrink-0" />
+                        <p className="text-xs text-violet-700 dark:text-violet-300 italic leading-relaxed">
+                          {annotations[i]}
+                        </p>
+                        {isLlmGenerated && (
+                          <span className="text-[9px] text-violet-400 dark:text-violet-500 uppercase tracking-wide flex-shrink-0 mt-0.5">AI</span>
+                        )}
+                      </div>
+                    )}
+                    {annotationsLoading && !annotations[i] && (
+                      <div className="mt-1.5 h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    )}
                     {f.description && (
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{f.description}</p>
                     )}
@@ -1089,7 +1141,9 @@ export function FrameworkTab({ summary }: FrameworkTabProps) {
                             <Badge variant={getSeverityVariant(f.severity)} className="text-[10px]">{f.severity}</Badge>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{f.domain}</span>
                             {f.nist_category && (
-                              <span className="text-xs font-mono text-teal-600 dark:text-teal-400">{f.nist_category}</span>
+                              <Tooltip content={getNistTooltip(f.nist_category)} placement="top">
+                                <span className="text-xs font-mono text-teal-600 dark:text-teal-400 cursor-help">{f.nist_category}</span>
+                              </Tooltip>
                             )}
                           </div>
                           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{f.title}</p>
@@ -1340,9 +1394,11 @@ export function RoadmapTab({ summary }: RoadmapTabProps) {
                                 </span>
                               )}
                               {item.nist_category && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                  NIST CSF: {item.nist_category}
-                                </span>
+                                <Tooltip content={getNistTooltip(item.nist_category)} placement="top">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 cursor-help">
+                                    NIST CSF: {item.nist_category}
+                                  </span>
+                                </Tooltip>
                               )}
                               <span className="text-xs text-gray-500 dark:text-gray-400">{item.domain}</span>
                             </div>

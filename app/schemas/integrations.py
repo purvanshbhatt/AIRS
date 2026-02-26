@@ -3,11 +3,29 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, field_validator
+
+
+ALLOWED_SCOPES = {
+    "scores:read", "scores:write",
+    "findings:read", "findings:write",
+    "reports:read",
+    "webhooks:read", "webhooks:write",
+}
 
 
 class ApiKeyCreateRequest(BaseModel):
     scopes: List[str] = Field(default_factory=lambda: ["scores:read"])
+
+    @field_validator("scopes", mode="before")
+    @classmethod
+    def validate_scopes(cls, v: List[str]) -> List[str]:
+        if not v:
+            return ["scores:read"]
+        for scope in v:
+            if scope not in ALLOWED_SCOPES:
+                raise ValueError(f"Invalid scope '{scope}'. Allowed: {sorted(ALLOWED_SCOPES)}")
+        return v
 
 
 class ApiKeyCreateResponse(BaseModel):
