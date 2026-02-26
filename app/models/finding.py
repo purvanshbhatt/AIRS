@@ -57,6 +57,9 @@ class Finding(Base):
     nist_function = Column(String(10), nullable=True)      # e.g. "DE", "PR", "RC"
     nist_category = Column(String(20), nullable=True)      # e.g. "DE.CM-1", "PR.AA-5"
     nist_subcategory = Column(String(50), nullable=True)   # e.g. "DE.CM-1.1" (deep mapping)
+
+    # SOC 2 control mapping (Phase 8)
+    soc2_controls = Column(Text, nullable=True)            # JSON array: ["CC6.1", "CC7.2"]
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

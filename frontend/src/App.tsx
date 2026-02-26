@@ -25,6 +25,9 @@ import About from './pages/About';
 import SecurityPage from './pages/Security';
 import PilotPage from './pages/Pilot';
 import StatusPage from './pages/Status';
+import GovernanceProfile from './pages/GovernanceProfile';
+import AuditCalendar from './pages/AuditCalendar';
+import TechStack from './pages/TechStack';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
@@ -74,6 +77,9 @@ function DashboardRoutes() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/integrations" element={<Integrations />} />
+          <Route path="/governance" element={<GovernanceProfile />} />
+          <Route path="/audit-calendar" element={<AuditCalendar />} />
+          <Route path="/tech-stack" element={<TechStack />} />
         </Routes>
       </DashboardLayout>
     </ProtectedRoute>

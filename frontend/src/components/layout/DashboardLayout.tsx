@@ -17,6 +17,9 @@ import {
   BookOpen,
   Activity,
   Info,
+  ShieldCheck,
+  Calendar,
+  Cpu,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Footer } from './Footer';
@@ -35,6 +38,9 @@ const navigation: NavItem[] = [
   { name: 'Integrations', href: '/dashboard/integrations', icon: Settings },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
+  { name: 'Governance', href: '/dashboard/governance', icon: ShieldCheck },
+  { name: 'Audit Calendar', href: '/dashboard/audit-calendar', icon: Calendar },
+  { name: 'Tech Stack', href: '/dashboard/tech-stack', icon: Cpu },
   { name: 'Settings', href: '/dashboard/settings', icon: SlidersHorizontal },
   { name: 'Status', href: '/status', icon: Activity },
   { name: 'About', href: '/about', icon: Info },

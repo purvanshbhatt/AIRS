@@ -29,6 +29,12 @@ from app.models import (
     Webhook,
     RoadmapItem,
     ExternalFinding,
+    AuditEvent,
+    PilotRequest,
+    QuestionMetadata,
+    AuditCalendarEntry,
+    TechStackItem,
+    FrameworkRegistry,
 )
 
 # Alembic Config object

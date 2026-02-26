@@ -2,6 +2,9 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
 from app.core.logging import setup_logging, event_logger
 from app.core.cors import get_allowed_origins, log_cors_config
@@ -22,6 +25,9 @@ logger = logging.getLogger("airs.main")
 
 # Initialize logging first
 setup_logging()
+
+# ── Rate Limiter ──
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
 # Initialize Firebase Admin SDK (for token verification)
 def init_firebase():
@@ -60,8 +66,18 @@ try:
 except Exception as e:
     logger.warning(f"Firebase initialization error (non-fatal): {e}")
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# NOTE: Schema is managed by Alembic migrations (alembic upgrade head).
+# In production/staging with PostgreSQL, run `alembic upgrade head` before starting.
+# For SQLite (ephemeral Cloud Run filesystem), auto-create tables on startup
+# since there is no persistent migration state to track.
+def _auto_create_sqlite_tables():
+    """Create all tables for SQLite databases (ephemeral filesystem on Cloud Run)."""
+    if settings.DATABASE_URL.startswith("sqlite"):
+        import app.models  # noqa: F401 — registers all models with Base
+        Base.metadata.create_all(bind=engine)
+        logger.info("SQLite auto-create: tables initialized")
+
+_auto_create_sqlite_tables()
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -69,6 +85,10 @@ app = FastAPI(
     version="1.0.0",
     debug=settings.DEBUG,
 )
+
+# Attach rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Add request ID middleware (must be first to capture all requests)
 app.add_middleware(RequestIdMiddleware)
@@ -106,6 +126,10 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 # Include API routes
 app.include_router(health_router)
 app.include_router(api_router, prefix="/api")
+
+# Internal assurance endpoints (staging-only, gated by ENV check)
+from app.api.internal import router as internal_router
+app.include_router(internal_router, prefix="/internal")
 
 
 @app.get("/")

@@ -2,10 +2,12 @@
 Pydantic schemas for Assessment, Answer, Score, and Finding.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
+
+from app.core.sanitize import strip_dangerous
 
 
 class AssessmentStatus(str, Enum):
@@ -44,8 +46,13 @@ class LLMMode(str, Enum):
 class AnswerInput(BaseModel):
     """Single answer input."""
     question_id: str = Field(..., pattern="^[a-z]{2}_\\d{2}$")
-    value: str = Field(..., min_length=1)
-    notes: Optional[str] = None
+    value: str = Field(..., min_length=1, max_length=500)
+    notes: Optional[str] = Field(None, max_length=2000)
+
+    @field_validator("value", "notes", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
 
 
 class AnswerBulkSubmit(BaseModel):
@@ -89,12 +96,17 @@ class ScoreResponse(BaseModel):
 class FindingCreate(BaseModel):
     """Finding creation (manual)."""
     title: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: Optional[str] = Field(None, max_length=5000)
     severity: Severity
     domain_id: Optional[str] = None
     question_id: Optional[str] = None
-    evidence: Optional[str] = None
-    recommendation: Optional[str] = None
+    evidence: Optional[str] = Field(None, max_length=5000)
+    recommendation: Optional[str] = Field(None, max_length=5000)
+
+    @field_validator("title", "description", "evidence", "recommendation", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
 
 
 class FindingResponse(BaseModel):
@@ -121,12 +133,17 @@ class FindingResponse(BaseModel):
 
 class FindingUpdate(BaseModel):
     """Finding update."""
-    title: Optional[str] = None
-    description: Optional[str] = None
+    title: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = Field(None, max_length=5000)
     severity: Optional[Severity] = None
     status: Optional[FindingStatus] = None
-    evidence: Optional[str] = None
-    recommendation: Optional[str] = None
+    evidence: Optional[str] = Field(None, max_length=5000)
+    recommendation: Optional[str] = Field(None, max_length=5000)
+
+    @field_validator("title", "description", "evidence", "recommendation", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
 
 
 # ----- Assessment Schemas -----
@@ -134,14 +151,24 @@ class FindingUpdate(BaseModel):
 class AssessmentCreate(BaseModel):
     """Assessment creation."""
     organization_id: str
-    title: Optional[str] = None
-    version: Optional[str] = "1.0.0"
+    title: Optional[str] = Field(None, max_length=255)
+    version: Optional[str] = Field("1.0.0", max_length=20)
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
 
 
 class AssessmentUpdate(BaseModel):
     """Assessment update."""
-    title: Optional[str] = None
+    title: Optional[str] = Field(None, max_length=255)
     status: Optional[AssessmentStatus] = None
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
 
 
 class AssessmentResponse(BaseModel):

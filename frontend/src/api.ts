@@ -114,110 +114,137 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const authHeaders = await getAuthHeaders();
   const method = options.method || 'GET';
+
+  // Get auth headers — errors here are non-fatal (proceed without auth)
+  let authHeaders: Record<string, string> = {};
+  try {
+    authHeaders = await getAuthHeaders();
+  } catch (authError) {
+    console.warn(`[API] Failed to get auth headers:`, authError);
+  }
   
   // Log request
   if (isDevelopment) {
     console.log(`[API] ${method} ${url}`);
   }
   
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...options.headers,
-      },
-    });
-  } catch (networkError) {
-    // Network error (CORS, DNS, connection refused, etc.)
-    console.error(`[API] Network error for ${method} ${url}:`, networkError);
-    throw new ApiRequestError({
-      message: `Unable to reach API server. Check your connection and CORS configuration.`,
-      detail: `Network request to ${API_BASE_URL} failed.`,
-    });
-  }
+  // Retry logic for transient network errors (e.g., Cloud Run cold starts)
+  const MAX_RETRIES = 2;
+  let lastError: unknown;
 
-  // Log response status
-  if (isDevelopment) {
-    console.log(`[API] ${method} ${url} -> ${response.status}`);
-  }
-
-  // Handle 401 - redirect to login
-  if (response.status === 401) {
-    handleUnauthorized();
-    throw new ApiRequestError({
-      message: 'Authentication required. Please sign in.',
-      status: 401,
-    });
-  }
-
-  if (!response.ok) {
-    let errorMessage = `Request failed`;
-    let requestId: string | undefined;
-    let detail: string | undefined;
-    
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    let response: Response;
     try {
-      const errorBody = await response.json();
-      if (isDevelopment) {
-        console.error(`[API] Error response for ${method} ${url}:`, errorBody);
+      response = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+          ...options.headers,
+        },
+      });
+    } catch (networkError) {
+      lastError = networkError;
+      if (attempt < MAX_RETRIES) {
+        // Wait before retry: 1s, then 2s
+        const delay = (attempt + 1) * 1000;
+        console.warn(`[API] Network error for ${method} ${url} (attempt ${attempt + 1}/${MAX_RETRIES + 1}), retrying in ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
       }
+      // All retries exhausted
+      console.error(`[API] Network error for ${method} ${url} after ${MAX_RETRIES + 1} attempts:`, networkError);
+      throw new ApiRequestError({
+        message: `Unable to reach API server. Check your connection and CORS configuration.`,
+        detail: `Network request to ${API_BASE_URL} failed after ${MAX_RETRIES + 1} attempts.`,
+      });
+    }
+
+    // Log response status
+    if (isDevelopment) {
+      console.log(`[API] ${method} ${url} -> ${response.status}`);
+    }
+
+    // Handle 401 - redirect to login
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new ApiRequestError({
+        message: 'Authentication required. Please sign in.',
+        status: 401,
+      });
+    }
+
+    if (!response.ok) {
+      let errorMessage = `Request failed`;
+      let requestId: string | undefined;
+      let detail: string | undefined;
       
-      // Handle structured error response from backend
-      if (typeof errorBody === 'object' && errorBody !== null) {
-        const err = errorBody as Record<string, unknown>;
+      try {
+        const errorBody = await response.json();
+        if (isDevelopment) {
+          console.error(`[API] Error response for ${method} ${url}:`, errorBody);
+        }
         
-        // Check for nested error structure
-        if (err.error && typeof err.error === 'object') {
-          const nested = err.error as Record<string, unknown>;
-          errorMessage = String(nested.message || nested.detail || errorMessage);
-          if (nested.request_id) {
-            requestId = String(nested.request_id);
-          }
-        } else {
-          // Direct error properties
-          if (err.detail) {
-            errorMessage = String(err.detail);
-          } else if (err.message) {
-            errorMessage = String(err.message);
-          }
-          if (err.request_id) {
-            requestId = String(err.request_id);
+        // Handle structured error response from backend
+        if (typeof errorBody === 'object' && errorBody !== null) {
+          const err = errorBody as Record<string, unknown>;
+          
+          // Check for nested error structure
+          if (err.error && typeof err.error === 'object') {
+            const nested = err.error as Record<string, unknown>;
+            errorMessage = String(nested.message || nested.detail || errorMessage);
+            if (nested.request_id) {
+              requestId = String(nested.request_id);
+            }
+          } else {
+            // Direct error properties
+            if (err.detail) {
+              errorMessage = String(err.detail);
+            } else if (err.message) {
+              errorMessage = String(err.message);
+            }
+            if (err.request_id) {
+              requestId = String(err.request_id);
+            }
           }
         }
+      } catch {
+        // Response wasn't JSON
+        const text = await response.text().catch(() => '');
+        if (isDevelopment) {
+          console.error(`[API] Non-JSON error response for ${method} ${url}:`, text);
+        }
+        if (text) {
+          detail = text.slice(0, 200);
+        }
       }
-    } catch {
-      // Response wasn't JSON
-      const text = await response.text().catch(() => '');
-      if (isDevelopment) {
-        console.error(`[API] Non-JSON error response for ${method} ${url}:`, text);
+      
+      // Add status-specific context
+      if (response.status === 403) {
+        errorMessage = `Access denied: ${errorMessage}`;
+      } else if (response.status === 404) {
+        errorMessage = `Not found: ${errorMessage}`;
+      } else if (response.status >= 500) {
+        errorMessage = `Server error: ${errorMessage}`;
       }
-      if (text) {
-        detail = text.slice(0, 200);
-      }
+      
+      throw new ApiRequestError({
+        message: errorMessage,
+        status: response.status,
+        requestId,
+        detail,
+      });
     }
-    
-    // Add status-specific context
-    if (response.status === 403) {
-      errorMessage = `Access denied: ${errorMessage}`;
-    } else if (response.status === 404) {
-      errorMessage = `Not found: ${errorMessage}`;
-    } else if (response.status >= 500) {
-      errorMessage = `Server error: ${errorMessage}`;
-    }
-    
-    throw new ApiRequestError({
-      message: errorMessage,
-      status: response.status,
-      requestId,
-      detail,
-    });
+
+    return response.json();
   }
 
-  return response.json();
+  // Unreachable — loop always returns or throws
+  throw new ApiRequestError({
+    message: `Unable to reach API server. Check your connection and CORS configuration.`,
+    detail: `Network request to ${API_BASE_URL} failed.`,
+  });
 }
 
 // Organizations
@@ -686,4 +713,142 @@ export const downloadAuditExport = async (orgId: string): Promise<Blob> => {
 export const getSuggestedQuestions = (orgId: string, maxResults = 10) =>
   request<import('./types').SuggestionsResponse>(
     `/api/orgs/${orgId}/suggested-questions?max_results=${maxResults}`
+  );
+
+// =============================================================================
+// GOVERNANCE — Organization Profile
+// =============================================================================
+
+export const getOrganizationProfile = (orgId: string) =>
+  request<import('./types').OrganizationProfile>(
+    `/api/governance/${orgId}/profile`
+  );
+
+export const updateOrganizationProfile = (orgId: string, data: import('./types').OrganizationProfileUpdate) =>
+  request<import('./types').OrganizationProfile>(
+    `/api/governance/${orgId}/profile`,
+    { method: 'PUT', body: JSON.stringify(data) }
+  );
+
+// =============================================================================
+// GOVERNANCE — Compliance Applicability
+// =============================================================================
+
+export const getApplicableFrameworks = (orgId: string) =>
+  request<import('./types').ComplianceApplicabilityResponse>(
+    `/api/governance/${orgId}/applicable-frameworks`
+  );
+
+// =============================================================================
+// GOVERNANCE — Uptime Tier Analysis
+// =============================================================================
+
+export const getUptimeAnalysis = (orgId: string) =>
+  request<import('./types').UptimeTierAnalysis>(
+    `/api/governance/${orgId}/uptime-analysis`
+  );
+
+// =============================================================================
+// GOVERNANCE — Audit Calendar
+// =============================================================================
+
+export const getAuditCalendar = (orgId: string) =>
+  request<import('./types').AuditCalendarListResponse>(
+    `/api/governance/${orgId}/audit-calendar`
+  );
+
+export const createAuditCalendarEntry = (orgId: string, data: import('./types').AuditCalendarCreate) =>
+  request<import('./types').AuditCalendarEntry>(
+    `/api/governance/${orgId}/audit-calendar`,
+    { method: 'POST', body: JSON.stringify(data) }
+  );
+
+export const updateAuditCalendarEntry = (orgId: string, entryId: string, data: Partial<import('./types').AuditCalendarCreate>) =>
+  request<import('./types').AuditCalendarEntry>(
+    `/api/governance/${orgId}/audit-calendar/${entryId}`,
+    { method: 'PUT', body: JSON.stringify(data) }
+  );
+
+export const deleteAuditCalendarEntry = (orgId: string, entryId: string) =>
+  request<void>(
+    `/api/governance/${orgId}/audit-calendar/${entryId}`,
+    { method: 'DELETE' }
+  );
+
+export const getAuditForecast = (orgId: string, entryId: string) =>
+  request<import('./types').AuditForecast>(
+    `/api/governance/${orgId}/audit-calendar/${entryId}/forecast`
+  );
+
+// =============================================================================
+// GOVERNANCE — Tech Stack Lifecycle
+// =============================================================================
+
+export const getTechStack = (orgId: string) =>
+  request<import('./types').TechStackListResponse>(
+    `/api/governance/${orgId}/tech-stack`
+  );
+
+export const createTechStackItem = (orgId: string, data: import('./types').TechStackItemCreate) =>
+  request<import('./types').TechStackItem>(
+    `/api/governance/${orgId}/tech-stack`,
+    { method: 'POST', body: JSON.stringify(data) }
+  );
+
+export const updateTechStackItem = (orgId: string, itemId: string, data: Partial<import('./types').TechStackItemCreate>) =>
+  request<import('./types').TechStackItem>(
+    `/api/governance/${orgId}/tech-stack/${itemId}`,
+    { method: 'PUT', body: JSON.stringify(data) }
+  );
+
+export const deleteTechStackItem = (orgId: string, itemId: string) =>
+  request<void>(
+    `/api/governance/${orgId}/tech-stack/${itemId}`,
+    { method: 'DELETE' }
+  );
+
+// =============================================================================
+// GOVERNANCE — Health Index (GHI)
+// =============================================================================
+
+export interface GHIResponse {
+  org_id: string;
+  ghi: number;
+  grade: string;
+  dimensions: {
+    audit: number;
+    lifecycle: number;
+    sla: number;
+    compliance: number;
+  };
+  weights: {
+    audit: number;
+    lifecycle: number;
+    sla: number;
+    compliance: number;
+  };
+  audit_readiness: Record<string, unknown>;
+  lifecycle: Record<string, unknown>;
+  sla: Record<string, unknown>;
+  compliance: Record<string, unknown>;
+  passed: boolean;
+  issues: string[];
+}
+
+export const getGovernanceHealthIndex = (orgId: string) =>
+  request<GHIResponse>(
+    `/api/governance/${orgId}/health-index`
+  );
+
+// ── Smart Annotations (AI executive context) ──
+
+export interface AnnotationsResponse {
+  annotations: string[];
+  llm_generated: boolean;
+}
+
+export const getSmartAnnotations = (assessmentId: string) =>
+  request<AnnotationsResponse>(
+    `/api/assessments/${assessmentId}/findings/annotate`,
+    { method: 'POST' }
   );
