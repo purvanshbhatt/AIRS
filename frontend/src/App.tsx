@@ -28,6 +28,8 @@ import StatusPage from './pages/Status';
 import GovernanceProfile from './pages/GovernanceProfile';
 import AuditCalendar from './pages/AuditCalendar';
 import TechStack from './pages/TechStack';
+import PilotDashboard from './pages/PilotDashboard';
+import AuditorView from './pages/AuditorView';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
@@ -80,6 +82,7 @@ function DashboardRoutes() {
           <Route path="/governance" element={<GovernanceProfile />} />
           <Route path="/audit-calendar" element={<AuditCalendar />} />
           <Route path="/tech-stack" element={<TechStack />} />
+          <Route path="/pilot-program" element={<PilotDashboard />} />
         </Routes>
       </DashboardLayout>
     </ProtectedRoute>
@@ -115,6 +118,7 @@ export default function App() {
           <Route path="/security" element={<SecurityPage />} />
           <Route path="/pilot" element={<PilotPage />} />
           <Route path="/status" element={<StatusPage />} />
+          <Route path="/auditor" element={<AuditorView />} />
 
           <Route path="/dashboard/*" element={<DashboardRoutes />} />
 

@@ -84,7 +84,7 @@ class OrganizationProfileUpdate(BaseModel):
     def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
         return strip_dangerous(v)
     financial_services: Optional[bool] = None
-    application_tier: Optional[str] = Field(None, pattern="^(tier_1|tier_2|tier_3|tier_4)$")
+    application_tier: Optional[str] = Field(None, pattern="^(tier_1|tier_2|tier_3|tier_4|Tier 1|Tier 2|Tier 3|Tier 4)$")
     sla_target: Optional[float] = Field(None, ge=0, le=100)
 
 

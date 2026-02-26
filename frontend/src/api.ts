@@ -260,6 +260,9 @@ export const getOrganizations = () =>
 export const getOrganization = (id: string) =>
   request<import('./types').Organization>(`/api/orgs/${id}`);
 
+export const deleteOrganization = (id: string) =>
+  request<void>(`/api/orgs/${id}`, { method: 'DELETE' });
+
 // Assessments
 export const createAssessment = (data: { organization_id: string; title: string }) =>
   request<{ id: string }>('/api/assessments', {
@@ -639,8 +642,103 @@ export const testWebhookUrl = (url: string, secret?: string, eventType = 'assess
     }
   );
 
+// ── Splunk Evidence-Based Verification ──────────────────────────────
+
+export interface SplunkEvidenceResult {
+  control: string;
+  status: 'verified' | 'partial' | 'not_verified' | 'error' | 'not_configured';
+  event_count: number;
+  sample_events: Record<string, unknown>[];
+  message: string;
+  query_used: string;
+  verified_at?: string;
+}
+
+export interface SplunkEvidenceResponse {
+  org_id: string;
+  results: SplunkEvidenceResult[];
+  overall_status: string;
+  verified_controls: number;
+  total_controls: number;
+}
+
+export const configureSplunkHec = (orgId: string, baseUrl: string, hecToken: string) =>
+  request<{ org_id: string; status: string; base_url: string }>(
+    `/api/orgs/${orgId}/splunk-config`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ base_url: baseUrl, hec_token: hecToken }),
+    }
+  );
+
+export const getSplunkConfig = (orgId: string) =>
+  request<{ org_id: string; configured: boolean; base_url?: string }>(
+    `/api/orgs/${orgId}/splunk-config`
+  );
+
+export const removeSplunkConfig = (orgId: string) =>
+  request<void>(`/api/orgs/${orgId}/splunk-config`, { method: 'DELETE' });
+
+export const pullSplunkEvidence = (orgId: string) =>
+  request<SplunkEvidenceResponse>(
+    `/api/orgs/${orgId}/splunk-evidence`,
+    { method: 'POST' }
+  );
+
 export const getOrgAuditEvents = (orgId: string, limit = 100) =>
   request<import('./types').AuditEvent[]>(`/api/orgs/${orgId}/audit?limit=${limit}`);
+
+// ── Pilot Program (30-Day Readiness Sprint) ────────────────────────
+
+export interface PilotMilestone {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  weight: number;
+  day_target: number;
+  status: 'not_started' | 'completed';
+  completed_at: string | null;
+}
+
+export interface PilotProgram {
+  org_id: string;
+  org_name: string;
+  status: 'active' | 'completed' | 'cancelled' | 'not_started';
+  started_at?: string;
+  ends_at?: string;
+  days_remaining: number;
+  milestones: PilotMilestone[];
+  confidence_score: number;
+  confidence_grade: string;
+}
+
+export interface ConfidenceBreakdown {
+  org_id: string;
+  confidence_score: number;
+  confidence_grade: string;
+  categories: Record<string, { score: number; milestones: { id: string; title: string; status: string; weight: number }[] }>;
+  completed: number;
+  total: number;
+}
+
+export const activatePilot = (orgId: string) =>
+  request<PilotProgram>(`/api/governance/orgs/${orgId}/pilot`, { method: 'POST' });
+
+export const getPilotStatus = (orgId: string) =>
+  request<PilotProgram>(`/api/governance/orgs/${orgId}/pilot`);
+
+export const cancelPilot = (orgId: string) =>
+  request<void>(`/api/governance/orgs/${orgId}/pilot`, { method: 'DELETE' });
+
+export const completePilotMilestone = (orgId: string, milestoneId: string) =>
+  request<PilotProgram>(`/api/governance/orgs/${orgId}/pilot/milestone/${milestoneId}`, { method: 'POST' });
+
+export const resetPilotMilestone = (orgId: string, milestoneId: string) =>
+  request<PilotProgram>(`/api/governance/orgs/${orgId}/pilot/milestone/${milestoneId}`, { method: 'DELETE' });
+
+export const getPilotConfidence = (orgId: string) =>
+  request<ConfidenceBreakdown>(`/api/governance/orgs/${orgId}/pilot/confidence`);
 
 export const submitPilotRequest = (data: import('./types').PilotRequestInput) =>
   request<{
@@ -840,6 +938,24 @@ export const getGovernanceHealthIndex = (orgId: string) =>
     `/api/governance/${orgId}/health-index`
   );
 
+// =============================================================================
+// GOVERNANCE — Forecast (Gemini AI)
+// =============================================================================
+
+export interface GovernanceForecast {
+  org_id: string;
+  forecast: string;
+  focus_area: string;
+  confidence: string;
+  llm_generated: boolean;
+  model: string;
+}
+
+export const getGovernanceForecast = (orgId: string) =>
+  request<GovernanceForecast>(
+    `/api/governance/${orgId}/forecast`
+  );
+
 // ── Smart Annotations (AI executive context) ──
 
 export interface AnnotationsResponse {
@@ -852,3 +968,65 @@ export const getSmartAnnotations = (assessmentId: string) =>
     `/api/assessments/${assessmentId}/findings/annotate`,
     { method: 'POST' }
   );
+
+// =============================================================================
+// AUDITOR VIEW — Shareable read-only access
+// =============================================================================
+
+export interface AuditorLinkResponse {
+  token: string;
+  org_id: string;
+  org_name: string;
+  expires_at: string;
+  ttl_hours: number;
+}
+
+export interface AuditorViewData {
+  org_name: string;
+  org_id: string;
+  access_expires: string;
+  access_count: number;
+  governance_profile: Record<string, unknown>;
+  health_index: {
+    ghi: number;
+    grade: string;
+    dimensions: Record<string, number>;
+    weights: Record<string, number>;
+  };
+  audit_readiness: Record<string, unknown>;
+  lifecycle: Record<string, unknown>;
+  sla: Record<string, unknown>;
+  compliance: Record<string, unknown>;
+  applicable_frameworks: { framework: string; reason: string; priority: string }[];
+  passed: boolean;
+  issues: string[];
+  read_only: boolean;
+}
+
+export const generateAuditorLink = (orgId: string, ttlHours = 72) =>
+  request<AuditorLinkResponse>(
+    `/api/governance/orgs/${orgId}/auditor-link?ttl_hours=${ttlHours}`,
+    { method: 'POST' }
+  );
+
+export const listAuditorLinks = (orgId: string) =>
+  request<{ org_id: string; active_links: { created_by: string; created_at: string; expires_at: string; access_count: number }[]; count: number }>(
+    `/api/governance/orgs/${orgId}/auditor-links`
+  );
+
+export const revokeAuditorLink = (orgId: string, token: string) =>
+  request<{ status: string }>(
+    `/api/governance/orgs/${orgId}/auditor-link?token=${encodeURIComponent(token)}`,
+    { method: 'DELETE' }
+  );
+
+/** Public endpoint — no auth required, token-validated */
+export const getAuditorView = async (token: string): Promise<AuditorViewData> => {
+  const url = `${API_BASE_URL}/api/governance/auditor-view?token=${encodeURIComponent(token)}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ message: 'Auditor view unavailable' }));
+    throw new ApiRequestError({ message: err.detail || err.message, status: response.status });
+  }
+  return response.json();
+};

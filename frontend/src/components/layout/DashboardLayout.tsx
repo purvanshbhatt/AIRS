@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Calendar,
   Cpu,
+  Rocket,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Footer } from './Footer';
@@ -41,6 +42,7 @@ const navigation: NavItem[] = [
   { name: 'Governance', href: '/dashboard/governance', icon: ShieldCheck },
   { name: 'Audit Calendar', href: '/dashboard/audit-calendar', icon: Calendar },
   { name: 'Tech Stack', href: '/dashboard/tech-stack', icon: Cpu },
+  { name: 'Pilot Program', href: '/dashboard/pilot-program', icon: Rocket },
   { name: 'Settings', href: '/dashboard/settings', icon: SlidersHorizontal },
   { name: 'Status', href: '/status', icon: Activity },
   { name: 'About', href: '/about', icon: Info },

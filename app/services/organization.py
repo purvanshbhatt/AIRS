@@ -2,6 +2,7 @@
 Organization service - business logic for organizations.
 
 All operations are scoped by owner_uid for tenant isolation.
+Dual-writes to Cloud Firestore for persistence across Cloud Run cold starts.
 """
 
 from typing import List, Optional
@@ -10,6 +11,11 @@ from sqlalchemy import func
 from app.models.organization import Organization
 from app.models.assessment import Assessment
 from app.schemas.organization import OrganizationCreate, OrganizationUpdate
+from app.db.firestore import firestore_save_org, firestore_delete_org
+
+import logging
+
+logger = logging.getLogger("airs.org_service")
 
 
 class OrganizationService:
@@ -34,6 +40,8 @@ class OrganizationService:
         self.db.add(org)
         self.db.commit()
         self.db.refresh(org)
+        # Dual-write to Firestore for persistence
+        firestore_save_org(org)
         return org
     
     def _base_query(self):
@@ -63,6 +71,8 @@ class OrganizationService:
         
         self.db.commit()
         self.db.refresh(org)
+        # Dual-write to Firestore for persistence
+        firestore_save_org(org)
         return org
     
     def delete(self, org_id: str) -> bool:
@@ -73,6 +83,8 @@ class OrganizationService:
         
         self.db.delete(org)
         self.db.commit()
+        # Remove from Firestore too
+        firestore_delete_org(org_id)
         return True
     
     def get_with_assessment_count(self, org_id: str) -> Optional[dict]:

@@ -123,6 +123,32 @@ class ExternalFindingResponse(BaseModel):
         from_attributes = True
 
 
+class SplunkHecConfigRequest(BaseModel):
+    """Configure a live Splunk HEC connection for evidence-based verification."""
+    base_url: str = Field(..., description="Splunk management URL (e.g. https://splunk.example.com:8089)")
+    hec_token: str = Field(..., min_length=8, description="HTTP Event Collector token")
+
+
+class SplunkEvidenceResult(BaseModel):
+    """Result of a single evidence verification check."""
+    control: str
+    status: str  # verified | partial | not_verified | error | not_configured
+    event_count: int = 0
+    sample_events: List[Dict[str, Any]] = Field(default_factory=list)
+    message: str = ""
+    query_used: str = ""
+    verified_at: Optional[str] = None
+
+
+class SplunkEvidenceResponse(BaseModel):
+    """All evidence verification results for an organization."""
+    org_id: str
+    results: List[SplunkEvidenceResult]
+    overall_status: str  # verified | partial | not_verified | error
+    verified_controls: int = 0
+    total_controls: int = 0
+
+
 class RoadmapTrackerItemCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None

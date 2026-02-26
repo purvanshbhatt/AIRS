@@ -15,6 +15,9 @@ import {
   CheckCircle,
   AlertTriangle,
   ChevronRight,
+  Link2,
+  Copy,
+  Sparkles,
 } from 'lucide-react';
 import {
   getOrganizations,
@@ -22,6 +25,9 @@ import {
   updateOrganizationProfile,
   getApplicableFrameworks,
   getUptimeAnalysis,
+  generateAuditorLink,
+  getGovernanceForecast,
+  GovernanceForecast,
   ApiRequestError,
 } from '../api';
 import type {
@@ -34,7 +40,12 @@ import type {
 
 const REVENUE_BANDS = ['<$10M', '$10M-$50M', '$50M-$250M', '$250M-$1B', '>$1B'];
 const GEO_OPTIONS = ['US', 'EU', 'UK', 'APAC', 'LATAM', 'MEA', 'Canada', 'Global'];
-const TIER_OPTIONS = ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'];
+const TIER_OPTIONS = [
+  { value: 'tier_1', label: 'Tier 1', sla: '99.99%' },
+  { value: 'tier_2', label: 'Tier 2', sla: '99.9%' },
+  { value: 'tier_3', label: 'Tier 3', sla: '99.5%' },
+  { value: 'tier_4', label: 'Tier 4', sla: '99.0%' },
+];
 
 export default function GovernanceProfile() {
   const [searchParams] = useSearchParams();
@@ -50,6 +61,10 @@ export default function GovernanceProfile() {
 
   // Form state
   const [form, setForm] = useState<OrganizationProfileUpdate>({});
+  const [auditorLink, setAuditorLink] = useState<string | null>(null);
+  const [auditorCopied, setAuditorCopied] = useState(false);
+  const [forecast, setForecast] = useState<GovernanceForecast | null>(null);
+  const [forecastLoading, setForecastLoading] = useState(false);
 
   useEffect(() => {
     getOrganizations()
@@ -304,7 +319,7 @@ export default function GovernanceProfile() {
                   >
                     <option value="">Select tier...</option>
                     {TIER_OPTIONS.map((t) => (
-                      <option key={t} value={t}>{t} ({t === 'Tier 1' ? '99.99%' : t === 'Tier 2' ? '99.9%' : t === 'Tier 3' ? '99.5%' : '99.0%'})</option>
+                      <option key={t.value} value={t.value}>{t.label} ({t.sla})</option>
                     ))}
                   </select>
                 </div>
@@ -402,6 +417,61 @@ export default function GovernanceProfile() {
             </CardContent>
           </Card>
 
+          {/* Governance Forecast (Gemini AI) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                Governance Forecast
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {forecast ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+                    {forecast.forecast}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <span className="px-2 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded">
+                      {forecast.focus_area}
+                    </span>
+                    <span>Confidence: {forecast.confidence}</span>
+                    {forecast.llm_generated && (
+                      <span className="flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> AI
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={async () => {
+                    setForecastLoading(true);
+                    try {
+                      const result = await getGovernanceForecast(selectedOrgId);
+                      setForecast(result);
+                    } catch {
+                      setError('Failed to generate forecast');
+                    } finally {
+                      setForecastLoading(false);
+                    }
+                  }}
+                  disabled={forecastLoading || !selectedOrgId}
+                  className="w-full p-3 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-sm text-purple-700 dark:text-purple-300 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {forecastLoading ? (
+                    <>Generating forecast...</>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Generate SOC 2 CC7.1 Forecast
+                    </>
+                  )}
+                </button>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Quick Links</CardTitle>
@@ -421,6 +491,58 @@ export default function GovernanceProfile() {
                 <span className="text-sm text-gray-700 dark:text-slate-300">Tech Stack Registry</span>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </Link>
+              <Link
+                to={`/dashboard/pilot-program?org=${selectedOrgId}`}
+                className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <span className="text-sm text-gray-700 dark:text-slate-300">Pilot Program</span>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </Link>
+
+              {/* Auditor Link Generator */}
+              <div className="pt-3 border-t border-gray-100 dark:border-slate-800">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">Share read-only access with auditors</p>
+                {auditorLink ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={auditorLink}
+                        className="flex-1 text-xs p-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded font-mono"
+                      />
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(auditorLink);
+                          setAuditorCopied(true);
+                          setTimeout(() => setAuditorCopied(false), 2000);
+                        }}
+                        className="p-2 text-gray-500 hover:text-blue-600 transition"
+                        title="Copy link"
+                      >
+                        {auditorCopied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-400">Expires in 72 hours</p>
+                  </div>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const result = await generateAuditorLink(selectedOrgId);
+                        const link = `${window.location.origin}/auditor?token=${result.token}`;
+                        setAuditorLink(link);
+                      } catch {
+                        setError('Failed to generate auditor link');
+                      }
+                    }}
+                    className="flex items-center gap-2 w-full p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-sm text-gray-700 dark:text-slate-300"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    Generate Auditor Link
+                  </button>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -79,6 +79,24 @@ def _auto_create_sqlite_tables():
 
 _auto_create_sqlite_tables()
 
+# ── Firestore → SQLite sync on startup ──
+def _sync_firestore_on_startup():
+    """Pull persistent data from Firestore into ephemeral SQLite."""
+    try:
+        from app.db.firestore import sync_orgs_from_firestore
+        from app.db.database import SessionLocal
+        db = SessionLocal()
+        try:
+            count = sync_orgs_from_firestore(db)
+            if count:
+                logger.info("Firestore startup sync: %d orgs restored", count)
+        finally:
+            db.close()
+    except Exception as e:
+        logger.warning("Firestore startup sync skipped: %s", e)
+
+_sync_firestore_on_startup()
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="ResilAI - AI Incident Readiness Score API",

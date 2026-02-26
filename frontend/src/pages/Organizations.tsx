@@ -16,8 +16,9 @@ import {
   Search,
   ClipboardList,
   ChevronRight,
+  Trash2,
 } from 'lucide-react';
-import { getOrganizations, getAssessments, ApiRequestError } from '../api';
+import { getOrganizations, getAssessments, deleteOrganization, ApiRequestError } from '../api';
 import type { Organization, Assessment } from '../types';
 
 export default function Organizations() {
@@ -64,6 +65,17 @@ export default function Organizations() {
 
     loadData();
   }, []);
+
+  const handleDeleteOrg = async (org: Organization) => {
+    if (!window.confirm(`Delete "${org.name}" and all its assessments? This cannot be undone.`)) return;
+    try {
+      await deleteOrganization(org.id);
+      setOrganizations((prev) => prev.filter((o) => o.id !== org.id));
+      if (selectedOrg?.id === org.id) setSelectedOrg(null);
+    } catch (err) {
+      alert(err instanceof ApiRequestError ? err.toDisplayMessage() : 'Failed to delete organization');
+    }
+  };
 
   const filteredOrgs = organizations.filter(
     (org) =>
@@ -205,12 +217,22 @@ export default function Organizations() {
                         {new Date(selectedOrg.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
-                    <Link to={`/dashboard/assessment/new?org=${selectedOrg.id}`}>
-                      <Button size="sm" className="gap-2">
-                        <ClipboardList className="w-4 h-4" />
-                        New Assessment
+                    <div className="flex items-center gap-2">
+                      <Link to={`/dashboard/assessment/new?org=${selectedOrg.id}`}>
+                        <Button size="sm" className="gap-2">
+                          <ClipboardList className="w-4 h-4" />
+                          New Assessment
+                        </Button>
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        onClick={() => handleDeleteOrg(selectedOrg)}
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
