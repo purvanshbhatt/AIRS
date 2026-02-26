@@ -19,6 +19,9 @@ from app.schemas.integrations import (
     ExternalFindingResponse,
     WebhookUrlTestRequest,
     WebhookUrlTestResponse,
+    SplunkHecConfigRequest,
+    SplunkEvidenceResponse,
+    SplunkEvidenceResult,
 )
 from app.services.integrations import (
     EVENT_ASSESSMENT_SCORED,
@@ -210,3 +213,115 @@ async def test_webhook_url(
         "event_type": data.event_type,
         "payload": payload,
     }
+
+
+# ── Splunk Evidence-Based Verification ──────────────────────────────
+
+
+# In-memory store for Splunk HEC configs per org (staging-only feature).
+# In production, these would be stored encrypted in Firestore/Secret Manager.
+_splunk_configs: dict[str, dict[str, str]] = {}
+
+
+@router.post("/orgs/{org_id}/splunk-config", status_code=status.HTTP_200_OK)
+async def configure_splunk_hec(
+    org_id: str,
+    data: SplunkHecConfigRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Save Splunk HEC credentials for an organization (staging only)."""
+    from app.services.organization import OrganizationService
+    svc = OrganizationService(db, owner_uid=user.uid)
+    org = svc.get(org_id)
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    _splunk_configs[org_id] = {
+        "base_url": data.base_url,
+        "hec_token": data.hec_token,
+    }
+    return {"org_id": org_id, "status": "configured", "base_url": data.base_url}
+
+
+@router.get("/orgs/{org_id}/splunk-config")
+async def get_splunk_config(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Check if Splunk HEC is configured for an organization."""
+    cfg = _splunk_configs.get(org_id)
+    if not cfg:
+        return {"org_id": org_id, "configured": False}
+    return {
+        "org_id": org_id,
+        "configured": True,
+        "base_url": cfg["base_url"],
+        # Never return the token
+    }
+
+
+@router.delete("/orgs/{org_id}/splunk-config", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_splunk_config(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Remove Splunk HEC credentials for an organization."""
+    _splunk_configs.pop(org_id, None)
+
+
+@router.post("/orgs/{org_id}/splunk-evidence", response_model=SplunkEvidenceResponse)
+async def pull_splunk_evidence(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """
+    Pull live evidence from Splunk for MFA enforcement + EDR coverage.
+    Returns verification status with 'Verified via Splunk' badges.
+    """
+    from app.services.organization import OrganizationService
+    svc = OrganizationService(db, owner_uid=user.uid)
+    org = svc.get(org_id)
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    cfg = _splunk_configs.get(org_id)
+    if not cfg:
+        # Return not-configured result instead of error
+        return SplunkEvidenceResponse(
+            org_id=org_id,
+            results=[
+                SplunkEvidenceResult(
+                    control="MFA Enforcement",
+                    status="not_configured",
+                    message="Splunk HEC not configured. Add your Splunk URL and HEC token to enable evidence-based verification.",
+                ),
+                SplunkEvidenceResult(
+                    control="EDR Coverage",
+                    status="not_configured",
+                    message="Splunk HEC not configured. Add your Splunk URL and HEC token to enable evidence-based verification.",
+                ),
+            ],
+            overall_status="not_configured",
+            verified_controls=0,
+            total_controls=2,
+        )
+
+    from app.services.splunk import SplunkService
+    splunk = SplunkService(base_url=cfg["base_url"], hec_token=cfg["hec_token"])
+    raw_results = await splunk.pull_all_evidence()
+
+    results = [SplunkEvidenceResult(**r) for r in raw_results]
+    verified = sum(1 for r in results if r.status == "verified")
+    overall = "verified" if verified == len(results) else "partial" if verified > 0 else "not_verified"
+
+    return SplunkEvidenceResponse(
+        org_id=org_id,
+        results=results,
+        overall_status=overall,
+        verified_controls=verified,
+        total_controls=len(results),
+    )

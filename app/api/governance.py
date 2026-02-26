@@ -10,6 +10,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
+from app.db.firestore import firestore_save_org
 from app.core.auth import require_auth, User
 from app.models.organization import Organization
 from app.schemas.organization import (
@@ -21,6 +22,7 @@ from app.schemas.compliance import ComplianceApplicabilityResponse
 from app.services.governance.compliance_engine import get_applicable_frameworks
 from app.services.governance.validation_engine import validate_organization
 from app.services.organization import OrganizationService
+from app.services.governance_forecast import generate_governance_forecast
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -123,6 +125,9 @@ async def update_profile(
 
     db.commit()
     db.refresh(org)
+
+    # Dual-write to Firestore for persistence
+    firestore_save_org(org)
 
     geo_regions = []
     if org.geo_regions:
@@ -303,3 +308,64 @@ async def get_governance_health_index(
         "passed": result.passed,
         "issues": result.issues,
     }
+
+
+# ── Governance Forecast (Gemini) ─────────────────────────────────────
+
+@router.get(
+    "/{org_id}/forecast",
+    summary="Get Governance Forecast",
+    description=(
+        "AI-powered forward-looking governance prediction. Uses Gemini to "
+        "analyze the org's tech stack and profile, predicting SOC 2 CC7.1 "
+        "readiness gaps. Falls back to deterministic analysis if LLM is unavailable."
+    ),
+    tags=["governance"],
+)
+async def get_governance_forecast(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """GET /api/governance/{org_id}/forecast"""
+    org = _get_org(db, user, org_id)
+
+    # Gather org data for the forecast
+    geo_regions = []
+    if org.geo_regions:
+        try:
+            geo_regions = json.loads(org.geo_regions)
+        except (json.JSONDecodeError, TypeError):
+            geo_regions = []
+
+    # Gather tech stack items if available
+    tech_stack = []
+    try:
+        from app.models.tech_stack import TechStackItem
+        items = db.query(TechStackItem).filter(
+            TechStackItem.org_id == org_id
+        ).all()
+        tech_stack = [
+            {"name": item.name, "category": item.category, "version": item.version}
+            for item in items
+        ]
+    except Exception:
+        pass
+
+    org_data = {
+        "name": org.name,
+        "revenue_band": org.revenue_band,
+        "employee_count": org.employee_count,
+        "application_tier": org.application_tier,
+        "sla_target": org.sla_target,
+        "processes_pii": bool(org.processes_pii),
+        "processes_phi": bool(org.processes_phi),
+        "processes_cardholder_data": bool(org.processes_cardholder_data),
+        "uses_ai_in_production": bool(org.uses_ai_in_production),
+        "government_contractor": bool(org.government_contractor),
+        "geo_regions": geo_regions,
+        "tech_stack": tech_stack,
+    }
+
+    result = await generate_governance_forecast(org_data)
+    return {"org_id": org.id, **result}

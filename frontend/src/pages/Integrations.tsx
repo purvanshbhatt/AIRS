@@ -13,6 +13,10 @@ import {
   getExternalFindings,
   getOrganizations,
   ApiRequestError,
+  configureSplunkHec,
+  getSplunkConfig,
+  removeSplunkConfig,
+  pullSplunkEvidence,
 } from '../api';
 import type {
   ApiKeyMetadata,
@@ -21,6 +25,7 @@ import type {
   Organization,
   Webhook,
 } from '../types';
+import type { SplunkEvidenceResponse } from '../api';
 import {
   Card,
   CardHeader,
@@ -64,6 +69,14 @@ export default function Integrations() {
   const [webhookTestResult, setWebhookTestResult] = useState('');
   const [webhookTestPayload, setWebhookTestPayload] = useState('');
 
+  // Splunk HEC configuration
+  const [splunkBaseUrl, setSplunkBaseUrl] = useState('');
+  const [splunkHecToken, setSplunkHecToken] = useState('');
+  const [splunkConfigured, setSplunkConfigured] = useState(false);
+  const [splunkConfigUrl, setSplunkConfigUrl] = useState('');
+  const [evidenceResults, setEvidenceResults] = useState<SplunkEvidenceResponse | null>(null);
+  const [evidenceLoading, setEvidenceLoading] = useState(false);
+
   const selectedOrgName = useMemo(
     () => organizations.find((o) => o.id === selectedOrgId)?.name || 'Organization',
     [organizations, selectedOrgId]
@@ -102,6 +115,14 @@ export default function Integrations() {
         setWebhooks(hooks);
         setExternalFindings(findings);
         setSplunkConnected(findings.length > 0);
+        // Check if Splunk HEC is configured
+        try {
+          const cfg = await getSplunkConfig(selectedOrgId);
+          setSplunkConfigured(cfg.configured);
+          setSplunkConfigUrl(cfg.base_url || '');
+        } catch {
+          setSplunkConfigured(false);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load integrations');
       }
@@ -248,6 +269,62 @@ export default function Integrations() {
       setError(err instanceof Error ? err.message : 'Failed to seed findings');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleConfigureSplunkHec = async () => {
+    if (!selectedOrgId || !splunkBaseUrl.trim() || !splunkHecToken.trim()) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await configureSplunkHec(selectedOrgId, splunkBaseUrl.trim(), splunkHecToken.trim());
+      setSplunkConfigured(true);
+      setSplunkConfigUrl(splunkBaseUrl.trim());
+      setSplunkHecToken('');
+      setNotice('Splunk HEC configured successfully.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to configure Splunk HEC');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRemoveSplunkConfig = async () => {
+    if (!selectedOrgId) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await removeSplunkConfig(selectedOrgId);
+      setSplunkConfigured(false);
+      setSplunkConfigUrl('');
+      setEvidenceResults(null);
+      setNotice('Splunk HEC configuration removed.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove Splunk config');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePullEvidence = async () => {
+    if (!selectedOrgId) return;
+    setEvidenceLoading(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await pullSplunkEvidence(selectedOrgId);
+      setEvidenceResults(result);
+      if (result.overall_status === 'verified') {
+        setNotice(`All ${result.verified_controls} controls verified via Splunk evidence.`);
+      } else if (result.overall_status === 'partial') {
+        setNotice(`${result.verified_controls}/${result.total_controls} controls verified via Splunk.`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to pull Splunk evidence');
+    } finally {
+      setEvidenceLoading(false);
     }
   };
 
@@ -493,19 +570,121 @@ export default function Integrations() {
             Splunk Connector (Public Beta)
           </CardTitle>
           <CardDescription>
-            Seed realistic synthetic external findings into ResilAI for integration previews.
+            Connect your Splunk instance for evidence-based security verification, or seed synthetic findings for demos.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* HEC Configuration */}
+          <div className="p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-50 dark:bg-slate-900/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Splunk HEC Configuration</h3>
+              {splunkConfigured && (
+                <Badge variant="default" className="gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Configured
+                </Badge>
+              )}
+            </div>
+            {splunkConfigured ? (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600 dark:text-slate-300">
+                  Connected to: <span className="font-mono text-xs">{splunkConfigUrl}</span>
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" onClick={handlePullEvidence} disabled={busy || evidenceLoading || !selectedOrgId}>
+                    {evidenceLoading ? 'Pulling Evidence...' : 'Pull Live Evidence'}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleRemoveSplunkConfig} disabled={busy}>
+                    Disconnect
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Input
+                  label="Splunk URL"
+                  value={splunkBaseUrl}
+                  onChange={(e) => setSplunkBaseUrl(e.target.value)}
+                  placeholder="https://splunk.example.com:8089"
+                />
+                <Input
+                  label="HEC Token"
+                  value={splunkHecToken}
+                  onChange={(e) => setSplunkHecToken(e.target.value)}
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                />
+                <Button
+                  size="sm"
+                  onClick={handleConfigureSplunkHec}
+                  disabled={busy || !selectedOrgId || !splunkBaseUrl.trim() || !splunkHecToken.trim()}
+                >
+                  Connect Splunk HEC
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Evidence Verification Results */}
+          {evidenceResults && (
+            <div className="p-4 border border-gray-200 dark:border-slate-700 rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Evidence Verification</h3>
+                <Badge variant={
+                  evidenceResults.overall_status === 'verified' ? 'default' :
+                  evidenceResults.overall_status === 'partial' ? 'outline' : 'outline'
+                }>
+                  {evidenceResults.verified_controls}/{evidenceResults.total_controls} Controls Verified
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                {evidenceResults.results.map((result, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-lg border ${
+                      result.status === 'verified'
+                        ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
+                        : result.status === 'partial'
+                        ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
+                        : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{result.control}</span>
+                      <span className="inline-flex items-center gap-1 text-xs font-medium">
+                        {result.status === 'verified' ? (
+                          <span className="text-green-700 dark:text-green-300 flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            Verified via Splunk
+                          </span>
+                        ) : result.status === 'partial' ? (
+                          <span className="text-amber-700 dark:text-amber-300">Partial Evidence</span>
+                        ) : result.status === 'not_configured' ? (
+                          <span className="text-gray-500 dark:text-slate-400">Not Configured</span>
+                        ) : (
+                          <span className="text-red-700 dark:text-red-300">Not Verified</span>
+                        )}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-slate-400 mt-1">{result.message}</p>
+                    {result.event_count > 0 && (
+                      <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">{result.event_count} events found</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Mock Seed / External Findings */}
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={splunkConnected ? 'default' : 'outline'}>
-              {splunkConnected ? 'Connected' : 'Not Connected'}
+              {splunkConnected ? 'Findings Synced' : 'No Findings'}
             </Badge>
             <Button size="sm" onClick={handleConnectSplunk} disabled={busy || !selectedOrgId}>
-              Connect Splunk
+              Seed Mock Findings
             </Button>
             <Button size="sm" variant="outline" onClick={handleSeedFindings} disabled={busy || !selectedOrgId}>
-              Seed Example Findings
+              Add More Findings
             </Button>
             <Button size="sm" variant="outline" onClick={reload} disabled={busy || !selectedOrgId} className="gap-2">
               <RefreshCw className="w-4 h-4" />

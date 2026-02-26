@@ -11,6 +11,8 @@ from app.api import (
     governance,
     audit_calendar,
     tech_stack,
+    pilot_program,
+    auditor_view,
 )
 from app.api.v1 import router as v1_router
 
@@ -32,3 +34,5 @@ router.include_router(v1_router, prefix="/v1", tags=["v1"])
 router.include_router(governance.router, prefix="/governance", tags=["governance"])
 router.include_router(audit_calendar.router, prefix="/governance", tags=["audit-calendar"])
 router.include_router(tech_stack.router, prefix="/governance", tags=["tech-stack"])
+router.include_router(pilot_program.router, prefix="/governance", tags=["pilot-program"])
+router.include_router(auditor_view.router, prefix="/governance", tags=["auditor-view"])
