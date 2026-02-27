@@ -57,7 +57,7 @@ graph TD
 
 ## Links
 
-- Public Beta: `https://airs-staging-0384513977.web.app`
+- Live Demo: `https://gen-lang-client-0384513977.web.app`
 - Staging API health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
 - Staging API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 - Docs index: `index.md`

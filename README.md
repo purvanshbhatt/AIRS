@@ -2,7 +2,7 @@
 
 **ResilAI** is an **AI Incident Readiness Platform** that helps organizations measure, improve, and report their preparedness for AI-era security incidents.
 
-[Public Beta](https://airs-staging-0384513977.web.app) | [Staging API Docs](https://airs-api-staging-227825933697.us-central1.run.app/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
+[Live Demo](https://gen-lang-client-0384513977.web.app) | [API Docs](https://airs-api-227825933697.us-central1.run.app/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
 
 ## Problem Statement
 Most organizations have SIEM, endpoint, and cloud tooling, but still lack a clear and repeatable way to answer:
@@ -37,10 +37,10 @@ graph TD
   BE --> RUN[Google Cloud Run]
 ```
 
-## Public Beta
-- Frontend (staging): `https://airs-staging-0384513977.web.app`
-- Backend health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
-- Backend docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
+## Live Demo
+- Frontend (demo): `https://gen-lang-client-0384513977.web.app`
+- Backend health: `https://airs-api-227825933697.us-central1.run.app/health`
+- Backend docs: `https://airs-api-227825933697.us-central1.run.app/docs`
 
 ## Screenshots
 

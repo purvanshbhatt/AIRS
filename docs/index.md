@@ -11,7 +11,7 @@ Welcome to the documentation hub for **ResilAI**, the AI Incident Readiness Plat
 
 ## Product Links
 
-- Public Beta: `https://airs-staging-0384513977.web.app`
+- Live Demo: `https://gen-lang-client-0384513977.web.app`
 - Staging API Docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 
 ## Additional Runbooks
