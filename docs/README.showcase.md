@@ -8,7 +8,7 @@ ResilAI is an AI Incident Readiness Platform that helps organizations measure re
 
 ## Public Beta Links
 
-- Frontend: `https://airs-staging-0384513977.web.app`
+- Frontend: `https://gen-lang-client-0384513977.web.app`
 - API health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
 - API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 
