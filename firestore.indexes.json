@@ -1,0 +1,113 @@
+{
+  "indexes": [
+    {
+      "__comment": "Organizations sorted by creation date (descending)",
+      "collectionGroup": "organizations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "__comment": "Assessments by org + status for filtered queries",
+      "collectionGroup": "assessments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "__comment": "Assessments by org + risk_score for ranked risk views",
+      "collectionGroup": "assessments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "overall_score", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "__comment": "Assessments by org sorted by creation date",
+      "collectionGroup": "assessments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "__comment": "Audit events by org + due_date for upcoming audits",
+      "collectionGroup": "audit_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "audit_date", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "__comment": "Audit calendar entries by org + audit_date",
+      "collectionGroup": "audit_calendar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "audit_date", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "__comment": "Tech stack by org + category for grouped views",
+      "collectionGroup": "tech_stack",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "__comment": "Tech stack by org + lts_status for lifecycle filtering",
+      "collectionGroup": "tech_stack",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "lts_status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "__comment": "Findings by org + severity for risk prioritization",
+      "collectionGroup": "findings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "severity", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "__comment": "Findings by org + status for remediation tracking",
+      "collectionGroup": "findings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "__comment": "Reports by org + created_at for history",
+      "collectionGroup": "reports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organization_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "__comment": "Enable array-contains queries on findings.domains",
+      "collectionGroup": "findings",
+      "fieldPath": "domains",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" }
+      ]
+    }
+  ]
+}

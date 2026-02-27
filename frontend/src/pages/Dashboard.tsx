@@ -35,6 +35,7 @@ import {
   getGovernanceHealthIndex,
   ApiRequestError,
 } from '../api';
+import { useDemoMode } from '../contexts';
 import type { Organization, Assessment, ApplicableFramework, AuditCalendarEntry } from '../types';
 import type { GHIResponse } from '../api';
 import GHIGauge from '../components/GHIGauge';
@@ -74,7 +75,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const { isDemoMode, isReadOnly } = useDemoMode();
   const [exampleAssessmentId, setExampleAssessmentId] = useState<string | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
@@ -107,7 +108,7 @@ export default function Dashboard() {
           getAssessments(),
           getSystemStatus().catch(() => null),
         ]);
-        setIsDemoMode(Boolean(systemStatus?.demo_mode));
+        // System status is now managed by DemoModeContext
         setOrganizations(orgs);
         setAssessments(loadedAssessments);
         if (orgs.length > 0) {
@@ -289,18 +290,22 @@ export default function Dashboard() {
               ))}
             </select>
           </div>
-          <Link to="/dashboard/org/new">
-            <Button variant="outline" className="gap-2">
-              <Plus className="w-4 h-4" />
-              New Organization
-            </Button>
-          </Link>
-          <Link to="/dashboard/assessment/new">
-            <Button className="gap-2">
-              <ClipboardList className="w-4 h-4" />
-              New Assessment
-            </Button>
-          </Link>
+          {!isReadOnly && (
+            <>
+              <Link to="/dashboard/org/new">
+                <Button variant="outline" className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  New Organization
+                </Button>
+              </Link>
+              <Link to="/dashboard/assessment/new">
+                <Button className="gap-2">
+                  <ClipboardList className="w-4 h-4" />
+                  New Assessment
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 

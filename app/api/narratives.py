@@ -14,6 +14,7 @@ from typing import List
 from app.db.database import get_db
 from app.core.config import settings
 from app.core.auth import require_auth, User
+from app.core.demo_guard import require_writable
 from app.schemas.narrative import (
     NarrativeRequest,
     NarrativeResponse,
@@ -72,7 +73,8 @@ async def generate_narratives(
     assessment_id: str,
     request: NarrativeRequest = NarrativeRequest(),
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """
     Generate AI-assisted narratives for an assessment.

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useIsReadOnly } from '../contexts';
 import {
   getOrganizations,
   activatePilot,
@@ -50,6 +51,7 @@ const GRADE_COLORS: Record<string, string> = {
 export default function PilotDashboard() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrgId, setSelectedOrgId] = useState('');
+  const isReadOnly = useIsReadOnly();
   const [pilot, setPilot] = useState<PilotProgram | null>(null);
   const [confidence, setConfidence] = useState<ConfidenceBreakdown | null>(null);
   const [loading, setLoading] = useState(true);
@@ -188,10 +190,12 @@ export default function PilotDashboard() {
               Activate a guided 30-day program that prepares <strong>{selectedOrgName}</strong> for audit readiness.
               Track milestones, measure progress, and generate a Pre-Audit Confidence Score.
             </p>
-            <Button onClick={handleActivate} disabled={busy || !selectedOrgId}>
-              <Rocket className="w-4 h-4 mr-2" />
-              Activate Readiness Sprint
-            </Button>
+            {!isReadOnly && (
+              <Button onClick={handleActivate} disabled={busy || !selectedOrgId}>
+                <Rocket className="w-4 h-4 mr-2" />
+                Activate Readiness Sprint
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -281,7 +285,7 @@ export default function PilotDashboard() {
                 >
                   <button
                     onClick={() => handleToggleMilestone(milestone)}
-                    disabled={busy}
+                    disabled={busy || isReadOnly}
                     className="mt-0.5 flex-shrink-0"
                   >
                     {milestone.status === 'completed' ? (

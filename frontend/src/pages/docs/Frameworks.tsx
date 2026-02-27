@@ -1,7 +1,12 @@
-import React from 'react';
-import { Shield, ExternalLink, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Shield, ExternalLink, AlertTriangle, CheckCircle, RefreshCw, Eye, EyeOff, Zap, Scale, Brain, Clock } from 'lucide-react';
+import { useDemoMode } from '../../contexts';
 
 export default function DocsFrameworks() {
+    const { systemStatus } = useDemoMode();
+    const isStaging = systemStatus?.environment === 'staging';
+    const [showFuture, setShowFuture] = useState(false);
+
     return (
         <div className="space-y-12">
             {/* Header */}
@@ -13,10 +18,28 @@ export default function DocsFrameworks() {
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                     Security Framework Mappings
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
-                    ResilAI findings automatically map to industry-standard security frameworks,
-                    enabling compliance alignment and standardized remediation.
-                </p>
+                <div className="flex items-center justify-between">
+                    <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
+                        ResilAI findings automatically map to industry-standard security frameworks,
+                        enabling compliance alignment and standardized remediation.
+                    </p>
+                    {isStaging && (
+                        <button
+                            onClick={() => setShowFuture(!showFuture)}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border ${
+                                showFuture
+                                    ? 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700'
+                                    : 'bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600'
+                            }`}
+                        >
+                            {showFuture ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {showFuture ? 'Hide' : 'Show'} Future Regulations
+                            <span className="px-1.5 py-0.5 text-xs bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-300 rounded">
+                                STAGING
+                            </span>
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* MITRE ATT&CK */}
@@ -285,6 +308,141 @@ export default function DocsFrameworks() {
                     </a>
                 </div>
             </section>
+
+            {/* Future Regulations — Staging Only */}
+            {isStaging && showFuture && (
+                <section>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                            <Zap className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                            Future Regulations
+                        </h2>
+                        <span className="px-2 py-0.5 text-xs bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-300 rounded-full font-medium">
+                            PREVIEW
+                        </span>
+                    </div>
+
+                    <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-purple-200 dark:border-purple-700">
+                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            Upcoming regulatory frameworks that will impact organizational compliance posture.
+                            ResilAI is mapping assessment domains to predicted regulatory requirements for
+                            proactive gap analysis.
+                        </p>
+
+                        {/* EU AI Act */}
+                        <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center gap-3 mb-3">
+                                <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                <h3 className="font-semibold text-gray-900 dark:text-gray-100">EU Artificial Intelligence Act</h3>
+                                <span className="text-xs px-2 py-0.5 bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-300 rounded">
+                                    Effective Aug 2025
+                                </span>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                The EU AI Act establishes a risk-based regulatory framework for AI systems.
+                                Organizations deploying high-risk AI must demonstrate conformity assessments,
+                                transparency obligations, and human oversight requirements.
+                            </p>
+
+                            <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+                                Predicted Gap Areas for AIRS Organizations:
+                            </h4>
+                            <div className="grid sm:grid-cols-2 gap-2 mb-4">
+                                {[
+                                    { area: 'AI Model Inventory', gap: 'Shadow AI detection gaps', risk: 'high' },
+                                    { area: 'Data Governance', gap: 'Training data provenance tracking', risk: 'high' },
+                                    { area: 'Risk Classification', gap: 'AI system risk tier classification', risk: 'medium' },
+                                    { area: 'Transparency', gap: 'Model explainability documentation', risk: 'medium' },
+                                    { area: 'Human Oversight', gap: 'Automated decision review processes', risk: 'high' },
+                                    { area: 'Monitoring', gap: 'Post-deployment AI performance monitoring', risk: 'low' },
+                                ].map((item) => (
+                                    <div key={item.area} className={`p-2 rounded border text-sm ${
+                                        item.risk === 'high' ? 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10' :
+                                        item.risk === 'medium' ? 'border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/10' :
+                                        'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10'
+                                    }`}>
+                                        <div className="font-medium text-gray-800 dark:text-gray-200">{item.area}</div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">{item.gap}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <a
+                                href="https://artificialintelligenceact.eu/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline text-sm"
+                            >
+                                Learn more about EU AI Act
+                                <ExternalLink className="w-3 h-3" />
+                            </a>
+                        </div>
+
+                        {/* DORA */}
+                        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-3 mb-3">
+                                <Scale className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                <h3 className="font-semibold text-gray-900 dark:text-gray-100">DORA — Digital Operational Resilience Act</h3>
+                                <span className="text-xs px-2 py-0.5 bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-300 rounded">
+                                    Effective Jan 2025
+                                </span>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                EU regulation for financial sector ICT risk management, requiring continuous
+                                operational resilience testing and third-party risk management. AIRS GHI scoring
+                                maps directly to DORA&apos;s ICT risk management framework.
+                            </p>
+                            <div className="grid sm:grid-cols-3 gap-2">
+                                {[
+                                    'ICT Risk Management',
+                                    'Incident Reporting',
+                                    'Resilience Testing',
+                                    'Third-Party Risk',
+                                    'Information Sharing',
+                                    'Oversight Framework',
+                                ].map((pillar) => (
+                                    <div key={pillar} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                        <CheckCircle className="w-3 h-3 text-blue-500" />
+                                        {pillar}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* NIS2 Directive */}
+                        <div className="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
+                            <div className="flex items-center gap-3 mb-3">
+                                <Shield className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                                <h3 className="font-semibold text-gray-900 dark:text-gray-100">NIS2 Directive</h3>
+                                <span className="text-xs px-2 py-0.5 bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-300 rounded">
+                                    Effective Oct 2024
+                                </span>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                Expanded EU cybersecurity directive covering essential and important entities.
+                                Requires supply chain security, incident response within 24 hours, and
+                                management body accountability — all areas tracked by AIRS assessments.
+                            </p>
+                            <div className="grid sm:grid-cols-2 gap-2">
+                                {[
+                                    { label: 'Risk Assessment', mapped: true },
+                                    { label: 'Incident Handling', mapped: true },
+                                    { label: 'Business Continuity', mapped: true },
+                                    { label: 'Supply Chain Security', mapped: false },
+                                ].map((item) => (
+                                    <div key={item.label} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                        {item.mapped ? <CheckCircle className="w-3 h-3 text-teal-500" /> : <Clock className="w-3 h-3 text-gray-400" />}
+                                        {item.label}
+                                        {!item.mapped && <span className="text-xs text-gray-400">(planned)</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* How It Works */}
             <section className="p-6 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">

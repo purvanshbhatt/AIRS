@@ -1,12 +1,12 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { DashboardLayout } from './components/layout';
 import DocsLayout from './components/layout/DocsLayout';
 import { ToastProvider } from './components/ui';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, DemoModeProvider, useDemoMode } from './contexts';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
-import { setUnauthorizedHandler, getSystemStatus } from './api';
+import { setUnauthorizedHandler } from './api';
 
 // Pages
 import Landing from './pages/Landing';
@@ -30,6 +30,7 @@ import AuditCalendar from './pages/AuditCalendar';
 import TechStack from './pages/TechStack';
 import PilotDashboard from './pages/PilotDashboard';
 import AuditorView from './pages/AuditorView';
+import ComplianceDrift from './pages/ComplianceDrift';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
@@ -46,20 +47,23 @@ function ApiConfigBanner() {
 }
 
 function PublicBetaBanner() {
-  const [isDemoMode, setIsDemoMode] = useState(false);
-
-  useEffect(() => {
-    getSystemStatus()
-      .then((status) => setIsDemoMode(status.demo_mode))
-      .catch(() => setIsDemoMode(false));
-  }, []);
+  const { isDemoMode, isReadOnly } = useDemoMode();
 
   if (!isDemoMode) return null;
 
   return (
     <div className="bg-blue-600 text-white px-4 py-2 text-center text-sm font-medium">
-      Public Beta
-      <span className="ml-2 opacity-90">This environment contains synthetic example data.</span>
+      {isReadOnly ? (
+        <>
+          Demo Mode — Read Only
+          <span className="ml-2 opacity-90">This environment contains synthetic example data and is read-only.</span>
+        </>
+      ) : (
+        <>
+          Public Beta
+          <span className="ml-2 opacity-90">This environment contains synthetic example data.</span>
+        </>
+      )}
     </div>
   );
 }
@@ -83,6 +87,7 @@ function DashboardRoutes() {
           <Route path="/audit-calendar" element={<AuditCalendar />} />
           <Route path="/tech-stack" element={<TechStack />} />
           <Route path="/pilot-program" element={<PilotDashboard />} />
+          <Route path="/compliance-drift" element={<ComplianceDrift />} />
         </Routes>
       </DashboardLayout>
     </ProtectedRoute>
@@ -107,71 +112,73 @@ function AuthRedirectHandler() {
 export default function App() {
   return (
     <AuthProvider>
-      <ToastProvider>
-        <AuthRedirectHandler />
-        <ApiConfigBanner />
-        <PublicBetaBanner />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/security" element={<SecurityPage />} />
-          <Route path="/pilot" element={<PilotPage />} />
-          <Route path="/status" element={<StatusPage />} />
-          <Route path="/auditor" element={<AuditorView />} />
+      <DemoModeProvider>
+        <ToastProvider>
+          <AuthRedirectHandler />
+          <ApiConfigBanner />
+          <PublicBetaBanner />
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/pilot" element={<PilotPage />} />
+            <Route path="/status" element={<StatusPage />} />
+            <Route path="/auditor" element={<AuditorView />} />
 
-          <Route path="/dashboard/*" element={<DashboardRoutes />} />
+            <Route path="/dashboard/*" element={<DashboardRoutes />} />
 
-          <Route
-            path="/assessment/new"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <NewAssessment />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/org/new"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <NewOrg />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/results/:id"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <Results />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings/integrations"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <Integrations />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/assessment/new"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <NewAssessment />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/org/new"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <NewOrg />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/results/:id"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Results />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/integrations"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Integrations />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route path="/docs" element={<DocsLayout />}>
-            <Route index element={<DocsOverview />} />
-            <Route path="methodology" element={<DocsMethodology />} />
-            <Route path="frameworks" element={<DocsFrameworks />} />
-            <Route path="security" element={<DocsSecurity />} />
-            <Route path="api" element={<DocsApi />} />
-          </Route>
-        </Routes>
-      </ToastProvider>
+            <Route path="/docs" element={<DocsLayout />}>
+              <Route index element={<DocsOverview />} />
+              <Route path="methodology" element={<DocsMethodology />} />
+              <Route path="frameworks" element={<DocsFrameworks />} />
+              <Route path="security" element={<DocsSecurity />} />
+              <Route path="api" element={<DocsApi />} />
+            </Route>
+          </Routes>
+        </ToastProvider>
+      </DemoModeProvider>
     </AuthProvider>
   );
 }

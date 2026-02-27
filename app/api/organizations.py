@@ -3,6 +3,8 @@ Organization API routes.
 
 All endpoints enforce tenant isolation using Firebase user UID.
 Users can only access their own organizations.
+
+In demo mode (ENV=demo), write operations are blocked.
 """
 
 import json
@@ -13,6 +15,7 @@ from typing import List
 from app.db.database import get_db
 from app.core.logging import event_logger
 from app.core.auth import require_auth, User
+from app.core.demo_guard import require_writable
 from app.schemas.organization import (
     OrganizationCreate,
     OrganizationUpdate,
@@ -41,14 +44,16 @@ def get_org_service(db: Session, user: User) -> OrganizationService:
     description="Create a new organization owned by the authenticated user.",
     responses={
         201: {"description": "Organization created successfully"},
-        401: {"description": "Authentication required"}
+        401: {"description": "Authentication required"},
+        403: {"description": "Demo mode - write operations disabled"}
     }
 )
 async def create_organization(
     request: Request,
     data: OrganizationCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Create a new organization owned by the current user."""
     request_id = getattr(request.state, 'request_id', 'unknown')
@@ -105,9 +110,10 @@ async def update_organization(
     org_id: str,
     data: OrganizationUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
-    """Update an organization (must be owned by current user)."""
+    """Update an organization (must be owned by current user). Disabled in demo mode."""
     service = get_org_service(db, user)
     org = service.update(org_id, data)
     if not org:
@@ -122,9 +128,10 @@ async def update_organization(
 async def delete_organization(
     org_id: str,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
-    """Delete an organization (must be owned by current user)."""
+    """Delete an organization (must be owned by current user). Disabled in demo mode."""
     service = get_org_service(db, user)
     if not service.delete(org_id):
         raise HTTPException(

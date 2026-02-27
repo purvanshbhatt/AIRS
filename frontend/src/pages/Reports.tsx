@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useIsReadOnly } from '../contexts';
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import type { Report } from '../types';
 
 export default function Reports() {
   const [loading, setLoading] = useState(true);
+  const isReadOnly = useIsReadOnly();
   const [error, setError] = useState<string | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [totalReports, setTotalReports] = useState(0);
@@ -242,15 +244,17 @@ export default function Reports() {
                       />
                       {downloading === report.id ? 'Downloading...' : 'Download'}
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(report)}
-                      disabled={deleting === report.id}
-                      className="gap-1.5 text-red-600 dark:text-red-300 hover:text-red-700 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    >
-                      <Trash2 className={`w-4 h-4 ${deleting === report.id ? 'animate-pulse' : ''}`} />
-                    </Button>
+                    {!isReadOnly && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(report)}
+                        disabled={deleting === report.id}
+                        className="gap-1.5 text-red-600 dark:text-red-300 hover:text-red-700 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 className={`w-4 h-4 ${deleting === report.id ? 'animate-pulse' : ''}`} />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>

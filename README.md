@@ -2,7 +2,7 @@
 
 **ResilAI** is an **AI Incident Readiness Platform** that helps organizations measure, improve, and report their preparedness for AI-era security incidents.
 
-[Public Beta](https://airs-staging-0384513977.web.app) | [Staging API Docs](https://airs-api-staging-227825933697.us-central1.run.app/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
+[Live Demo](https://gen-lang-client-0384513977.web.app) | [API Docs](https://airs-api-227825933697.us-central1.run.app/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
 
 ## Problem Statement
 Most organizations have SIEM, endpoint, and cloud tooling, but still lack a clear and repeatable way to answer:
@@ -37,10 +37,31 @@ graph TD
   BE --> RUN[Google Cloud Run]
 ```
 
-## Public Beta
-- Frontend (staging): `https://airs-staging-0384513977.web.app`
-- Backend health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
-- Backend docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
+## Live Demo
+- Frontend (demo): `https://gen-lang-client-0384513977.web.app`
+- Backend health: `https://airs-api-227825933697.us-central1.run.app/health`
+- Backend docs: `https://airs-api-227825933697.us-central1.run.app/docs`
+
+## Environments
+
+ResilAI operates in three distinct environments:
+
+| Environment | Purpose | URLs | Writes |
+|---|---|---|---|
+| **Demo** | Investor presentations, frozen synthetic data | `gen-lang-client-0384513977.web.app` | ❌ Read-only |
+| **Staging** | Active development, testing | `airs-staging-0384513977.web.app` | ✅ Enabled |
+| **Local** | Developer workstations | `localhost:5173` / `localhost:8000` | ✅ Enabled |
+
+### Demo Mode
+
+When `ENV=demo`, all write endpoints return **403 Forbidden**. This ensures:
+- Synthetic demo data remains pristine for investor presentations
+- UI buttons that trigger writes are hidden in the frontend
+- Backend enforces read-only at the API layer via `require_writable` guards
+
+Demo mode is controlled by:
+- Backend: `ENV=demo` in `gcp/env.prod.yaml`
+- Frontend: `/health/system` endpoint returns `is_read_only: true`
 
 ## Screenshots
 

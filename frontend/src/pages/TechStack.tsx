@@ -16,6 +16,13 @@ import {
   AlertTriangle,
   ShieldAlert,
   X,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  XCircle,
+  Info,
+  TrendingUp,
+  Brain,
 } from 'lucide-react';
 import {
   getOrganizations,
@@ -24,6 +31,7 @@ import {
   deleteTechStackItem,
   ApiRequestError,
 } from '../api';
+import { useIsReadOnly, useDemoMode } from '../contexts';
 import type {
   Organization,
   TechStackItem,
@@ -31,7 +39,7 @@ import type {
   TechStackSummary,
 } from '../types';
 
-const CATEGORIES = [
+const BASE_CATEGORIES = [
   'Operating System',
   'Language Runtime',
   'Framework',
@@ -43,6 +51,46 @@ const CATEGORIES = [
   'Library',
   'Other',
 ];
+
+// AI Model category is staging-only (Shadow AI governance)
+const STAGING_CATEGORIES = [...BASE_CATEGORIES.slice(0, -1), 'AI Model', 'Other'];
+
+// Parse Shadow AI metadata from notes field
+function parseAIMetadata(notes?: string): { dataSensitivity?: string; aiModelTier?: string } | null {
+  if (!notes) return null;
+  try {
+    const parsed = JSON.parse(notes);
+    if (parsed.data_sensitivity || parsed.ai_model_tier) {
+      return { dataSensitivity: parsed.data_sensitivity, aiModelTier: parsed.ai_model_tier };
+    }
+  } catch { /* not JSON metadata */ }
+  return null;
+}
+
+function ShadowAIBadge({ item }: { item: TechStackItem }) {
+  if (item.category !== 'AI Model') return null;
+  const meta = parseAIMetadata(item.notes);
+  if (!meta) {
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+        <Brain className="w-3 h-3" /> No governance metadata
+      </span>
+    );
+  }
+  const isCritical = meta.dataSensitivity === 'HIGH' && meta.aiModelTier === 'unsanctioned';
+  const isWarning = meta.aiModelTier === 'unsanctioned' || meta.aiModelTier === 'banned';
+  return (
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded border ${
+      isCritical ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' :
+      isWarning ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' :
+      'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700'
+    }`}>
+      <Brain className="w-3 h-3" />
+      {isCritical ? 'SHADOW AI — CRITICAL' : isWarning ? `Unsanctioned` : meta.aiModelTier || 'sanctioned'}
+      {meta.dataSensitivity && <span className="opacity-70">({meta.dataSensitivity})</span>}
+    </span>
+  );
+}
 
 const LTS_OPTIONS: { value: string; label: string }[] = [
   { value: 'lts', label: 'LTS (Long Term Support)' },
@@ -60,6 +108,9 @@ export default function TechStack() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const isReadOnly = useIsReadOnly();
+  const { systemStatus } = useDemoMode();
+  const isStaging = systemStatus?.environment === 'staging';
 
   const [newItem, setNewItem] = useState<TechStackItemCreate>({
     component_name: '',
@@ -145,6 +196,81 @@ export default function TechStack() {
     return <Badge variant="outline">Low</Badge>;
   };
 
+  // Get lifecycle status info for enhanced display
+  const getLifecycleInfo = (item: TechStackItem) => {
+    const info = {
+      icon: CheckCircle2,
+      label: 'Up-to-date',
+      description: 'Current supported version',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-900/20',
+      borderColor: 'border-green-200 dark:border-green-800',
+      badgeVariant: 'default' as const,
+    };
+
+    if (item.lts_status === 'eol') {
+      return {
+        icon: XCircle,
+        label: 'End of Life',
+        description: 'No security patches — CRITICAL vulnerability exposure',
+        color: 'text-red-600',
+        bgColor: 'bg-red-50 dark:bg-red-900/20',
+        borderColor: 'border-red-300 dark:border-red-800',
+        badgeVariant: 'danger' as const,
+      };
+    }
+    
+    if (item.lts_status === 'deprecated') {
+      return {
+        icon: AlertCircle,
+        label: 'Deprecated',
+        description: 'Limited support — plan migration',
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-50 dark:bg-orange-900/20',
+        borderColor: 'border-orange-300 dark:border-orange-800',
+        badgeVariant: 'warning' as const,
+      };
+    }
+    
+    if (item.major_versions_behind >= 3) {
+      return {
+        icon: AlertTriangle,
+        label: 'Unsupported Version Risk',
+        description: `${item.major_versions_behind} major versions behind — security exposure`,
+        color: 'text-red-600',
+        bgColor: 'bg-red-50 dark:bg-red-900/20',
+        borderColor: 'border-red-300 dark:border-red-800',
+        badgeVariant: 'danger' as const,
+      };
+    }
+    
+    if (item.major_versions_behind >= 1) {
+      return {
+        icon: Clock,
+        label: 'Update Available',
+        description: `${item.major_versions_behind} major version(s) behind`,
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
+        borderColor: 'border-yellow-200 dark:border-yellow-800',
+        badgeVariant: 'warning' as const,
+      };
+    }
+    
+    if (item.lts_status === 'lts') {
+      return {
+        icon: CheckCircle2,
+        label: 'LTS Active',
+        description: 'Long Term Support — extended security coverage',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50 dark:bg-green-900/20',
+        borderColor: 'border-green-200 dark:border-green-800',
+        badgeVariant: 'success' as const,
+      };
+    }
+
+    return info;
+  };
+
   const getRowBg = (item: TechStackItem) => {
     if (item.lts_status === 'eol') return 'bg-red-50/50 dark:bg-red-900/10';
     if (item.lts_status === 'deprecated') return 'bg-orange-50/50 dark:bg-orange-900/10';
@@ -183,9 +309,11 @@ export default function TechStack() {
               <option key={org.id} value={org.id}>{org.name}</option>
             ))}
           </select>
-          <Button onClick={() => setShowAddForm(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Add Component
-          </Button>
+          {!isReadOnly && (
+            <Button onClick={() => setShowAddForm(true)} className="gap-2">
+              <Plus className="w-4 h-4" /> Add Component
+            </Button>
+          )}
         </div>
       </div>
 
@@ -289,7 +417,7 @@ export default function TechStack() {
                   value={newItem.category}
                   onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
                 >
-                  {CATEGORIES.map((c) => (
+                  {(isStaging ? STAGING_CATEGORIES : BASE_CATEGORIES).map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
@@ -349,46 +477,60 @@ export default function TechStack() {
                   <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Component</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Version</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Category</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Status</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Behind</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Lifecycle Status</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Risk</th>
                   <th className="text-right py-3 px-4"></th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className={`border-b border-gray-100 dark:border-slate-800 ${getRowBg(item)}`}>
-                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-slate-100">
-                      {item.component_name}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-slate-400 font-mono text-xs">
-                      {item.version}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-slate-400">{item.category || '—'}</td>
-                    <td className="py-3 px-4">
-                      <Badge variant={
-                        item.lts_status === 'eol' ? 'danger' :
-                        item.lts_status === 'deprecated' ? 'warning' :
-                        item.lts_status === 'lts' ? 'default' : 'outline'
-                      }>
-                        {item.lts_status.toUpperCase()}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-slate-400">
-                      {item.major_versions_behind > 0 ? `${item.major_versions_behind} major` : '—'}
-                    </td>
-                    <td className="py-3 px-4">{getRiskBadge(item)}</td>
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {items.map((item) => {
+                  const lifecycle = getLifecycleInfo(item);
+                  const LifecycleIcon = lifecycle.icon;
+                  
+                  return (
+                    <tr key={item.id} className={`border-b border-gray-100 dark:border-slate-800 ${getRowBg(item)} hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors`}>
+                      <td className="py-3 px-4 font-medium text-gray-900 dark:text-slate-100">
+                        {item.component_name}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-slate-400 font-mono text-xs">
+                        {item.version}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-slate-400">{item.category || '—'}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-start gap-2">
+                          <div className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center ${lifecycle.bgColor} border ${lifecycle.borderColor}`}>
+                            <LifecycleIcon className={`w-4 h-4 ${lifecycle.color}`} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className={`text-xs font-semibold ${lifecycle.color}`}>
+                              {lifecycle.label}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-slate-500 truncate max-w-[200px]">
+                              {lifecycle.description}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col gap-1">
+                          {getRiskBadge(item)}
+                          {isStaging && <ShadowAIBadge item={item} />}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        {!isReadOnly && (
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

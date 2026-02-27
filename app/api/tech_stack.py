@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_auth, User
+from app.core.demo_guard import require_writable
 from app.services.organization import OrganizationService
 from app.services.governance.tech_stack import TechStackService
 from app.schemas.tech_stack import (
@@ -70,6 +71,7 @@ async def create_item(
     data: TechStackItemCreate,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """POST /api/governance/{org_id}/tech-stack"""
     _verify_org(db, user, org_id)
@@ -89,6 +91,7 @@ async def update_item(
     data: TechStackItemUpdate,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """PUT /api/governance/{org_id}/tech-stack/{item_id}"""
     _verify_org(db, user, org_id)
@@ -112,6 +115,7 @@ async def delete_item(
     item_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """DELETE /api/governance/{org_id}/tech-stack/{item_id}"""
     _verify_org(db, user, org_id)

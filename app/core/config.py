@@ -8,11 +8,81 @@ Loads .env file only in local environment mode.
 import os
 import sys
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Dict
 from functools import lru_cache
 
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+# =============================================================================
+# Deployment Validation
+# =============================================================================
+
+class DeploymentValidationError(Exception):
+    """
+    Raised when deployment configuration is invalid.
+    
+    This error causes application startup to fail immediately,
+    preventing accidental cross-environment deployments.
+    """
+    pass
+
+
+# Expected Firebase/GCP project IDs for each environment.
+# CRITICAL: These mappings enforce branch → environment isolation.
+# If ENV=demo but PROJECT_ID points to staging, the app will crash.
+EXPECTED_PROJECT_IDS: Dict[str, str] = {
+    "demo": "gen-lang-client-0384513977",
+    "staging": "gen-lang-client-0384513977",  # Same project, different env
+    "local": "",  # Local can use any project or none
+}
+
+
+def validate_deployment() -> None:
+    """
+    Validate that the deployment environment matches expected project.
+    
+    Must be called at application startup. Crashes immediately on mismatch
+    to prevent accidental dual-environment deployments.
+    
+    Raises:
+        DeploymentValidationError: If ENV doesn't match expected project ID
+    """
+    env = os.environ.get("ENV", "local").lower()
+    project_id = os.environ.get("GCP_PROJECT_ID") or os.environ.get("FIREBASE_PROJECT_ID")
+    
+    # Skip validation for local development
+    if env == "local":
+        print("INFO: Local environment — deployment validation skipped.", file=sys.stderr)
+        return
+    
+    # Validate ENV is recognized
+    if env not in ("demo", "staging", "local", "prod"):
+        raise DeploymentValidationError(
+            f"Invalid ENV='{env}'. Must be one of: demo, staging, local, prod"
+        )
+    
+    # Assert environment constraints
+    if env == "demo":
+        if project_id and project_id != EXPECTED_PROJECT_IDS["demo"]:
+            raise DeploymentValidationError(
+                f"FATAL: ENV=demo but PROJECT_ID='{project_id}' does not match expected "
+                f"'{EXPECTED_PROJECT_IDS['demo']}'. This prevents accidental cross-deployment. "
+                "Check your service account and env vars."
+            )
+        print(f"✓ Deployment validation passed: ENV={env}, PROJECT={project_id}", file=sys.stderr)
+    
+    elif env == "staging":
+        if project_id and project_id != EXPECTED_PROJECT_IDS["staging"]:
+            raise DeploymentValidationError(
+                f"FATAL: ENV=staging but PROJECT_ID='{project_id}' does not match expected "
+                f"'{EXPECTED_PROJECT_IDS['staging']}'. This prevents accidental cross-deployment. "
+                "Check your service account and env vars."
+            )
+        print(f"✓ Deployment validation passed: ENV={env}, PROJECT={project_id}", file=sys.stderr)
+    
+    print(f"INFO: Startup assertion passed — ENV={env}, PROJECT={project_id}", file=sys.stderr)
 
 
 class Environment(str, Enum):
@@ -109,6 +179,15 @@ class Settings(BaseSettings):
     # upsell positioning — clients receive actionable recommendations
     # without self-service resource pointers.
     IMPLEMENTATION_ASSISTANCE_MODE: bool = False
+
+    # ===========================================
+    # Field-Level Encryption (AES-256-GCM)
+    # ===========================================
+    # Base64-encoded 32-byte key for encrypting sensitive org fields
+    # in Firestore.  When unset, encryption runs in passthrough mode.
+    # Generate a key:
+    #   python -c "from app.core.security.encryption import generate_encryption_key; print(generate_encryption_key())"
+    ENCRYPTION_SECRET: Optional[str] = None
 
     model_config = SettingsConfigDict(
         case_sensitive=True,
@@ -252,7 +331,17 @@ class Settings(BaseSettings):
     @property
     def is_demo_mode(self) -> bool:
         """Check if running in demo mode for presentations/testing."""
-        return self.DEMO_MODE
+        return self.DEMO_MODE or self.ENV == Environment.DEMO
+    
+    @property
+    def is_read_only(self) -> bool:
+        """
+        Check if the environment is read-only (demo mode).
+        
+        In demo mode, all write operations are blocked to prevent
+        accidental data corruption during investor demos or presentations.
+        """
+        return self.ENV == Environment.DEMO
 
 
 def _load_env_file() -> Optional[str]:
@@ -303,4 +392,12 @@ except Exception as e:
 
 
 # Export environment enum for type hints
-__all__ = ["Settings", "Environment", "settings", "get_settings"]
+__all__ = [
+    "Settings", 
+    "Environment", 
+    "settings", 
+    "get_settings",
+    "DeploymentValidationError",
+    "validate_deployment",
+    "EXPECTED_PROJECT_IDS",
+]

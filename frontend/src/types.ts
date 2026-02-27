@@ -497,6 +497,7 @@ export interface SystemStatus {
   environment: string;
   llm_enabled: boolean;
   demo_mode: boolean;
+  is_read_only: boolean;
   integrations_enabled: boolean;
   last_deployment_at?: string | null;
 }
@@ -742,4 +743,106 @@ export interface TechStackListResponse {
   items: TechStackItem[];
   summary: TechStackSummary;
   total: number;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Compliance Drift & Shadow AI Types (Staging-only)
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface DriftSignal {
+  signal_type: 'control_regression' | 'risk_escalation' | 'sla_breach' | 'evidence_expiry' | 'tech_risk' | 'audit_proximity' | 'shadow_ai';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  delta?: number | null;
+  metadata: Record<string, unknown>;
+  detected_at: string;
+}
+
+export interface DriftBaseline {
+  id: string;
+  organization_id: string;
+  version: number;
+  ghi: number;
+  ghi_grade: string;
+  audit_readiness: number;
+  lifecycle_score: number;
+  sla_score: number;
+  compliance_score: number;
+  control_scores: Record<string, number>;
+  overall_score?: number | null;
+  risk_categories: Record<string, number>;
+  open_findings_count: number;
+  critical_findings: number;
+  high_findings: number;
+  eol_components: number;
+  deprecated_components: number;
+  total_tech_components: number;
+  created_at: string;
+}
+
+export interface DriftResult {
+  organization_id: string;
+  organization_name: string;
+  baseline_id?: string | null;
+  baseline_date?: string | null;
+  current_ghi: number;
+  baseline_ghi: number;
+  ghi_delta: number;
+  drift_impact_score: number;
+  drift_band: string;
+  drift_band_color: string;
+  signals: DriftSignal[];
+  signal_counts: Record<string, number>;
+  compliance_sustainability_index?: number | null;
+  audit_failure_probability?: number | null;
+  forecast_summary?: string | null;
+  analyzed_at: string;
+}
+
+export interface DriftTimelineEntry {
+  date: string;
+  ghi: number;
+  drift_score: number;
+  signals_count: number;
+  band: string;
+  band_color: string;
+}
+
+export interface DriftTimelineResponse {
+  organization_id: string;
+  entries: DriftTimelineEntry[];
+  count: number;
+}
+
+export interface DriftBaselineResponse {
+  status: string;
+  baseline: DriftBaseline;
+  message: string;
+}
+
+export interface ShadowAIResponse {
+  organization_id: string;
+  shadow_ai_signals: DriftSignal[];
+  count: number;
+  has_critical: boolean;
+}
+
+export interface SustainabilityResponse {
+  organization_id: string;
+  compliance_sustainability_index: number;
+  audit_failure_probability: number;
+  csi_band: string;
+  afp_band: string;
+}
+
+// EU AI Act regulatory forecasting
+export interface RegulatoryForecast {
+  regulation: string;
+  status: string;
+  effective_date: string;
+  predicted_gap: string;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  requirements: string[];
+  recommended_actions: string[];
 }

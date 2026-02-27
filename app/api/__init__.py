@@ -13,6 +13,7 @@ from app.api import (
     tech_stack,
     pilot_program,
     auditor_view,
+    drift,
 )
 from app.api.v1 import router as v1_router
 
@@ -36,3 +37,6 @@ router.include_router(audit_calendar.router, prefix="/governance", tags=["audit-
 router.include_router(tech_stack.router, prefix="/governance", tags=["tech-stack"])
 router.include_router(pilot_program.router, prefix="/governance", tags=["pilot-program"])
 router.include_router(auditor_view.router, prefix="/governance", tags=["auditor-view"])
+
+# Compliance Drift & Shadow AI — staging only
+router.include_router(drift.router, prefix="/governance", tags=["drift"])

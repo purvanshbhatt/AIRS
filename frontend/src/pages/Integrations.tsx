@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useIsReadOnly } from '../contexts';
 import {
   createApiKey,
   listApiKeys,
@@ -49,6 +50,7 @@ import {
 } from 'lucide-react';
 
 export default function Integrations() {
+  const isReadOnly = useIsReadOnly();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrgId, setSelectedOrgId] = useState('');
   const [apiKeys, setApiKeys] = useState<ApiKeyMetadata[]>([]);
@@ -463,9 +465,11 @@ export default function Integrations() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600 dark:text-slate-300">Org: {selectedOrgName}</span>
-              <Button size="sm" onClick={handleCreateApiKey} disabled={busy || !selectedOrgId}>
-                Generate New Key
-              </Button>
+              {!isReadOnly && (
+                <Button size="sm" onClick={handleCreateApiKey} disabled={busy || !selectedOrgId}>
+                  Generate New Key
+                </Button>
+              )}
             </div>
             <div className="space-y-2">
               {apiKeys.length === 0 && <p className="text-sm text-gray-500 dark:text-slate-400">No API keys yet.</p>}
@@ -482,7 +486,7 @@ export default function Integrations() {
                     size="sm"
                     variant="outline"
                     onClick={() => handleRevokeApiKey(key.id)}
-                    disabled={busy || !key.is_active}
+                    disabled={busy || !key.is_active || isReadOnly}
                   >
                     Revoke
                   </Button>
@@ -515,9 +519,11 @@ export default function Integrations() {
             />
             <div className="flex items-center gap-2">
               <Badge variant="outline">assessment.scored</Badge>
-              <Button size="sm" onClick={handleCreateWebhook} disabled={busy || !selectedOrgId || !webhookUrl.trim()}>
-                Add Webhook
-              </Button>
+              {!isReadOnly && (
+                <Button size="sm" onClick={handleCreateWebhook} disabled={busy || !selectedOrgId || !webhookUrl.trim()}>
+                  Add Webhook
+                </Button>
+              )}
             </div>
 
             <div className="space-y-2 pt-2">
@@ -529,9 +535,11 @@ export default function Integrations() {
                     <Button size="sm" variant="outline" onClick={() => handleTestWebhook(hook.id)} disabled={busy}>
                       Run Check
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleDeleteWebhook(hook.id)} disabled={busy}>
-                      Disable
-                    </Button>
+                    {!isReadOnly && (
+                      <Button size="sm" variant="outline" onClick={() => handleDeleteWebhook(hook.id)} disabled={busy}>
+                        Disable
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -594,9 +602,11 @@ export default function Integrations() {
                   <Button size="sm" onClick={handlePullEvidence} disabled={busy || evidenceLoading || !selectedOrgId}>
                     {evidenceLoading ? 'Pulling Evidence...' : 'Pull Live Evidence'}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handleRemoveSplunkConfig} disabled={busy}>
-                    Disconnect
-                  </Button>
+                  {!isReadOnly && (
+                    <Button size="sm" variant="outline" onClick={handleRemoveSplunkConfig} disabled={busy}>
+                      Disconnect
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -616,7 +626,7 @@ export default function Integrations() {
                 <Button
                   size="sm"
                   onClick={handleConfigureSplunkHec}
-                  disabled={busy || !selectedOrgId || !splunkBaseUrl.trim() || !splunkHecToken.trim()}
+                  disabled={busy || !selectedOrgId || !splunkBaseUrl.trim() || !splunkHecToken.trim() || isReadOnly}
                 >
                   Connect Splunk HEC
                 </Button>
@@ -680,12 +690,16 @@ export default function Integrations() {
             <Badge variant={splunkConnected ? 'default' : 'outline'}>
               {splunkConnected ? 'Findings Synced' : 'No Findings'}
             </Badge>
-            <Button size="sm" onClick={handleConnectSplunk} disabled={busy || !selectedOrgId}>
-              Seed Mock Findings
-            </Button>
-            <Button size="sm" variant="outline" onClick={handleSeedFindings} disabled={busy || !selectedOrgId}>
-              Add More Findings
-            </Button>
+            {!isReadOnly && (
+              <>
+                <Button size="sm" onClick={handleConnectSplunk} disabled={busy || !selectedOrgId}>
+                  Seed Mock Findings
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleSeedFindings} disabled={busy || !selectedOrgId}>
+                  Add More Findings
+                </Button>
+              </>
+            )}
             <Button size="sm" variant="outline" onClick={reload} disabled={busy || !selectedOrgId} className="gap-2">
               <RefreshCw className="w-4 h-4" />
               Refresh

@@ -3,11 +3,14 @@ Assessment API routes.
 
 All endpoints enforce tenant isolation using Firebase user UID.
 Users can only access their own assessments and related data.
+
+In demo mode (ENV=demo), write operations are blocked with 403 Forbidden.
 """
 
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from app.core.demo_guard import require_writable
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Any, Dict, List, Optional
@@ -113,7 +116,8 @@ def _build_siem_export_payload(summary: Dict[str, Any]) -> Dict[str, Any]:
 async def create_assessment(
     data: AssessmentCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Create a new assessment for an organization owned by the current user."""
     service = get_assessment_service(db, user)
@@ -234,7 +238,8 @@ async def update_assessment(
     assessment_id: str,
     data: AssessmentUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Update an assessment (must be owned by current user)."""
     service = get_assessment_service(db, user)
@@ -251,7 +256,8 @@ async def update_assessment(
 async def delete_assessment(
     assessment_id: str,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Delete an assessment (must be owned by current user)."""
     service = get_assessment_service(db, user)
@@ -278,7 +284,8 @@ async def submit_answers(
     assessment_id: str,
     data: AnswerBulkSubmit,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Submit answers for an assessment owned by current user."""
     service = get_assessment_service(db, user)
@@ -330,7 +337,8 @@ async def compute_score(
     assessment_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Compute and persist scores and findings for an assessment owned by current user."""
     service = get_assessment_service(db, user)
@@ -448,7 +456,8 @@ async def add_finding(
     assessment_id: str,
     data: FindingCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Add a manual finding to an assessment (must be owned by current user)."""
     service = get_assessment_service(db, user)
@@ -467,6 +476,7 @@ async def annotate_findings(
     assessment_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """
     Generate AI-powered executive context annotations for findings.
@@ -520,7 +530,8 @@ async def create_report(
     assessment_id: str,
     data: ReportCreate = ReportCreate(),
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Generate and save a report for an assessment owned by current user."""
     assessment_service = get_assessment_service(db, user)
@@ -747,6 +758,7 @@ async def create_roadmap_item(
     data: RoadmapTrackerItemCreate,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = get_assessment_service(db, user)
     assessment = _resolve_assessment_for_tracker(db, service, assessment_id)
@@ -779,6 +791,7 @@ async def update_roadmap_item(
     data: RoadmapTrackerItemUpdate,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = get_assessment_service(db, user)
     assessment = _resolve_assessment_for_tracker(db, service, assessment_id)
@@ -812,6 +825,7 @@ async def delete_roadmap_item(
     item_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = get_assessment_service(db, user)
     assessment = _resolve_assessment_for_tracker(db, service, assessment_id)

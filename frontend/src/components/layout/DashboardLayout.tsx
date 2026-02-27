@@ -21,8 +21,10 @@ import {
   Calendar,
   Cpu,
   Rocket,
+  TrendingDown,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDemoMode } from '../../contexts';
 import { Footer } from './Footer';
 import ThemeToggle from '../ui/ThemeToggle';
 
@@ -30,6 +32,7 @@ interface NavItem {
   name: string;
   href: string;
   icon: typeof LayoutDashboard;
+  stagingOnly?: boolean;
 }
 
 const navigation: NavItem[] = [
@@ -40,6 +43,7 @@ const navigation: NavItem[] = [
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Governance', href: '/dashboard/governance', icon: ShieldCheck },
+  { name: 'Compliance Drift', href: '/dashboard/compliance-drift', icon: TrendingDown, stagingOnly: true },
   { name: 'Audit Calendar', href: '/dashboard/audit-calendar', icon: Calendar },
   { name: 'Tech Stack', href: '/dashboard/tech-stack', icon: Cpu },
   { name: 'Pilot Program', href: '/dashboard/pilot-program', icon: Rocket },
@@ -59,6 +63,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, isConfigured } = useAuth();
+  const { systemStatus } = useDemoMode();
+  const isStaging = systemStatus?.environment === 'staging';
+
+  // Filter out staging-only nav items when not in staging
+  const visibleNavigation = isStaging
+    ? navigation
+    : navigation.filter((item) => !item.stagingOnly);
 
   const handleSignOut = async () => {
     await signOut();
@@ -83,7 +94,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const activeNavItem =
-    navigation.find((item) => isNavItemActive(item.href, location.pathname))?.name || 'Page';
+    visibleNavigation.find((item) => isNavItemActive(item.href, location.pathname))?.name || 'Page';
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -121,7 +132,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const isActive = isNavItemActive(item.href, location.pathname);
             return (
               <Link

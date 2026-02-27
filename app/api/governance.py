@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.firestore import firestore_save_org
 from app.core.auth import require_auth, User
+from app.core.demo_guard import require_writable
 from app.models.organization import Organization
 from app.schemas.organization import (
     OrganizationProfileUpdate,
@@ -110,6 +111,7 @@ async def update_profile(
     data: OrganizationProfileUpdate,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """PUT /api/governance/{org_id}/profile"""
     org = _get_org(db, user, org_id)

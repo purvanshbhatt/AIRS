@@ -14,6 +14,7 @@ from io import BytesIO
 from app.db.database import get_db
 from app.core.logging import event_logger
 from app.core.auth import require_auth, User
+from app.core.demo_guard import require_writable
 from app.schemas.report import (
     ReportCreate,
     ReportResponse,
@@ -194,7 +195,8 @@ async def download_report(
 async def delete_report(
     report_id: str,
     db: Session = Depends(get_db),
-    user: User = Depends(require_auth)
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable)
 ):
     """Delete a report."""
     service = get_report_service(db, user)

@@ -17,3 +17,5 @@ psycopg2-binary>=2.9.9
 alembic>=1.13.0
 firebase-admin>=6.5.0
 slowapi>=0.1.9
+cryptography>=44.0.0
+google-cloud-firestore>=2.19.0

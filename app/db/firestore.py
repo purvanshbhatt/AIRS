@@ -8,6 +8,9 @@ Strategy:
   - On startup, sync Firestore → SQLite so existing SQLAlchemy queries work.
   - On every org create/update/delete, dual-write to both SQLite and Firestore.
   - Firestore is the *source of truth* for data that must persist.
+  - FAIL FAST: If Firestore is unavailable, raise an error instead of silently falling back.
+  - LOCAL/TEST: When FIRESTORE_EMULATOR_HOST is set, connects to the emulator
+    with a demo project ID (no GCP credentials required).
 
 Collections:
   organizations/{org_id}      — full org document
@@ -19,6 +22,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -27,12 +31,45 @@ logger = logging.getLogger("airs.firestore")
 # Firestore client — lazy-initialized
 _firestore_client = None
 _firestore_available = False
+_firestore_init_attempted = False
+
+
+class FirestoreUnavailableError(Exception):
+    """Raised when Firestore is required but not available."""
+    pass
 
 
 def _init_firestore():
-    """Initialize Firestore client using Firebase Admin SDK (already init in main.py)."""
-    global _firestore_client, _firestore_available
-    if _firestore_client is not None:
+    """
+    Initialize Firestore client.
+
+    Order of preference:
+      1. Emulator — if FIRESTORE_EMULATOR_HOST is set, use it (no creds needed).
+      2. Firebase Admin SDK — production / Cloud Run path.
+    """
+    global _firestore_client, _firestore_available, _firestore_init_attempted
+
+    if _firestore_init_attempted:
+        return _firestore_available
+
+    _firestore_init_attempted = True
+
+    emulator_host = os.environ.get("FIRESTORE_EMULATOR_HOST")
+
+    if emulator_host:
+        try:
+            from google.cloud import firestore as gc_firestore  # type: ignore
+            # The emulator doesn't require auth — use a dummy project id.
+            os.environ["FIRESTORE_EMULATOR_HOST"] = emulator_host
+            _firestore_client = gc_firestore.Client(project="demo-airs-local")
+            _firestore_available = True
+            logger.info(
+                "Firestore emulator connected at %s (project=demo-airs-local)",
+                emulator_host,
+            )
+        except Exception as exc:
+            _firestore_available = False
+            logger.error("Firestore emulator init failed: %s", exc)
         return _firestore_available
 
     try:
@@ -42,9 +79,23 @@ def _init_firestore():
         logger.info("Firestore client initialized successfully")
     except Exception as exc:
         _firestore_available = False
-        logger.warning("Firestore unavailable (will use SQLite only): %s", exc)
+        logger.error("CRITICAL: Firestore initialization failed: %s", exc)
+        logger.error("Data persistence will NOT work. Check Firebase Admin SDK configuration.")
 
     return _firestore_available
+
+
+def reset_firestore_state():
+    """
+    Reset the module-level Firestore state so that the next call to
+    ``_init_firestore()`` re-initialises the client from scratch.
+
+    Used by the test harness to inject mocks between test runs.
+    """
+    global _firestore_client, _firestore_available, _firestore_init_attempted
+    _firestore_client = None
+    _firestore_available = False
+    _firestore_init_attempted = False
 
 
 def is_firestore_available() -> bool:
@@ -52,9 +103,24 @@ def is_firestore_available() -> bool:
     return _init_firestore()
 
 
+def require_firestore() -> bool:
+    """
+    Require Firestore to be available. Raises FirestoreUnavailableError if not.
+    Call this before any write operation to ensure data persistence.
+    """
+    if not is_firestore_available():
+        raise FirestoreUnavailableError(
+            "Firestore is not available. Data cannot be persisted. "
+            "Check Firebase Admin SDK configuration and GCP credentials."
+        )
+    return True
+
+
 def get_firestore_client():
-    """Get the Firestore client, or None if unavailable."""
+    """Get the Firestore client. Raises error if unavailable."""
     _init_firestore()
+    if _firestore_client is None:
+        raise FirestoreUnavailableError("Firestore client not initialized")
     return _firestore_client
 
 
@@ -63,8 +129,14 @@ def get_firestore_client():
 # ═══════════════════════════════════════════════════════════════════════
 
 def _org_to_doc(org) -> Dict[str, Any]:
-    """Convert a SQLAlchemy Organization to a Firestore document dict."""
-    return {
+    """Convert a SQLAlchemy Organization to a Firestore document dict.
+
+    When the ``EncryptionService`` is enabled, sensitive fields
+    (name, contact_email, etc.) are encrypted into a single
+    ``encrypted_blob`` before storage.  Non-sensitive fields remain
+    plaintext for Firestore queries / indexing.
+    """
+    doc = {
         "id": org.id,
         "owner_uid": org.owner_uid,
         "name": org.name,
@@ -91,39 +163,80 @@ def _org_to_doc(org) -> Dict[str, Any]:
         "updated_at": org.updated_at.isoformat() if org.updated_at else None,
     }
 
+    # ── Field-level encryption ────────────────────────────────────────
+    try:
+        from app.core.security.encryption import get_encryption_service
+        svc = get_encryption_service()
+        if svc.enabled:
+            doc = svc.encrypt_fields(doc)
+    except Exception as exc:
+        logger.warning("Encryption skipped for org %s: %s", org.id, exc)
+
+    return doc
+
+
+def _decrypt_org_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
+    """Decrypt a Firestore org document if it contains an encrypted blob."""
+    if "encrypted_blob" not in doc:
+        return doc
+    try:
+        from app.core.security.encryption import get_encryption_service
+        svc = get_encryption_service()
+        return svc.decrypt_fields(doc)
+    except Exception as exc:
+        logger.warning("Decryption failed for org %s: %s", doc.get("id"), exc)
+        return doc
+
 
 def firestore_save_org(org) -> bool:
-    """Save/update an organization to Firestore. Returns True on success."""
-    if not is_firestore_available():
-        return False
+    """
+    Save/update an organization to Firestore.
+    
+    IMPORTANT: This function MUST succeed for data persistence.
+    Raises FirestoreUnavailableError if Firestore is not available.
+    """
+    require_firestore()
     try:
         client = get_firestore_client()
         doc_ref = client.collection("organizations").document(org.id)
         doc_ref.set(_org_to_doc(org))
-        logger.debug("Firestore: saved org %s", org.id)
+        logger.info("Firestore: saved org %s (%s)", org.id, org.name)
         return True
+    except FirestoreUnavailableError:
+        raise
     except Exception as exc:
-        logger.warning("Firestore save_org failed: %s", exc)
-        return False
+        logger.error("CRITICAL: Firestore save_org failed for %s: %s", org.id, exc)
+        raise FirestoreUnavailableError(f"Failed to save organization to Firestore: {exc}")
 
 
 def firestore_delete_org(org_id: str) -> bool:
-    """Delete an organization from Firestore."""
-    if not is_firestore_available():
-        return False
+    """
+    Delete an organization from Firestore.
+    
+    IMPORTANT: This function MUST succeed for data consistency.
+    Raises FirestoreUnavailableError if Firestore is not available.
+    """
+    require_firestore()
     try:
         client = get_firestore_client()
         client.collection("organizations").document(org_id).delete()
-        logger.debug("Firestore: deleted org %s", org_id)
+        logger.info("Firestore: deleted org %s", org_id)
         return True
+    except FirestoreUnavailableError:
+        raise
     except Exception as exc:
-        logger.warning("Firestore delete_org failed: %s", exc)
-        return False
+        logger.error("CRITICAL: Firestore delete_org failed for %s: %s", org_id, exc)
+        raise FirestoreUnavailableError(f"Failed to delete organization from Firestore: {exc}")
 
 
 def firestore_get_all_orgs(owner_uid: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Fetch all organizations from Firestore, optionally filtered by owner."""
+    """
+    Fetch all organizations from Firestore, optionally filtered by owner.
+    
+    Returns empty list if Firestore is unavailable (startup sync gracefully handles this).
+    """
     if not is_firestore_available():
+        logger.warning("Firestore not available for get_all_orgs — returning empty list")
         return []
     try:
         client = get_firestore_client()
@@ -131,9 +244,9 @@ def firestore_get_all_orgs(owner_uid: Optional[str] = None) -> List[Dict[str, An
         if owner_uid:
             query = query.where("owner_uid", "==", owner_uid)
         docs = query.stream()
-        return [doc.to_dict() for doc in docs]
+        return [_decrypt_org_doc(doc.to_dict()) for doc in docs]
     except Exception as exc:
-        logger.warning("Firestore get_all_orgs failed: %s", exc)
+        logger.error("Firestore get_all_orgs failed: %s", exc)
         return []
 
 

@@ -1030,3 +1030,38 @@ export const getAuditorView = async (token: string): Promise<AuditorViewData> =>
   }
   return response.json();
 };
+
+// =============================================================================
+// COMPLIANCE DRIFT & SHADOW AI (Staging-only)
+// =============================================================================
+
+/** Create an immutable compliance baseline snapshot */
+export const createDriftBaseline = (orgId: string) =>
+  request<import('./types').DriftBaselineResponse>(
+    `/api/governance/${orgId}/drift/baseline`,
+    { method: 'POST' }
+  );
+
+/** Get current drift analysis against latest baseline */
+export const getDriftAnalysis = (orgId: string) =>
+  request<import('./types').DriftResult>(
+    `/api/governance/${orgId}/drift`
+  );
+
+/** Get drift timeline for chart visualization */
+export const getDriftTimeline = (orgId: string, limit = 30) =>
+  request<import('./types').DriftTimelineResponse>(
+    `/api/governance/${orgId}/drift/timeline?limit=${limit}`
+  );
+
+/** Check for Shadow AI governance violations */
+export const checkShadowAI = (orgId: string) =>
+  request<import('./types').ShadowAIResponse>(
+    `/api/governance/${orgId}/drift/shadow-ai`
+  );
+
+/** Get Compliance Sustainability Index + Audit Failure Probability */
+export const getSustainabilityIndex = (orgId: string) =>
+  request<import('./types').SustainabilityResponse>(
+    `/api/governance/${orgId}/drift/sustainability`
+  );

@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_auth, User
+from app.core.demo_guard import require_writable
 from app.services.organization import OrganizationService
 from app.services.governance.audit_calendar import AuditCalendarService
 from app.schemas.audit_calendar import (
@@ -71,6 +72,7 @@ async def create_entry(
     data: AuditCalendarCreate,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """POST /api/governance/{org_id}/audit-calendar"""
     _verify_org(db, user, org_id)
@@ -90,6 +92,7 @@ async def update_entry(
     data: AuditCalendarUpdate,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """PUT /api/governance/{org_id}/audit-calendar/{entry_id}"""
     _verify_org(db, user, org_id)
@@ -113,6 +116,7 @@ async def delete_entry(
     entry_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """DELETE /api/governance/{org_id}/audit-calendar/{entry_id}"""
     _verify_org(db, user, org_id)

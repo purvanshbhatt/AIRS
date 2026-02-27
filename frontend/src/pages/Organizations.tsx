@@ -19,6 +19,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { getOrganizations, getAssessments, deleteOrganization, ApiRequestError } from '../api';
+import { useIsReadOnly } from '../contexts';
 import type { Organization, Assessment } from '../types';
 
 export default function Organizations() {
@@ -28,6 +29,7 @@ export default function Organizations() {
   const [assessmentsByOrg, setAssessmentsByOrg] = useState<Record<string, Assessment[]>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const isReadOnly = useIsReadOnly();
 
   useEffect(() => {
     async function loadData() {
@@ -126,12 +128,14 @@ export default function Organizations() {
             </p>
           </div>
         </div>
-        <Link to="/dashboard/org/new">
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            New Organization
-          </Button>
-        </Link>
+        {!isReadOnly && (
+          <Link to="/dashboard/org/new">
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              New Organization
+            </Button>
+          </Link>
+        )}
       </div>
 
       {organizations.length === 0 ? (
@@ -139,8 +143,11 @@ export default function Organizations() {
           <EmptyState
             icon={Building2}
             title="No organizations yet"
-            description="Create your first organization to start running security assessments."
-            action={{
+            description={isReadOnly 
+              ? "This demo environment contains synthetic example data." 
+              : "Create your first organization to start running security assessments."
+            }
+            action={isReadOnly ? undefined : {
               label: 'Create Organization',
               href: '/dashboard/org/new',
             }}
@@ -217,22 +224,24 @@ export default function Organizations() {
                         {new Date(selectedOrg.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Link to={`/dashboard/assessment/new?org=${selectedOrg.id}`}>
-                        <Button size="sm" className="gap-2">
-                          <ClipboardList className="w-4 h-4" />
-                          New Assessment
+                    {!isReadOnly && (
+                      <div className="flex items-center gap-2">
+                        <Link to={`/dashboard/assessment/new?org=${selectedOrg.id}`}>
+                          <Button size="sm" className="gap-2">
+                            <ClipboardList className="w-4 h-4" />
+                            New Assessment
+                          </Button>
+                        </Link>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          onClick={() => handleDeleteOrg(selectedOrg)}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
-                      </Link>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        onClick={() => handleDeleteOrg(selectedOrg)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>

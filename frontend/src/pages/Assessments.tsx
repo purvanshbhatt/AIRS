@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { getAssessments, ApiRequestError } from '../api';
+import { useIsReadOnly } from '../contexts';
 import type { Assessment } from '../types';
 
 type StatusFilter = 'all' | 'completed' | 'draft';
@@ -27,6 +28,7 @@ export default function Assessments() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const isReadOnly = useIsReadOnly();
 
   useEffect(() => {
     async function loadData() {
@@ -114,12 +116,14 @@ export default function Assessments() {
             </p>
           </div>
         </div>
-        <Link to="/dashboard/assessment/new">
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            New Assessment
-          </Button>
-        </Link>
+        {!isReadOnly && (
+          <Link to="/dashboard/assessment/new">
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              New Assessment
+            </Button>
+          </Link>
+        )}
       </div>
 
       {assessments.length === 0 ? (
@@ -127,8 +131,11 @@ export default function Assessments() {
           <EmptyState
             icon={ClipboardList}
             title="No assessments yet"
-            description="Run your first assessment to generate a readiness score."
-            action={{
+            description={isReadOnly 
+              ? "This demo environment contains synthetic example data."
+              : "Run your first assessment to generate a readiness score."
+            }
+            action={isReadOnly ? undefined : {
               label: 'Start Assessment',
               href: '/dashboard/assessment/new',
             }}

@@ -16,6 +16,21 @@ if ($Prod) {
     $ServiceName = "airs-api"
     $EnvFile = "gcp/env.prod.yaml"
     $envLabel = "PRODUCTION"
+
+    # ── Branch guardrail: only main branch may deploy to prod ─────────
+    try {
+        $currentBranch = (git rev-parse --abbrev-ref HEAD 2>$null).Trim()
+    } catch {
+        $currentBranch = "unknown"
+    }
+    if ($currentBranch -and $currentBranch -ne "main") {
+        Write-Host ""
+        Write-Host "CRITICAL: Production deployments are only allowed from the 'main' branch." -ForegroundColor Red
+        Write-Host "Current branch: $currentBranch" -ForegroundColor Red
+        Write-Host "Merge your changes to 'main' first, then re-run." -ForegroundColor Yellow
+        exit 1
+    }
+
     Write-Host ""
     Write-Host "WARNING: You are deploying to PRODUCTION!" -ForegroundColor Red
     Write-Host "This will affect the live demo at v0.5-demo-locked." -ForegroundColor Red

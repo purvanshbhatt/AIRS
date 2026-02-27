@@ -13,6 +13,10 @@ import {
   Target,
   Layers,
   Building2,
+  CheckCircle2,
+  Clock,
+  Lock,
+  Sparkles,
 } from 'lucide-react';
 
 const domains = [
@@ -118,6 +122,54 @@ const quickActions = [
     to: '/dashboard',
     icon: Target,
     color: 'bg-warning-50 dark:bg-warning-900/30 text-warning-600',
+  },
+];
+
+const roadmapPhases = [
+  {
+    phase: 1,
+    title: 'Core Governance Engine',
+    status: 'complete' as const,
+    icon: CheckCircle2,
+    color: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800',
+    iconColor: 'text-green-600',
+    features: [
+      'Deterministic GHI (Governance Health Index) scoring',
+      'NIST CSF 2.0 framework mapping',
+      'Multi-tenant Firestore persistence',
+      'Auditor View with evidence collection',
+      'Executive-ready PDF reports',
+    ],
+  },
+  {
+    phase: 2,
+    title: 'Continuous Compliance',
+    status: 'in-progress' as const,
+    icon: Clock,
+    color: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800',
+    iconColor: 'text-amber-600',
+    features: [
+      'Drift detection with baseline comparison',
+      'Audit forecasting and risk prediction',
+      'Splunk OCSF integration export',
+      'Automated finding remediation tracking',
+      'Compliance calendar with smart reminders',
+    ],
+  },
+  {
+    phase: 3,
+    title: 'Zero-Knowledge Enterprise Mode',
+    status: 'planned' as const,
+    icon: Lock,
+    color: 'text-purple-600 bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800',
+    iconColor: 'text-purple-600',
+    features: [
+      'Client-side AES-256 encryption (PBKDF2)',
+      'Bring-your-own-storage architecture',
+      'Compliance prediction engine',
+      'Zero server-side data access',
+      'Enterprise key management (HSM)',
+    ],
   },
 ];
 
@@ -256,6 +308,88 @@ export default function Home() {
                 </div>
               </Card>
             </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Strategic Product Roadmap */}
+      <section>
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-5 h-5 text-purple-500" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Strategic Product Roadmap</h2>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-slate-400">
+              Building enterprise-grade governance intelligence — from scoring to zero-knowledge compliance
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {roadmapPhases.map((phase) => (
+            <Card
+              key={phase.phase}
+              padding="md"
+              variant="bordered"
+              className={`relative overflow-hidden border ${phase.color} transition-all duration-300 hover:shadow-lg`}
+            >
+              {/* Phase indicator */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
+                    Phase {phase.phase}
+                  </span>
+                  {phase.status === 'complete' && (
+                    <Badge variant="success" size="sm">Complete</Badge>
+                  )}
+                  {phase.status === 'in-progress' && (
+                    <Badge variant="warning" size="sm">In Progress</Badge>
+                  )}
+                  {phase.status === 'planned' && (
+                    <Badge variant="outline" size="sm">Planned</Badge>
+                  )}
+                </div>
+                <phase.icon className={`w-5 h-5 ${phase.iconColor}`} />
+              </div>
+
+              {/* Title */}
+              <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-3">
+                {phase.title}
+              </h3>
+
+              {/* Features list */}
+              <ul className="space-y-2">
+                {phase.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-xs text-gray-600 dark:text-slate-400">
+                    <CheckCircle2 
+                      className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${
+                        phase.status === 'complete' 
+                          ? 'text-green-500' 
+                          : phase.status === 'in-progress' 
+                            ? 'text-amber-500' 
+                            : 'text-gray-300 dark:text-slate-600'
+                      }`} 
+                    />
+                    <span className={phase.status === 'planned' ? 'text-gray-400 dark:text-slate-500' : ''}>
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Progress bar for in-progress */}
+              {phase.status === 'in-progress' && (
+                <div className="mt-4 pt-3 border-t border-amber-200 dark:border-amber-800">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <span className="text-amber-600 dark:text-amber-400 font-medium">Development Progress</span>
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">65%</span>
+                  </div>
+                  <div className="h-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '65%' }} />
+                  </div>
+                </div>
+              )}
+            </Card>
           ))}
         </div>
       </section>

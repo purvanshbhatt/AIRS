@@ -118,11 +118,37 @@ jobs:
           echo "Skipping staging deploy because one or more required secrets are not configured."
 
   deploy-production:
+    # ╔═══════════════════════════════════════════════════════════════════════╗
+    # ║  🔒 DEMO IS FROZEN — MANUAL APPROVAL REQUIRED                         ║
+    # ║                                                                       ║
+    # ║  Production environment is demo mode (ENV=demo, DEMO_MODE=true).     ║
+    # ║  All write endpoints return 403 Forbidden in demo mode.              ║
+    # ║  Synthetic demo data is frozen for investor presentations.           ║
+    # ║                                                                       ║
+    # ║  DEPLOYMENT RULES:                                                    ║
+    # ║  • Requires "Lead Engineer Approval" via GitHub environment          ║
+    # ║  • Only deploy for: security fixes, critical bugs, roadmap updates   ║
+    # ║  • NEVER deploy data-modifying changes to demo                        ║
+    # ╚═══════════════════════════════════════════════════════════════════════╝
     if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     needs: test
-    environment: production
+    environment: 
+      name: production
+      # GitHub will require manual approval from designated reviewers
+      # Configure "Required reviewers" in Settings > Environments > production
     steps:
+      - name: 🛡️ Confirm Demo Deployment Intent
+        run: |
+          echo "═══════════════════════════════════════════════════════"
+          echo "  ⚠️  DEPLOYING TO DEMO ENVIRONMENT"
+          echo "  Target: gen-lang-client-0384513977 (frozen)"
+          echo "  Branch: main"
+          echo "  All write endpoints will return 403 Forbidden."
+          echo "═══════════════════════════════════════════════════════"
+          echo ""
+          echo "This deployment was approved via GitHub Environment protection."
+
       - name: Check production deploy secrets
         id: prod_secrets
         run: |

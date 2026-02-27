@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.core.auth import require_auth, User
+from app.core.demo_guard import require_writable
 from app.models.organization import Organization
 from app.services.auditor_view import (
     create_auditor_link,
@@ -40,6 +41,7 @@ async def generate_auditor_link(
     ttl_hours: int = Query(72, ge=1, le=720, description="Link validity in hours (max 30 days)"),
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """POST /api/governance/orgs/{org_id}/auditor-link"""
     from app.services.organization import OrganizationService
@@ -90,6 +92,7 @@ async def revoke_auditor_link(
     token: str = Query(..., description="The auditor token to revoke"),
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """DELETE /api/governance/orgs/{org_id}/auditor-link"""
     revoked = revoke_token(token)

@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.core.config import settings
+from app.core.config import settings, Environment, validate_deployment, DeploymentValidationError
 from app.core.logging import setup_logging, event_logger
 from app.core.cors import get_allowed_origins, log_cors_config
 from app.core.middleware import (
@@ -25,6 +25,33 @@ logger = logging.getLogger("airs.main")
 
 # Initialize logging first
 setup_logging()
+
+# ── Deployment Validation (Fail-Fast) ──
+# CRITICAL: This MUST run before any other initialization.
+# Crashes immediately if ENV doesn't match expected GCP project.
+try:
+    validate_deployment()
+except DeploymentValidationError as e:
+    logger.critical(f"DEPLOYMENT VALIDATION FAILED: {e}")
+    raise SystemExit(1) from e
+
+# ── Environment Guardrails ──
+def _validate_environment():
+    """Log environment mode and validate configuration on startup."""
+    env = settings.ENV
+    if env == Environment.DEMO:
+        logger.warning(
+            "⚠️  DEMO MODE ACTIVE — All write endpoints return 403 Forbidden. "
+            "Synthetic data is frozen for investor presentations."
+        )
+    elif env == Environment.STAGING:
+        logger.info("STAGING environment — write operations enabled")
+    elif env == Environment.LOCAL:
+        logger.info("LOCAL development environment")
+    else:
+        logger.info(f"Environment: {env}")
+
+_validate_environment()
 
 # ── Rate Limiter ──
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])

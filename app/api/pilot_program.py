@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.auth import User, require_auth
+from app.core.demo_guard import require_writable
 from app.db.database import get_db
 from app.services.organization import OrganizationService
 from app.services.pilot_program import (
@@ -33,6 +34,7 @@ async def start_pilot(
     org_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """Activate a 30-day readiness sprint for an organization."""
     svc = OrganizationService(db, owner_uid=user.uid)
@@ -72,6 +74,7 @@ async def cancel_pilot(
     org_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """Cancel an active pilot program."""
     if not deactivate_pilot(org_id):
@@ -84,6 +87,7 @@ async def mark_milestone_complete(
     milestone_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """Mark a pilot milestone as completed."""
     pilot = complete_milestone(org_id, milestone_id)
@@ -98,6 +102,7 @@ async def reset_milestone_status(
     milestone_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """Reset a pilot milestone to not_started."""
     pilot = reset_milestone(org_id, milestone_id)

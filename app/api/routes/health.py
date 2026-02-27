@@ -47,6 +47,7 @@ class SystemHealthResponse(BaseModel):
     environment: str
     llm_enabled: bool
     demo_mode: bool
+    is_read_only: bool = False
     integrations_enabled: bool
     last_deployment_at: Optional[str] = None
 
@@ -189,6 +190,7 @@ async def system_health() -> SystemHealthResponse:
         environment=settings.ENV.value,
         llm_enabled=settings.is_llm_enabled,
         demo_mode=settings.is_demo_mode,
+        is_read_only=settings.is_read_only,
         integrations_enabled=settings.INTEGRATIONS_ENABLED,
         last_deployment_at=settings.DEPLOYED_AT,
     )

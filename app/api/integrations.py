@@ -1,4 +1,8 @@
-"""Integration endpoints (API keys + webhooks)."""
+"""
+Integration endpoints (API keys + webhooks).
+
+In demo mode (ENV=demo), write operations are blocked with 403 Forbidden.
+"""
 
 from datetime import datetime, timezone
 
@@ -6,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.auth import User, require_auth
+from app.core.demo_guard import require_writable
 from app.db.database import get_db
 from app.schemas.integrations import (
     ApiKeyCreateRequest,
@@ -40,6 +45,7 @@ async def create_api_key(
     data: ApiKeyCreateRequest = ApiKeyCreateRequest(),
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     try:
@@ -73,6 +79,7 @@ async def delete_api_key(
     key_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     if not service.deactivate_api_key(key_id):
@@ -85,6 +92,7 @@ async def create_webhook(
     data: WebhookCreateRequest,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     try:
@@ -116,6 +124,7 @@ async def delete_webhook(
     webhook_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     if not service.delete_webhook(webhook_id):
@@ -127,6 +136,7 @@ async def test_webhook(
     webhook_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     webhook = service.get_webhook_for_owner(webhook_id)
@@ -162,6 +172,7 @@ async def seed_mock_splunk_findings(
     data: SplunkSeedRequest = SplunkSeedRequest(),
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     try:
@@ -190,6 +201,7 @@ async def list_external_findings(
 async def test_webhook_url(
     data: WebhookUrlTestRequest,
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     payload = {
         "event_type": data.event_type,
@@ -229,6 +241,7 @@ async def configure_splunk_hec(
     data: SplunkHecConfigRequest,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """Save Splunk HEC credentials for an organization (staging only)."""
     from app.services.organization import OrganizationService
@@ -267,6 +280,7 @@ async def remove_splunk_config(
     org_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """Remove Splunk HEC credentials for an organization."""
     _splunk_configs.pop(org_id, None)
@@ -277,6 +291,7 @@ async def pull_splunk_evidence(
     org_id: str,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
 ):
     """
     Pull live evidence from Splunk for MFA enforcement + EDR coverage.

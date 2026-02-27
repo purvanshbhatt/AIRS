@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { useIsReadOnly } from '../contexts';
 import {
   Card,
   CardHeader,
@@ -49,6 +50,7 @@ const TIER_OPTIONS = [
 
 export default function GovernanceProfile() {
   const [searchParams] = useSearchParams();
+  const isReadOnly = useIsReadOnly();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrgId, setSelectedOrgId] = useState(searchParams.get('org') || '');
   const [profile, setProfile] = useState<ProfileType | null>(null);
@@ -187,14 +189,16 @@ export default function GovernanceProfile() {
               </option>
             ))}
           </select>
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
-            {saved ? (
-              <CheckCircle className="w-4 h-4" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Profile'}
-          </Button>
+          {!isReadOnly && (
+            <Button onClick={handleSave} disabled={saving} className="gap-2">
+              {saved ? (
+                <CheckCircle className="w-4 h-4" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Profile'}
+            </Button>
+          )}
         </div>
       </div>
 

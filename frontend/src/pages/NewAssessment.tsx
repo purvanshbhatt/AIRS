@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useIsReadOnly } from '../contexts';
 import {
   getOrganizations,
   getRubric,
@@ -72,6 +73,14 @@ interface DraftData {
 export default function NewAssessment() {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const isReadOnly = useIsReadOnly();
+
+  // Redirect to assessments list when in read-only mode
+  useEffect(() => {
+    if (isReadOnly) {
+      navigate('/dashboard/assessments', { replace: true });
+    }
+  }, [isReadOnly, navigate]);
 
   // Setup state
   const [step, setStep] = useState<'setup' | 'questions'>('setup');
