@@ -39,6 +39,7 @@ import { useDemoMode } from '../contexts';
 import type { Organization, Assessment, ApplicableFramework, AuditCalendarEntry } from '../types';
 import type { GHIResponse } from '../api';
 import GHIGauge from '../components/GHIGauge';
+import CompetitorParityChart from '../components/CompetitorParityChart';
 
 interface DashboardStats {
   totalOrgs: number;
@@ -75,7 +76,8 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isDemoMode, isReadOnly } = useDemoMode();
+  const { isDemoMode, isReadOnly, systemStatus } = useDemoMode();
+  const isStaging = systemStatus?.environment === 'staging';
   const [exampleAssessmentId, setExampleAssessmentId] = useState<string | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
@@ -355,6 +357,15 @@ export default function Dashboard() {
 
           {/* ── Security Posture Snapshot (GHI Hero) ── */}
           {ghiData && <GHIGauge data={ghiData} />}
+
+          {/* ── Competitor Parity Chart (Staging-only Market Gap feature) ── */}
+          {isStaging && ghiData && (
+            <CompetitorParityChart
+              orgGhi={ghiData.ghi}
+              orgGrade={ghiData.grade}
+              industryName={displayIndustry}
+            />
+          )}
 
           <Card padding="md">
             <p className="text-sm text-gray-500 dark:text-slate-400">Organization Profile</p>

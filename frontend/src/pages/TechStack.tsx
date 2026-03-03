@@ -23,6 +23,8 @@ import {
   Info,
   TrendingUp,
   Brain,
+  ArrowUpCircle,
+  ShieldX,
 } from 'lucide-react';
 import {
   getOrganizations,
@@ -98,6 +100,95 @@ const LTS_OPTIONS: { value: string; label: string }[] = [
   { value: 'deprecated', label: 'Deprecated' },
   { value: 'eol', label: 'EOL (End of Life)' },
 ];
+
+// ── Version Integrity lookup (staging-only) ──────────────────────
+// Maps known component names to their latest stable version + CVE status.
+// In production, this would come from a backend endpoint or NVD feed.
+interface VersionIntegrityInfo {
+  latestStable: string;
+  cveDetected?: boolean;
+  cveId?: string;
+  upgradeTarget?: string;
+}
+
+const KNOWN_VERSIONS: Record<string, VersionIntegrityInfo> = {
+  'python':        { latestStable: '3.12.3' },
+  'node.js':       { latestStable: '22.12.0' },
+  'react':         { latestStable: '19.0.0' },
+  'django':        { latestStable: '5.1.4' },
+  'fastapi':       { latestStable: '0.115.6' },
+  'postgresql':    { latestStable: '17.2' },
+  'nginx':         { latestStable: '1.27.3' },
+  'docker':        { latestStable: '27.4.1' },
+  'kubernetes':    { latestStable: '1.31.4' },
+  'openssl':       { latestStable: '3.4.0', cveDetected: true, cveId: 'CVE-2024-9143', upgradeTarget: '3.4.0' },
+  'java':          { latestStable: '21.0.5' },
+  'spring boot':   { latestStable: '3.4.1' },
+  'terraform':     { latestStable: '1.9.8' },
+  'go':            { latestStable: '1.23.4' },
+  'redis':         { latestStable: '7.4.2' },
+  'mongodb':       { latestStable: '8.0.4' },
+  'mysql':         { latestStable: '8.4.3' },
+  'log4j':         { latestStable: '2.24.3', cveDetected: true, cveId: 'CVE-2021-44228', upgradeTarget: '2.24.3' },
+  'apache httpd':  { latestStable: '2.4.62' },
+  'express':       { latestStable: '4.21.1' },
+  'flask':         { latestStable: '3.1.0' },
+};
+
+/** Compare semver-like strings; returns -1 if a < b, 0 if equal, 1 if a > b */
+function compareSemver(a: string, b: string): number {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = pa[i] ?? 0;
+    const nb = pb[i] ?? 0;
+    if (na < nb) return -1;
+    if (na > nb) return 1;
+  }
+  return 0;
+}
+
+interface VersionStatusResult {
+  status: 'current' | 'upgrade' | 'cve';
+  label: string;
+  latestStable?: string;
+  cveId?: string;
+  upgradeTarget?: string;
+}
+
+function getVersionStatus(item: TechStackItem): VersionStatusResult | null {
+  if (!item.version) return null;
+  const key = item.component_name.toLowerCase().trim();
+  const known = KNOWN_VERSIONS[key];
+  if (!known) return null;
+
+  // CVE takes priority
+  if (known.cveDetected) {
+    return {
+      status: 'cve',
+      label: `CRITICAL: Security Bug Found`,
+      latestStable: known.latestStable,
+      cveId: known.cveId,
+      upgradeTarget: known.upgradeTarget || known.latestStable,
+    };
+  }
+
+  // Version comparison
+  const cmp = compareSemver(item.version, known.latestStable);
+  if (cmp < 0) {
+    return {
+      status: 'upgrade',
+      label: 'Upgrade Recommended',
+      latestStable: known.latestStable,
+    };
+  }
+
+  return {
+    status: 'current',
+    label: 'Up to Date',
+    latestStable: known.latestStable,
+  };
+}
 
 export default function TechStack() {
   const [searchParams] = useSearchParams();
@@ -478,6 +569,9 @@ export default function TechStack() {
                   <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Version</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Category</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Lifecycle Status</th>
+                  {isStaging && (
+                    <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Version Status</th>
+                  )}
                   <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Risk</th>
                   <th className="text-right py-3 px-4"></th>
                 </tr>
@@ -511,6 +605,43 @@ export default function TechStack() {
                           </div>
                         </div>
                       </td>
+                      {isStaging && (
+                        <td className="py-3 px-4">
+                          {(() => {
+                            const vs = getVersionStatus(item);
+                            if (!vs) return <span className="text-xs text-gray-400">—</span>;
+                            if (vs.status === 'cve') {
+                              return (
+                                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700">
+                                  <ShieldX className="w-3.5 h-3.5 shrink-0" />
+                                  <span className="text-xs font-bold">
+                                    ⛔ {vs.label} — Upgrade to {vs.upgradeTarget}
+                                  </span>
+                                  {vs.cveId && (
+                                    <span className="text-[10px] opacity-70 ml-1">({vs.cveId})</span>
+                                  )}
+                                </div>
+                              );
+                            }
+                            if (vs.status === 'upgrade') {
+                              return (
+                                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                  <ArrowUpCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <span className="text-xs font-semibold">
+                                    ⚠ {vs.label} → v{vs.latestStable}
+                                  </span>
+                                </div>
+                              );
+                            }
+                            return (
+                              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700">
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                <span className="text-xs font-medium">{vs.label}</span>
+                              </div>
+                            );
+                          })()}
+                        </td>
+                      )}
                       <td className="py-3 px-4">
                         <div className="flex flex-col gap-1">
                           {getRiskBadge(item)}

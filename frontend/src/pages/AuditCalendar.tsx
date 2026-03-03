@@ -20,6 +20,7 @@ import {
   TrendingUp,
   ShieldAlert,
   Timer,
+  CalendarPlus,
 } from 'lucide-react';
 import {
   getOrganizations,
@@ -29,7 +30,7 @@ import {
   getAuditForecast,
   ApiRequestError,
 } from '../api';
-import { useIsReadOnly } from '../contexts';
+import { useIsReadOnly, useDemoMode } from '../contexts';
 import type {
   Organization,
   AuditCalendarEntry,
@@ -60,6 +61,8 @@ export default function AuditCalendar() {
   const [forecasts, setForecasts] = useState<Record<string, AuditForecast>>({});
   const [loadingForecast, setLoadingForecast] = useState<string | null>(null);
   const isReadOnly = useIsReadOnly();
+  const { systemStatus } = useDemoMode();
+  const isStaging = systemStatus?.environment === 'staging';
 
   // Add form state
   const [newEntry, setNewEntry] = useState<AuditCalendarCreate>({
@@ -140,6 +143,46 @@ export default function AuditCalendar() {
     } finally {
       setLoadingForecast(null);
     }
+  };
+
+  // ── ICS file generation (Staging-only Google Calendar sync) ─────────────
+  const generateICSFile = (entry: AuditCalendarEntry) => {
+    const auditDate = new Date(entry.audit_date);
+    const dtStart = auditDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const endDate = new Date(auditDate.getTime() + 60 * 60 * 1000); // 1 hour event
+    const dtEnd = endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const reminderMinutes = (entry.reminder_days_before || 90) * 24 * 60;
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//ResilAI//AIRS Audit Calendar//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `SUMMARY:${entry.framework} Audit (${entry.audit_type})`,
+      `DESCRIPTION:Scheduled ${entry.audit_type} audit for ${entry.framework}. Managed by ResilAI AIRS.`,
+      'STATUS:CONFIRMED',
+      'BEGIN:VALARM',
+      'TRIGGER:-P' + (entry.reminder_days_before || 90) + 'D',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${entry.framework} audit in ${entry.reminder_days_before || 90} days`,
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${entry.framework.replace(/\s+/g, '_')}_audit_${entry.audit_date}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const getRiskColor = (level: string) => {
@@ -459,9 +502,17 @@ export default function AuditCalendar() {
                 </label>
                 <input
                   type="number"
+                  min={0}
                   className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
-                  value={newEntry.reminder_days_before || 90}
-                  onChange={(e) => setNewEntry({ ...newEntry, reminder_days_before: parseInt(e.target.value) || 90 })}
+                  value={newEntry.reminder_days_before ?? ''}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setNewEntry({
+                      ...newEntry,
+                      reminder_days_before: raw === '' ? undefined : Math.max(0, parseInt(raw, 10) || 0),
+                    });
+                  }}
+                  placeholder="90"
                 />
               </div>
             </div>
@@ -554,6 +605,18 @@ export default function AuditCalendar() {
                           className="mt-2 text-xs text-indigo-600 hover:text-indigo-700 hover:underline"
                         >
                           {loadingForecast === entry.id ? 'Loading forecast...' : 'View Risk Forecast'}
+                        </button>
+                      )}
+
+                      {/* Staging-only: Sync to Google Calendar via ICS */}
+                      {isStaging && (
+                        <button
+                          onClick={() => generateICSFile(entry)}
+                          className="mt-2 ml-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                          title="Download .ics file to add this audit to Google Calendar, Outlook, or Apple Calendar"
+                        >
+                          <CalendarPlus className="w-3.5 h-3.5" />
+                          Sync to Google Calendar
                         </button>
                       )}
                     </div>
