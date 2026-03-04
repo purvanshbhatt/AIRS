@@ -140,7 +140,7 @@ function alignmentBadge(alignment: string) {
     case 'partial':
       return <Badge variant="warning"><AlertTriangle className="h-3 w-3 mr-1" /> Partial</Badge>;
     case 'high_risk':
-      return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" /> High Risk</Badge>;
+      return <Badge variant="danger"><XCircle className="h-3 w-3 mr-1" /> High Risk</Badge>;
     default:
       return <Badge variant="outline">Unknown</Badge>;
   }
@@ -212,7 +212,7 @@ function advisorySeverityColor(severity: string): string {
 
 function advisorySeverityBadge(severity: string) {
   switch (severity) {
-    case 'critical': return <Badge variant="destructive">Critical</Badge>;
+    case 'critical': return <Badge variant="danger">Critical</Badge>;
     case 'high': return <Badge variant="warning">High</Badge>;
     case 'medium': return <Badge variant="outline">Medium</Badge>;
     case 'info': return <Badge variant="outline">Info</Badge>;
@@ -524,7 +524,7 @@ function TopGapsCard({ gaps }: { gaps: string[] }) {
         <CardTitle className="flex items-center gap-2">
           <Target className="h-5 w-5" />
           Top Gaps
-          <Badge variant="destructive" className="ml-auto">{gaps.length}</Badge>
+          <Badge variant="danger" className="ml-auto">{gaps.length}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -651,7 +651,7 @@ function AutonomousAdvisoryPanel({ advisories }: { advisories: AdvisoryItem[] })
           <ShieldAlert className="h-5 w-5" />
           Autonomous Advisories
           <div className="ml-auto flex gap-1">
-            {criticalCount > 0 && <Badge variant="destructive">{criticalCount} Critical</Badge>}
+            {criticalCount > 0 && <Badge variant="danger">{criticalCount} Critical</Badge>}
             {highCount > 0 && <Badge variant="warning">{highCount} High</Badge>}
           </div>
         </CardTitle>
@@ -749,7 +749,7 @@ function AutoRecommendationBanner({
         onClick={handleAccept}
         disabled={accepting}
         className="flex-shrink-0"
-        variant="default"
+        variant="primary"
       >
         {accepting ? (
           <RefreshCw className="h-4 w-4 animate-spin mr-1" />
