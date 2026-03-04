@@ -846,3 +846,62 @@ export interface RegulatoryForecast {
   requirements: string[];
   recommended_actions: string[];
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// Reliability Risk Index (RRI)
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface RRIDimension {
+  name: string;
+  key: string;
+  score: number;
+  weight: number;
+  weighted_score: number;
+  signals: string[];
+  gaps: string[];
+}
+
+export interface DowntimeBudget {
+  sla_target: number;
+  annual_minutes: number;
+  monthly_minutes: number;
+  annual_display: string;
+  monthly_display: string;
+}
+
+export interface SLAAdvisor {
+  recommended_tier: string;
+  sla_range: number[];
+  rationale: string;
+  industry: string;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export interface RRIResponse {
+  rri_score: number;
+  risk_band: 'Low' | 'Moderate' | 'High' | 'Critical';
+  breach_probability: 'Negligible' | 'Low' | 'Moderate' | 'High';
+  application_tier: string;
+  tier_multiplier: number;
+  raw_score: number;
+  downtime_budget: DowntimeBudget | null;
+  dimensions: RRIDimension[];
+  top_gaps: string[];
+  architecture_alignment: 'aligned' | 'partial' | 'high_risk';
+  sla_advisor: SLAAdvisor | null;
+}
+
+export interface BreachSimulationRequest {
+  simulated_sla: number;
+}
+
+export interface BreachSimulationResponse {
+  current_sla: number;
+  simulated_sla: number;
+  current_budget: DowntimeBudget;
+  simulated_budget: DowntimeBudget;
+  required_improvements: string[];
+  control_gaps: string[];
+  readiness_delta: number;
+  cost_impact: string;
+}

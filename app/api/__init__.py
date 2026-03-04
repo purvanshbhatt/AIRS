@@ -14,6 +14,7 @@ from app.api import (
     pilot_program,
     auditor_view,
     drift,
+    reliability,
 )
 from app.api.v1 import router as v1_router
 
@@ -40,3 +41,6 @@ router.include_router(auditor_view.router, prefix="/governance", tags=["auditor-
 
 # Compliance Drift & Shadow AI — staging only
 router.include_router(drift.router, prefix="/governance", tags=["drift"])
+
+# Reliability Risk Index — staging only
+router.include_router(reliability.router, prefix="/governance", tags=["reliability"])

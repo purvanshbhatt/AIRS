@@ -1065,3 +1065,35 @@ export const getSustainabilityIndex = (orgId: string) =>
   request<import('./types').SustainabilityResponse>(
     `/api/governance/${orgId}/drift/sustainability`
   );
+
+// =============================================================================
+// RELIABILITY RISK INDEX (RRI) — Staging-only
+// =============================================================================
+
+/** Get full Reliability Risk Index for an organization */
+export const getReliabilityIndex = (orgId: string) =>
+  request<import('./types').RRIResponse>(
+    `/api/governance/${orgId}/reliability-index`
+  );
+
+/** Board Simulation Mode: simulate SLA change impact */
+export const simulateReliability = (orgId: string, simulatedSla: number) =>
+  request<import('./types').BreachSimulationResponse>(
+    `/api/governance/${orgId}/reliability-index/simulate`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ simulated_sla: simulatedSla }),
+    }
+  );
+
+/** Smart SLA Advisor: industry-aware SLA recommendation */
+export const getSlaAdvisor = (orgId: string) =>
+  request<import('./types').SLAAdvisor>(
+    `/api/governance/${orgId}/reliability-index/advisor`
+  );
+
+/** Downtime budget calculator from SLA target */
+export const getDowntimeBudget = (orgId: string) =>
+  request<import('./types').DowntimeBudget>(
+    `/api/governance/${orgId}/reliability-index/downtime-budget`
+  );

@@ -22,6 +22,7 @@ import {
   Cpu,
   Rocket,
   TrendingDown,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDemoMode } from '../../contexts';
@@ -44,6 +45,7 @@ const navigation: NavItem[] = [
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Governance', href: '/dashboard/governance', icon: ShieldCheck },
   { name: 'Compliance Drift', href: '/dashboard/compliance-drift', icon: TrendingDown, stagingOnly: true },
+  { name: 'Reliability', href: '/dashboard/reliability', icon: Zap, stagingOnly: true },
   { name: 'Audit Calendar', href: '/dashboard/audit-calendar', icon: Calendar },
   { name: 'Tech Stack', href: '/dashboard/tech-stack', icon: Cpu },
   { name: 'Pilot Program', href: '/dashboard/pilot-program', icon: Rocket },

@@ -31,6 +31,7 @@ import TechStack from './pages/TechStack';
 import PilotDashboard from './pages/PilotDashboard';
 import AuditorView from './pages/AuditorView';
 import ComplianceDrift from './pages/ComplianceDrift';
+import ReliabilityDashboard from './pages/ReliabilityDashboard';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
@@ -88,6 +89,7 @@ function DashboardRoutes() {
           <Route path="/tech-stack" element={<TechStack />} />
           <Route path="/pilot-program" element={<PilotDashboard />} />
           <Route path="/compliance-drift" element={<ComplianceDrift />} />
+          <Route path="/reliability" element={<ReliabilityDashboard />} />
         </Routes>
       </DashboardLayout>
     </ProtectedRoute>
