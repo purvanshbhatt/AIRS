@@ -1,15 +1,19 @@
 /**
- * ReliabilityDashboard.tsx — Reliability Risk Index (RRI) Dashboard
+ * ReliabilityDashboard.tsx — Reliability Governance System (RRI v2)
  *
  * Staging-only page providing:
- *   - RRI Score gauge with risk band visualization
+ *   - RRI Score gauge with Breach Exposure Heat Badge
+ *   - Reliability Confidence Score (RCS) — two-axis resilience matrix
  *   - Five-dimension breakdown (SLA, Recovery, Redundancy, Monitoring, BCDR)
- *   - Architecture Alignment badge (🟢/🟡/🔴)
+ *   - Autonomous Advisory Panel with severity-based remediation
+ *   - Auto-detect recommendation banner (accept tier/SLA)
  *   - Live Downtime Budget Visualization (monthly/annual)
  *   - Smart SLA Advisor with industry-aware recommendations
- *   - Board Simulation Mode ("What if we upgrade SLA?")
+ *   - Board Simulation Mode (upgrade + downgrade scenarios)
+ *   - Reliability Maturity Timeline (90-day trend)
  *   - Top Gaps action list
  *
+ * Positioning: Contractual Resilience Intelligence Platform for AI-Era Enterprises
  * Gated: only renders when systemStatus.environment === 'staging'
  */
 
@@ -33,6 +37,7 @@ import {
   CheckCircle2,
   Clock,
   Gauge,
+  Info,
   Lightbulb,
   RefreshCw,
   Shield,
@@ -51,6 +56,9 @@ import {
   simulateReliability,
   getSlaAdvisor,
   getDowntimeBudget,
+  getReliabilityConfidence,
+  acceptRecommendation,
+  getReliabilityHistory,
 } from '../api';
 import { useDemoMode } from '../contexts';
 import type {
@@ -60,6 +68,11 @@ import type {
   DowntimeBudget,
   SLAAdvisor,
   BreachSimulationResponse,
+  BreachExposureBadge,
+  AdvisoryItem,
+  ReliabilityConfidenceScore,
+  AutoRecommendation,
+  RRISnapshot,
 } from '../types';
 
 
@@ -160,9 +173,56 @@ function confidenceBadge(confidence: string) {
   }
 }
 
+function breachExposureDisplay(badge: BreachExposureBadge) {
+  const colors: Record<string, string> = {
+    green: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700',
+    yellow: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700',
+    red: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700',
+    black: 'bg-gray-900 dark:bg-black text-white border-gray-700',
+  };
+  return colors[badge.severity] ?? colors.green;
+}
+
+function confidenceBandColor(band: string): string {
+  switch (band) {
+    case 'Verified': return 'text-green-600 dark:text-green-400';
+    case 'Moderate': return 'text-yellow-600 dark:text-yellow-400';
+    case 'Low': return 'text-orange-600 dark:text-orange-400';
+    case 'Unvalidated': return 'text-red-600 dark:text-red-400';
+    default: return 'text-gray-600 dark:text-gray-400';
+  }
+}
+
+function rcsBarColor(score: number): string {
+  if (score >= 70) return 'bg-green-500';
+  if (score >= 40) return 'bg-yellow-500';
+  if (score >= 20) return 'bg-orange-500';
+  return 'bg-red-500';
+}
+
+function advisorySeverityColor(severity: string): string {
+  switch (severity) {
+    case 'critical': return 'border-l-red-600 bg-red-50 dark:bg-red-900/20';
+    case 'high': return 'border-l-orange-500 bg-orange-50 dark:bg-orange-900/20';
+    case 'medium': return 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20';
+    case 'info': return 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20';
+    default: return 'border-l-gray-400 bg-gray-50 dark:bg-gray-800';
+  }
+}
+
+function advisorySeverityBadge(severity: string) {
+  switch (severity) {
+    case 'critical': return <Badge variant="destructive">Critical</Badge>;
+    case 'high': return <Badge variant="warning">High</Badge>;
+    case 'medium': return <Badge variant="outline">Medium</Badge>;
+    case 'info': return <Badge variant="outline">Info</Badge>;
+    default: return <Badge variant="outline">{severity}</Badge>;
+  }
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════
-// RRI Score Gauge
+// RRI Score Gauge (with Breach Exposure Heat Badge)
 // ═══════════════════════════════════════════════════════════════════════
 
 function RRIScoreGauge({ rri }: { rri: RRIResponse }) {
@@ -176,6 +236,9 @@ function RRIScoreGauge({ rri }: { rri: RRIResponse }) {
           <Gauge className="h-5 w-5" />
           Reliability Risk Index™
         </CardTitle>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          SLA Commitment vs Operational Reality
+        </p>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-8">
@@ -211,16 +274,23 @@ function RRIScoreGauge({ rri }: { rri: RRIResponse }) {
 
           {/* Score details */}
           <div className="flex-1 space-y-3">
+            {/* Breach Exposure Heat Badge */}
+            {rri.breach_exposure && (
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${breachExposureDisplay(rri.breach_exposure)}`}>
+                <span className="text-xl">{rri.breach_exposure.badge}</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold truncate">
+                    {rri.breach_exposure.level.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  </p>
+                  <p className="text-xs opacity-75 truncate">{rri.breach_exposure.explanation}</p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500 dark:text-gray-400">Risk Band:</span>
               <span className={`text-lg font-semibold ${riskBandColor(rri.risk_band)}`}>
                 {rri.risk_band}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Breach Probability:</span>
-              <span className={`font-medium ${riskBandBg(rri.breach_probability)} px-2 py-0.5 rounded text-sm`}>
-                {rri.breach_probability}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -473,7 +543,359 @@ function TopGapsCard({ gaps }: { gaps: string[] }) {
 
 
 // ═══════════════════════════════════════════════════════════════════════
-// Board Simulation Mode
+// Reliability Confidence Score (RCS) — Two-axis companion to RRI
+// ═══════════════════════════════════════════════════════════════════════
+
+function ReliabilityConfidenceCard({ rcs }: { rcs: ReliabilityConfidenceScore }) {
+  const subDimensions = [
+    { key: 'dr_test_recency', label: 'DR Test Recency', score: rcs.dr_test_recency },
+    { key: 'backup_validation', label: 'Backup Validation', score: rcs.backup_validation },
+    { key: 'ir_tabletop_recency', label: 'IR Tabletop', score: rcs.ir_tabletop_recency },
+    { key: 'monitoring_coverage', label: 'Monitoring Coverage', score: rcs.monitoring_coverage },
+    { key: 'architecture_redundancy', label: 'Arch. Redundancy', score: rcs.architecture_redundancy },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          Reliability Confidence Score
+          <Badge variant="outline" className="ml-2">RCS</Badge>
+        </CardTitle>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          RRI = Exposure · RCS = Confidence — Two-axis resilience matrix
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Score display */}
+        <div className="flex items-center gap-6">
+          <div className="text-center">
+            <span className={`text-4xl font-bold ${rcsBarColor(rcs.total_score).replace('bg-', 'text-')}`}>
+              {rcs.total_score}
+            </span>
+            <p className="text-xs text-gray-400">/ 100</p>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Confidence Band:</span>
+              <span className={`text-lg font-semibold ${confidenceBandColor(rcs.confidence_band)}`}>
+                {rcs.confidence_band}
+              </span>
+            </div>
+            <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${rcsBarColor(rcs.total_score)}`}
+                style={{ width: `${rcs.total_score}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Sub-dimension bars */}
+        <div className="space-y-2.5">
+          {subDimensions.map((dim) => (
+            <div key={dim.key} className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">{dim.label}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{dim.score}/20</span>
+              </div>
+              <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${rcsBarColor(dim.score * 5)}`}
+                  style={{ width: `${(dim.score / 20) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// Autonomous Advisory Panel
+// ═══════════════════════════════════════════════════════════════════════
+
+function AutonomousAdvisoryPanel({ advisories }: { advisories: AdvisoryItem[] }) {
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+
+  if (advisories.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-green-600" />
+            Autonomous Advisories
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+            <CheckCircle2 className="h-5 w-5" />
+            <span className="text-sm">No advisories — all reliability controls aligned</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const criticalCount = advisories.filter(a => a.severity === 'critical').length;
+  const highCount = advisories.filter(a => a.severity === 'high').length;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ShieldAlert className="h-5 w-5" />
+          Autonomous Advisories
+          <div className="ml-auto flex gap-1">
+            {criticalCount > 0 && <Badge variant="destructive">{criticalCount} Critical</Badge>}
+            {highCount > 0 && <Badge variant="warning">{highCount} High</Badge>}
+          </div>
+        </CardTitle>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          Deterministic misalignment detection — no LLM required
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {advisories.map((adv, i) => (
+          <div
+            key={i}
+            className={`border-l-4 rounded-r-lg p-3 ${advisorySeverityColor(adv.severity)} cursor-pointer transition-all hover:shadow-sm`}
+            onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {advisorySeverityBadge(adv.severity)}
+                <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                  {adv.title}
+                </span>
+              </div>
+              <span className="text-xs text-gray-400">
+                {expandedIdx === i ? '▲' : '▼'}
+              </span>
+            </div>
+            {expandedIdx === i && (
+              <div className="mt-2 space-y-2 text-sm">
+                <p className="text-gray-600 dark:text-gray-400">{adv.detail}</p>
+                <div className="flex items-start gap-2 p-2 bg-white/60 dark:bg-gray-800/60 rounded">
+                  <Lightbulb className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-blue-700 dark:text-blue-300">{adv.remediation}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// Auto-Recommendation Banner
+// ═══════════════════════════════════════════════════════════════════════
+
+function AutoRecommendationBanner({
+  recommendation,
+  orgId,
+  onAccepted,
+}: {
+  recommendation: AutoRecommendation;
+  orgId: string;
+  onAccepted: () => void;
+}) {
+  const [accepting, setAccepting] = useState(false);
+  const [accepted, setAccepted] = useState(false);
+
+  const handleAccept = async () => {
+    setAccepting(true);
+    try {
+      await acceptRecommendation(orgId, recommendation.recommended_tier, recommendation.recommended_sla);
+      setAccepted(true);
+      onAccepted();
+    } catch {
+      // Silently handle
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  if (accepted) {
+    return (
+      <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+        <CheckCircle2 className="h-5 w-5 text-green-600" />
+        <span className="text-sm font-medium text-green-700 dark:text-green-300">
+          Recommendation accepted — tier and SLA updated
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+      <Info className="h-6 w-6 text-blue-600 flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+          Auto-detected: {recommendation.recommended_tier.toUpperCase()} tier @ {recommendation.recommended_sla}% SLA
+        </p>
+        <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+          {recommendation.rationale} (Source: {recommendation.source})
+        </p>
+      </div>
+      <Button
+        onClick={handleAccept}
+        disabled={accepting}
+        className="flex-shrink-0"
+        variant="default"
+      >
+        {accepting ? (
+          <RefreshCw className="h-4 w-4 animate-spin mr-1" />
+        ) : (
+          <CheckCircle2 className="h-4 w-4 mr-1" />
+        )}
+        Accept
+      </Button>
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// Reliability Maturity Timeline (90-day trend)
+// ═══════════════════════════════════════════════════════════════════════
+
+function ReliabilityTimeline({ snapshots }: { snapshots: RRISnapshot[] }) {
+  if (snapshots.length < 2) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Reliability Maturity Timeline
+            <Badge variant="outline" className="ml-2">90 Days</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+            <Activity className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+            <p className="text-sm">Insufficient data points for timeline.</p>
+            <p className="text-xs text-gray-400 mt-1">
+              RRI snapshots are recorded on each calculation. Check back soon.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // SVG chart dimensions
+  const width = 600;
+  const height = 200;
+  const padding = { top: 20, right: 20, bottom: 30, left: 45 };
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+
+  // Normalize data
+  const sorted = [...snapshots].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+  const minTime = new Date(sorted[0].timestamp).getTime();
+  const maxTime = new Date(sorted[sorted.length - 1].timestamp).getTime();
+  const timeRange = maxTime - minTime || 1;
+
+  function toX(ts: string) {
+    return padding.left + ((new Date(ts).getTime() - minTime) / timeRange) * chartW;
+  }
+  function toYRri(score: number) {
+    return padding.top + chartH - (Math.min(score, 100) / 100) * chartH;
+  }
+  function toYRcs(score: number) {
+    return padding.top + chartH - (Math.min(score, 100) / 100) * chartH;
+  }
+
+  // Build path strings
+  const rriPath = sorted.map((s, i) => `${i === 0 ? 'M' : 'L'}${toX(s.timestamp).toFixed(1)},${toYRri(s.rri_score).toFixed(1)}`).join(' ');
+  const rcsPath = sorted.map((s, i) => `${i === 0 ? 'M' : 'L'}${toX(s.timestamp).toFixed(1)},${toYRcs(s.rcs_score).toFixed(1)}`).join(' ');
+
+  // Latest vs first delta
+  const rriDelta = sorted[sorted.length - 1].rri_score - sorted[0].rri_score;
+  const rcsDelta = sorted[sorted.length - 1].rcs_score - sorted[0].rcs_score;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5" />
+          Reliability Maturity Timeline
+          <Badge variant="outline" className="ml-2">90 Days</Badge>
+        </CardTitle>
+        <div className="flex gap-4 mt-1">
+          <span className="text-xs flex items-center gap-1">
+            <span className="w-3 h-0.5 bg-blue-500 inline-block rounded" /> RRI (Exposure)
+            <span className={`ml-1 font-semibold ${rriDelta < 0 ? 'text-green-600' : rriDelta > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+              {rriDelta > 0 ? '+' : ''}{rriDelta.toFixed(1)}
+            </span>
+          </span>
+          <span className="text-xs flex items-center gap-1">
+            <span className="w-3 h-0.5 bg-emerald-500 inline-block rounded" /> RCS (Confidence)
+            <span className={`ml-1 font-semibold ${rcsDelta > 0 ? 'text-green-600' : rcsDelta < 0 ? 'text-red-600' : 'text-gray-400'}`}>
+              {rcsDelta > 0 ? '+' : ''}{rcsDelta.toFixed(1)}
+            </span>
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+          {/* Y-axis grid lines */}
+          {[0, 25, 50, 75, 100].map((v) => (
+            <g key={v}>
+              <line
+                x1={padding.left} y1={toYRri(v)}
+                x2={width - padding.right} y2={toYRri(v)}
+                stroke="currentColor" className="text-gray-200 dark:text-gray-700"
+                strokeDasharray="4 4"
+              />
+              <text
+                x={padding.left - 8} y={toYRri(v) + 4}
+                textAnchor="end" fill="currentColor"
+                className="text-gray-400 dark:text-gray-500"
+                fontSize="10"
+              >{v}</text>
+            </g>
+          ))}
+
+          {/* RRI line */}
+          <path d={rriPath} fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          {/* RCS line */}
+          <path d={rcsPath} fill="none" stroke="#10b981" strokeWidth="2" strokeDasharray="6 3" strokeLinecap="round" strokeLinejoin="round" />
+
+          {/* Data points */}
+          {sorted.map((s, i) => (
+            <g key={i}>
+              <circle cx={toX(s.timestamp)} cy={toYRri(s.rri_score)} r="3" fill="#3b82f6" />
+              <circle cx={toX(s.timestamp)} cy={toYRcs(s.rcs_score)} r="3" fill="#10b981" />
+            </g>
+          ))}
+
+          {/* X-axis labels (first and last) */}
+          <text x={padding.left} y={height - 5} fontSize="9" fill="currentColor" className="text-gray-400">
+            {new Date(sorted[0].timestamp).toLocaleDateString()}
+          </text>
+          <text x={width - padding.right} y={height - 5} textAnchor="end" fontSize="9" fill="currentColor" className="text-gray-400">
+            {new Date(sorted[sorted.length - 1].timestamp).toLocaleDateString()}
+          </text>
+        </svg>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// Board Simulation Mode (with downgrade support)
 // ═══════════════════════════════════════════════════════════════════════
 
 function BoardSimulation({
@@ -514,7 +936,7 @@ function BoardSimulation({
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Simulate the impact of changing your SLA target on downtime budget, required improvements, and reliability readiness.
+          Simulate the impact of changing your SLA target — upgrade or downgrade — on downtime budget, required improvements, and reliability readiness.
         </p>
 
         {/* SLA Slider */}
@@ -571,6 +993,18 @@ function BoardSimulation({
         {/* Simulation Results */}
         {result && (
           <div className="space-y-4 border-t pt-4 dark:border-gray-700">
+            {/* Direction indicator */}
+            {currentSla !== null && (
+              <div className="flex items-center gap-2">
+                <Badge variant={simSla > currentSla ? 'outline' : 'warning'}>
+                  {simSla > currentSla ? '↑ Upgrade Scenario' : simSla < currentSla ? '↓ Downgrade Scenario' : '= No Change'}
+                </Badge>
+                <span className="text-xs text-gray-400">
+                  {currentSla.toFixed(3)}% → {simSla.toFixed(3)}%
+                </span>
+              </div>
+            )}
+
             {/* Delta banner */}
             <div className={`p-3 rounded-lg flex items-center gap-3 ${
               result.readiness_delta < 0
@@ -673,6 +1107,7 @@ function ReliabilityContent() {
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [activeOrg, setActiveOrg] = useState<string | null>(null);
   const [rri, setRri] = useState<RRIResponse | null>(null);
+  const [history, setHistory] = useState<RRISnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -690,7 +1125,7 @@ function ReliabilityContent() {
       .catch(() => setError('Failed to load organizations'));
   }, [selectedOrgId]);
 
-  // Load RRI when org changes
+  // Load RRI + history when org changes
   useEffect(() => {
     if (!activeOrg) {
       setLoading(false);
@@ -699,9 +1134,13 @@ function ReliabilityContent() {
     setLoading(true);
     setError(null);
 
-    getReliabilityIndex(activeOrg)
-      .then((data) => {
-        setRri(data);
+    Promise.all([
+      getReliabilityIndex(activeOrg),
+      getReliabilityHistory(activeOrg).catch(() => []),
+    ])
+      .then(([rriData, historyData]) => {
+        setRri(rriData);
+        setHistory(historyData);
         setLoading(false);
       })
       .catch((err) => {
@@ -713,8 +1152,14 @@ function ReliabilityContent() {
   const handleRefresh = useCallback(() => {
     if (!activeOrg) return;
     setLoading(true);
-    getReliabilityIndex(activeOrg)
-      .then(setRri)
+    Promise.all([
+      getReliabilityIndex(activeOrg),
+      getReliabilityHistory(activeOrg).catch(() => []),
+    ])
+      .then(([rriData, historyData]) => {
+        setRri(rriData);
+        setHistory(historyData);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : 'Refresh failed'))
       .finally(() => setLoading(false));
   }, [activeOrg]);
@@ -724,7 +1169,7 @@ function ReliabilityContent() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Reliability Risk Index™
+            Reliability Governance System
           </h1>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -741,7 +1186,7 @@ function ReliabilityContent() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Reliability Risk Index™
+          Reliability Governance System
         </h1>
         <Card>
           <CardContent className="py-8">
@@ -763,7 +1208,7 @@ function ReliabilityContent() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Reliability Risk Index™
+          Reliability Governance System
         </h1>
         <Card>
           <CardContent className="py-8 text-center text-gray-500">
@@ -782,10 +1227,10 @@ function ReliabilityContent() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <ShieldCheck className="h-7 w-7 text-blue-600" />
-            Reliability Risk Index™
+            Reliability Governance System
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Deterministic reliability exposure scoring — SLA + Recovery + Redundancy + Monitoring + BCDR
+            Contractual Resilience Intelligence — SLA Commitment vs Operational Reality
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -810,13 +1255,34 @@ function ReliabilityContent() {
 
       {rri && (
         <>
-          {/* Row 1: Score gauge + Dimension breakdown */}
+          {/* Auto-recommendation banner (when tier/SLA missing) */}
+          {rri.auto_recommendation && activeOrg && (
+            <AutoRecommendationBanner
+              recommendation={rri.auto_recommendation}
+              orgId={activeOrg}
+              onAccepted={handleRefresh}
+            />
+          )}
+
+          {/* Row 1: RRI Score gauge + RCS (Two-axis resilience matrix) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <RRIScoreGauge rri={rri} />
-            <DimensionBreakdown dimensions={rri.dimensions} />
+            {rri.reliability_confidence ? (
+              <ReliabilityConfidenceCard rcs={rri.reliability_confidence} />
+            ) : (
+              <DimensionBreakdown dimensions={rri.dimensions} />
+            )}
           </div>
 
-          {/* Row 2: Downtime Budget + SLA Advisor */}
+          {/* Row 2: Dimension breakdown (if RCS present) + Advisory Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {rri.reliability_confidence && (
+              <DimensionBreakdown dimensions={rri.dimensions} />
+            )}
+            <AutonomousAdvisoryPanel advisories={rri.advisories ?? []} />
+          </div>
+
+          {/* Row 3: Downtime Budget + SLA Advisor */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {rri.downtime_budget && (
               <DowntimeBudgetCard budget={rri.downtime_budget} />
@@ -826,7 +1292,12 @@ function ReliabilityContent() {
             )}
           </div>
 
-          {/* Row 3: Top Gaps + Board Simulation */}
+          {/* Row 4: Reliability Timeline (full width) */}
+          {history.length > 0 && (
+            <ReliabilityTimeline snapshots={history} />
+          )}
+
+          {/* Row 5: Top Gaps + Board Simulation */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TopGapsCard gaps={rri.top_gaps} />
             {activeOrg && (

@@ -877,6 +877,53 @@ export interface SLAAdvisor {
   confidence: 'high' | 'medium' | 'low';
 }
 
+// ── New v2 types ────────────────────────────────────────────────────
+
+export interface BreachExposureBadge {
+  level: 'within_budget' | 'sla_strain' | 'breach_high' | 'contractual_risk';
+  badge: string;
+  severity: 'green' | 'yellow' | 'red' | 'black';
+  explanation: string;
+}
+
+export interface AdvisoryItem {
+  severity: 'critical' | 'high' | 'medium' | 'info';
+  title: string;
+  detail: string;
+  remediation: string;
+}
+
+export interface ReliabilityConfidenceScore {
+  total_score: number;
+  dr_test_recency: number;
+  backup_validation: number;
+  ir_tabletop_recency: number;
+  monitoring_coverage: number;
+  architecture_redundancy: number;
+  confidence_band: 'Verified' | 'Moderate' | 'Low' | 'Unvalidated';
+  sub_scores: Record<string, number>;
+}
+
+export interface AutoRecommendation {
+  recommended_tier: string;
+  recommended_sla: number;
+  source: 'industry' | 'profile' | 'default';
+  rationale: string;
+  accept_action: string;
+}
+
+export interface RRISnapshot {
+  org_id: string;
+  timestamp: string;
+  rri_score: number;
+  rcs_score: number;
+  risk_band: string;
+  confidence_band: string;
+  dimensions: Record<string, number>;
+}
+
+// ── Main Responses ──────────────────────────────────────────────────
+
 export interface RRIResponse {
   rri_score: number;
   risk_band: 'Low' | 'Moderate' | 'High' | 'Critical';
@@ -889,6 +936,11 @@ export interface RRIResponse {
   top_gaps: string[];
   architecture_alignment: 'aligned' | 'partial' | 'high_risk';
   sla_advisor: SLAAdvisor | null;
+  // v2 fields
+  breach_exposure: BreachExposureBadge | null;
+  advisories: AdvisoryItem[];
+  reliability_confidence: ReliabilityConfidenceScore | null;
+  auto_recommendation: AutoRecommendation | null;
 }
 
 export interface BreachSimulationRequest {

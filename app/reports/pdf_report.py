@@ -80,6 +80,10 @@ class PDFReportGenerator(BaseReport):
         # Findings
         story.extend(self._build_findings(data))
         
+        # Reliability Risk Index section (if RRI data present)
+        if data.get("rri"):
+            story.extend(self._build_reliability_section(data["rri"]))
+        
         # Recommendations
         story.extend(self._build_recommendations(data))
         
@@ -291,6 +295,158 @@ class PDFReportGenerator(BaseReport):
         
         return elements
     
+    def _build_reliability_section(self, rri: Dict[str, Any]) -> List:
+        """Build Reliability Risk Index section with RRI dial + downtime budget."""
+        elements = []
+
+        elements.append(PageBreak())
+        elements.append(Paragraph("Reliability Risk Index", self.styles['SectionHeader']))
+        elements.append(Paragraph(
+            "SLA Commitment vs Operational Reality",
+            self.styles['Normal']
+        ))
+        elements.append(Spacer(1, 15))
+
+        # RRI Score + Risk Band summary
+        rri_score = rri.get("rri_score", 0)
+        risk_band = rri.get("risk_band", "Unknown")
+        breach_prob = rri.get("breach_probability", "Unknown")
+        tier = rri.get("application_tier", "Not configured")
+        alignment = rri.get("architecture_alignment", "unknown")
+
+        # Score colors
+        if rri_score <= 25:
+            score_color = colors.HexColor('#27ae60')
+        elif rri_score <= 50:
+            score_color = colors.HexColor('#f39c12')
+        elif rri_score <= 75:
+            score_color = colors.HexColor('#e74c3c')
+        else:
+            score_color = colors.HexColor('#1a1a2e')
+
+        score_data = [
+            ["Reliability Risk Index", f"{rri_score:.1f} / 100"],
+            ["Risk Band", risk_band],
+            ["Breach Probability", breach_prob],
+            ["Application Tier", tier],
+            ["Architecture Alignment", alignment.replace("_", " ").title()],
+        ]
+
+        # Breach Exposure Badge
+        breach_exposure = rri.get("breach_exposure")
+        if breach_exposure:
+            badge_label = breach_exposure.get("badge", "")
+            score_data.append(["Breach Exposure", badge_label])
+
+        # RCS
+        rcs = rri.get("reliability_confidence")
+        if rcs:
+            rcs_total = rcs.get("total_score", 0)
+            rcs_band = rcs.get("confidence_band", "Unknown")
+            score_data.append(["Reliability Confidence", f"{rcs_total:.1f} / 100 ({rcs_band})"])
+
+        score_table = Table(score_data, colWidths=[2.5 * inch, 3.5 * inch])
+        score_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#2c3e50')),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.white),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('PADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BACKGROUND', (1, 0), (1, 0), score_color),
+            ('TEXTCOLOR', (1, 0), (1, 0), colors.white),
+            ('BACKGROUND', (1, 1), (1, -1), colors.HexColor('#ecf0f1')),
+            ('TEXTCOLOR', (1, 1), (1, -1), colors.HexColor('#2c3e50')),
+        ]))
+        elements.append(score_table)
+        elements.append(Spacer(1, 15))
+
+        # Downtime Budget box
+        budget = rri.get("downtime_budget")
+        if budget:
+            elements.append(Paragraph("Downtime Budget", self.styles['FindingTitle']))
+            budget_data = [
+                ["SLA Target", f"{budget.get('sla_target', 0)}%"],
+                ["Annual Budget", budget.get("annual_display", "N/A")],
+                ["Monthly Budget", budget.get("monthly_display", "N/A")],
+            ]
+            budget_table = Table(budget_data, colWidths=[2.5 * inch, 3.5 * inch])
+            budget_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#3498db')),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.white),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('PADDING', (0, 0), (-1, -1), 6),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('BACKGROUND', (1, 0), (1, -1), colors.HexColor('#eaf2f8')),
+            ]))
+            elements.append(budget_table)
+            elements.append(Spacer(1, 15))
+
+        # Dimension breakdown
+        dimensions = rri.get("dimensions", [])
+        if dimensions:
+            elements.append(Paragraph("Dimension Breakdown", self.styles['FindingTitle']))
+            dim_data = [["Dimension", "Score", "Weight", "Weighted"]]
+            for dim in dimensions:
+                dim_data.append([
+                    dim.get("name", ""),
+                    f"{dim.get('score', 0):.1f}",
+                    f"{dim.get('weight', 0):.0%}",
+                    f"{dim.get('weighted_score', 0):.1f}",
+                ])
+            dim_table = Table(dim_data, colWidths=[2.5 * inch, 1 * inch, 1 * inch, 1.5 * inch])
+            dim_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('PADDING', (0, 0), (-1, -1), 6),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f5f5f5')]),
+                ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+            ]))
+            elements.append(dim_table)
+            elements.append(Spacer(1, 15))
+
+        # Autonomous Advisories
+        advisories = rri.get("advisories", [])
+        if advisories:
+            elements.append(Paragraph("Autonomous Advisories", self.styles['FindingTitle']))
+            severity_colors_map = {
+                "critical": colors.HexColor('#e74c3c'),
+                "high": colors.HexColor('#e67e22'),
+                "medium": colors.HexColor('#f39c12'),
+                "info": colors.HexColor('#3498db'),
+            }
+            for adv in advisories:
+                sev = adv.get("severity", "info")
+                sev_color = severity_colors_map.get(sev, colors.black)
+                elements.append(Paragraph(
+                    f"<font color='{sev_color}'>[{sev.upper()}]</font> "
+                    f"<b>{adv.get('title', '')}</b>",
+                    self.styles['Normal']
+                ))
+                elements.append(Paragraph(
+                    f"<i>{adv.get('detail', '')}</i>",
+                    self.styles['Normal']
+                ))
+                elements.append(Paragraph(
+                    f"Remediation: {adv.get('remediation', '')}",
+                    self.styles['Normal']
+                ))
+                elements.append(Spacer(1, 5))
+
+        # Top gaps
+        top_gaps = rri.get("top_gaps", [])
+        if top_gaps:
+            elements.append(Paragraph("Top Gaps", self.styles['FindingTitle']))
+            for gap in top_gaps:
+                elements.append(Paragraph(f"• {gap}", self.styles['Normal']))
+            elements.append(Spacer(1, 10))
+
+        return elements
+
     def _build_recommendations(self, data: Dict[str, Any]) -> List:
         """Build recommendations section."""
         elements = []

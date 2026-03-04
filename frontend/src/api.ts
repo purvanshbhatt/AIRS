@@ -1097,3 +1097,25 @@ export const getDowntimeBudget = (orgId: string) =>
   request<import('./types').DowntimeBudget>(
     `/api/governance/${orgId}/reliability-index/downtime-budget`
   );
+
+/** Reliability Confidence Score (RCS) — 2nd axis of resilience matrix */
+export const getReliabilityConfidence = (orgId: string) =>
+  request<import('./types').ReliabilityConfidenceScore>(
+    `/api/governance/${orgId}/reliability-index/confidence`
+  );
+
+/** Accept auto-detected tier/SLA recommendation */
+export const acceptRecommendation = (orgId: string, tier: string, sla: number) =>
+  request<{ status: string; org_id: string; applied: string[] }>(
+    `/api/governance/${orgId}/reliability-index/accept-recommendation`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ recommended_tier: tier, recommended_sla: sla }),
+    }
+  );
+
+/** Get RRI history / snapshots for trend visualization (last 90 days) */
+export const getReliabilityHistory = (orgId: string) =>
+  request<import('./types').RRISnapshot[]>(
+    `/api/governance/${orgId}/reliability-index/history`
+  );

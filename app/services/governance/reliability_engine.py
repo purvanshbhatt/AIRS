@@ -28,7 +28,9 @@ import json
 import logging
 import math
 from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Any
+from datetime import datetime, timezone
+from functools import lru_cache
+from typing import Dict, List, Optional, Any, Tuple
 
 from sqlalchemy.orm import Session
 
@@ -90,6 +92,23 @@ RRI_WEIGHTS = {
     "bcdr_validation": 0.15,
 }
 
+# Reliability Confidence Score (RCS) weights — separate axis from RRI
+RCS_WEIGHTS = {
+    "dr_test_recency": 0.20,
+    "backup_validation": 0.20,
+    "ir_tabletop_recency": 0.20,
+    "monitoring_coverage": 0.20,
+    "architecture_redundancy": 0.20,
+}
+
+# Breach exposure badge mapping (SLA vs recovery capability)
+BREACH_EXPOSURE_BADGES = {
+    "within_budget": {"badge": "\U0001f7e2 Within Downtime Budget", "severity": "green"},
+    "sla_strain": {"badge": "\U0001f7e1 SLA Strain Likely", "severity": "yellow"},
+    "breach_high": {"badge": "\U0001f534 Breach Exposure High", "severity": "red"},
+    "contractual_risk": {"badge": "\u26AB Contractual Risk Critical", "severity": "black"},
+}
+
 
 # ── Data Classes ─────────────────────────────────────────────────────
 
@@ -135,6 +154,78 @@ class SLAAdvisorRecommendation:
 
 
 @dataclass
+class BreachExposureBadge:
+    """4-level executive breach exposure classification."""
+    level: str        # within_budget, sla_strain, breach_high, contractual_risk
+    badge: str        # Emoji + label
+    severity: str     # green, yellow, red, black
+    explanation: str  # Why this level
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
+
+@dataclass
+class AdvisoryItem:
+    """Deterministic architectural misalignment advisory."""
+    severity: str       # critical, high, medium, info
+    title: str
+    detail: str
+    remediation: str
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
+
+@dataclass
+class ReliabilityConfidenceScore:
+    """Reliability Confidence Score (RCS) — measures confidence in resilience posture.
+
+    Separate from RRI: RRI = Exposure, RCS = Confidence.
+    Together they form a two-axis resilience matrix.
+    """
+    total_score: float        # 0–100 (higher = more confident)
+    dr_test_recency: float    # 0–20
+    backup_validation: float  # 0–20
+    ir_tabletop_recency: float  # 0–20
+    monitoring_coverage: float  # 0–20
+    architecture_redundancy: float  # 0–20
+    confidence_band: str      # Verified, Moderate, Low, Unvalidated
+    sub_scores: Dict[str, float] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
+
+@dataclass
+class AutoRecommendation:
+    """Auto-detected recommendation when SLA/Tier is missing."""
+    recommended_tier: str
+    recommended_sla: float
+    source: str  # "industry", "profile", "default"
+    rationale: str
+    accept_action: str  # description of what Accept does
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
+
+@dataclass
+class RRISnapshot:
+    """Point-in-time RRI snapshot for trend tracking."""
+    org_id: str
+    timestamp: str
+    rri_score: float
+    rcs_score: float
+    risk_band: str
+    confidence_band: str
+    dimensions: Dict[str, float]  # key→score
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
+
+
+@dataclass
 class BreachSimulation:
     """Board Simulation Mode result."""
     current_sla: float
@@ -164,6 +255,11 @@ class ReliabilityRiskResult:
     top_gaps: List[str]
     architecture_alignment: str  # "aligned", "partial", "high_risk"
     sla_advisor: Optional[SLAAdvisorRecommendation]
+    # ── New fields (v2) ──────────────────────────────────────────────
+    breach_exposure: Optional[BreachExposureBadge] = None
+    advisories: List[AdvisoryItem] = field(default_factory=list)
+    reliability_confidence: Optional[ReliabilityConfidenceScore] = None
+    auto_recommendation: Optional[AutoRecommendation] = None
 
     def to_dict(self) -> Dict:
         d = asdict(self)
@@ -205,16 +301,23 @@ def _format_minutes(minutes: float) -> str:
     return f"{int(days)}d {int(remaining_hours)}h"
 
 
+@lru_cache(maxsize=64)
+def _cached_sla_advisor(industry_key: str) -> Tuple[str, tuple, str, str]:
+    """Cached industry SLA lookup (industry rarely changes)."""
+    rec = INDUSTRY_SLA_RECOMMENDATIONS.get(industry_key, INDUSTRY_SLA_RECOMMENDATIONS["default"])
+    confidence = "high" if industry_key in INDUSTRY_SLA_RECOMMENDATIONS else "medium"
+    return rec["tier"], tuple(rec["sla_range"]), rec["rationale"], confidence
+
+
 def get_sla_advisor(industry: Optional[str]) -> SLAAdvisorRecommendation:
-    """Smart SLA Advisor: recommend tier and SLA range based on industry."""
+    """Smart SLA Advisor: recommend tier and SLA range based on industry (cached)."""
     key = (industry or "").strip().lower()
-    rec = INDUSTRY_SLA_RECOMMENDATIONS.get(key, INDUSTRY_SLA_RECOMMENDATIONS["default"])
-    confidence = "high" if key in INDUSTRY_SLA_RECOMMENDATIONS else "medium"
+    tier, sla_range, rationale, confidence = _cached_sla_advisor(key)
 
     return SLAAdvisorRecommendation(
-        recommended_tier=rec["tier"],
-        sla_range=rec["sla_range"],
-        rationale=rec["rationale"],
+        recommended_tier=tier,
+        sla_range=list(sla_range),
+        rationale=rationale,
         industry=industry or "Unknown",
         confidence=confidence,
     )
@@ -256,7 +359,301 @@ def _get_architecture_alignment(dimensions: List[RRIDimension]) -> str:
         return "high_risk"
 
 
-# ── Dimension Scorers ────────────────────────────────────────────────
+# ── Breach Exposure Heat Badge ───────────────────────────────────────
+
+def _calculate_breach_exposure(
+    sla_target: Optional[float],
+    recovery_score: float,
+    sla_commitment_score: float,
+) -> BreachExposureBadge:
+    """
+    Calculate 4-level executive breach exposure badge.
+
+    Derived from declared SLA vs current recovery capability:
+      🟢 Within Downtime Budget — recovery matches SLA commitment
+      🟡 SLA Strain Likely     — gaps but manageable
+      🔴 Breach Exposure High  — significant mismatch
+      ⚫ Contractual Risk Critical — SLA is contractually dangerous
+    """
+    if sla_target is None:
+        return BreachExposureBadge(
+            level="sla_strain",
+            badge=BREACH_EXPOSURE_BADGES["sla_strain"]["badge"],
+            severity="yellow",
+            explanation="SLA target not configured — unable to quantify exposure",
+        )
+
+    # Combined exposure signal: average of SLA commitment risk + recovery gap
+    exposure = (sla_commitment_score + recovery_score) / 2
+
+    if exposure <= 25:
+        return BreachExposureBadge(
+            level="within_budget",
+            badge=BREACH_EXPOSURE_BADGES["within_budget"]["badge"],
+            severity="green",
+            explanation=f"Recovery capability aligns with {sla_target}% SLA commitment",
+        )
+    elif exposure <= 50:
+        return BreachExposureBadge(
+            level="sla_strain",
+            badge=BREACH_EXPOSURE_BADGES["sla_strain"]["badge"],
+            severity="yellow",
+            explanation=f"Recovery gaps may strain {sla_target}% SLA during incidents",
+        )
+    elif exposure <= 75:
+        return BreachExposureBadge(
+            level="breach_high",
+            badge=BREACH_EXPOSURE_BADGES["breach_high"]["badge"],
+            severity="red",
+            explanation=f"Significant mismatch between {sla_target}% SLA and recovery readiness",
+        )
+    else:
+        return BreachExposureBadge(
+            level="contractual_risk",
+            badge=BREACH_EXPOSURE_BADGES["contractual_risk"]["badge"],
+            severity="black",
+            explanation=f"Current architecture cannot sustain {sla_target}% SLA — contractual breach likely",
+        )
+
+
+# ── Autonomous Advisory Layer ────────────────────────────────────────
+
+def _detect_advisories(
+    org: Organization,
+    answers: Dict[str, Any],
+    dimensions: List[RRIDimension],
+    tech_items: List[Any],
+) -> List[AdvisoryItem]:
+    """
+    Deterministic architectural misalignment detection.
+
+    Triggers recommendations without LLM:
+      IF condition THEN advisory with remediation.
+    """
+    advisories: List[AdvisoryItem] = []
+    sla = org.sla_target
+    tier = org.application_tier
+
+    # Rule 1: High SLA + no automated failover
+    has_failover = any(
+        hasattr(t, 'category') and t.category and 'load balancer' in t.category.lower()
+        for t in tech_items
+    )
+    if sla and sla >= 99.99 and not has_failover:
+        advisories.append(AdvisoryItem(
+            severity="critical",
+            title="Architectural Misalignment Detected",
+            detail=f"SLA target of {sla}% requires automated failover, but no load balancer or failover infrastructure is registered.",
+            remediation="Deploy automated failover (ALB/NLB, multi-AZ) and register in tech stack.",
+        ))
+
+    # Rule 2: High SLA + low tier classification
+    if sla and sla >= 99.9 and tier and tier in ("tier_3", "Tier 3", "tier_4", "Tier 4"):
+        advisories.append(AdvisoryItem(
+            severity="critical",
+            title="Tier-SLA Conflict",
+            detail=f"SLA of {sla}% conflicts with {tier} classification. Tier 3/4 cannot sustain this SLA target.",
+            remediation="Reclassify to Tier 1 or Tier 0 and provision corresponding infrastructure.",
+        ))
+
+    # Rule 3: No DR plan + production SLA
+    if sla and sla >= 99.0 and not answers.get("rs_04"):
+        advisories.append(AdvisoryItem(
+            severity="high",
+            title="No Disaster Recovery Plan",
+            detail="Production SLA commitment exists but no DR plan is documented.",
+            remediation="Create and test a disaster recovery plan covering RTO/RPO objectives.",
+        ))
+
+    # Rule 4: No monitoring + meaningful SLA
+    monitoring_dim = next((d for d in dimensions if d.key == "monitoring_detection"), None)
+    if monitoring_dim and monitoring_dim.score >= 70:
+        advisories.append(AdvisoryItem(
+            severity="high",
+            title="Monitoring Blind Spot",
+            detail="Monitoring & detection maturity is insufficient — incidents may go undetected beyond SLA thresholds.",
+            remediation="Deploy APM, infrastructure monitoring, and alerting (PagerDuty/OpsGenie).",
+        ))
+
+    # Rule 5: No IR readiness + high SLA
+    ir_answers = {k: v for k, v in answers.items() if k.startswith("ir_")}
+    ir_positive = sum(1 for v in ir_answers.values() if v is True) if ir_answers else 0
+    if sla and sla >= 99.5 and ir_positive == 0:
+        advisories.append(AdvisoryItem(
+            severity="high",
+            title="Incident Response Gaps",
+            detail="No incident response controls validated despite high SLA commitment.",
+            remediation="Implement IR runbooks, conduct tabletop exercises, define escalation paths.",
+        ))
+
+    # Rule 6: No backup procedures documented
+    if not answers.get("rs_02") and sla and sla >= 99.0:
+        advisories.append(AdvisoryItem(
+            severity="medium",
+            title="Backup Procedures Not Documented",
+            detail="Backup procedures are undocumented — recovery outcomes are unpredictable.",
+            remediation="Document backup procedures, validate restoration, define backup SLAs.",
+        ))
+
+    # Rule 7: RTO undefined
+    rto = answers.get("rs_05")
+    if rto is None and sla and sla >= 99.5:
+        advisories.append(AdvisoryItem(
+            severity="medium",
+            title="RTO Not Defined",
+            detail="Recovery Time Objective is not measured — unclear how quickly services can be restored.",
+            remediation="Define and test RTO targets aligned with SLA commitment.",
+        ))
+
+    return advisories
+
+
+# ── Reliability Confidence Score (RCS) ───────────────────────────────
+
+def calculate_rcs(
+    answers: Dict[str, Any],
+    tech_items: List[Any],
+    audit_entries: List[Any],
+) -> ReliabilityConfidenceScore:
+    """
+    Calculate the Reliability Confidence Score (RCS).
+
+    Separate from RRI:
+      RRI = Exposure (how much risk you carry)
+      RCS = Confidence (how validated is your resilience posture)
+
+    Five sub-dimensions, each 0–20 points:
+      - DR test recency
+      - Backup validation frequency
+      - IR tabletop recency
+      - Monitoring coverage
+      - Architecture redundancy
+
+    Total: 0–100 (higher = more confident).
+    """
+    sub = {}
+
+    # 1. DR Test Recency (0–20)
+    dr_test = answers.get("rs_03")
+    if dr_test is True:
+        sub["dr_test_recency"] = 18.0
+    elif dr_test is False:
+        sub["dr_test_recency"] = 3.0
+    else:
+        sub["dr_test_recency"] = 0.0
+
+    # 2. Backup Validation (0–20)
+    backup_doc = answers.get("rs_02")
+    backup_restore = answers.get("rs_06")
+    backup_score = 0.0
+    if backup_doc is True:
+        backup_score += 10.0
+    if backup_restore is True:
+        backup_score += 10.0
+    elif isinstance(backup_restore, (int, float)) and backup_restore > 0:
+        backup_score += min(10.0, backup_restore / 10)
+    sub["backup_validation"] = backup_score
+
+    # 3. IR Tabletop Recency (0–20)
+    ir_answers = {k: v for k, v in answers.items() if k.startswith("ir_")}
+    ir_positive = sum(1 for v in ir_answers.values() if v is True)
+    ir_total = max(len(ir_answers), 1)
+    sub["ir_tabletop_recency"] = round(20.0 * (ir_positive / ir_total), 1)
+
+    # 4. Monitoring Coverage (0–20)
+    tl_answers = {k: v for k, v in answers.items() if k.startswith("tl_")}
+    dc_answers = {k: v for k, v in answers.items() if k.startswith("dc_")}
+    all_mon = {**tl_answers, **dc_answers}
+    if all_mon:
+        mon_positive = sum(1 for v in all_mon.values() if v is True or (isinstance(v, (int, float)) and v > 50))
+        sub["monitoring_coverage"] = round(20.0 * (mon_positive / max(len(all_mon), 1)), 1)
+    else:
+        sub["monitoring_coverage"] = 0.0
+
+    # 5. Architecture Redundancy (0–20)
+    ha_categories = {"load balancer", "cdn", "cache", "database", "queue", "storage"}
+    ha_tech = [t for t in tech_items if hasattr(t, 'category') and t.category and t.category.lower() in ha_categories]
+    has_dr_plan = answers.get("rs_04") is True
+    arch_score = min(12.0, len(ha_tech) * 3.0)  # Up to 12 from tech stack
+    if has_dr_plan:
+        arch_score += 8.0
+    sub["architecture_redundancy"] = min(20.0, arch_score)
+
+    total = sum(sub.values())
+
+    # Confidence band
+    if total >= 75:
+        band = "Verified"
+    elif total >= 50:
+        band = "Moderate"
+    elif total >= 25:
+        band = "Low"
+    else:
+        band = "Unvalidated"
+
+    return ReliabilityConfidenceScore(
+        total_score=round(total, 1),
+        dr_test_recency=sub["dr_test_recency"],
+        backup_validation=sub["backup_validation"],
+        ir_tabletop_recency=sub["ir_tabletop_recency"],
+        monitoring_coverage=sub["monitoring_coverage"],
+        architecture_redundancy=sub["architecture_redundancy"],
+        confidence_band=band,
+        sub_scores=sub,
+    )
+
+
+# ── Auto-Detection: Tier/SLA Defaults ────────────────────────────────
+
+def _auto_recommend(org: Organization) -> Optional[AutoRecommendation]:
+    """
+    When SLA or Tier is missing, auto-detect recommended values
+    instead of showing 'Not configured' dead-end.
+    """
+    sla_missing = org.sla_target is None
+    tier_missing = org.application_tier is None or org.application_tier == ""
+
+    if not sla_missing and not tier_missing:
+        return None  # Nothing to recommend
+
+    advisor = get_sla_advisor(org.industry)
+
+    recommended_tier = org.application_tier or advisor.recommended_tier.lower().replace(" ", "_")
+    recommended_sla = org.sla_target or advisor.sla_range[0]
+
+    parts = []
+    if tier_missing:
+        parts.append(f"Application Tier → {advisor.recommended_tier}")
+    if sla_missing:
+        parts.append(f"SLA Target → {recommended_sla}%")
+
+    return AutoRecommendation(
+        recommended_tier=advisor.recommended_tier,
+        recommended_sla=recommended_sla,
+        source="industry" if advisor.confidence == "high" else "default",
+        rationale=f"Based on {org.industry or 'general'} industry profile: {advisor.rationale}",
+        accept_action=f"Set {', '.join(parts)} for {org.name}",
+    )
+
+
+# ── Audit Trail Logging ─────────────────────────────────────────────
+
+def _log_rri_audit_event(db: Session, org_id: str, actor: str, rri_score: float, rcs_score: float):
+    """Log RRI recalculation as an audit event."""
+    try:
+        from app.models.audit_event import AuditEvent
+        event = AuditEvent(
+            org_id=org_id,
+            action=f"rri_calculated|score={rri_score:.1f}|rcs={rcs_score:.1f}",
+            actor=actor,
+        )
+        db.add(event)
+        db.commit()
+    except Exception as e:
+        logger.warning("Failed to log RRI audit event: %s", e)
+
+
+
 # Each returns 0–100 where 0 = no risk exposure, 100 = maximum risk exposure
 
 def _score_sla_commitment(
@@ -602,6 +999,30 @@ def calculate_rri(
     # Tier display
     tier_display = TIER_NORMALIZE.get(tier_key, tier_key or "Not configured")
 
+    # ── New v2 Subsystems ────────────────────────────────────────
+
+    # Breach Exposure Heat Badge
+    sla_dim = next((d for d in dimensions if d.key == "sla_commitment"), None)
+    recovery_dim = next((d for d in dimensions if d.key == "recovery_capability"), None)
+    breach_exposure = None
+    if org.sla_target and sla_dim and recovery_dim:
+        breach_exposure = _calculate_breach_exposure(
+            org.sla_target, recovery_dim.score, sla_dim.score
+        )
+
+    # Autonomous Advisory Layer
+    advisories = _detect_advisories(org, answers, dimensions, tech_items)
+
+    # Reliability Confidence Score (RCS) — 2nd axis
+    rcs = calculate_rcs(answers, tech_items, audit_entries)
+
+    # Auto-recommendation: fill configuration dead-ends
+    auto_recommendation = _auto_recommend(org)
+
+    # Audit trail
+    rcs_score = rcs.total_score if rcs else 0.0
+    _log_rri_audit_event(db, org.id, "system", rri_score, rcs_score)
+
     return ReliabilityRiskResult(
         rri_score=rri_score,
         risk_band=_get_risk_band(rri_score),
@@ -614,6 +1035,10 @@ def calculate_rri(
         top_gaps=top_gaps,
         architecture_alignment=_get_architecture_alignment(dimensions),
         sla_advisor=sla_advisor,
+        breach_exposure=breach_exposure,
+        advisories=advisories,
+        reliability_confidence=rcs,
+        auto_recommendation=auto_recommendation,
     )
 
 
