@@ -13,6 +13,8 @@ NIST CSF 2.0 functions:
   Recover (RC) - Recovery planning, improvements, communications
 """
 
+from copy import deepcopy
+
 # NIST CSF 2.0 function definitions
 NIST_FUNCTIONS = {
     "GV": {"name": "Govern", "description": "Organizational risk management and oversight"},
@@ -22,6 +24,52 @@ NIST_FUNCTIONS = {
     "RS": {"name": "Respond", "description": "Response planning, communications, analysis, and mitigation"},
     "RC": {"name": "Recover", "description": "Recovery planning, improvements, and communications"},
 }
+
+
+# Plain-language guidance shown in the UI tooltip next to each question.
+QUESTION_HELP_TEXT = {
+    "tl_01": "Answer Yes if firewall, router, and switch logs are collected centrally and retained for investigations.",
+    "tl_02": "Answer Yes if workstation and server logs are collected in your monitoring platform.",
+    "tl_03": "Answer Yes if cloud audit/activity logs (AWS/Azure/GCP/SaaS) are enabled and reviewed.",
+    "tl_04": "Answer Yes if logs are centralized in one place (SIEM/log platform), not scattered across tools.",
+    "tl_05": "Enter the number of days you keep searchable logs for forensic and compliance needs.",
+    "tl_06": "Answer Yes if login, logout, privilege changes, and auth failures are logged for critical systems.",
+    "dc_01": "Enter what percentage of your assets have active EDR/XDR coverage and telemetry.",
+    "dc_02": "Answer Yes if east-west and north-south network traffic is monitored for suspicious behavior.",
+    "dc_03": "Answer Yes if detection content/signatures are updated at least weekly or automatically.",
+    "dc_04": "Answer Yes if you have detections tailored to your own apps, cloud stack, and business risk.",
+    "dc_05": "Answer Yes if phishing, malware, and malicious link protections are enforced for email.",
+    "dc_06": "Answer Yes if security alerts are triaged within 24 hours with clear ownership.",
+    "iv_01": "Answer Yes if multi-factor authentication is enforced for all user accounts.",
+    "iv_02": "Answer Yes if admins/privileged users must always use MFA for access.",
+    "iv_03": "Answer Yes if you maintain and review a complete list of privileged accounts.",
+    "iv_04": "Answer Yes if service accounts are inventoried, justified, and periodically reviewed.",
+    "iv_05": "Answer Yes if privileged sessions are controlled and monitored via PAM or equivalent controls.",
+    "iv_06": "Answer Yes if failed logins and anomalous auth patterns are monitored and alerted.",
+    "ir_01": "Answer Yes if documented incident response playbooks exist for likely incident scenarios.",
+    "ir_02": "Answer Yes if playbooks are tested and updated based on lessons learned.",
+    "ir_03": "Answer Yes if incident response roles/on-call responsibilities are clearly assigned.",
+    "ir_04": "Answer Yes if pre-approved templates exist for notifying customers, partners, or regulators.",
+    "ir_05": "Answer Yes if escalation contacts and decision paths are documented and current.",
+    "ir_06": "Answer Yes if tabletop exercises are run at least once per year.",
+    "rs_01": "Answer Yes only if your backups follow 3-2-1: 3 copies, 2 media types, and 1 offsite/immutable copy.",
+    "rs_02": "Answer Yes if backups are immutable or offline so attackers cannot encrypt/delete them.",
+    "rs_03": "Answer Yes if restore tests were completed in the last 6 months with evidence.",
+    "rs_04": "Answer Yes if critical systems are inventoried and a disaster recovery plan is documented.",
+    "rs_05": "Enter your validated recovery time objective (RTO) in hours for mission-critical services.",
+    "rs_06": "Answer Yes if backup admin access uses isolated credentials with MFA/PAM, separate from domain admins.",
+}
+
+
+def _default_help_text(question: dict) -> str:
+    q_type = question.get("type")
+    if q_type == "boolean":
+        return "Answer Yes if this control is consistently implemented and evidenced; otherwise answer No."
+    if q_type == "percentage":
+        return "Enter your measured percentage (0-100) based on current operational data."
+    if q_type == "numeric":
+        return "Enter the current measured value from your documented process or monitoring records."
+    return "Provide the most accurate current-state answer based on evidence, not assumptions."
 
 RUBRIC = {
     "version": "2.0.0",
@@ -274,15 +322,9 @@ RUBRIC = {
                 {
                     "id": "rs_01",
                     "text": "Are critical systems backed up according to a 3-2-1 strategy (3 copies, 2 media, 1 offsite/immutable)?",
-                    "type": "percentage",
+                    "type": "boolean",
                     "points": 1,
-                    "nist_category": "PR.DS-11",
-                    "tier_options": [
-                        {"value": "Full 3-2-1 Compliance", "label": "Full 3-2-1 Compliance (Immutable/Offsite)", "score": 1.0},
-                        {"value": "Partial",               "label": "Partial (Missing Offsite or Immutable)",  "score": 0.5},
-                        {"value": "Minimal",               "label": "Minimal (Local Backups Only)",            "score": 0.1},
-                        {"value": "Unknown / Not Measured", "label": "Unknown / Not Measured",                "score": 0.0},
-                    ]
+                    "nist_category": "PR.DS-11"
                 },
                 {
                     "id": "rs_02",
@@ -391,7 +433,12 @@ RUBRIC = {
 
 def get_rubric() -> dict:
     """Return the complete rubric definition."""
-    return RUBRIC
+    rubric = deepcopy(RUBRIC)
+    for domain in rubric["domains"].values():
+        for question in domain["questions"]:
+            qid = question.get("id")
+            question["help_text"] = QUESTION_HELP_TEXT.get(qid, _default_help_text(question))
+    return rubric
 
 
 def get_domain(domain_id: str) -> dict:
@@ -413,7 +460,9 @@ def get_question(question_id: str) -> tuple:
     for domain_id, domain in RUBRIC["domains"].items():
         for question in domain["questions"]:
             if question["id"] == question_id:
-                return question, domain_id
+                q = deepcopy(question)
+                q["help_text"] = QUESTION_HELP_TEXT.get(question_id, _default_help_text(question))
+                return q, domain_id
     return None, None
 
 

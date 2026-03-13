@@ -27,6 +27,7 @@ from app.services.analytics import generate_analytics
 from app.services.roadmap import generate_detailed_roadmap, generate_simple_roadmap
 from app.core.frameworks import get_framework_refs, get_all_unique_techniques
 from app.core.product import get_product_info
+from app.db.firestore import firestore_save_assessment, firestore_delete_assessment
 
 
 def load_baseline_profiles() -> Dict[str, Dict[str, float]]:
@@ -89,6 +90,7 @@ class AssessmentService:
         self.db.add(assessment)
         self.db.commit()
         self.db.refresh(assessment)
+        firestore_save_assessment(assessment)
         return assessment
     
     def get(self, assessment_id: str) -> Optional[Assessment]:
@@ -115,6 +117,7 @@ class AssessmentService:
         
         self.db.commit()
         self.db.refresh(assessment)
+        firestore_save_assessment(assessment)
         return assessment
     
     def delete(self, assessment_id: str) -> bool:
@@ -125,6 +128,7 @@ class AssessmentService:
         
         self.db.delete(assessment)
         self.db.commit()
+        firestore_delete_assessment(assessment_id)
         return True
     
     # ----- Answer Management -----
@@ -166,6 +170,10 @@ class AssessmentService:
         self.db.commit()
         for answer in saved_answers:
             self.db.refresh(answer)
+
+        # Persist full assessment payload (including current answer set) to Firestore.
+        self.db.refresh(assessment)
+        firestore_save_assessment(assessment)
         
         return saved_answers
     
@@ -264,6 +272,9 @@ class AssessmentService:
         for finding in saved_findings:
             self.db.refresh(finding)
         self.db.refresh(assessment)
+
+        # Persist scored assessment state (scores + findings) to Firestore.
+        firestore_save_assessment(assessment)
         
         return {
             "assessment_id": assessment_id,

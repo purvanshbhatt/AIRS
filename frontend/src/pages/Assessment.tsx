@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getRubric, getAssessment, submitAnswers, computeScore, ApiRequestError } from '../api';
 import type { Rubric, Question, AssessmentDetail } from '../types';
-import { Card, CardContent, Button, Badge } from '../components/ui';
-import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Card, CardContent, Button, Badge, Tooltip } from '../components/ui';
+import { CheckCircle, AlertCircle, Loader2, Info } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface DomainEntry {
@@ -12,6 +12,12 @@ interface DomainEntry {
   description: string;
   weight: number;
   questions: Question[];
+}
+
+function questionTypeLabel(type: 'boolean' | 'percentage' | 'numeric'): string {
+  if (type === 'boolean') return 'yes/no';
+  if (type === 'percentage') return 'percentage';
+  return 'number';
 }
 
 export default function Assessment() {
@@ -244,11 +250,24 @@ export default function Assessment() {
               <div key={q.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900 dark:text-slate-100">
-                      {idx + 1}. {q.text}
-                    </p>
+                    <div className="flex items-start gap-2">
+                      <p className="font-medium text-gray-900 dark:text-slate-100">
+                        {idx + 1}. {q.text}
+                      </p>
+                      {q.help_text && (
+                        <Tooltip content={q.help_text} placement="top">
+                          <button
+                            type="button"
+                            className="mt-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                            aria-label={`Question help for ${q.id}`}
+                          >
+                            <Info className="w-4 h-4" />
+                          </button>
+                        </Tooltip>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                      {q.points} point{q.points !== 1 ? 's' : ''} • {q.type}
+                      {q.points} point{q.points !== 1 ? 's' : ''} • {questionTypeLabel(q.type)}
                     </p>
                   </div>
                   {renderQuestion(q)}

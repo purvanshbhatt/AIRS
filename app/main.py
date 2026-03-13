@@ -110,13 +110,18 @@ _auto_create_sqlite_tables()
 def _sync_firestore_on_startup():
     """Pull persistent data from Firestore into ephemeral SQLite."""
     try:
-        from app.db.firestore import sync_orgs_from_firestore
+        from app.db.firestore import sync_orgs_from_firestore, sync_assessments_from_firestore
         from app.db.database import SessionLocal
         db = SessionLocal()
         try:
-            count = sync_orgs_from_firestore(db)
-            if count:
-                logger.info("Firestore startup sync: %d orgs restored", count)
+            org_count = sync_orgs_from_firestore(db)
+            assessment_count = sync_assessments_from_firestore(db)
+            if org_count or assessment_count:
+                logger.info(
+                    "Firestore startup sync: %d orgs restored, %d assessments restored",
+                    org_count,
+                    assessment_count,
+                )
         finally:
             db.close()
     except Exception as e:

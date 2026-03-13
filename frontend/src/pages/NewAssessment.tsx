@@ -25,6 +25,7 @@ import {
   AccordionTrigger,
   AccordionContent,
   Badge,
+  Tooltip,
   useToast,
 } from '../components/ui';
 import {
@@ -41,6 +42,7 @@ import {
   Shield,
   Loader2,
   RotateCcw,
+  Info,
 } from 'lucide-react';
 
 // Domain icons mapping
@@ -68,6 +70,12 @@ interface DraftData {
   title: string;
   answers: Record<string, boolean | number>;
   savedAt: string;
+}
+
+function questionTypeLabel(type: 'boolean' | 'percentage' | 'numeric'): string {
+  if (type === 'boolean') return 'yes/no';
+  if (type === 'percentage') return 'percentage';
+  return 'number';
 }
 
 export default function NewAssessment() {
@@ -460,12 +468,25 @@ export default function NewAssessment() {
                             className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-slate-900 rounded-lg"
                           >
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
-                                {idx + 1}. {question.text}
-                              </p>
+                              <div className="flex items-start gap-2">
+                                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                                  {idx + 1}. {question.text}
+                                </p>
+                                {question.help_text && (
+                                  <Tooltip content={question.help_text} placement="top">
+                                    <button
+                                      type="button"
+                                      className="mt-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                                      aria-label={`Question help for ${question.id}`}
+                                    >
+                                      <Info className="w-4 h-4" />
+                                    </button>
+                                  </Tooltip>
+                                )}
+                              </div>
                               <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                                 {question.points} point{question.points !== 1 ? 's' : ''} -{' '}
-                                {question.type}
+                                {questionTypeLabel(question.type)}
                               </p>
                             </div>
 

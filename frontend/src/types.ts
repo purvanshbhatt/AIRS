@@ -29,6 +29,7 @@ export interface Question {
   type: 'boolean' | 'percentage' | 'numeric';
   points: number;
   thresholds?: Record<string, number>;
+  help_text?: string;
 }
 
 export interface Domain {

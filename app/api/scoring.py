@@ -86,7 +86,8 @@ async def list_all_questions():
                 "domain_name": domain["name"],
                 "text": q["text"],
                 "type": q["type"],
-                "points": q["points"]
+                "points": q["points"],
+                "help_text": q.get("help_text"),
             })
     
     return {"questions": questions, "total": len(questions)}

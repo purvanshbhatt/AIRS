@@ -311,3 +311,297 @@ def sync_orgs_from_firestore(db_session) -> int:
         db_session.rollback()
         logger.warning("Firestore sync failed: %s", exc)
         return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Assessment Persistence
+# ═══════════════════════════════════════════════════════════════════════
+
+def _dt_to_iso(value) -> Optional[str]:
+    """Convert datetime-like value to ISO string."""
+    if not value:
+        return None
+    try:
+        return value.isoformat()
+    except Exception:
+        return None
+
+
+def _iso_to_dt(value: Optional[str]):
+    """Parse ISO timestamp safely."""
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except Exception:
+        return None
+
+
+def _assessment_to_doc(assessment, answers: Optional[List[Any]] = None,
+                       scores: Optional[List[Any]] = None,
+                       findings: Optional[List[Any]] = None) -> Dict[str, Any]:
+    """Convert a SQLAlchemy Assessment + related records to Firestore doc."""
+    answers = answers if answers is not None else list(getattr(assessment, "answers", []) or [])
+    scores = scores if scores is not None else list(getattr(assessment, "scores", []) or [])
+    findings = findings if findings is not None else list(getattr(assessment, "findings", []) or [])
+
+    return {
+        "id": assessment.id,
+        "organization_id": assessment.organization_id,
+        "owner_uid": assessment.owner_uid,
+        "version": assessment.version,
+        "status": getattr(assessment.status, "value", assessment.status),
+        "title": assessment.title,
+        "schema_version": getattr(assessment, "schema_version", 1),
+        "overall_score": assessment.overall_score,
+        "maturity_level": assessment.maturity_level,
+        "maturity_name": assessment.maturity_name,
+        "created_at": _dt_to_iso(assessment.created_at) or datetime.now(timezone.utc).isoformat(),
+        "updated_at": _dt_to_iso(assessment.updated_at),
+        "completed_at": _dt_to_iso(assessment.completed_at),
+        "answers": [
+            {
+                "id": a.id,
+                "question_id": a.question_id,
+                "value": a.value,
+                "notes": a.notes,
+                "created_at": _dt_to_iso(a.created_at),
+                "updated_at": _dt_to_iso(a.updated_at),
+            }
+            for a in answers
+        ],
+        "scores": [
+            {
+                "id": s.id,
+                "domain_id": s.domain_id,
+                "domain_name": s.domain_name,
+                "score": s.score,
+                "max_score": s.max_score,
+                "weight": s.weight,
+                "weighted_score": s.weighted_score,
+                "raw_points": s.raw_points,
+                "max_raw_points": s.max_raw_points,
+                "created_at": _dt_to_iso(s.created_at),
+            }
+            for s in scores
+        ],
+        "findings": [
+            {
+                "id": f.id,
+                "title": f.title,
+                "description": f.description,
+                "severity": getattr(f.severity, "value", f.severity),
+                "status": getattr(f.status, "value", f.status),
+                "domain_id": f.domain_id,
+                "domain_name": f.domain_name,
+                "question_id": f.question_id,
+                "evidence": f.evidence,
+                "recommendation": f.recommendation,
+                "priority": f.priority,
+                "nist_function": f.nist_function,
+                "nist_category": f.nist_category,
+                "nist_subcategory": f.nist_subcategory,
+                "soc2_controls": f.soc2_controls,
+                "created_at": _dt_to_iso(f.created_at),
+                "updated_at": _dt_to_iso(f.updated_at),
+            }
+            for f in findings
+        ],
+    }
+
+
+def firestore_save_assessment(assessment, answers: Optional[List[Any]] = None,
+                              scores: Optional[List[Any]] = None,
+                              findings: Optional[List[Any]] = None) -> bool:
+    """
+    Save/update an assessment payload to Firestore.
+
+    Stores assessment metadata plus answers/scores/findings so Cloud Run
+    instance restarts do not lose completed assessment state.
+    """
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        payload = _assessment_to_doc(assessment, answers=answers, scores=scores, findings=findings)
+        client.collection("assessments").document(assessment.id).set(payload)
+        logger.info("Firestore: saved assessment %s (org=%s)", assessment.id, assessment.organization_id)
+        return True
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error("CRITICAL: Firestore save_assessment failed for %s: %s", assessment.id, exc)
+        raise FirestoreUnavailableError(f"Failed to save assessment to Firestore: {exc}")
+
+
+def firestore_delete_assessment(assessment_id: str) -> bool:
+    """Delete an assessment from Firestore."""
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        client.collection("assessments").document(assessment_id).delete()
+        logger.info("Firestore: deleted assessment %s", assessment_id)
+        return True
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error("CRITICAL: Firestore delete_assessment failed for %s: %s", assessment_id, exc)
+        raise FirestoreUnavailableError(f"Failed to delete assessment from Firestore: {exc}")
+
+
+def firestore_get_all_assessments(owner_uid: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Fetch all persisted assessments from Firestore."""
+    if not is_firestore_available():
+        logger.warning("Firestore not available for get_all_assessments — returning empty list")
+        return []
+    try:
+        client = get_firestore_client()
+        query = client.collection("assessments")
+        if owner_uid:
+            query = query.where("owner_uid", "==", owner_uid)
+        return [doc.to_dict() for doc in query.stream()]
+    except Exception as exc:
+        logger.error("Firestore get_all_assessments failed: %s", exc)
+        return []
+
+
+def sync_assessments_from_firestore(db_session) -> int:
+    """
+    Restore assessments (+ answers/scores/findings) from Firestore into SQLite.
+
+    This prevents assessment loss after Cloud Run cold starts where SQLite
+    is recreated from scratch.
+    """
+    if not is_firestore_available():
+        return 0
+
+    from app.models.organization import Organization
+    from app.models.assessment import Assessment, AssessmentStatus
+    from app.models.answer import Answer
+    from app.models.score import Score
+    from app.models.finding import Finding, Severity, FindingStatus
+
+    docs = firestore_get_all_assessments()
+    restored = 0
+
+    try:
+        for doc in docs:
+            assessment_id = doc.get("id")
+            org_id = doc.get("organization_id")
+            if not assessment_id or not org_id:
+                continue
+
+            org_exists = db_session.query(Organization).filter(Organization.id == org_id).first()
+            if not org_exists:
+                logger.warning(
+                    "Skipping Firestore assessment %s because org %s is missing in SQLite",
+                    assessment_id,
+                    org_id,
+                )
+                continue
+
+            existing = db_session.query(Assessment).filter(Assessment.id == assessment_id).first()
+            if existing:
+                assessment = existing
+            else:
+                assessment = Assessment(id=assessment_id, organization_id=org_id)
+                db_session.add(assessment)
+
+            status_raw = doc.get("status") or AssessmentStatus.DRAFT.value
+            try:
+                assessment.status = AssessmentStatus(status_raw)
+            except Exception:
+                assessment.status = AssessmentStatus.DRAFT
+
+            assessment.organization_id = org_id
+            assessment.owner_uid = doc.get("owner_uid")
+            assessment.version = doc.get("version") or "1.0.0"
+            assessment.title = doc.get("title")
+            assessment.schema_version = int(doc.get("schema_version") or 1)
+            assessment.overall_score = doc.get("overall_score")
+            assessment.maturity_level = doc.get("maturity_level")
+            assessment.maturity_name = doc.get("maturity_name")
+            assessment.created_at = _iso_to_dt(doc.get("created_at"))
+            assessment.updated_at = _iso_to_dt(doc.get("updated_at"))
+            assessment.completed_at = _iso_to_dt(doc.get("completed_at"))
+
+            db_session.query(Answer).filter(Answer.assessment_id == assessment_id).delete()
+            db_session.query(Score).filter(Score.assessment_id == assessment_id).delete()
+            db_session.query(Finding).filter(Finding.assessment_id == assessment_id).delete()
+
+            for a in doc.get("answers", []):
+                value_raw = a.get("value")
+                answer = Answer(
+                    assessment_id=assessment_id,
+                    question_id=a.get("question_id") or "",
+                    value="" if value_raw is None else str(value_raw),
+                    notes=a.get("notes"),
+                )
+                if a.get("id"):
+                    answer.id = a.get("id")
+                answer.created_at = _iso_to_dt(a.get("created_at"))
+                answer.updated_at = _iso_to_dt(a.get("updated_at"))
+                db_session.add(answer)
+
+            for s in doc.get("scores", []):
+                score = Score(
+                    assessment_id=assessment_id,
+                    domain_id=s.get("domain_id") or "",
+                    domain_name=s.get("domain_name") or "",
+                    score=float(s.get("score") or 0),
+                    max_score=float(s.get("max_score") or 5.0),
+                    weight=float(s.get("weight") or 0),
+                    weighted_score=float(s.get("weighted_score") or 0),
+                    raw_points=s.get("raw_points"),
+                    max_raw_points=s.get("max_raw_points"),
+                )
+                if s.get("id"):
+                    score.id = s.get("id")
+                score.created_at = _iso_to_dt(s.get("created_at"))
+                db_session.add(score)
+
+            for f in doc.get("findings", []):
+                severity_raw = (f.get("severity") or "medium").lower()
+                status_raw = (f.get("status") or "open").lower()
+
+                try:
+                    severity = Severity(severity_raw)
+                except Exception:
+                    severity = Severity.MEDIUM
+
+                try:
+                    finding_status = FindingStatus(status_raw)
+                except Exception:
+                    finding_status = FindingStatus.OPEN
+
+                finding = Finding(
+                    assessment_id=assessment_id,
+                    title=f.get("title") or "Untitled finding",
+                    description=f.get("description"),
+                    severity=severity,
+                    status=finding_status,
+                    domain_id=f.get("domain_id"),
+                    domain_name=f.get("domain_name"),
+                    question_id=f.get("question_id"),
+                    evidence=f.get("evidence"),
+                    recommendation=f.get("recommendation"),
+                    priority=f.get("priority"),
+                    nist_function=f.get("nist_function"),
+                    nist_category=f.get("nist_category"),
+                    nist_subcategory=f.get("nist_subcategory"),
+                    soc2_controls=f.get("soc2_controls"),
+                )
+                if f.get("id"):
+                    finding.id = f.get("id")
+                finding.created_at = _iso_to_dt(f.get("created_at"))
+                finding.updated_at = _iso_to_dt(f.get("updated_at"))
+                db_session.add(finding)
+
+            restored += 1
+
+        db_session.commit()
+        logger.info("Firestore sync: %d assessments loaded into SQLite", restored)
+        return restored
+    except Exception as exc:
+        db_session.rollback()
+        logger.warning("Firestore assessment sync failed: %s", exc)
+        return 0

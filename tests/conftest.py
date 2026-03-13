@@ -65,12 +65,18 @@ def _mock_firestore_if_no_emulator():
 
     with patch("app.db.firestore.firestore_save_org", return_value=True), \
          patch("app.db.firestore.firestore_delete_org", return_value=True), \
+            patch("app.db.firestore.firestore_save_assessment", return_value=True), \
+            patch("app.db.firestore.firestore_delete_assessment", return_value=True), \
          patch("app.db.firestore.firestore_get_all_orgs", return_value=[]), \
+            patch("app.db.firestore.firestore_get_all_assessments", return_value=[]), \
          patch("app.db.firestore.sync_orgs_from_firestore", return_value=0), \
+            patch("app.db.firestore.sync_assessments_from_firestore", return_value=0), \
          patch("app.db.firestore.require_firestore", return_value=True), \
          patch("app.db.firestore.is_firestore_available", return_value=True), \
          patch("app.services.organization.firestore_save_org", return_value=True), \
          patch("app.services.organization.firestore_delete_org", return_value=True), \
+            patch("app.services.assessment.firestore_save_assessment", return_value=True), \
+            patch("app.services.assessment.firestore_delete_assessment", return_value=True), \
          patch("app.api.governance.firestore_save_org", return_value=True):
         yield
 
