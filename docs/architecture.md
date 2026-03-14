@@ -1,28 +1,56 @@
-﻿# Architecture Overview
+# ResilAI Architecture
 
-ResilAI architecture is API-first with a decoupled frontend and backend.
+## Overview
+ResilAI is an AI-powered incident readiness platform designed to produce auditable readiness scores and executive-ready risk narratives.
 
-## Stack
+The system is intentionally split into deterministic and generative components to preserve scoring integrity.
 
-- Frontend: React + Vite + TypeScript
-- Backend: FastAPI + SQLAlchemy + Alembic
-- Auth: Firebase Auth
-- Hosting: Firebase Hosting + Google Cloud Run
-- AI Narrative: Gemini via `google-genai`
+## Architecture Layers
 
-## Data Flow
+### 1. Frontend
+- Stack: React + Vite
+- Responsibilities:
+  - Assessment workflow and questionnaire UX
+  - Readiness dashboards and posture visualization
+  - Findings, recommendations, and report views
 
-1. User completes assessment in frontend
-2. Backend stores answers and computes deterministic score
-3. Findings map to MITRE/CIS/OWASP references
-4. Narrative and executive artifacts are generated
-5. Integrations consume data via API keys or webhooks
+### 2. Backend API
+- Stack: FastAPI
+- Responsibilities:
+  - Authentication and tenant-scoped access
+  - Assessment lifecycle (create, answer, score, summarize)
+  - Reporting and integration endpoints
+  - Governance and reliability endpoints
 
-## Trust Boundaries
+### 3. Governance Scoring Engine
+- Nature: deterministic, rules-based
+- Responsibilities:
+  - Convert control answers into weighted readiness scores
+  - Map controls to NIST CSF 2.0 categories
+  - Produce repeatable scoring outputs for audit and compliance
 
-- Browser <-> API over HTTPS
-- Firebase token-based user identity
-- Backend authorization and org scoping
-- Secrets injected via environment or secret manager
+### 4. AI Narrative Layer
+- Model: Gemini Flash
+- Responsibilities:
+  - Generate executive summaries and risk narratives
+  - Translate scored findings into business-friendly language
+  - Support board and investor communication
 
-For full details, see `../ARCHITECTURE.md`.
+### 5. Cloud Infrastructure
+- Runtime: Google Cloud Run
+- Data: Firestore (persistent operational data)
+- Deployment model:
+  - Separate staging and demo/production deployment targets
+  - Containerized backend with managed scaling
+  - Hosted frontend with environment-specific builds
+
+## Deterministic Scoring vs AI Narratives
+ResilAI explicitly separates deterministic scoring from AI narrative generation.
+
+### Why this separation matters
+- Prevent hallucination-based risk scoring: AI cannot directly modify readiness score calculation.
+- Preserve auditability: all scores are reproducible from explicit rules and answer inputs.
+- Improve trust: executives receive AI-assisted explanation of risk, not AI-created risk metrics.
+- Compliance alignment: deterministic controls map cleanly to governance frameworks.
+
+In short, the scoring engine is the source of truth; AI is the interpretation layer.
