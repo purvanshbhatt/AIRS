@@ -1,4 +1,4 @@
-# ResilAI - Judge Quick Walkthrough
+# ResilAI - Quick Walkthrough
 
 Estimated Review Time: 2 minutes
 

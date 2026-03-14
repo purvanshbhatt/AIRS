@@ -102,12 +102,12 @@ Future capabilities include:
 - GitHub repository
 - Architecture diagram
 - README
-- JUDGE_MODE.md
+- QUICK_WALKTHROUGH.md
 - Submission description
 
-## Judge Quick Link
+## Quick Walkthrough
 
-For a 2-minute walkthrough, see [docs/JUDGE_MODE.md](docs/JUDGE_MODE.md).
+For a 2-minute walkthrough, see [docs/QUICK_WALKTHROUGH.md](docs/QUICK_WALKTHROUGH.md).
 
 ## License
 
