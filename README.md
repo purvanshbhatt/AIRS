@@ -1,8 +1,17 @@
-﻿# ResilAI
+﻿# ResilAI — AI Incident Readiness System (AIRS)
 
 AI-powered incident readiness platform for cybersecurity teams.
 
-[Demo Video](https://youtu.be/Z_0aNizadoU) | [GitHub](https://www.github.com/purvanshbhatt/AIRS) | [API Docs](https://airs-api-227825933697.us-central1.run.app/docs)
+[Demo Video](https://youtu.be/Z_0aNizadoU) | [GitHub](https://github.com/purvanshbhatt/AIRS) | [API Docs](https://airs-api-227825933697.us-central1.run.app/docs)
+
+## Judge Quick Start
+
+1. Watch the 3-minute demo
+2. Review the architecture diagram
+3. Explore the scoring methodology
+
+Demo:
+https://youtu.be/Z_0aNizadoU
 
 ## What is ResilAI?
 
@@ -12,67 +21,68 @@ Instead of only monitoring threats, ResilAI calculates readiness scores using de
 
 The result is a system that translates complex security signals into clear leadership insights.
 
+## 30-Second Product Pitch
+
+ResilAI measures how prepared an organization is for security incidents.
+
+It calculates deterministic readiness scores aligned with frameworks like NIST CSF and CIS Controls.
+
+Gemini AI then translates technical findings into clear executive risk narratives.
+
+The result is a platform that converts security telemetry into board-level intelligence.
+
 Deterministic scoring engine with AI-assisted executive interpretation.
 
 ## Problem
 
-Traditional security tools focus on monitoring threats, but organizations struggle to translate technical security signals into clear executive risk insights.
+Traditional monitoring tools surface threats but do not answer a core leadership question: are we operationally ready for an incident?
 
-Teams need a fast and auditable way to answer:
-- How prepared are we for a real incident?
-- Which control gaps matter most now?
-- How do we communicate readiness to leadership?
+Organizations still struggle to convert technical security signals into executive-grade risk insight.
 
 ## Solution
 
-ResilAI combines deterministic governance scoring with AI-generated executive risk narratives powered by Gemini.
+ResilAI combines deterministic governance scoring with AI-generated executive narratives powered by Gemini.
 
-The system calculates incident readiness using structured security inputs and then uses Gemini to generate executive-level risk summaries.
-
-## Architecture
-
-ResilAI uses a hybrid architecture that keeps scoring deterministic and AI explanatory:
-- Frontend: React + Vite
-- Backend: FastAPI
-- Deterministic scoring layer: Governance Scoring Engine
-- AI layer: Gemini Flash
-- Infrastructure: Google Cloud Run + Firestore
-
-This architecture ensures AI assists interpretation without affecting deterministic risk scoring logic.
+Deterministic scoring produces auditable readiness outputs, while Gemini provides qualitative interpretation for leadership communication.
 
 ## Dashboard
 
-![ResilAI Dashboard](docs/assets/screenshots/dashboard-placeholder.svg)
+![ResilAI Dashboard](images/dashboard.png)
 
-## Architecture Diagram
+## Architecture
 
-![Architecture](docs/assets/screenshots/results-placeholder.svg)
+![Architecture](images/architecture.png)
 
 ```mermaid
 flowchart TD
-    U[User] --> FE[React Frontend Dashboard]
-    FE --> API[FastAPI Backend]
-    API --> SCORE[Governance Scoring Engine]
-    SCORE --> AI[Gemini AI Narrative Generator]
-    API --> FS[(Firestore)]
-    FE --> CR[Google Cloud Run]
-    API --> CR
+
+User --> ReactDashboard
+ReactDashboard --> FastAPIBackend
+FastAPIBackend --> ScoringEngine
+ScoringEngine --> GeminiNarrative
+FastAPIBackend --> Database
+
+GeminiNarrative --> ReportGeneration
+
+subgraph Cloud
+FastAPIBackend
+Database
+ReportGeneration
+end
 ```
 
-## Technology Stack
+## AI Usage with Gemini
 
-Frontend:
-React + Vite
+Gemini Flash is used for narrative intelligence only.
 
-Backend:
-FastAPI
+LLM usage is strictly scoped to qualitative insights; scoring remains rule-based.
 
-AI:
-Gemini Flash via Google GenAI SDK
+## Technical Stack
 
-Infrastructure:
-Google Cloud Run
-Firestore
+- Frontend: React + Vite
+- Backend: FastAPI
+- AI: Gemini Flash via Google GenAI SDK
+- Infrastructure: Google Cloud Run + Firestore
 
 ## Future Vision
 
@@ -84,30 +94,11 @@ Future capabilities include:
 - Executive board risk dashboards
 - Cross-organization benchmarking
 
-## 3 Small Improvements for a Huge Competitive Edge
+## Repository Assets
 
-### 1. Cold Start Onboarding (UX)
-- Pre-seed a sample organization so the demo opens with meaningful charts and findings.
-
-### 2. NIST 2.0 Deep-Link (Authority)
-- Add UI tooltips with explicit NIST CSF 2.0 mappings (for example, ID.AM-P1) to demonstrate regulatory depth.
-
-### 3. Gemini Feedback Loop (Technical)
-- Add a regenerate-with-context flow so users can refine executive summaries by tone/detail.
-
-## Submission Checklist
-
-- Demo video
-- Subtitles
-- GitHub repository
-- Architecture diagram
-- README
-- QUICK_WALKTHROUGH.md
-- Submission description
-
-## Quick Walkthrough
-
-For a 2-minute walkthrough, see [docs/QUICK_WALKTHROUGH.md](docs/QUICK_WALKTHROUGH.md).
+- Quick walkthrough: [docs/QUICK_WALKTHROUGH.md](docs/QUICK_WALKTHROUGH.md)
+- Security design: [SECURITY.md](SECURITY.md)
+- Deep architecture rationale: [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ## License
 

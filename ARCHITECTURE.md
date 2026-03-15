@@ -1,107 +1,24 @@
-﻿# ResilAI Architecture
+﻿# ResilAI Technical Architecture
 
-ResilAI is an AI Incident Readiness Platform built as a web application with API-first integration capabilities.
+## Design Philosophy: Separation of Concerns
+ResilAI is architected to solve the primary trust issue in AI-powered GRC: hallucinations. We utilize a three-tier isolation model:
 
-## System Overview
+### 1. Deterministic Scoring Engine (The Logic)
+- Framework: FastAPI (Python 3.11+)
+- Role: All risk math, NIST CSF 2.0 mappings, and GHI calculations are handled here.
+- Validation: 79+ tests within our Internal Governance Validation Framework (IGVF) ensure zero-drift in scoring logic.
 
-```mermaid
-flowchart LR
-  subgraph Client
-    FE[React + Vite Frontend]
-  end
+### 2. Encryption and Zero-Knowledge Vault (The Security)
+- Standard: AES-256-GCM (Field-Level Encryption)
+- Implementation: Sensitive organization metadata is encrypted before hitting Google Firestore.
+- Privacy: Keys are managed via GCP Secret Manager, ensuring ResilAI remains a blind vault for customer-sensitive findings.
 
-  subgraph Identity
-    AUTH[Firebase Auth]
-  end
+### 3. AI Intelligence Layer (The Narrative)
+- Model: Google Gemini 1.5 Flash
+- Role: Acts as a Live Agent to translate deterministic findings into multimodal executive narratives.
+- Independence: Gemini never calculates the score; it only interprets the results provided by the Deterministic Engine.
 
-  subgraph API Layer
-    BE[FastAPI Backend]
-  end
-
-  subgraph Data
-    DB[(SQLite in local\nCloud SQL in hosted envs)]
-  end
-
-  subgraph AI
-    LLM[Google Gemini\nvia google-genai]
-  end
-
-  subgraph Integrations
-    APIKEY[API Key Pull Endpoints]
-    WEBHOOK[Webhook Push Delivery]
-  end
-
-  FE --> AUTH
-  FE --> BE
-  BE --> DB
-  BE --> LLM
-  BE --> APIKEY
-  BE --> WEBHOOK
-```
-
-## Frontend
-
-- Framework: **React + Vite + TypeScript**
-- Hosting: **Firebase Hosting**
-- Runtime config via `import.meta.env.*`
-- Key areas:
-  - Assessment workflow
-  - Results and analytics
-  - Integrations and settings
-  - Public trust pages (`/about`, `/security`, `/status`, `/pilot`)
-
-## Backend
-
-- Framework: **FastAPI**
-- ORM/Migrations: **SQLAlchemy + Alembic**
-- Responsibilities:
-  - Assessment lifecycle and scoring
-  - Framework mappings (MITRE/CIS/OWASP)
-  - Report generation (PDF)
-  - Integration endpoints (API keys, webhooks, exports)
-  - Health/runtime diagnostics
-
-## Database
-
-- Local development: `sqlite:///./airs_dev.db`
-- Hosted environments: Cloud SQL-compatible connection string
-- Migration management with Alembic
-
-## Hosting and Runtime
-
-- Backend deployed to **Google Cloud Run**
-- Frontend deployed to **Firebase Hosting**
-- Environment separation:
-  - Local (`ENV=local`)
-  - Staging
-  - Production
-
-## LLM Integration
-
-- SDK: **`google-genai`** (`google.genai`)
-- Usage scope: narrative generation only
-- Deterministic scoring remains rule-based
-- Health endpoint: `/health/llm` for runtime visibility
-
-## Integration Architecture
-
-### API Key Pull
-
-- Org-scoped API key creation
-- Hashed key storage
-- Header auth (current compatibility header: `X-AIRS-API-Key`)
-- External ingestion endpoint for latest score and findings
-
-### Webhook Push
-
-- Org-level webhook subscriptions
-- Event payload delivery on scoring completion
-- Retry/backoff behavior and failure logging
-- Test endpoint for delivery validation
-
-## Trust and Security Boundaries
-
-- Public frontend communicates only with configured API base URL
-- Auth state and tokens managed by Firebase client SDK
-- Backend performs authorization and org scoping
-- Secrets are expected through environment variables or secret manager bindings
+## Google Cloud Infrastructure
+- Compute: Google Cloud Run (Auto-scaling, Serverless)
+- Storage: Google Firestore (Encrypted NoSQL)
+- Deployment: CI/CD via automated PowerShell scripts with environment-specific isolation.
