@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Badge } from '../components/ui';
-import { getLogicFirewallTrace, runLogicFirewallSimulation } from '../api';
+import { runLogicFirewallSimulation } from '../api';
 import type { LogicFirewallSimulationResponse, LogicFirewallTraceResponse } from '../types';
 import { ApiRequestError } from '../api';
 
@@ -42,9 +42,7 @@ export default function AIAttackSimulationLab() {
     try {
       const result = await runLogicFirewallSimulation(query || DEFAULT_QUERY, enableFirewall);
       setSimulation(result);
-
-      const traceResult = await getLogicFirewallTrace(result.request_id);
-      setTrace(traceResult);
+      setTrace(result.logic_trace);
     } catch (err) {
       const message =
         err instanceof ApiRequestError ? err.toDisplayMessage() : 'Failed to run simulation.';

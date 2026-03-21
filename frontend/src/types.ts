@@ -393,6 +393,7 @@ export interface LogicFirewallSimulationResponse {
   threat_type: string;
   signal: string;
   actions_taken: string[];
+  logic_trace: LogicFirewallTraceResponse;
   frameworks: {
     nist_ai_rmf: string;
     nist_csf: string;

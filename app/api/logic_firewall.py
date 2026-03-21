@@ -51,6 +51,7 @@ async def run_logic_firewall_simulation(
         signals=all_signals or ["Semantic Divergence Detected"],
         confidence=confidence,
     )
+    stored_trace = service.get_trace(request_id)
 
     logger.info(
         "logic_firewall.detected request_id=%s owner_uid=%s threat_type=%s mitre_mapping=%s quarantined=%s",
@@ -89,6 +90,15 @@ async def run_logic_firewall_simulation(
             "Injection Blocked",
             "SOC Alert Triggered",
         ],
+        logic_trace=LogicTraceResponse(
+            request_id=request_id,
+            threat_type="Poisoned Retrieval",
+            mitre_mapping="AML.T0031",
+            signals=all_signals or ["Semantic Divergence Detected"],
+            action="quarantine_chunk",
+            confidence=confidence,
+            created_at=stored_trace.created_at if stored_trace else "",
+        ),
         frameworks={
             "nist_ai_rmf": "Measure / Manage",
             "nist_csf": "DE.CM (Detection)",

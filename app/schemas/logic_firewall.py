@@ -44,5 +44,6 @@ class LogicFirewallSimulationResponse(BaseModel):
     threat_type: str
     signal: str
     actions_taken: List[str]
+    logic_trace: LogicTraceResponse
     frameworks: dict
     business_impact_narrative: str
