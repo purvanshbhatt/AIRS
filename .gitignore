@@ -60,6 +60,12 @@ gcp/env.staging
 # Logs
 *.log
 
+# Local generated submission artifacts
+.tmp_submission_md/
+ResilAI_submission_docs/
+ResilAI_submission_docs.zip
+submission_docs/
+
 # OS
 .DS_Store
 Thumbs.db

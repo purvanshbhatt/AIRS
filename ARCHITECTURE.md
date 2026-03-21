@@ -83,6 +83,21 @@ flowchart LR
 - Deterministic scoring remains rule-based
 - Health endpoint: `/health/llm` for runtime visibility
 
+## Logic Firewall Core Module
+
+ResilAI includes a deterministic prompt-injection defense layer as a core module:
+
+`[Retrieval Layer] -> [Logic Firewall] -> [LLM (Gemini)] -> [Response]`
+
+This design enforces:
+
+- Security-first pre-LLM context validation
+- Deterministic and explainable controls (no LLM in detection path)
+- Enterprise-ready traceability via logic trace and audit-ready events
+
+The Logic Firewall flow detects poisoned retrieval patterns (MITRE AML.T0031),
+quarantines malicious chunks, and only forwards sanitized context to Gemini.
+
 ## Integration Architecture
 
 ### API Key Pull

@@ -18,6 +18,14 @@ ResilAI architecture is API-first with a decoupled frontend and backend.
 4. Narrative and executive artifacts are generated
 5. Integrations consume data via API keys or webhooks
 
+## Logic Firewall Placement
+
+ResilAI positions prompt-injection defense as a core module in the AI path:
+
+`[Retrieval Layer] -> [Logic Firewall] -> [LLM (Gemini)] -> [Response]`
+
+This ensures deterministic, explainable filtering happens before Gemini receives context.
+
 ## Trust Boundaries
 
 - Browser <-> API over HTTPS

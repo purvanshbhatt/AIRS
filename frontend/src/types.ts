@@ -369,6 +369,48 @@ export interface AttackPath {
   impact?: number;
 }
 
+// Logic Firewall types
+export interface LogicFirewallQuarantinedChunk {
+  chunk_index: number;
+  threat_type: string;
+  mitre_mapping: string;
+  signals: string[];
+  action: string;
+  confidence: number;
+  excerpt: string;
+}
+
+export interface LogicFirewallSimulationResponse {
+  request_id: string;
+  scenario: string;
+  query: string;
+  pipeline: string;
+  raw_response_without_firewall: string;
+  sanitized_response_with_firewall: string;
+  chunks_total: number;
+  chunks_quarantined: number;
+  quarantined_chunks: LogicFirewallQuarantinedChunk[];
+  threat_type: string;
+  signal: string;
+  actions_taken: string[];
+  frameworks: {
+    nist_ai_rmf: string;
+    nist_csf: string;
+    owasp_llm_top10: string;
+  };
+  business_impact_narrative: string;
+}
+
+export interface LogicFirewallTraceResponse {
+  request_id: string;
+  threat_type: string;
+  mitre_mapping: string;
+  signals: string[];
+  action: string;
+  confidence: number;
+  created_at: string;
+}
+
 // Gap analysis types
 export interface GapCategory {
   name: string;

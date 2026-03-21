@@ -32,6 +32,7 @@ import PilotDashboard from './pages/PilotDashboard';
 import AuditorView from './pages/AuditorView';
 import ComplianceDrift from './pages/ComplianceDrift';
 import ReliabilityDashboard from './pages/ReliabilityDashboard';
+import AIAttackSimulationLab from './pages/AIAttackSimulationLab';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
@@ -90,6 +91,7 @@ function DashboardRoutes() {
           <Route path="/pilot-program" element={<PilotDashboard />} />
           <Route path="/compliance-drift" element={<ComplianceDrift />} />
           <Route path="/reliability" element={<ReliabilityDashboard />} />
+          <Route path="/ai-attack-lab" element={<AIAttackSimulationLab />} />
         </Routes>
       </DashboardLayout>
     </ProtectedRoute>

@@ -1119,3 +1119,29 @@ export const getReliabilityHistory = (orgId: string) =>
   request<import('./types').RRISnapshot[]>(
     `/api/governance/${orgId}/reliability-index/history`
   );
+
+// =============================================================================
+// LOGIC FIREWALL — AI Prompt Injection Defense Layer
+// =============================================================================
+
+export const runLogicFirewallSimulation = (
+  query: string,
+  enableLogicFirewall = true,
+  organizationName = 'Acme Health Systems'
+) =>
+  request<import('./types').LogicFirewallSimulationResponse>(
+    '/api/logic-firewall/simulate',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        query,
+        enable_logic_firewall: enableLogicFirewall,
+        organization_name: organizationName,
+      }),
+    }
+  );
+
+export const getLogicFirewallTrace = (requestId: string) =>
+  request<import('./types').LogicFirewallTraceResponse>(
+    `/api/logic-firewall/trace/${requestId}`
+  );

@@ -15,6 +15,7 @@ from app.api import (
     auditor_view,
     drift,
     reliability,
+    logic_firewall,
 )
 from app.api.v1 import router as v1_router
 
@@ -44,3 +45,6 @@ router.include_router(drift.router, prefix="/governance", tags=["drift"])
 
 # Reliability Risk Index — staging only
 router.include_router(reliability.router, prefix="/governance", tags=["reliability"])
+
+# Logic Firewall (deterministic prompt-injection defense)
+router.include_router(logic_firewall.router, prefix="/logic-firewall", tags=["logic-firewall"])
