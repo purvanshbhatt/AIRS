@@ -212,6 +212,12 @@ if [ -n "$SET_SECRETS" ]; then
 fi
 echo ""
 
+if [ -z "$SET_SECRETS" ]; then
+    echo "WARNING: --set-secrets not provided. ENCRYPTION_SECRET must already be set on the Cloud Run service."
+elif [[ "$SET_SECRETS" != *"ENCRYPTION_SECRET="* ]]; then
+    echo "WARNING: --set-secrets does not include ENCRYPTION_SECRET. Firestore encryption may be disabled at runtime."
+fi
+
 # Build gcloud command (array form to avoid eval/quoting issues)
 DEPLOY_ARGS=(
     run deploy "$SERVICE_NAME"

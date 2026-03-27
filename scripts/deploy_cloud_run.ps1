@@ -6,7 +6,8 @@ param(
     [string]$Region = "us-central1",
     [switch]$Prod,
     [switch]$AllowUnauthenticated = $true,
-    [string]$CloudSqlInstance = $env:CLOUDSQL_INSTANCE  # e.g., "project:region:instance"
+    [string]$CloudSqlInstance = $env:CLOUDSQL_INSTANCE,  # e.g., "project:region:instance"
+    [string]$SetSecrets = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -74,7 +75,17 @@ Write-Host "  Env file: $EnvFile"
 if ($CloudSqlInstance) {
     Write-Host "  Cloud SQL: $CloudSqlInstance" -ForegroundColor Cyan
 }
+if ($SetSecrets) {
+    Write-Host "  Secret bindings: configured" -ForegroundColor Cyan
+}
 Write-Host ""
+
+if (-not $SetSecrets) {
+    Write-Host "WARNING: -SetSecrets not provided. ENCRYPTION_SECRET must already be set on the Cloud Run service." -ForegroundColor Yellow
+}
+elseif ($SetSecrets -notmatch "ENCRYPTION_SECRET=") {
+    Write-Host "WARNING: -SetSecrets does not include ENCRYPTION_SECRET. Firestore encryption may be disabled at runtime." -ForegroundColor Yellow
+}
 
 # Build gcloud command — use the YAML env-vars-file directly
 $deployArgs = @(
@@ -93,6 +104,11 @@ if ($CloudSqlInstance) {
     $deployArgs += "--add-cloudsql-instances"
     $deployArgs += $CloudSqlInstance
     Write-Host "Attaching Cloud SQL instance: $CloudSqlInstance" -ForegroundColor Green
+}
+
+if ($SetSecrets) {
+    $deployArgs += "--set-secrets"
+    $deployArgs += $SetSecrets
 }
 
 # Use env-vars-file for proper YAML env config

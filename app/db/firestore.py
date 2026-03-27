@@ -28,6 +28,23 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("airs.firestore")
 
+
+ASSESSMENT_SENSITIVE_FIELDS = {
+    "title",
+    "answers",
+    "scores",
+    "findings",
+    "maturity_name",
+    "completed_at",
+}
+
+FINDING_TRACKING_SENSITIVE_FIELDS = {
+    "owner",
+    "due_date",
+    "control_id",
+    "framework_tag",
+}
+
 # Firestore client — lazy-initialized
 _firestore_client = None
 _firestore_available = False
@@ -188,6 +205,34 @@ def _decrypt_org_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
         return doc
 
 
+def _encrypt_doc_fields(doc: Dict[str, Any], sensitive_fields: set[str]) -> Dict[str, Any]:
+    """Encrypt selected fields in a Firestore document when encryption is enabled."""
+    try:
+        from app.core.security.encryption import get_encryption_service
+
+        svc = get_encryption_service()
+        if not svc.enabled:
+            return doc
+        return svc.encrypt_fields(doc, sensitive_fields=sensitive_fields)
+    except Exception as exc:
+        logger.warning("Encryption skipped for Firestore document: %s", exc)
+        return doc
+
+
+def _decrypt_doc_fields(doc: Dict[str, Any]) -> Dict[str, Any]:
+    """Decrypt a Firestore document if it contains encrypted field metadata."""
+    if "encrypted_blob" not in doc:
+        return doc
+    try:
+        from app.core.security.encryption import get_encryption_service
+
+        svc = get_encryption_service()
+        return svc.decrypt_fields(doc)
+    except Exception as exc:
+        logger.warning("Decryption failed for Firestore document: %s", exc)
+        return doc
+
+
 def firestore_save_org(org) -> bool:
     """
     Save/update an organization to Firestore.
@@ -345,7 +390,7 @@ def _assessment_to_doc(assessment, answers: Optional[List[Any]] = None,
     scores = scores if scores is not None else list(getattr(assessment, "scores", []) or [])
     findings = findings if findings is not None else list(getattr(assessment, "findings", []) or [])
 
-    return {
+    doc = {
         "id": assessment.id,
         "organization_id": assessment.organization_id,
         "owner_uid": assessment.owner_uid,
@@ -409,6 +454,13 @@ def _assessment_to_doc(assessment, answers: Optional[List[Any]] = None,
         ],
     }
 
+    return _encrypt_doc_fields(doc, ASSESSMENT_SENSITIVE_FIELDS)
+
+
+def _decrypt_assessment_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
+    """Decrypt Firestore assessment payload if encrypted."""
+    return _decrypt_doc_fields(doc)
+
 
 def firestore_save_assessment(assessment, answers: Optional[List[Any]] = None,
                               scores: Optional[List[Any]] = None,
@@ -458,7 +510,7 @@ def firestore_get_all_assessments(owner_uid: Optional[str] = None) -> List[Dict[
         query = client.collection("assessments")
         if owner_uid:
             query = query.where("owner_uid", "==", owner_uid)
-        return [doc.to_dict() for doc in query.stream()]
+        return [_decrypt_assessment_doc(doc.to_dict() or {}) for doc in query.stream()]
     except Exception as exc:
         logger.error("Firestore get_all_assessments failed: %s", exc)
         return []
@@ -605,3 +657,214 @@ def sync_assessments_from_firestore(db_session) -> int:
         db_session.rollback()
         logger.warning("Firestore assessment sync failed: %s", exc)
         return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Intelligence Packet Persistence
+# ═══════════════════════════════════════════════════════════════════════
+
+def firestore_upsert_remediation_ledger(
+    *,
+    org_id: str,
+    workspace_id: str,
+    audit_id: str,
+    owner_uid: str,
+    packet: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Persist a strict Gemini intelligence packet under:
+
+      organizations/{org_id}/workspaces/{workspace_id}/audits/{audit_id}
+
+    and upsert remediation items under:
+
+      .../remediation_ledger/{task_id}
+    """
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        org_ref = client.collection("organizations").document(org_id)
+        workspace_ref = org_ref.collection("workspaces").document(workspace_id)
+        audit_ref = workspace_ref.collection("audits").document(audit_id)
+
+        simulation = packet.get("simulation", {})
+        remediation_ledger = packet.get("remediation_ledger", [])
+
+        # Keep a normalized audit snapshot for the Attack Lab and monitoring screens.
+        audit_ref.set(
+            {
+                "id": audit_id,
+                "org_id": org_id,
+                "workspace_id": workspace_id,
+                "owner_uid": owner_uid,
+                "updated_at": now_iso,
+                "last_simulation": simulation,
+                "remediation_task_count": len(remediation_ledger),
+            },
+            merge=True,
+        )
+
+        # Store the full latest packet for replay/debug and drift checks.
+        audit_ref.collection("intelligence_packets").document("latest").set(
+            {
+                "received_at": now_iso,
+                "owner_uid": owner_uid,
+                "packet": packet,
+            },
+            merge=True,
+        )
+
+        ledger_collection = audit_ref.collection("remediation_ledger")
+        batch = client.batch()
+        for item in remediation_ledger:
+            task_id = str(item["task_id"])
+            task_ref = ledger_collection.document(task_id)
+            batch.set(
+                task_ref,
+                {
+                    "task_id": task_id,
+                    "action": item["action"],
+                    "priority": item["priority"],
+                    "ghi_impact": item["ghi_impact"],
+                    "automation_potential": item["automation_potential"],
+                    "org_id": org_id,
+                    "workspace_id": workspace_id,
+                    "audit_id": audit_id,
+                    "owner_uid": owner_uid,
+                    "updated_at": now_iso,
+                },
+                merge=True,
+            )
+
+        if remediation_ledger:
+            batch.commit()
+
+        collection_path = (
+            f"organizations/{org_id}/workspaces/{workspace_id}/"
+            f"audits/{audit_id}/remediation_ledger"
+        )
+        logger.info(
+            "Firestore: upserted %d remediation tasks at %s",
+            len(remediation_ledger),
+            collection_path,
+        )
+        return {
+            "tasks_upserted": len(remediation_ledger),
+            "ledger_collection_path": collection_path,
+        }
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error(
+            "CRITICAL: Firestore remediation ledger upsert failed for org=%s workspace=%s audit=%s: %s",
+            org_id,
+            workspace_id,
+            audit_id,
+            exc,
+        )
+        raise FirestoreUnavailableError(f"Failed to upsert remediation ledger: {exc}")
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Cloud Metadata Persistence (No SQL migration required)
+# ═══════════════════════════════════════════════════════════════════════
+
+def firestore_set_assessment_lifecycle(
+    assessment_id: str,
+    status: str,
+    *,
+    submitted_at: Optional[str] = None,
+    scored_at: Optional[str] = None,
+) -> bool:
+    """Persist cloud lifecycle status for an assessment in Firestore metadata."""
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        now_iso = datetime.now(timezone.utc).isoformat()
+        payload: Dict[str, Any] = {
+            "status": status,
+            "updated_at": now_iso,
+        }
+        if submitted_at:
+            payload["submitted_at"] = submitted_at
+        if scored_at:
+            payload["scored_at"] = scored_at
+
+        client.collection("assessments").document(assessment_id).collection("cloud_meta").document("lifecycle").set(payload, merge=True)
+        logger.info("Firestore: saved lifecycle metadata for assessment %s", assessment_id)
+        return True
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error("CRITICAL: Firestore set_assessment_lifecycle failed for %s: %s", assessment_id, exc)
+        raise FirestoreUnavailableError(f"Failed to persist assessment lifecycle metadata: {exc}")
+
+
+def firestore_get_assessment_lifecycle(assessment_id: str) -> Dict[str, Any]:
+    """Fetch cloud lifecycle metadata for an assessment."""
+    if not is_firestore_available():
+        return {}
+    try:
+        client = get_firestore_client()
+        doc = client.collection("assessments").document(assessment_id).collection("cloud_meta").document("lifecycle").get()
+        if not doc.exists:
+            return {}
+        return doc.to_dict() or {}
+    except Exception as exc:
+        logger.warning("Firestore get_assessment_lifecycle failed for %s: %s", assessment_id, exc)
+        return {}
+
+
+def firestore_save_finding_tracking(
+    assessment_id: str,
+    finding_id: str,
+    tracking: Dict[str, Any],
+) -> bool:
+    """Persist finding lifecycle tracking metadata in Firestore."""
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        payload = dict(tracking)
+        payload["updated_at"] = datetime.now(timezone.utc).isoformat()
+        payload = _encrypt_doc_fields(payload, FINDING_TRACKING_SENSITIVE_FIELDS)
+        client.collection("assessments").document(assessment_id).collection("finding_tracking").document(finding_id).set(payload, merge=True)
+        logger.info(
+            "Firestore: saved finding tracking metadata for assessment %s finding %s",
+            assessment_id,
+            finding_id,
+        )
+        return True
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error(
+            "CRITICAL: Firestore save_finding_tracking failed for assessment=%s finding=%s: %s",
+            assessment_id,
+            finding_id,
+            exc,
+        )
+        raise FirestoreUnavailableError(f"Failed to persist finding tracking metadata: {exc}")
+
+
+def firestore_get_finding_tracking_map(assessment_id: str) -> Dict[str, Dict[str, Any]]:
+    """Return finding_id -> tracking metadata map for an assessment."""
+    if not is_firestore_available():
+        return {}
+    try:
+        client = get_firestore_client()
+        docs = (
+            client.collection("assessments")
+            .document(assessment_id)
+            .collection("finding_tracking")
+            .stream()
+        )
+        result: Dict[str, Dict[str, Any]] = {}
+        for doc in docs:
+            raw_doc = doc.to_dict() or {}
+            result[doc.id] = _decrypt_doc_fields(raw_doc)
+        return result
+    except Exception as exc:
+        logger.warning("Firestore get_finding_tracking_map failed for %s: %s", assessment_id, exc)
+        return {}

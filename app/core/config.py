@@ -222,6 +222,13 @@ class Settings(BaseSettings):
                     "WARNING: AIRS_USE_LLM=true but neither GEMINI_API_KEY nor GCP_PROJECT_ID is set.",
                     file=sys.stderr
                 )
+
+        if self.ENV in (Environment.PROD, Environment.STAGING, Environment.DEMO):
+            if not self.ENCRYPTION_SECRET:
+                errors.append(
+                    f"ENCRYPTION_SECRET is required in {self.ENV.value}. "
+                    "Set it via Secret Manager and bind it at deploy time."
+                )
         
         # Demo mode warnings (local only)
         if self.DEMO_MODE:

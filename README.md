@@ -65,10 +65,11 @@ Demo mode is controlled by:
 
 ## Screenshots
 
-Screenshot placeholders for launch materials:
-- `docs/assets/screenshots/dashboard-placeholder.svg`
-- `docs/assets/screenshots/results-placeholder.svg`
-- `docs/assets/screenshots/integrations-placeholder.svg`
+Actual launch visuals:
+
+![ResilAI Dashboard](images/dashboard.png)
+
+![ResilAI Architecture](images/architecture.png)
 
 ## Quick Start
 
@@ -99,6 +100,13 @@ npm run build:staging
 cd ..
 firebase deploy --only hosting:staging
 bash ./scripts/deploy_cloud_run.sh --service airs-api-staging --region us-central1 --env-file gcp/env.staging.yaml --project gen-lang-client-0384513977
+```
+
+For encrypted Firestore writes in staging/demo, bind the encryption key from Secret Manager at deploy time:
+
+```bash
+bash ./scripts/deploy_cloud_run.sh --service airs-api-staging --region us-central1 --env-file gcp/env.staging.yaml --project gen-lang-client-0384513977 --set-secrets ENCRYPTION_SECRET=ENCRYPTION_SECRET:latest
+bash ./scripts/deploy_cloud_run.sh --service airs-api --region us-central1 --env-file gcp/env.demo.yaml --project gen-lang-client-0384513977 --prod --set-secrets ENCRYPTION_SECRET=ENCRYPTION_SECRET:latest
 ```
 
 ## Enterprise Readiness

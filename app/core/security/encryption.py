@@ -156,6 +156,7 @@ class EncryptionService:
         self,
         document: Dict[str, Any],
         key_version: int = 1,
+        sensitive_fields: Optional[Set[str]] = None,
     ) -> Dict[str, Any]:
         """
         Encrypt sensitive fields in *document* and return a new document
@@ -174,12 +175,14 @@ class EncryptionService:
         if not self._enabled:
             return dict(document)
 
+        active_sensitive_fields = sensitive_fields or SENSITIVE_FIELDS
+
         # Split sensitive from non-sensitive
         sensitive_payload: Dict[str, Any] = {}
         result: Dict[str, Any] = {}
 
         for key, value in document.items():
-            if key in SENSITIVE_FIELDS:
+            if key in active_sensitive_fields:
                 sensitive_payload[key] = value
             else:
                 result[key] = value
@@ -194,6 +197,7 @@ class EncryptionService:
         result["encrypted_blob"] = base64.urlsafe_b64encode(ciphertext).decode("ascii")
         result["encrypted_iv"] = base64.urlsafe_b64encode(nonce).decode("ascii")
         result["key_version"] = key_version
+        result["encrypted_fields"] = sorted(sensitive_payload.keys())
 
         return result
 
@@ -206,6 +210,7 @@ class EncryptionService:
         """
         encrypted_blob_b64 = document.get("encrypted_blob")
         encrypted_iv_b64 = document.get("encrypted_iv")
+        encrypted_fields = document.get("encrypted_fields")
 
         if not encrypted_blob_b64 or not encrypted_iv_b64:
             # Legacy or passthrough document — return as-is.
@@ -220,7 +225,7 @@ class EncryptionService:
             result = {
                 k: v
                 for k, v in document.items()
-                if k not in ("encrypted_blob", "encrypted_iv", "key_version")
+                if k not in ("encrypted_blob", "encrypted_iv", "key_version", "encrypted_fields")
             }
             return result
 
@@ -235,17 +240,32 @@ class EncryptionService:
             result = {
                 k: v
                 for k, v in document.items()
-                if k not in ("encrypted_blob", "encrypted_iv", "key_version")
+                if k not in ("encrypted_blob", "encrypted_iv", "key_version", "encrypted_fields")
+            }
+            return result
+
+        if not isinstance(sensitive, dict):
+            logger.error("Decryption payload is not a JSON object")
+            result = {
+                k: v
+                for k, v in document.items()
+                if k not in ("encrypted_blob", "encrypted_iv", "key_version", "encrypted_fields")
             }
             return result
 
         # Merge non-sensitive fields with decrypted sensitive fields
         result: Dict[str, Any] = {}
         for key, value in document.items():
-            if key in ("encrypted_blob", "encrypted_iv", "key_version"):
+            if key in ("encrypted_blob", "encrypted_iv", "key_version", "encrypted_fields"):
                 continue
             result[key] = value
-        result.update(sensitive)
+
+        if isinstance(encrypted_fields, list) and encrypted_fields:
+            for field_name in encrypted_fields:
+                if field_name in sensitive:
+                    result[field_name] = sensitive[field_name]
+        else:
+            result.update(sensitive)
 
         return result
 
