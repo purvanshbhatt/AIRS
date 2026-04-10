@@ -295,6 +295,14 @@ def get_recommendations(scores: Dict[str, Any], max_per_domain: int = 3) -> List
         for question in domain["questions"]:
             if question["points_earned"] < question["points_possible"]:
                 gap = question["points_possible"] - question["points_earned"]
+                possible = max(float(question["points_possible"]), 1.0)
+                gap_ratio = gap / possible
+                if gap_ratio >= 0.8:
+                    impact = "high"
+                elif gap_ratio >= 0.4:
+                    impact = "medium"
+                else:
+                    impact = "low"
                 domain_recs.append({
                     "priority": priority,
                     "domain": domain["domain_name"],
@@ -303,7 +311,7 @@ def get_recommendations(scores: Dict[str, Any], max_per_domain: int = 3) -> List
                     "finding": question["question_text"],
                     "current_answer": question["answer"],
                     "points_gap": round(gap, 2),
-                    "impact": "high" if gap >= 0.75 else "medium" if gap >= 0.5 else "low"
+                    "impact": impact,
                 })
         
         # Sort by gap size and take top N

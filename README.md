@@ -5,21 +5,28 @@
 [Live Demo](https://gen-lang-client-0384513977.web.app) | [API Docs](https://airs-api-227825933697.us-central1.run.app/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
 
 ## Problem Statement
-Most organizations have SIEM, endpoint, and cloud tooling, but still lack a clear and repeatable way to answer:
+Did you ever wonder: "Are we safe if an Artificial Intelligence system goes wrong?" While most organizations have standard security tools (like antivirus or network monitors), they often struggle to answer:
 
-- How ready are we for AI-related security incidents?
-- What are our highest-risk readiness gaps?
-- What should we fix first for executive and board reporting?
+- How prepared are we for a cyber incident specifically involving AI?
+- What are our biggest vulnerabilities when it comes to AI tools?
+- How do we explain these risks simply to executives or the board of directors?
 
-ResilAI closes this gap with deterministic scoring, framework alignment, and executive-ready outputs.
+ResilAI solves this problem. We provide clear, easy-to-understand scoring, alignment with known safety frameworks, and reports designed for business leaders—not just IT experts.
+
+## Understanding ResilAI: A Guide for Everyone
+If you do not work in IT or Cybersecurity, here are the core concepts of ResilAI in plain English:
+
+1. **AI Readiness Score:** Just like a credit score tells you your financial health, ResilAI gives your company a "Readiness Score" to tell you how safe you are from AI-specific cyber threats.
+2. **Attack Simulation Lab:** Think of this as a fire drill. You can safely "attack" an AI assistant using provided templates (like tricking it into giving away secrets) so you can see how our Logic Firewall stops bad behavior before it happens.
+3. **Reliability Dashboard:** A single, easy-to-read screen showing your exact risk level (Critical, High, Medium, Low), complete with a simple explanation of what it means for your business.
+4. **Governance & Compliance:** ResilAI automatically checks your AI systems against global rules and best practices, making sure you aren't unknowingly breaking laws or compliance policies.
 
 ## Key Features
-- Deterministic AI incident readiness scoring
-- MITRE ATT&CK, CIS Controls, and OWASP mapping
-- Executive Risk Summary and detailed PDF reporting
-- API key-based pull integrations for external platforms
-- Webhook-based push integrations for event-driven workflows
-- Health and runtime diagnostics for operational transparency
+- **Deterministic Scoring:** Crystal-clear numbers indicating exactly how secure your AI deployments are.
+- **Recognized Standards:** We map all risks to industry standards like MITRE ATT&CK, CIS Controls, and OWASP.
+- **Executive-Ready Reports:** Generate simple, attractive PDF reports that make sense to the C-suite and board.
+- **Automated Workflow Integrations:** Smoothly connect with your existing tools via simple API keys or Webhooks.
+- **Transparent Diagnostics:** Real-time health metrics ensuring the platform is always running smoothly.
 
 ## Architecture Diagram
 

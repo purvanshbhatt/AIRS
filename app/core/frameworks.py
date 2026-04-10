@@ -241,6 +241,83 @@ OWASP_TOP10 = {
 
 
 # =============================================================================
+# ADDITIONAL GOVERNANCE FRAMEWORKS
+# =============================================================================
+
+EU_AI_ACT_ARTICLES: Dict[str, Dict[str, str]] = {
+    "EU-AIA-9": {
+        "id": "EU-AIA-9",
+        "name": "Risk Management System",
+        "url": "https://artificialintelligenceact.eu/article/9/",
+    },
+    "EU-AIA-15": {
+        "id": "EU-AIA-15",
+        "name": "Accuracy, Robustness and Cybersecurity",
+        "url": "https://artificialintelligenceact.eu/article/15/",
+    },
+    "EU-AIA-17": {
+        "id": "EU-AIA-17",
+        "name": "Quality Management System",
+        "url": "https://artificialintelligenceact.eu/article/17/",
+    },
+}
+
+ISO_42001_CONTROLS: Dict[str, Dict[str, str]] = {
+    "ISO42001-5.2": {
+        "id": "ISO42001-5.2",
+        "name": "AI Policy",
+        "url": "https://www.iso.org/standard/81230.html",
+    },
+    "ISO42001-8.2": {
+        "id": "ISO42001-8.2",
+        "name": "AI Risk Assessment",
+        "url": "https://www.iso.org/standard/81230.html",
+    },
+    "ISO42001-8.4": {
+        "id": "ISO42001-8.4",
+        "name": "Operational Planning and Control",
+        "url": "https://www.iso.org/standard/81230.html",
+    },
+}
+
+SOC2_TRUST_CRITERIA: Dict[str, Dict[str, str]] = {
+    "CC3.2": {
+        "id": "CC3.2",
+        "name": "Risk Identification and Analysis",
+        "url": "https://www.aicpa-cima.com/resources/landing/trust-services-criteria",
+    },
+    "CC6.1": {
+        "id": "CC6.1",
+        "name": "Logical and Physical Access Controls",
+        "url": "https://www.aicpa-cima.com/resources/landing/trust-services-criteria",
+    },
+    "CC7.2": {
+        "id": "CC7.2",
+        "name": "Anomaly and Security Event Monitoring",
+        "url": "https://www.aicpa-cima.com/resources/landing/trust-services-criteria",
+    },
+}
+
+MITRE_ATLAS_TECHNIQUES: Dict[str, Dict[str, str]] = {
+    "AML.TA0005": {
+        "id": "AML.TA0005",
+        "name": "Model Evasion",
+        "url": "https://atlas.mitre.org/techniques/AML.TA0005",
+    },
+    "AML.TA0006": {
+        "id": "AML.TA0006",
+        "name": "Model Poisoning",
+        "url": "https://atlas.mitre.org/techniques/AML.TA0006",
+    },
+    "AML.TA0011": {
+        "id": "AML.TA0011",
+        "name": "Exfiltration via ML System",
+        "url": "https://atlas.mitre.org/techniques/AML.TA0011",
+    },
+}
+
+
+# =============================================================================
 # FINDING RULE TO FRAMEWORK MAPPINGS
 # =============================================================================
 
@@ -249,7 +326,11 @@ FRAMEWORK_MAPPINGS: Dict[str, Dict[str, List[str]]] = {
     "TL-001": {  # Insufficient Log Retention
         "mitre": ["T1070", "T1070.001", "T1070.002", "T1562.002"],
         "cis": ["8.3", "8.1"],
-        "owasp": ["A09:2021"]
+        "owasp": ["A09:2021"],
+        "eu_ai_act": ["EU-AIA-15"],
+        "iso42001": ["ISO42001-8.4"],
+        "soc2": ["CC7.2"],
+        "mitre_atlas": ["AML.TA0011"],
     },
     "TL-002": {  # Missing Centralized Logging
         "mitre": ["T1070", "T1562", "T1562.001"],
@@ -318,7 +399,11 @@ FRAMEWORK_MAPPINGS: Dict[str, Dict[str, List[str]]] = {
     "IV-001": {  # MFA Not Enforced for Admins
         "mitre": ["T1078", "T1078.002", "T1556", "T1110"],
         "cis": ["6.5", "6.3"],
-        "owasp": ["A07:2021"]
+        "owasp": ["A07:2021"],
+        "eu_ai_act": ["EU-AIA-9"],
+        "iso42001": ["ISO42001-5.2"],
+        "soc2": ["CC6.1"],
+        "mitre_atlas": ["AML.TA0005"],
     },
     "IV-002": {  # MFA Not Enforced Org-Wide
         "mitre": ["T1078", "T1110", "T1556.006"],
@@ -350,7 +435,11 @@ FRAMEWORK_MAPPINGS: Dict[str, Dict[str, List[str]]] = {
     "IR-001": {  # No IR Playbooks
         "mitre": ["T1486", "T1485"],
         "cis": ["17.4", "17.3"],
-        "owasp": []
+        "owasp": [],
+        "eu_ai_act": ["EU-AIA-17"],
+        "iso42001": ["ISO42001-8.2"],
+        "soc2": ["CC3.2"],
+        "mitre_atlas": ["AML.TA0006"],
     },
     "IR-002": {  # IR Playbooks Not Tested
         "mitre": ["T1486"],
@@ -437,14 +526,29 @@ def get_framework_refs(rule_id: str) -> Dict[str, List[Dict[str, Any]]]:
         rule_id: The finding rule identifier (e.g., "TL-001")
         
     Returns:
-        Dict with 'mitre', 'cis', 'owasp' arrays of ref objects
+        Dict with framework arrays of reference objects
     """
-    mapping = FRAMEWORK_MAPPINGS.get(rule_id, {"mitre": [], "cis": [], "owasp": []})
+    mapping = FRAMEWORK_MAPPINGS.get(
+        rule_id,
+        {
+            "mitre": [],
+            "cis": [],
+            "owasp": [],
+            "eu_ai_act": [],
+            "iso42001": [],
+            "soc2": [],
+            "mitre_atlas": [],
+        },
+    )
     
     result = {
         "mitre": [],
         "cis": [],
-        "owasp": []
+        "owasp": [],
+        "eu_ai_act": [],
+        "iso42001": [],
+        "soc2": [],
+        "mitre_atlas": [],
     }
     
     # Build MITRE refs
@@ -461,6 +565,26 @@ def get_framework_refs(rule_id: str) -> Dict[str, List[Dict[str, Any]]]:
     for owasp_id in mapping.get("owasp", []):
         if owasp_id in OWASP_TOP10:
             result["owasp"].append(OWASP_TOP10[owasp_id].to_dict())
+
+    # Build EU AI Act refs
+    for article_id in mapping.get("eu_ai_act", []):
+        if article_id in EU_AI_ACT_ARTICLES:
+            result["eu_ai_act"].append(EU_AI_ACT_ARTICLES[article_id])
+
+    # Build ISO/IEC 42001 refs
+    for control_id in mapping.get("iso42001", []):
+        if control_id in ISO_42001_CONTROLS:
+            result["iso42001"].append(ISO_42001_CONTROLS[control_id])
+
+    # Build SOC 2 refs
+    for criterion_id in mapping.get("soc2", []):
+        if criterion_id in SOC2_TRUST_CRITERIA:
+            result["soc2"].append(SOC2_TRUST_CRITERIA[criterion_id])
+
+    # Build MITRE ATLAS refs
+    for atlas_id in mapping.get("mitre_atlas", []):
+        if atlas_id in MITRE_ATLAS_TECHNIQUES:
+            result["mitre_atlas"].append(MITRE_ATLAS_TECHNIQUES[atlas_id])
     
     return result
 

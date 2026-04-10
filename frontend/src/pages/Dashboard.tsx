@@ -27,6 +27,8 @@ import {
 import {
   getOrganizations,
   getAssessments,
+  getAssessmentHistory,
+  getOrgRemediations,
   getSystemStatus,
   listApiKeys,
   listWebhooks,
@@ -36,10 +38,18 @@ import {
   ApiRequestError,
 } from '../api';
 import { useDemoMode } from '../contexts';
-import type { Organization, Assessment, ApplicableFramework, AuditCalendarEntry } from '../types';
+import type {
+  Organization,
+  Assessment,
+  ApplicableFramework,
+  AuditCalendarEntry,
+  ScoreTrendPoint,
+  TrackerItem,
+} from '../types';
 import type { GHIResponse } from '../api';
 import GHIGauge from '../components/GHIGauge';
 import CompetitorParityChart from '../components/CompetitorParityChart';
+import { ScoreTrendChart } from '../components/ScoreTrendChart';
 
 interface DashboardStats {
   totalOrgs: number;
@@ -54,6 +64,8 @@ interface IntegrationStatus {
     connected?: boolean;
   };
 }
+
+const SELECTED_ORG_STORAGE_KEY = 'resilai-selected-org-id';
 
 function safeParseIntegrationStatus(raw: string | undefined): IntegrationStatus | null {
   if (!raw) return null;
@@ -99,6 +111,8 @@ export default function Dashboard() {
   const [applicableFrameworks, setApplicableFrameworks] = useState<ApplicableFramework[]>([]);
   const [upcomingAudits, setUpcomingAudits] = useState<AuditCalendarEntry[]>([]);
   const [ghiData, setGhiData] = useState<GHIResponse | null>(null);
+  const [scoreHistory, setScoreHistory] = useState<ScoreTrendPoint[]>([]);
+  const [remediationItems, setRemediationItems] = useState<TrackerItem[]>([]);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -114,7 +128,10 @@ export default function Dashboard() {
         setOrganizations(orgs);
         setAssessments(loadedAssessments);
         if (orgs.length > 0) {
-          setSelectedOrgId(orgs[0].id);
+          const storedOrgId = localStorage.getItem(SELECTED_ORG_STORAGE_KEY);
+          const initialOrgId =
+            storedOrgId && orgs.some((org) => org.id === storedOrgId) ? storedOrgId : orgs[0].id;
+          setSelectedOrgId(initialOrgId);
         }
 
         const completed = loadedAssessments.filter((assessment) => assessment.status === 'completed');
@@ -187,15 +204,30 @@ export default function Dashboard() {
   // Load governance widgets when org changes
   useEffect(() => {
     if (!selectedOrgId) return;
-    getApplicableFrameworks(selectedOrgId)
-      .then((data) => setApplicableFrameworks(data.frameworks))
-      .catch(() => setApplicableFrameworks([]));
-    getAuditCalendar(selectedOrgId)
-      .then((data) => setUpcomingAudits(data.entries.filter((e) => e.is_upcoming).slice(0, 3)))
-      .catch(() => setUpcomingAudits([]));
-    getGovernanceHealthIndex(selectedOrgId)
-      .then((data) => setGhiData(data))
-      .catch(() => setGhiData(null));
+    Promise.all([
+      getApplicableFrameworks(selectedOrgId).catch(() => ({ frameworks: [] })),
+      getAuditCalendar(selectedOrgId).catch(() => ({ entries: [] })),
+      getGovernanceHealthIndex(selectedOrgId).catch(() => null),
+      getAssessmentHistory(selectedOrgId, 8).catch(() => []),
+      getOrgRemediations(selectedOrgId).catch(() => ({ items: [] })),
+    ]).then(([frameworkData, auditData, ghi, history, remediation]) => {
+      setApplicableFrameworks(frameworkData.frameworks);
+      setUpcomingAudits(auditData.entries.filter((entry) => entry.is_upcoming).slice(0, 3));
+      setGhiData(ghi);
+      setRemediationItems(remediation.items || []);
+
+      const trendPoints = history
+        .filter((assessment) => assessment.overall_score != null)
+        .slice()
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map((assessment) => ({
+          assessment_id: assessment.id,
+          date: assessment.created_at,
+          score: Number(assessment.overall_score ?? 0),
+          name: assessment.title,
+        }));
+      setScoreHistory(trendPoints);
+    });
   }, [selectedOrgId]);
 
   if (loading) {
@@ -247,6 +279,9 @@ export default function Dashboard() {
     latestCompleted && previousCompleted
       ? (latestCompleted.overall_score ?? 0) - (previousCompleted.overall_score ?? 0)
       : null;
+  const openActions = remediationItems.filter((item) => item.status === 'not_started' || item.status === 'todo').length;
+  const inProgressActions = remediationItems.filter((item) => item.status === 'in_progress').length;
+  const resolvedActions = remediationItems.filter((item) => item.status === 'completed' || item.status === 'done').length;
 
   const selectedOrganization = organizations.find((org) => org.id === selectedOrgId);
   const displayOrganizationName = selectedOrganization?.name || 'Acme Health Systems';
@@ -281,9 +316,13 @@ export default function Dashboard() {
           <div className="min-w-[220px]">
             <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">Organization</label>
             <select
+              aria-label="Organization"
               className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100"
               value={selectedOrgId}
-              onChange={(event) => setSelectedOrgId(event.target.value)}
+              onChange={(event) => {
+                setSelectedOrgId(event.target.value);
+                localStorage.setItem(SELECTED_ORG_STORAGE_KEY, event.target.value);
+              }}
             >
               {organizations.map((org) => (
                 <option key={org.id} value={org.id}>
@@ -300,10 +339,10 @@ export default function Dashboard() {
                   New Organization
                 </Button>
               </Link>
-              <Link to="/dashboard/assessment/new">
+              <Link to={selectedOrgId ? `/dashboard/assessment/new?org=${selectedOrgId}` : '/dashboard/assessment/new'}>
                 <Button className="gap-2">
                   <ClipboardList className="w-4 h-4" />
-                  New Assessment
+                  Start New Assessment
                 </Button>
               </Link>
             </>
@@ -412,6 +451,48 @@ export default function Dashboard() {
                   ? 'Trend unavailable'
                   : `${displayDelta >= 0 ? '^' : 'v'} ${displayDelta >= 0 ? '+' : '-'}${Math.abs(displayDelta).toFixed(0)} ${displayDelta >= 0 ? 'improvement' : 'change'}`}
               </p>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ScoreTrendChart data={scoreHistory} />
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-gray-400" />
+                    Remediation Momentum
+                  </CardTitle>
+                  <Link
+                    to="/dashboard/remediation"
+                    className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                  >
+                    Open tracker <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-lg border border-gray-200 dark:border-slate-700 p-3">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Open</p>
+                    <p className="text-xl font-semibold text-rose-600">{openActions}</p>
+                  </div>
+                  <div className="rounded-lg border border-gray-200 dark:border-slate-700 p-3">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">In Progress</p>
+                    <p className="text-xl font-semibold text-amber-600">{inProgressActions}</p>
+                  </div>
+                  <div className="rounded-lg border border-gray-200 dark:border-slate-700 p-3">
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Resolved</p>
+                    <p className="text-xl font-semibold text-green-600">{resolvedActions}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-slate-300 mt-4">
+                  {scoreDelta == null
+                    ? 'Complete two or more assessments to unlock deterministic improvement deltas.'
+                    : `Most recent cycle changed readiness by ${scoreDelta >= 0 ? '+' : ''}${scoreDelta.toFixed(1)} points.`}
+                </p>
+              </CardContent>
             </Card>
           </div>
 

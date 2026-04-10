@@ -406,6 +406,10 @@ class ProfessionalPDFGenerator:
         story.extend(self._build_executive_summary(data))
         story.append(Spacer(1, 20))
 
+        # Section 3b: Deterministic reliability and SLA exposure
+        story.extend(self._build_rri_sla_exposure(data))
+        story.append(PageBreak())
+
         # Section 4: Domain Heatmap Table
         story.extend(self._build_domain_heatmap(data))
         story.append(PageBreak())
@@ -930,6 +934,124 @@ class ProfessionalPDFGenerator:
         elif pct >= 20:
             return "Poor"
         return "Critical"
+
+    def _compute_rri_sla_metrics(self, data: Dict[str, Any]) -> Dict[str, float]:
+        """Compute deterministic RRI and SLA exposure metrics from report payload."""
+        overall_score = float(get_attr(data, "overall_score", 0) or 0)
+        findings = get_attr(data, "findings", []) or []
+        analytics = get_attr(data, "analytics", {}) or {}
+        risk_summary = get_attr(analytics, "risk_summary", {}) or {}
+        sev_counts = dict(get_attr(risk_summary, "severity_counts", {}) or {})
+
+        if not sev_counts:
+            sev_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+            for finding in findings:
+                severity = str(get_attr(finding, "severity", "")).lower()
+                if "critical" in severity:
+                    sev_counts["critical"] += 1
+                elif "high" in severity:
+                    sev_counts["high"] += 1
+                elif "medium" in severity:
+                    sev_counts["medium"] += 1
+                elif "low" in severity:
+                    sev_counts["low"] += 1
+
+        critical = int(sev_counts.get("critical", 0) or 0)
+        high = int(sev_counts.get("high", 0) or 0)
+        medium = int(sev_counts.get("medium", 0) or 0)
+
+        # Deterministic severity burden model.
+        severity_burden = (critical * 12) + (high * 6) + (medium * 2)
+        rri = max(0.0, min(100.0, overall_score - min(35.0, severity_burden * 0.5)))
+
+        # Estimated SLA operating characteristics derived from readiness and risk burden.
+        estimated_mtta_hours = max(4.0, round(24.0 - (overall_score * 0.16), 1))
+        estimated_mttr_hours = max(
+            8.0,
+            round(72.0 - (overall_score * 0.48) + (critical * 2.0) + (high * 0.5), 1),
+        )
+        breach_probability = max(
+            1.0,
+            min(99.0, round((critical * 15.0) + (high * 6.0) + ((100.0 - overall_score) * 0.4), 1)),
+        )
+
+        return {
+            "rri": rri,
+            "estimated_mtta_hours": estimated_mtta_hours,
+            "estimated_mttr_hours": estimated_mttr_hours,
+            "breach_probability": breach_probability,
+            "severity_burden": float(severity_burden),
+        }
+
+    def _build_rri_sla_exposure(self, data: Dict[str, Any]) -> List:
+        """Build deterministic Reliability Readiness Index and SLA exposure section."""
+        elements: List[Any] = []
+        metrics = self._compute_rri_sla_metrics(data)
+
+        elements.append(Paragraph("Reliability Readiness & SLA Exposure", self.styles['SectionHeader']))
+        elements.append(HRFlowable(
+            width="100%",
+            thickness=1,
+            color=Colors.LIGHT_BLUE,
+            spaceBefore=0,
+            spaceAfter=15
+        ))
+        elements.append(Paragraph(
+            "The following indicators are deterministic projections from readiness score and severity burden. "
+            "They provide a consistent board-level view of resilience posture and operational exposure.",
+            self.styles['ReportBodyText']
+        ))
+        elements.append(Spacer(1, 10))
+
+        table_data = [
+            ["Indicator", "Value", "Interpretation"],
+            [
+                "Recovery Readiness Index (RRI)",
+                f"{metrics['rri']:.1f}/100",
+                "Higher is better; combines readiness with weighted criticality burden.",
+            ],
+            [
+                "Estimated MTTA",
+                f"{metrics['estimated_mtta_hours']:.1f} hours",
+                "Projected mean time to acknowledge material incidents.",
+            ],
+            [
+                "Estimated MTTR",
+                f"{metrics['estimated_mttr_hours']:.1f} hours",
+                "Projected mean time to contain and recover from incidents.",
+            ],
+            [
+                "SLA Breach Exposure",
+                f"{metrics['breach_probability']:.1f}%",
+                "Estimated probability of missing recovery SLA under current posture.",
+            ],
+        ]
+
+        table = Table(table_data, colWidths=[2.1 * inch, 1.4 * inch, 2.7 * inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), Colors.DARK_BLUE),
+            ('TEXTCOLOR', (0, 0), (-1, 0), Colors.WHITE),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('ALIGN', (1, 1), (1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, Colors.WHITE),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [Colors.WHITE, Colors.LIGHT_GRAY]),
+            ('TOPPADDING', (0, 0), (-1, -1), 7),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1, 8))
+
+        elements.append(Paragraph(
+            f"Severity burden score used in this projection: <b>{metrics['severity_burden']:.0f}</b>. "
+            "Use this section for trend tracking across sequential assessments rather than as a replacement "
+            "for incident telemetry baselines.",
+            self.styles['ReportSmallText']
+        ))
+
+        return elements
     
     # =========================================================================
     # SECTION 3: DOMAIN HEATMAP

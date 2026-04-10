@@ -264,17 +264,38 @@ export const deleteOrganization = (id: string) =>
   request<void>(`/api/orgs/${id}`, { method: 'DELETE' });
 
 // Assessments
-export const createAssessment = (data: { organization_id: string; title: string }) =>
+export const createAssessment = (data: { organization_id: string; title: string; version?: string }) =>
   request<{ id: string }>('/api/assessments', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 
-export const getAssessments = () =>
-  request<import('./types').Assessment[]>('/api/assessments');
+export const createAssessmentForOrg = (
+  orgId: string,
+  data: { title?: string; version?: string }
+) =>
+  request<{ id: string }>(`/api/orgs/${orgId}/assessments`, {
+    method: 'POST',
+    body: JSON.stringify({
+      title: data.title,
+      version: data.version,
+    }),
+  });
+
+export const getAssessments = (organizationId?: string) =>
+  request<import('./types').Assessment[]>(
+    organizationId
+      ? `/api/assessments?organization_id=${encodeURIComponent(organizationId)}`
+      : '/api/assessments'
+  );
 
 export const getAssessment = (id: string) =>
   request<import('./types').AssessmentDetail>(`/api/assessments/${id}`);
+
+export const getAssessmentHistory = (organizationId: string, limit: number = 12) =>
+  request<import('./types').Assessment[]>(
+    `/api/assessments/${organizationId}/history?limit=${encodeURIComponent(String(limit))}`
+  );
 
 export const submitAnswers = (assessmentId: string, answers: Record<string, string | number | boolean>) => {
   // Transform object format to array format expected by backend
@@ -564,6 +585,18 @@ export const updateRoadmapItem = (assessmentId: string, itemId: string, data: Pa
 export const deleteRoadmapItem = (assessmentId: string, itemId: string) =>
   request<void>(`/api/assessments/${assessmentId}/roadmap/${itemId}`, {
     method: 'DELETE',
+  });
+
+export const getOrgRemediations = (orgId: string) =>
+  request<import('./types').RoadmapResponse>(`/api/orgs/${orgId}/remediations`);
+
+export const patchRemediation = (
+  itemId: string,
+  data: { status?: 'open' | 'in_progress' | 'resolved'; priority?: string; owner?: string; notes?: string }
+) =>
+  request<import('./types').TrackerItem>(`/api/remediations/${itemId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
   });
 
 // =============================================================================

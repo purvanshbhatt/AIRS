@@ -1,6 +1,7 @@
 import os
 import pytest
 from unittest.mock import MagicMock, patch
+from contextlib import ExitStack
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -63,21 +64,42 @@ def _mock_firestore_if_no_emulator():
         yield  # real emulator — nothing to patch
         return
 
-    with patch("app.db.firestore.firestore_save_org", return_value=True), \
-         patch("app.db.firestore.firestore_delete_org", return_value=True), \
-            patch("app.db.firestore.firestore_save_assessment", return_value=True), \
-            patch("app.db.firestore.firestore_delete_assessment", return_value=True), \
-         patch("app.db.firestore.firestore_get_all_orgs", return_value=[]), \
-            patch("app.db.firestore.firestore_get_all_assessments", return_value=[]), \
-         patch("app.db.firestore.sync_orgs_from_firestore", return_value=0), \
-            patch("app.db.firestore.sync_assessments_from_firestore", return_value=0), \
-         patch("app.db.firestore.require_firestore", return_value=True), \
-         patch("app.db.firestore.is_firestore_available", return_value=True), \
-         patch("app.services.organization.firestore_save_org", return_value=True), \
-         patch("app.services.organization.firestore_delete_org", return_value=True), \
-            patch("app.services.assessment.firestore_save_assessment", return_value=True), \
-            patch("app.services.assessment.firestore_delete_assessment", return_value=True), \
-         patch("app.api.governance.firestore_save_org", return_value=True):
+    patchers = [
+        patch("app.db.firestore.firestore_save_org", return_value=True),
+        patch("app.db.firestore.firestore_delete_org", return_value=True),
+        patch("app.db.firestore.firestore_save_assessment", return_value=True),
+        patch("app.db.firestore.firestore_delete_assessment", return_value=True),
+        patch(
+            "app.db.firestore.firestore_upsert_remediation_ledger",
+            return_value={
+                "tasks_upserted": 0,
+                "ledger_collection_path": "organizations/mock/workspaces/mock/audits/mock/remediation_ledger",
+            },
+        ),
+        patch("app.db.firestore.firestore_set_assessment_lifecycle", return_value=True),
+        patch("app.db.firestore.firestore_get_assessment_lifecycle", return_value={}),
+        patch("app.db.firestore.firestore_save_finding_tracking", return_value=True),
+        patch("app.db.firestore.firestore_get_finding_tracking_map", return_value={}),
+        patch("app.db.firestore.firestore_get_all_orgs", return_value=[]),
+        patch("app.db.firestore.firestore_get_all_assessments", return_value=[]),
+        patch("app.db.firestore.sync_orgs_from_firestore", return_value=0),
+        patch("app.db.firestore.sync_assessments_from_firestore", return_value=0),
+        patch("app.db.firestore.require_firestore", return_value=True),
+        patch("app.db.firestore.is_firestore_available", return_value=True),
+        patch("app.services.organization.firestore_save_org", return_value=True),
+        patch("app.services.organization.firestore_delete_org", return_value=True),
+        patch("app.services.assessment.firestore_save_assessment", return_value=True),
+        patch("app.services.assessment.firestore_delete_assessment", return_value=True),
+        patch("app.api.assessments.firestore_set_assessment_lifecycle", return_value=True),
+        patch("app.api.assessments.firestore_get_assessment_lifecycle", return_value={}),
+        patch("app.api.assessments.firestore_save_finding_tracking", return_value=True),
+        patch("app.api.assessments.firestore_get_finding_tracking_map", return_value={}),
+        patch("app.api.governance.firestore_save_org", return_value=True),
+    ]
+
+    with ExitStack() as stack:
+        for patcher in patchers:
+            stack.enter_context(patcher)
         yield
 
 

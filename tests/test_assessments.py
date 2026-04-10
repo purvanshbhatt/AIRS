@@ -72,6 +72,67 @@ class TestOrganizations:
         findings = findings_resp.json()
         assert len(findings) >= 1
 
+    def test_get_org_remediations_returns_items(self, client):
+        org_resp = client.post("/api/orgs", json={"name": "Remediation Org"})
+        org_id = org_resp.json()["id"]
+
+        assessment_resp = client.post(
+            f"/api/orgs/{org_id}/assessments",
+            json={"title": "Remediation Baseline"},
+        )
+        assessment_id = assessment_resp.json()["id"]
+
+        roadmap_resp = client.post(
+            f"/api/assessments/{assessment_id}/roadmap",
+            json={
+                "title": "Close exposed management port",
+                "phase": "30",
+                "status": "not_started",
+                "priority": "high",
+            },
+        )
+        assert roadmap_resp.status_code == 201
+
+        remediations_resp = client.get(f"/api/orgs/{org_id}/remediations")
+        assert remediations_resp.status_code == 200
+        data = remediations_resp.json()
+        assert data["total"] >= 1
+        assert any(item["title"] == "Close exposed management port" for item in data["items"])
+        target = next(item for item in data["items"] if item["title"] == "Close exposed management port")
+        assert target["status"] == "open"
+
+    def test_patch_remediation_updates_status_and_owner(self, client):
+        org_resp = client.post("/api/orgs", json={"name": "Remediation Update Org"})
+        org_id = org_resp.json()["id"]
+
+        assessment_resp = client.post(
+            f"/api/orgs/{org_id}/assessments",
+            json={"title": "Remediation Update Baseline"},
+        )
+        assessment_id = assessment_resp.json()["id"]
+
+        roadmap_resp = client.post(
+            f"/api/assessments/{assessment_id}/roadmap",
+            json={
+                "title": "Restrict stale service account",
+                "phase": "30",
+                "status": "not_started",
+                "priority": "medium",
+            },
+        )
+        assert roadmap_resp.status_code == 201
+        item_id = roadmap_resp.json()["id"]
+
+        patch_resp = client.patch(
+            f"/api/remediations/{item_id}",
+            json={"status": "resolved", "owner": "secops@example.com", "notes": "Validated in staging"},
+        )
+        assert patch_resp.status_code == 200
+        patched = patch_resp.json()
+        assert patched["status"] == "resolved"
+        assert patched["owner"] == "secops@example.com"
+        assert patched["notes"] == "Validated in staging"
+
 
 class TestAssessments:
     """Tests for assessment endpoints."""
@@ -96,6 +157,43 @@ class TestAssessments:
             "organization_id": "invalid-org-id"
         })
         assert response.status_code == 400
+
+    def test_lifecycle_start_submit_history_rerun(self, client, org_id):
+        # Start directly into in_progress
+        start_resp = client.post(f"/api/assessments/{org_id}/start", json={"title": "Lifecycle Start"})
+        assert start_resp.status_code == 201
+        started = start_resp.json()
+        assert started["status"] == "in_progress"
+
+        assessment_id = started["id"]
+
+        # Cannot submit without answers
+        submit_empty_resp = client.post(f"/api/assessments/{assessment_id}/submit")
+        assert submit_empty_resp.status_code == 400
+
+        # Add answer then submit
+        client.post(
+            f"/api/assessments/{assessment_id}/answers",
+            json={"answers": [{"question_id": "tl_01", "value": "true"}]},
+        )
+        submit_resp = client.post(f"/api/assessments/{assessment_id}/submit")
+        assert submit_resp.status_code == 200
+        submit_data = submit_resp.json()
+        assert submit_data["status"] == "submitted"
+
+        # History should include this assessment
+        history_resp = client.get(f"/api/assessments/{org_id}/history")
+        assert history_resp.status_code == 200
+        history_items = history_resp.json()
+        assert any(item["id"] == assessment_id for item in history_items)
+
+        # Rerun clones into a new in_progress assessment
+        rerun_resp = client.post(f"/api/assessments/{assessment_id}/rerun", json={"clone_answers": True})
+        assert rerun_resp.status_code == 201
+        rerun_data = rerun_resp.json()
+        assert rerun_data["status"] == "in_progress"
+        assert rerun_data["id"] != assessment_id
+        assert rerun_data["version"] != started["version"]
     
     def test_submit_answers(self, client, org_id):
         # Create assessment
@@ -221,6 +319,39 @@ class TestAssessments:
         data = response.json()
         assert data["title"] == "Manual Finding"
         assert data["severity"] == "high"
+
+    def test_update_finding_tracking_fields(self, client, org_id):
+        assess_resp = client.post("/api/assessments", json={"organization_id": org_id})
+        assessment_id = assess_resp.json()["id"]
+
+        finding_resp = client.post(
+            f"/api/assessments/{assessment_id}/findings",
+            json={
+                "title": "Tracking Finding",
+                "severity": "medium",
+                "description": "Needs tracking metadata",
+            },
+        )
+        assert finding_resp.status_code == 201
+        finding_id = finding_resp.json()["id"]
+
+        patch_resp = client.patch(
+            f"/api/assessments/{assessment_id}/findings/{finding_id}",
+            json={
+                "status": "in_progress",
+                "owner": "secops@company.test",
+                "due_date": "2026-06-01",
+                "control_id": "AC-2",
+                "framework_tag": "SOC2",
+            },
+        )
+        assert patch_resp.status_code == 200
+        patch_data = patch_resp.json()
+        assert patch_data["status"] == "in_progress"
+        assert patch_data["owner"] == "secops@company.test"
+        assert patch_data["due_date"] == "2026-06-01"
+        assert patch_data["control_id"] == "AC-2"
+        assert patch_data["framework_tag"] == "SOC2"
 
 
 class TestReports:

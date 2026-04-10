@@ -1,10 +1,10 @@
 ﻿import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useIsReadOnly } from '../contexts';
 import {
   getOrganizations,
   getRubric,
-  createAssessment,
+createAssessmentForOrg,
   submitAnswers,
   computeScore,
   ApiRequestError,
@@ -80,6 +80,7 @@ function questionTypeLabel(type: 'boolean' | 'percentage' | 'numeric'): string {
 
 export default function NewAssessment() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { addToast } = useToast();
   const isReadOnly = useIsReadOnly();
 
@@ -108,6 +109,10 @@ export default function NewAssessment() {
       .then(([orgsData, rubricData]) => {
         setOrgs(orgsData);
         setRubric(rubricData);
+        const orgFromQuery = searchParams.get('org');
+        if (orgFromQuery && orgsData.some((o: { id: string }) => o.id === orgFromQuery)) {
+          setOrgId(orgFromQuery);
+        }
 
         // Check for saved draft
         const saved = localStorage.getItem(DRAFT_KEY);
@@ -136,7 +141,7 @@ export default function NewAssessment() {
         }
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [searchParams]);
 
   // Restore draft
   const restoreDraft = useCallback(() => {
@@ -221,7 +226,8 @@ export default function NewAssessment() {
 
     try {
       // 1. Create assessment
-      const assessment = await createAssessment({ organization_id: orgId, title });
+      // 1. Create a fresh append-only assessment scoped to the selected org.
+      const assessment = await createAssessmentForOrg(orgId, { title });
 
       // 2. Submit answers
       const formattedAnswers: Record<string, string | number | boolean> = {};

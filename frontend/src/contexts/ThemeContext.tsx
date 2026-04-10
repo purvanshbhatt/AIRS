@@ -13,6 +13,8 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = 'resilai-theme';
 const LEGACY_STORAGE_KEY = 'airs-theme';
+const APP_ENV = import.meta.env.VITE_APP_ENV;
+const FORCE_LIGHT_THEME = APP_ENV === 'demo';
 
 function getSystemTheme(): ResolvedTheme {
     if (typeof window === 'undefined') return 'light';
@@ -35,13 +37,19 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-    const [theme, setThemeState] = useState<Theme>(getStoredTheme);
+    const [theme, setThemeState] = useState<Theme>(() => (FORCE_LIGHT_THEME ? 'light' : getStoredTheme()));
     const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
         theme === 'system' ? getSystemTheme() : theme
     );
 
     // Update localStorage and resolved theme when theme changes
     const setTheme = (newTheme: Theme) => {
+        if (FORCE_LIGHT_THEME) {
+            setThemeState('light');
+            localStorage.setItem(STORAGE_KEY, 'light');
+            localStorage.removeItem(LEGACY_STORAGE_KEY);
+            return;
+        }
         setThemeState(newTheme);
         localStorage.setItem(STORAGE_KEY, newTheme);
         localStorage.removeItem(LEGACY_STORAGE_KEY);
@@ -60,6 +68,13 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
                 root.classList.remove('dark');
             }
         };
+
+        if (FORCE_LIGHT_THEME) {
+            applyTheme('light');
+            localStorage.setItem(STORAGE_KEY, 'light');
+            localStorage.removeItem(LEGACY_STORAGE_KEY);
+            return;
+        }
 
         if (theme === 'system') {
             // Apply current system preference

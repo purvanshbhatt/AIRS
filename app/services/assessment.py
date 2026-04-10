@@ -92,6 +92,23 @@ class AssessmentService:
         self.db.refresh(assessment)
         firestore_save_assessment(assessment)
         return assessment
+
+    def start(self, organization_id: str, title: Optional[str] = None, version: Optional[str] = None) -> Assessment:
+        """Start a new assessment directly in progress for lifecycle workflows."""
+        org = self._verify_org_ownership(organization_id)
+
+        assessment = Assessment(
+            organization_id=organization_id,
+            owner_uid=self.owner_uid,
+            title=title or f"Assessment for {org.name}",
+            version=version or "1.0.0",
+            status=AssessmentStatus.IN_PROGRESS,
+        )
+        self.db.add(assessment)
+        self.db.commit()
+        self.db.refresh(assessment)
+        firestore_save_assessment(assessment)
+        return assessment
     
     def get(self, assessment_id: str) -> Optional[Assessment]:
         """Get assessment by ID (scoped to current user)."""
@@ -176,6 +193,30 @@ class AssessmentService:
         firestore_save_assessment(assessment)
         
         return saved_answers
+
+    def submit(self, assessment_id: str) -> Assessment:
+        """Mark an assessment as submitted once at least one answer exists."""
+        assessment = self.get(assessment_id)
+        if not assessment:
+            raise ValueError(f"Assessment not found: {assessment_id}")
+
+        if assessment.status in (AssessmentStatus.COMPLETED, AssessmentStatus.ARCHIVED):
+            raise ValueError(f"Assessment cannot be submitted from status: {assessment.status.value}")
+
+        answer_count = (
+            self.db.query(Answer)
+            .filter(Answer.assessment_id == assessment_id)
+            .count()
+        )
+        if answer_count == 0:
+            raise ValueError("Cannot submit assessment without answers")
+
+        # Keep SQL enum migration-free by using in_progress for submitted state.
+        assessment.status = AssessmentStatus.IN_PROGRESS
+        self.db.commit()
+        self.db.refresh(assessment)
+        firestore_save_assessment(assessment)
+        return assessment
     
     def get_answers(self, assessment_id: str) -> List[Answer]:
         """Get all answers for an assessment."""
@@ -285,6 +326,66 @@ class AssessmentService:
             "findings_count": len(saved_findings),
             "high_severity_count": sum(1 for f in saved_findings if f.severity == Severity.HIGH)
         }
+
+    def get_history(self, organization_id: str, limit: int = 50) -> List[Assessment]:
+        """Return recent assessment versions/history for an organization."""
+        self._verify_org_ownership(organization_id)
+        return (
+            self._base_query()
+            .filter(Assessment.organization_id == organization_id)
+            .order_by(Assessment.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+
+    def rerun(self, assessment_id: str, title: Optional[str] = None, clone_answers: bool = True) -> Assessment:
+        """Create a new assessment iteration from an existing one."""
+        source = self.get(assessment_id)
+        if not source:
+            raise ValueError(f"Assessment not found: {assessment_id}")
+
+        next_version = self._bump_patch_version(source.version)
+        new_assessment = Assessment(
+            organization_id=source.organization_id,
+            owner_uid=source.owner_uid,
+            title=title or source.title,
+            version=next_version,
+            status=AssessmentStatus.IN_PROGRESS,
+            schema_version=source.schema_version,
+        )
+        self.db.add(new_assessment)
+        self.db.flush()
+
+        if clone_answers:
+            source_answers = (
+                self.db.query(Answer)
+                .filter(Answer.assessment_id == source.id)
+                .all()
+            )
+            for src in source_answers:
+                self.db.add(
+                    Answer(
+                        assessment_id=new_assessment.id,
+                        question_id=src.question_id,
+                        value=src.value,
+                        notes=src.notes,
+                    )
+                )
+
+        self.db.commit()
+        self.db.refresh(new_assessment)
+        firestore_save_assessment(new_assessment)
+        return new_assessment
+
+    def _bump_patch_version(self, version: Optional[str]) -> str:
+        """Bump semantic patch version safely; fallback to 1.0.1."""
+        current = (version or "1.0.0").strip()
+        parts = current.split(".")
+        if len(parts) != 3 or not all(part.isdigit() for part in parts):
+            return "1.0.1"
+
+        major, minor, patch = (int(parts[0]), int(parts[1]), int(parts[2]))
+        return f"{major}.{minor}.{patch + 1}"
     
     def _generate_recommendation(self, rec: Dict[str, Any]) -> str:
         """Generate a recommendation based on the gap."""
@@ -531,6 +632,14 @@ class AssessmentService:
         analytics = generate_analytics(finding_rule_ids)
         
         # Generate detailed roadmap
+        def _effort_from_severity(severity: str) -> str:
+            severity_normalized = (severity or "medium").lower()
+            if severity_normalized == "critical":
+                return "high"
+            if severity_normalized == "high":
+                return "medium"
+            return "low"
+
         finding_dicts = [
             {
                 "rule_id": f.get("rule_id"),
@@ -538,7 +647,7 @@ class AssessmentService:
                 "severity": f["severity"],
                 "domain_name": f["domain"],
                 "recommendation": f["recommendation"],
-                "remediation_effort": "medium"  # Default, could be enhanced
+                "remediation_effort": _effort_from_severity(f.get("severity", "medium")),
             }
             for f in findings
         ]

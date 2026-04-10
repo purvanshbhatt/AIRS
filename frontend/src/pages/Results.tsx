@@ -422,10 +422,10 @@ export default function Results() {
             Back to Dashboard
           </Button>
         </Link>
-        <Link to="/assessment/new">
+        <Link to={summary.organization_id ? `/assessment/new?org=${summary.organization_id}` : '/assessment/new'}>
           <Button className="gap-2">
             <Plus className="h-4 w-4" />
-            New Assessment
+            Start New Assessment
           </Button>
         </Link>
       </div>

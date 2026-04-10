@@ -12,6 +12,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 from typing import List
+from pydantic import BaseModel, Field
 from app.db.database import get_db
 from app.core.logging import event_logger
 from app.core.auth import require_auth, User
@@ -22,10 +23,16 @@ from app.schemas.organization import (
     OrganizationResponse,
     OrganizationWithAssessments
 )
+from app.schemas.assessment import AssessmentCreate, AssessmentResponse
 from app.schemas.audit import AuditEventResponse
 from app.models.audit_event import AuditEvent
 from app.services.organization import OrganizationService
+from app.services.assessment import AssessmentService
+from app.services.audit import record_audit_event
 from app.services.demo_seed import ensure_demo_seed_data
+from app.models.assessment import Assessment
+from app.models.roadmap_item import RoadmapItem
+from app.schemas.integrations import RoadmapTrackerListResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -34,6 +41,34 @@ logger = logging.getLogger(__name__)
 def get_org_service(db: Session, user: User) -> OrganizationService:
     """Get organization service with tenant isolation."""
     return OrganizationService(db, owner_uid=user.uid if user else None)
+
+
+def get_assessment_service(db: Session, user: User) -> AssessmentService:
+    """Get assessment service with tenant isolation."""
+    return AssessmentService(db, owner_uid=user.uid if user else None)
+
+
+class OrganizationAssessmentCreateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=255)
+    version: str | None = Field(default="1.0.0", max_length=20)
+
+
+def _to_remediation_status(status: str | None) -> str:
+    value = (status or "not_started").lower()
+    if value in {"open", "not_started", "todo"}:
+        return "open"
+    if value in {"in_progress", "doing"}:
+        return "in_progress"
+    if value in {"resolved", "completed", "done"}:
+        return "resolved"
+    return "open"
+
+
+def _to_remediation_priority(priority: str | None) -> str:
+    value = (priority or "medium").lower()
+    if value in {"critical", "high", "medium", "low"}:
+        return value
+    return "medium"
 
 
 @router.post(
@@ -86,6 +121,104 @@ async def list_organizations(
     ensure_demo_seed_data(db, user.uid if user else None)
     service = get_org_service(db, user)
     return service.get_all(skip=skip, limit=limit)
+
+
+@router.get(
+    "/{org_id}/remediations",
+    response_model=RoadmapTrackerListResponse,
+    summary="List Organization Remediations",
+    description="Return remediation/action items across assessments for the selected organization.",
+)
+async def list_org_remediations(
+    org_id: str,
+    limit: int = 200,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Organization-scoped remediations feed built from roadmap tracker items."""
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Organization not found: {org_id}",
+        )
+
+    safe_limit = max(1, min(limit, 500))
+    items = (
+        db.query(RoadmapItem)
+        .join(Assessment, Assessment.id == RoadmapItem.assessment_id)
+        .filter(
+            Assessment.organization_id == org_id,
+            RoadmapItem.owner_uid == user.uid,
+        )
+        .order_by(RoadmapItem.created_at.desc())
+        .limit(safe_limit)
+        .all()
+    )
+
+    normalized = []
+    for item in items:
+        payload = {
+            "id": item.id,
+            "assessment_id": item.assessment_id,
+            "title": item.title,
+            "description": item.description,
+            "phase": item.phase,
+            "status": _to_remediation_status(item.status),
+            "priority": _to_remediation_priority(item.priority),
+            "owner": item.owner,
+            "due_date": item.due_date,
+            "notes": item.notes,
+            "effort": item.effort,
+            "created_at": item.created_at,
+            "updated_at": item.updated_at,
+        }
+        normalized.append(payload)
+
+    return {"items": normalized, "total": len(normalized)}
+
+
+@router.post(
+    "/{org_id}/assessments",
+    response_model=AssessmentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create Organization Assessment",
+    description="Create a brand new assessment scoped to the organization. Previous assessments are preserved.",
+)
+async def create_organization_assessment(
+    org_id: str,
+    data: OrganizationAssessmentCreateRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
+):
+    """Create a new append-only assessment for an organization owned by the current user."""
+    service = get_assessment_service(db, user)
+
+    # Org id comes from path and must always be the source of truth.
+    assessment_payload = AssessmentCreate(
+        organization_id=org_id,
+        title=data.title,
+        version=data.version,
+    )
+
+    try:
+        assessment = service.create(assessment_payload)
+        event_logger.assessment_created(
+            assessment_id=assessment.id,
+            organization_id=assessment.organization_id,
+            title=assessment.title or "",
+        )
+        record_audit_event(
+            db=db,
+            org_id=assessment.organization_id,
+            action="assessment.created",
+            actor=user.uid,
+        )
+        return assessment
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/{org_id}", response_model=OrganizationWithAssessments)
@@ -170,8 +303,6 @@ async def list_organization_audit_events(
 # ---------------------------------------------------------------------------
 # Phase 5: Analytics toggle
 # ---------------------------------------------------------------------------
-
-from pydantic import BaseModel
 
 
 class AnalyticsToggleRequest(BaseModel):

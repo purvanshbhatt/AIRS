@@ -241,51 +241,53 @@ function RRIScoreGauge({ rri }: { rri: RRIResponse }) {
         </p>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-8">
-          {/* Circular gauge */}
-          <div className="relative flex-shrink-0">
-            <svg width="150" height="150" viewBox="0 0 150 150">
-              <circle
-                cx="75" cy="75" r="60"
-                fill="none"
-                stroke="currentColor"
-                className="text-gray-200 dark:text-gray-700"
-                strokeWidth="12"
-              />
-              <circle
-                cx="75" cy="75" r="60"
-                fill="none"
-                stroke="currentColor"
-                className={scoreColor(rri.rri_score)}
-                strokeWidth="12"
-                strokeDasharray={circumference}
-                strokeDashoffset={circumference - progress}
-                strokeLinecap="round"
-                transform="rotate(-90 75 75)"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className={`text-3xl font-bold ${scoreColor(rri.rri_score)}`}>
-                {rri.rri_score.toFixed(1)}
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">/ 100</span>
-            </div>
-          </div>
-
-          {/* Score details */}
-          <div className="flex-1 space-y-3">
-            {/* Breach Exposure Heat Badge */}
-            {rri.breach_exposure && (
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${breachExposureDisplay(rri.breach_exposure)}`}>
-                <span className="text-xl">{rri.breach_exposure.badge}</span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">
-                    {rri.breach_exposure.level.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                  </p>
-                  <p className="text-xs opacity-75 truncate">{rri.breach_exposure.explanation}</p>
-                </div>
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            {/* Circular gauge */}
+            <div className="relative flex-shrink-0">
+              <svg width="150" height="150" viewBox="0 0 150 150">
+                <circle
+                  cx="75" cy="75" r="60"
+                  fill="none"
+                  stroke="currentColor"
+                  className="text-gray-200 dark:text-gray-700"
+                  strokeWidth="12"
+                />
+                <circle
+                  cx="75" cy="75" r="60"
+                  fill="none"
+                  stroke="currentColor"
+                  className={scoreColor(rri.rri_score)}
+                  strokeWidth="12"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={circumference - progress}
+                  strokeLinecap="round"
+                  transform="rotate(-90 75 75)"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className={`text-3xl font-bold ${scoreColor(rri.rri_score)}`}>
+                  {rri.rri_score.toFixed(1)}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">/ 100</span>
               </div>
-            )}
+            </div>
+
+            {/* Score details */}
+            <div className="flex-1 space-y-4 min-w-0 w-full">
+              {/* Breach Exposure Heat Badge */}
+              {rri.breach_exposure && (
+                <div className={`flex items-start gap-3 px-4 py-3 rounded-lg border ${breachExposureDisplay(rri.breach_exposure)} shadow-sm`}>
+                  <span className="text-xl mt-0.5">{rri.breach_exposure.badge}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold">
+                      {rri.breach_exposure.level.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                    </p>
+                    <p className="text-xs opacity-80 leading-snug mt-1 break-words whitespace-normal text-balance">
+                      {rri.breach_exposure.explanation}
+                    </p>
+                  </div>
+                </div>
+              )}
 
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500 dark:text-gray-400">Risk Band:</span>

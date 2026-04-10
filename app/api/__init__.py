@@ -16,6 +16,8 @@ from app.api import (
     drift,
     reliability,
     logic_firewall,
+    intelligence,
+    remediations,
 )
 from app.api.v1 import router as v1_router
 
@@ -48,3 +50,9 @@ router.include_router(reliability.router, prefix="/governance", tags=["reliabili
 
 # Logic Firewall (deterministic prompt-injection defense)
 router.include_router(logic_firewall.router, prefix="/logic-firewall", tags=["logic-firewall"])
+
+# Gemini intelligence packet ingestion + remediation ledger persistence
+router.include_router(intelligence.router, tags=["intelligence"])
+
+# Remediation/action tracker updates
+router.include_router(remediations.router, prefix="/remediations", tags=["remediations"])

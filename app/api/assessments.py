@@ -16,6 +16,12 @@ from sqlalchemy.orm import Session
 from typing import Any, Dict, List, Optional
 from io import BytesIO
 from app.db.database import get_db
+from app.db.firestore import (
+    firestore_get_assessment_lifecycle,
+    firestore_set_assessment_lifecycle,
+    firestore_get_finding_tracking_map,
+    firestore_save_finding_tracking,
+)
 from app.core.logging import event_logger
 from app.core.auth import require_auth, User
 from app.schemas.assessment import (
@@ -25,10 +31,14 @@ from app.schemas.assessment import (
     AssessmentDetail,
     AssessmentSummary,
     AssessmentSummaryResponse,
+    AssessmentStartRequest,
+    AssessmentSubmitResponse,
+    AssessmentRerunRequest,
     AnswerBulkSubmit,
     AnswerResponse,
     ComputeScoreResponse,
     FindingCreate,
+    FindingUpdate,
     FindingResponse,
     ScoreResponse,
 )
@@ -99,7 +109,47 @@ def _build_siem_export_payload(summary: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _public_assessment_status(assessment: Assessment) -> str:
+    """Return cloud lifecycle status with Firestore metadata override."""
+    lifecycle = firestore_get_assessment_lifecycle(assessment.id)
+    cloud_status = lifecycle.get("status")
+    if isinstance(cloud_status, str) and cloud_status in {"submitted", "scored"}:
+        return cloud_status
+    return str(getattr(assessment.status, "value", assessment.status))
+
+
 # ----- Assessment CRUD -----
+
+@router.post(
+    "/{organization_id}/start",
+    response_model=AssessmentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Start Assessment",
+    description="Create and immediately start an in-progress assessment for an organization.",
+)
+async def start_assessment(
+    organization_id: str,
+    data: AssessmentStartRequest = AssessmentStartRequest(),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
+):
+    service = get_assessment_service(db, user)
+    try:
+        assessment = service.start(
+            organization_id=organization_id,
+            title=data.title,
+            version=data.version,
+        )
+        record_audit_event(
+            db=db,
+            org_id=organization_id,
+            action="assessment.started",
+            actor=user.uid,
+        )
+        return assessment
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @router.post(
     "",
@@ -163,7 +213,7 @@ async def list_assessments(
             "organization_id": a.organization_id,
             "organization_name": a.organization.name if a.organization else None,
             "title": a.title,
-            "status": a.status,
+            "status": _public_assessment_status(a),
             "overall_score": a.overall_score,
             "maturity_level": a.maturity_level,
             "created_at": a.created_at
@@ -171,6 +221,35 @@ async def list_assessments(
         result.append(summary)
     
     return result
+
+
+@router.get("/{organization_id}/history", response_model=List[AssessmentSummary])
+async def get_assessment_history(
+    organization_id: str,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Return assessment history/version timeline for an organization."""
+    service = get_assessment_service(db, user)
+    try:
+        assessments = service.get_history(organization_id, limit=limit)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return [
+        {
+            "id": a.id,
+            "organization_id": a.organization_id,
+            "organization_name": a.organization.name if a.organization else None,
+            "title": a.title,
+            "status": _public_assessment_status(a),
+            "overall_score": a.overall_score,
+            "maturity_level": a.maturity_level,
+            "created_at": a.created_at,
+        }
+        for a in assessments
+    ]
 
 
 @router.get("/{assessment_id}", response_model=AssessmentDetail)
@@ -187,6 +266,10 @@ async def get_assessment(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Assessment not found: {assessment_id}"
         )
+    lifecycle = firestore_get_assessment_lifecycle(assessment_id)
+    cloud_status = lifecycle.get("status")
+    if isinstance(cloud_status, str) and cloud_status in {"submitted", "scored"}:
+        result["status"] = cloud_status
     return result
 
 
@@ -229,6 +312,10 @@ async def get_assessment_summary(
         assessment_id=assessment_id,
         llm_used=result.get("executive_summary_text") is not None
     )
+    lifecycle = firestore_get_assessment_lifecycle(assessment_id)
+    cloud_status = lifecycle.get("status")
+    if isinstance(cloud_status, str) and cloud_status in {"submitted", "scored"}:
+        result["status"] = cloud_status
     
     return result
 
@@ -303,6 +390,60 @@ async def submit_answers(
         )
 
 
+@router.post("/{assessment_id}/submit", response_model=AssessmentSubmitResponse)
+async def submit_assessment(
+    assessment_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
+):
+    """Transition an in-progress assessment to submitted state."""
+    service = get_assessment_service(db, user)
+    try:
+        assessment = service.submit(assessment_id)
+        submitted_at = datetime.now(timezone.utc).isoformat()
+        firestore_set_assessment_lifecycle(assessment_id, "submitted", submitted_at=submitted_at)
+        submitted_at = assessment.updated_at or datetime.now(timezone.utc)
+        return {
+            "assessment_id": assessment.id,
+            "status": "submitted",
+            "submitted_at": submitted_at,
+        }
+    except ValueError as e:
+        detail = str(e)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND if "not found" in detail.lower() else status.HTTP_400_BAD_REQUEST,
+            detail=detail,
+        )
+
+
+@router.post("/{assessment_id}/rerun", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
+async def rerun_assessment(
+    assessment_id: str,
+    data: AssessmentRerunRequest = AssessmentRerunRequest(),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
+):
+    """Create a new assessment iteration from an existing assessment."""
+    service = get_assessment_service(db, user)
+    try:
+        assessment = service.rerun(
+            assessment_id,
+            title=data.title,
+            clone_answers=data.clone_answers,
+        )
+        record_audit_event(
+            db=db,
+            org_id=assessment.organization_id,
+            action="assessment.rerun_created",
+            actor=user.uid,
+        )
+        return assessment
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
 @router.get("/{assessment_id}/answers", response_model=List[AnswerResponse])
 async def get_answers(
     assessment_id: str,
@@ -344,6 +485,11 @@ async def compute_score(
     service = get_assessment_service(db, user)
     try:
         result = service.compute_score(assessment_id)
+        firestore_set_assessment_lifecycle(
+            assessment_id,
+            "scored",
+            scored_at=datetime.now(timezone.utc).isoformat(),
+        )
         
         # Log scoring event
         event_logger.scoring_executed(
@@ -448,7 +594,34 @@ async def get_findings(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Assessment not found: {assessment_id}"
         )
-    return service.get_findings(assessment_id)
+    findings = service.get_findings(assessment_id)
+    tracking_map = firestore_get_finding_tracking_map(assessment_id)
+
+    merged: List[Dict[str, Any]] = []
+    for finding in findings:
+        row = {
+            "id": finding.id,
+            "title": finding.title,
+            "description": finding.description,
+            "severity": finding.severity,
+            "status": finding.status,
+            "domain_id": finding.domain_id,
+            "domain_name": finding.domain_name,
+            "question_id": finding.question_id,
+            "evidence": finding.evidence,
+            "recommendation": finding.recommendation,
+            "priority": finding.priority,
+            "nist_function": finding.nist_function,
+            "nist_category": finding.nist_category,
+            "created_at": finding.created_at,
+        }
+        tracking = tracking_map.get(finding.id, {})
+        for key in ("owner", "due_date", "control_id", "framework_tag"):
+            if key in tracking:
+                row[key] = tracking.get(key)
+        merged.append(row)
+
+    return merged
 
 
 @router.post("/{assessment_id}/findings", response_model=FindingResponse, status_code=status.HTTP_201_CREATED)
@@ -469,6 +642,88 @@ async def add_finding(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
+
+
+@router.patch("/{assessment_id}/findings/{finding_id}", response_model=FindingResponse)
+async def update_finding(
+    assessment_id: str,
+    finding_id: str,
+    data: FindingUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
+):
+    """Update finding lifecycle details such as status, owner, due date, and control mapping."""
+    service = get_assessment_service(db, user)
+    assessment = service.get(assessment_id)
+    if not assessment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Assessment not found: {assessment_id}",
+        )
+
+    finding = (
+        db.query(Finding)
+        .filter(Finding.id == finding_id, Finding.assessment_id == assessment_id)
+        .first()
+    )
+    if not finding:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Finding not found")
+
+    update_data = data.model_dump(exclude_unset=True)
+
+    # Guard invalid lifecycle transitions.
+    if "status" in update_data:
+        current = str(finding.status.value if hasattr(finding.status, "value") else finding.status)
+        requested = str(update_data["status"].value if hasattr(update_data["status"], "value") else update_data["status"])
+        transitions = {
+            "open": {"in_progress", "resolved", "accepted"},
+            "in_progress": {"open", "resolved", "accepted"},
+            "resolved": {"open"},
+            "accepted": {"open"},
+        }
+        if requested != current and requested not in transitions.get(current, set()):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid finding status transition: {current} -> {requested}",
+            )
+
+    db_updates: Dict[str, Any] = {}
+    for key in ("title", "description", "severity", "status", "evidence", "recommendation"):
+        if key in update_data:
+            db_updates[key] = update_data[key]
+
+    for key, value in db_updates.items():
+        setattr(finding, key, value)
+
+    db.commit()
+    db.refresh(finding)
+
+    tracking_updates: Dict[str, Any] = {}
+    for key in ("owner", "due_date", "control_id", "framework_tag"):
+        if key in update_data:
+            tracking_updates[key] = update_data[key]
+    if tracking_updates:
+        firestore_save_finding_tracking(assessment_id, finding_id, tracking_updates)
+
+    merged = {
+        "id": finding.id,
+        "title": finding.title,
+        "description": finding.description,
+        "severity": finding.severity,
+        "status": finding.status,
+        "domain_id": finding.domain_id,
+        "domain_name": finding.domain_name,
+        "question_id": finding.question_id,
+        "evidence": finding.evidence,
+        "recommendation": finding.recommendation,
+        "priority": finding.priority,
+        "nist_function": finding.nist_function,
+        "nist_category": finding.nist_category,
+        "created_at": finding.created_at,
+    }
+    merged.update(tracking_updates)
+    return merged
 
 
 @router.post("/{assessment_id}/findings/annotate")

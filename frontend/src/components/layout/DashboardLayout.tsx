@@ -23,7 +23,6 @@ import {
   Rocket,
   TrendingDown,
   Zap,
-  Flame,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDemoMode } from '../../contexts';
@@ -45,7 +44,6 @@ const navigation: NavItem[] = [
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Governance', href: '/dashboard/governance', icon: ShieldCheck },
-  { name: '🔥 AI Attack Simulation Lab', href: '/dashboard/ai-attack-lab', icon: Flame },
   { name: 'Compliance Drift', href: '/dashboard/compliance-drift', icon: TrendingDown, stagingOnly: true },
   { name: 'Reliability', href: '/dashboard/reliability', icon: Zap, stagingOnly: true },
   { name: 'Audit Calendar', href: '/dashboard/audit-calendar', icon: Calendar },
@@ -208,7 +206,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <div className="flex-1" />
-          <ThemeToggle />
+          {isStaging ? <ThemeToggle /> : null}
         </header>
 
         {/* Page content */}

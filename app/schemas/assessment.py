@@ -4,7 +4,7 @@ Pydantic schemas for Assessment, Answer, Score, and Finding.
 
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 
 from app.core.sanitize import strip_dangerous
@@ -14,6 +14,8 @@ class AssessmentStatus(str, Enum):
     """Assessment status."""
     DRAFT = "draft"
     IN_PROGRESS = "in_progress"
+    SUBMITTED = "submitted"
+    SCORED = "scored"
     COMPLETED = "completed"
     ARCHIVED = "archived"
 
@@ -122,6 +124,10 @@ class FindingResponse(BaseModel):
     evidence: Optional[str] = None
     recommendation: Optional[str] = None
     priority: Optional[str] = None
+    owner: Optional[str] = None
+    due_date: Optional[date] = None
+    control_id: Optional[str] = None
+    framework_tag: Optional[str] = None
     # NIST CSF 2.0 mapping fields
     nist_function: Optional[str] = None   # e.g. "DE", "PR", "RC"
     nist_category: Optional[str] = None   # e.g. "DE.CM-1", "PR.AA-5"
@@ -137,10 +143,43 @@ class FindingUpdate(BaseModel):
     description: Optional[str] = Field(None, max_length=5000)
     severity: Optional[Severity] = None
     status: Optional[FindingStatus] = None
+    owner: Optional[str] = Field(None, max_length=255)
+    due_date: Optional[date] = None
+    control_id: Optional[str] = Field(None, max_length=100)
+    framework_tag: Optional[str] = Field(None, max_length=100)
     evidence: Optional[str] = Field(None, max_length=5000)
     recommendation: Optional[str] = Field(None, max_length=5000)
 
-    @field_validator("title", "description", "evidence", "recommendation", mode="before")
+    @field_validator("title", "description", "owner", "control_id", "framework_tag", "evidence", "recommendation", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
+
+
+class AssessmentStartRequest(BaseModel):
+    """Request payload for starting a new in-progress assessment."""
+    title: Optional[str] = Field(None, max_length=255)
+    version: Optional[str] = Field(None, max_length=20)
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
+
+
+class AssessmentSubmitResponse(BaseModel):
+    """Response payload for submit lifecycle transition."""
+    assessment_id: str
+    status: AssessmentStatus
+    submitted_at: datetime
+
+
+class AssessmentRerunRequest(BaseModel):
+    """Request payload for creating a new rerun from a previous assessment."""
+    title: Optional[str] = Field(None, max_length=255)
+    clone_answers: bool = True
+
+    @field_validator("title", mode="before")
     @classmethod
     def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
         return strip_dangerous(v)
