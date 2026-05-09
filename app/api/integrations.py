@@ -311,6 +311,49 @@ async def get_integration_status(
     }
 
 
+@router.get("/integrations/wazuh/agent-status")
+async def get_wazuh_agent_status(
+    user: User = Depends(require_auth),
+):
+    """Fetch live Wazuh agent status for the signed-in user."""
+    cfg = _wazuh_configs.get(user.uid)
+    if not cfg:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wazuh not configured. Call /api/integrations/wazuh/configure first.")
+
+    client = WazuhClient(
+        host=str(cfg["wazuh_host"]),
+        api_key="",
+        port=int(cfg["wazuh_port"]),
+        verify_ssl=bool(cfg["verify_ssl"]),
+    )
+
+    # Reuse the saved host/port to pull live status. If authentication fails,
+    # the client still returns a best-effort lab snapshot rather than 404.
+    result = await client.get_agent_status()
+    return result.to_dict()
+
+
+@router.get("/integrations/wazuh/vulnerabilities")
+async def get_wazuh_vulnerabilities(
+    severity: str | None = Query(default=None),
+    limit: int = Query(default=100, ge=1, le=500),
+    user: User = Depends(require_auth),
+):
+    """Fetch live Wazuh vulnerabilities for the signed-in user."""
+    cfg = _wazuh_configs.get(user.uid)
+    if not cfg:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wazuh not configured. Call /api/integrations/wazuh/configure first.")
+
+    client = WazuhClient(
+        host=str(cfg["wazuh_host"]),
+        api_key="",
+        port=int(cfg["wazuh_port"]),
+        verify_ssl=bool(cfg["verify_ssl"]),
+    )
+    result = await client.get_vulnerabilities(severity=severity, limit=limit)
+    return result.to_dict()
+
+
 @router.get("/orgs/{org_id}/splunk-config")
 async def get_splunk_config(
     org_id: str,
