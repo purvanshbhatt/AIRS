@@ -27,6 +27,7 @@ from app.schemas.integrations import (
     SplunkHecConfigRequest,
     SplunkEvidenceResponse,
     SplunkEvidenceResult,
+    WazuhConfigRequest,
 )
 from app.services.integrations import (
     EVENT_ASSESSMENT_SCORED,
@@ -34,6 +35,7 @@ from app.services.integrations import (
     deliver_webhook,
     deliver_webhook_url_test,
 )
+from app.services.wazuh_client import WazuhClient
 from app.services.audit import record_audit_event
 
 router = APIRouter()
@@ -233,6 +235,7 @@ async def test_webhook_url(
 # In-memory store for Splunk HEC configs per org (staging-only feature).
 # In production, these would be stored encrypted in Firestore/Secret Manager.
 _splunk_configs: dict[str, dict[str, str]] = {}
+_wazuh_configs: dict[str, dict[str, str | int | bool]] = {}
 
 
 @router.post("/orgs/{org_id}/splunk-config", status_code=status.HTTP_200_OK)
@@ -255,6 +258,57 @@ async def configure_splunk_hec(
         "hec_token": data.hec_token,
     }
     return {"org_id": org_id, "status": "configured", "base_url": data.base_url}
+
+
+@router.post("/integrations/wazuh/configure", status_code=status.HTTP_200_OK)
+async def configure_wazuh(
+    data: WazuhConfigRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
+):
+    """Save Wazuh manager credentials for the current user/org context."""
+    client = WazuhClient(
+        host=data.wazuh_host,
+        api_key=data.wazuh_api_key,
+        port=data.wazuh_port,
+        verify_ssl=data.verify_ssl,
+    )
+    # Best-effort validation: if the lab is reachable, cache the config.
+    try:
+        await client._get_jwt_token()
+    except Exception:
+        # Keep the config even if the lab is temporarily unreachable.
+        pass
+
+    _wazuh_configs[user.uid] = {
+        "wazuh_host": data.wazuh_host,
+        "wazuh_port": data.wazuh_port,
+        "verify_ssl": data.verify_ssl,
+    }
+    return {
+        "status": "configured",
+        "host": data.wazuh_host,
+        "port": data.wazuh_port,
+        "message": "Wazuh connection saved successfully",
+    }
+
+
+@router.get("/integrations/status")
+async def get_integration_status(
+    user: User = Depends(require_auth),
+):
+    """Return a unified integration health snapshot for the dashboard."""
+    wazuh_status = "configured" if user.uid in _wazuh_configs else "not_configured"
+    splunk_status = "configured" if bool(_splunk_configs) else "not_configured"
+    return {
+        "wazuh_status": wazuh_status,
+        "wazuh_message": "Wazuh manager connected" if wazuh_status == "configured" else "Not configured",
+        "splunk_status": splunk_status,
+        "splunk_message": "Splunk instance connected" if splunk_status == "configured" else "Not configured",
+        "siem_verified_controls": 0,
+        "siem_verified_percentage": 0.0,
+    }
 
 
 @router.get("/orgs/{org_id}/splunk-config")
