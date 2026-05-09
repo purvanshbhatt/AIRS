@@ -197,6 +197,27 @@ async def require_auth(
             name="Development User",
         )
 
+
+    async def require_org_admin(
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    ) -> User:
+        """Require that the caller is an organization administrator.
+
+        This is a lightweight guard: in production this should validate the
+        user's membership/role in the organization. For local development the
+        dev user is treated as an org admin.
+        """
+        user = await require_auth(credentials)
+        # In non-strict environments, the dev-user is implicitly an admin
+        if not settings.is_auth_required:
+            return user
+
+        # In production, we expect the token verification to include roles/claims.
+        # The User object here is minimal; if claims are available they should be
+        # attached during token verification and inspected here.
+        # For now, allow any authenticated user as admin if no role info present.
+        return user
+
     # Auth is required - must have valid token
     if not credentials or not credentials.credentials:
         raise _create_auth_error(

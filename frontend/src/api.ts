@@ -400,6 +400,35 @@ export const downloadExecutiveSummary = async (assessmentId: string): Promise<Bl
   return response.blob();
 };
 
+// -----------------------------
+// Integrations / SIEM helpers
+// -----------------------------
+
+export const getIntegrationStatus = () => request<{
+  wazuh_status: string;
+  splunk_status: string;
+  siem_verified_controls: number;
+  siem_verified_percentage: number;
+}>('/api/integrations/status');
+
+export const configureWazuh = (data: { wazuh_host: string; wazuh_api_key: string; wazuh_port?: number; verify_ssl?: boolean }) =>
+  request('/api/integrations/wazuh/configure', { method: 'POST', body: JSON.stringify(data) });
+
+export const getWazuhAgentStatus = () => request<any>('/api/integrations/wazuh/agent-status');
+
+export const getWazuhVulnerabilities = (params?: { severity?: string; limit?: number }) => {
+  const qs = params ? `?${new URLSearchParams(Object.entries(params).reduce((acc, [k, v]) => ({ ...acc, [k]: String(v) }), {}))}` : '';
+  return request<any>(`/api/integrations/wazuh/vulnerabilities${qs}`);
+};
+
+export const runSplunkQuery = (body: { query: string; earliest?: string; latest?: string; max_results?: number }) =>
+  request<any>('/api/integrations/splunk/query', { method: 'POST', body: JSON.stringify(body) });
+
+export const getSplunkLoggingHealth = (params?: { sourcetype?: string; index?: string }) => {
+  const qs = params ? `?${new URLSearchParams(params as Record<string,string>)}` : '';
+  return request<any>(`/api/integrations/splunk/logging-health${qs}`);
+};
+
 export const exportAssessmentForSiem = (assessmentId: string) =>
   request<import('./types').SiemExportPayload>(`/api/assessments/${assessmentId}/export`);
 

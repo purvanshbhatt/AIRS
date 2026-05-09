@@ -50,6 +50,9 @@ class SystemHealthResponse(BaseModel):
     is_read_only: bool = False
     integrations_enabled: bool
     last_deployment_at: Optional[str] = None
+    wazuh_connected: bool = False
+    splunk_connected: bool = False
+    siem_verified: bool = False
 
 
 router = APIRouter(tags=["health"])
@@ -185,6 +188,23 @@ async def cors_health(request: Request) -> CORSHealthResponse:
 )
 async def system_health() -> SystemHealthResponse:
     product = get_product_info()
+    
+    # Check SIEM integration status (would be org-specific in production)
+    # For now, returning default False — in real implementation, would check
+    # org-level configuration or global integrations module
+    wazuh_connected = False
+    splunk_connected = False
+    
+    # Try to import integrations module to check client state
+    try:
+        from app.api.v1.integrations import _wazuh_client, _splunk_client
+        wazuh_connected = _wazuh_client is not None
+        splunk_connected = _splunk_client is not None
+    except ImportError:
+        pass
+    
+    siem_verified = wazuh_connected or splunk_connected
+    
     return SystemHealthResponse(
         version=product.get("version"),
         environment=settings.ENV.value,
@@ -193,4 +213,7 @@ async def system_health() -> SystemHealthResponse:
         is_read_only=settings.is_read_only,
         integrations_enabled=settings.INTEGRATIONS_ENABLED,
         last_deployment_at=settings.DEPLOYED_AT,
+        wazuh_connected=wazuh_connected,
+        splunk_connected=splunk_connected,
+        siem_verified=siem_verified,
     )

@@ -35,6 +35,7 @@ import {
   getApplicableFrameworks,
   getAuditCalendar,
   getGovernanceHealthIndex,
+  getWazuhAgentStatus,
   ApiRequestError,
 } from '../api';
 import { useDemoMode } from '../contexts';
@@ -113,6 +114,7 @@ export default function Dashboard() {
   const [ghiData, setGhiData] = useState<GHIResponse | null>(null);
   const [scoreHistory, setScoreHistory] = useState<ScoreTrendPoint[]>([]);
   const [remediationItems, setRemediationItems] = useState<TrackerItem[]>([]);
+  const [socSyncMessage, setSocSyncMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -313,7 +315,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="flex gap-3">
-          <div className="min-w-[220px]">
+          <div className="min-w-55">
             <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">Organization</label>
             <select
               aria-label="Organization"
@@ -333,6 +335,27 @@ export default function Dashboard() {
           </div>
           {!isReadOnly && (
             <>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={async () => {
+                  if (!selectedOrgId) return;
+                  try {
+                    setSocSyncMessage(null);
+                    await getWazuhAgentStatus();
+                    const ghi = await getGovernanceHealthIndex(selectedOrgId).catch(() => null);
+                    if (ghi) {
+                      setGhiData(ghi);
+                    }
+                    setSocSyncMessage('SOC data synced from Wazuh and Splunk.');
+                  } catch (err) {
+                    setSocSyncMessage(null);
+                    setError(err instanceof ApiRequestError ? err.toDisplayMessage() : 'SOC sync failed');
+                  }
+                }}
+              >
+                Sync SOC Data
+              </Button>
               <Link to="/dashboard/org/new">
                 <Button variant="outline" className="gap-2">
                   <Plus className="w-4 h-4" />
@@ -380,6 +403,14 @@ export default function Dashboard() {
         </Card>
       ) : (
         <>
+          {socSyncMessage && (
+            <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+              <CardContent className="py-3 text-sm text-blue-900 dark:text-blue-200">
+                {socSyncMessage}
+              </CardContent>
+            </Card>
+          )}
+
           {isDemoMode && exampleAssessmentId && (
             <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
               <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

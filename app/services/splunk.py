@@ -70,6 +70,52 @@ class EvidenceResult:
         }
 
 
+class LoggingHealthResult(EvidenceResult):
+    """Structured logging-health result used by the integrations UI and tests."""
+
+    def __init__(
+        self,
+        logging_enabled: bool,
+        last_event_time: Optional[str],
+        event_count_24h: int,
+        event_count_7d: int,
+        sourcetypes_active: Optional[List[str]] = None,
+        indexes_active: Optional[List[str]] = None,
+        message: str = "",
+        query_used: str = "",
+        verified_at: Optional[str] = None,
+    ):
+        super().__init__(
+            control="Centralized Logging",
+            status=EvidenceStatus.VERIFIED if logging_enabled else EvidenceStatus.NOT_VERIFIED,
+            event_count=event_count_24h,
+            sample_events=[],
+            message=message,
+            query_used=query_used,
+            verified_at=verified_at,
+        )
+        self.logging_enabled = logging_enabled
+        self.last_event_time = last_event_time
+        self.event_count_24h = event_count_24h
+        self.event_count_7d = event_count_7d
+        self.sourcetypes_active = sourcetypes_active or []
+        self.indexes_active = indexes_active or []
+
+    def to_dict(self) -> Dict[str, Any]:
+        base = super().to_dict()
+        base.update(
+            {
+                "logging_enabled": self.logging_enabled,
+                "last_event_time": self.last_event_time,
+                "event_count_24h": self.event_count_24h,
+                "event_count_7d": self.event_count_7d,
+                "sourcetypes_active": self.sourcetypes_active,
+                "indexes_active": self.indexes_active,
+            }
+        )
+        return base
+
+
 class SplunkService:
     """
     Client for querying a Splunk instance via REST API.
@@ -84,9 +130,15 @@ class SplunkService:
     DEFAULT_LATEST = "now"
     TIMEOUT_SECONDS = 30
 
-    def __init__(self, base_url: str, hec_token: str):
-        self.base_url = base_url.rstrip("/")
+    def __init__(self, base_url: Optional[str] = None, hec_token: str = "", host: Optional[str] = None, port: int = 8089, verify_ssl: bool = False):
+        if base_url:
+            self.base_url = base_url.rstrip("/")
+        elif host:
+            self.base_url = f"https://{host}:{port}"
+        else:
+            raise TypeError("SplunkService requires either base_url or host")
         self.hec_token = hec_token
+        self.verify_ssl = verify_ssl
         self._headers = {
             "Authorization": f"Bearer {hec_token}",
             "Content-Type": "application/json",
@@ -115,7 +167,7 @@ class SplunkService:
 
         try:
             async with httpx.AsyncClient(
-                verify=False,  # Many Splunk instances use self-signed certs
+                verify=self.verify_ssl is True,
                 timeout=self.TIMEOUT_SECONDS,
             ) as client:
                 resp = await client.get(
@@ -235,8 +287,163 @@ class SplunkService:
                 query_used=query,
             )
 
+    async def verify_logging_health(
+        self,
+        sourcetype: str = "resilai_drift",
+        index: str = "security_alerts",
+    ) -> LoggingHealthResult:
+        """
+        Verify that ResilAI logs are being received in Splunk (heartbeat check).
+        
+        This control checks the "Centralized Logging Enabled" requirement in the
+        Telemetry & Logging domain. A successful heartbeat from Splunk confirms
+        logs are persisting and searchable.
+        
+        Args:
+            sourcetype: Splunk sourcetype to check (default: resilai_drift)
+            index: Splunk index to check (default: security_alerts)
+        
+        Returns:
+            EvidenceResult with logging health status
+        """
+        query = f'index={index} sourcetype={sourcetype} | stats latest(_time) as last_event, count as event_count'
+        try:
+            data = await self._run_search(
+                query,
+                earliest="-24h",
+                latest="now",
+                max_results=10
+            )
+            count = data["total_count"]
+            
+            if count > 0:
+                # Extract event count from results
+                event_count_24h = int(data["results"][0].get("event_count", 0))
+                last_event = data["results"][0].get("last_event")
+                
+                return LoggingHealthResult(
+                    logging_enabled=True,
+                    last_event_time=last_event,
+                    event_count_24h=event_count_24h,
+                    event_count_7d=event_count_24h,
+                    sourcetypes_active=[sourcetype],
+                    indexes_active=[index],
+                    message=f"Logging verified: {event_count_24h} events received in last 24 hours. "
+                            f"Last event at {last_event}.",
+                    query_used=query,
+                )
+            else:
+                return LoggingHealthResult(
+                    logging_enabled=False,
+                    last_event_time=None,
+                    event_count_24h=0,
+                    event_count_7d=0,
+                    sourcetypes_active=[],
+                    indexes_active=[],
+                    message=f"No logs found in {index}/{sourcetype} in the last 24 hours. "
+                            "Centralized logging may not be enabled or configured correctly.",
+                    query_used=query,
+                )
+        except Exception as exc:
+            return LoggingHealthResult(
+                logging_enabled=False,
+                last_event_time=None,
+                event_count_24h=0,
+                event_count_7d=0,
+                message=f"Failed to verify logging health: {str(exc)}",
+                query_used=query,
+            )
+
+    async def verify_heartbeat(
+        self,
+        sourcetype: str = "resilai_drift",
+        index: str = "security_alerts",
+    ) -> Dict[str, Any]:
+        """Higher-level heartbeat check returning structured health fields
+
+        Returns a dict compatible with the integrations router:
+          - logging_enabled: bool
+          - last_event_time: ISO timestamp or None
+          - event_count_24h: int
+          - event_count_7d: int
+          - sourcetypes_active: List[str]
+          - indexes_active: List[str]
+          - verified_at: ISO timestamp
+        """
+        try:
+            res_24h = await self.verify_logging_health(sourcetype=sourcetype, index=index)
+
+            # 7d count
+            query_7d = f'index={index} sourcetype={sourcetype} | stats count as event_count'
+            data_7d = await self._run_search(query_7d, earliest="-7d", latest="now", max_results=1)
+            event_count_7d = int(data_7d.get("total_count", 0))
+
+            # sourcetypes active list (sample)
+            query_sourcetypes = f'index={index} | stats count by sourcetype | sort -count | head 10'
+            st_data = await self._run_search(query_sourcetypes, earliest="-7d", latest="now", max_results=10)
+            sourcetypes_active = [r.get("sourcetype") for r in st_data.get("results", []) if r.get("sourcetype")]
+
+            # indexes_active sample (Splunk events include index field)
+            query_indexes = f'| metadata type=sources index={index} | head 10'
+            idx_data = await self._run_search(query_indexes, earliest="-7d", latest="now", max_results=10)
+            indexes_active = [r.get("source") for r in idx_data.get("results", []) if r.get("source")]
+
+            return {
+                "logging_enabled": getattr(res_24h, "logging_enabled", False),
+                "last_event_time": getattr(res_24h, "last_event_time", None),
+                "event_count_24h": getattr(res_24h, "event_count_24h", 0),
+                "event_count_7d": event_count_7d,
+                "sourcetypes_active": sourcetypes_active,
+                "indexes_active": indexes_active,
+                "verified_at": getattr(res_24h, "verified_at", None),
+            }
+        except Exception as exc:
+            logger.error("verify_heartbeat failed: %s", exc)
+            return {
+                "logging_enabled": False,
+                "last_event_time": None,
+                "event_count_24h": 0,
+                "event_count_7d": 0,
+                "sourcetypes_active": [],
+                "indexes_active": [],
+                "verified_at": None,
+            }
+    
+    async def run_custom_query(
+        self,
+        query: str,
+        earliest: str = "-24h",
+        latest: str = "now",
+        max_results: int = 1000,
+    ) -> Dict[str, Any]:
+        """
+        Execute a custom SPL (Search Processing Language) query against Splunk.
+        
+        This endpoint allows ad-hoc queries for security drift verification,
+        custom compliance checks, or incident investigation.
+        
+        Args:
+            query: SPL query string
+            earliest: Start time (e.g., "-7d", "2026-05-01T00:00:00")
+            latest: End time (e.g., "now", "2026-05-08T23:59:59")
+            max_results: Maximum events to return
+        
+        Returns:
+            Dict with query results: {"results": [...], "total_count": int}
+        
+        Raises:
+            Exception: If query fails or times out
+        """
+        return await self._run_search(
+            query,
+            earliest=earliest,
+            latest=latest,
+            max_results=max_results,
+        )
+
     async def pull_all_evidence(self) -> List[Dict[str, Any]]:
         """Run all evidence checks and return combined results."""
         mfa = await self.verify_mfa_enforcement()
         edr = await self.verify_edr_coverage()
-        return [mfa.to_dict(), edr.to_dict()]
+        logging_health = await self.verify_logging_health()
+        return [mfa.to_dict(), edr.to_dict(), logging_health.to_dict()]

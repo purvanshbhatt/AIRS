@@ -18,6 +18,8 @@ import {
   getSplunkConfig,
   removeSplunkConfig,
   pullSplunkEvidence,
+  configureWazuh,
+  getWazuhAgentStatus,
 } from '../api';
 import type {
   ApiKeyMetadata,
@@ -76,6 +78,12 @@ export default function Integrations() {
   const [splunkHecToken, setSplunkHecToken] = useState('');
   const [splunkConfigured, setSplunkConfigured] = useState(false);
   const [splunkConfigUrl, setSplunkConfigUrl] = useState('');
+  // Wazuh connection state
+  const [wazuhHost, setWazuhHost] = useState('');
+  const [wazuhPort, setWazuhPort] = useState(55000);
+  const [wazuhApiKey, setWazuhApiKey] = useState('');
+  const [wazuhConfigured, setWazuhConfigured] = useState(false);
+  const [wazuhConnected, setWazuhConnected] = useState(false);
   const [evidenceResults, setEvidenceResults] = useState<SplunkEvidenceResponse | null>(null);
   const [evidenceLoading, setEvidenceLoading] = useState(false);
 
@@ -392,6 +400,68 @@ export default function Integrations() {
               </Link>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Wazuh Connector Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <PlugZap className="h-5 w-5 text-gray-500" />
+            Wazuh Connector (Lab)
+          </CardTitle>
+          <CardDescription>
+            Connect a Wazuh manager to pull agent status and vulnerability telemetry.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-gray-50 dark:bg-slate-900/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Wazuh Manager</h3>
+              <Badge variant={wazuhConnected ? 'default' : 'outline'} className="gap-1">
+                <span
+                  className={`inline-block h-2.5 w-2.5 rounded-full ${wazuhConnected ? 'bg-blue-500 animate-pulse' : 'bg-red-500 animate-pulse'}`}
+                />
+                {wazuhConnected ? 'Connected' : wazuhConfigured ? 'Offline' : 'Not Configured'}
+              </Badge>
+            </div>
+            {wazuhConfigured ? (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600 dark:text-slate-300">
+                  Connected to: <span className="font-mono text-xs">{wazuhHost}:{wazuhPort}</span>
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" onClick={async () => {
+                    if (!selectedOrgId) return;
+                    setBusy(true); setError(''); setNotice('');
+                    try {
+                      const status = await getWazuhAgentStatus();
+                      setWazuhConnected(status.disconnection_rate <= 10);
+                      setNotice(`Agents: ${status.active_agents}/${status.total_agents} active (${status.disconnection_rate}% disconnected)`);
+                    } catch (err) { setError((err as Error).message || 'Failed to query Wazuh'); }
+                    setBusy(false);
+                  }} disabled={busy || !selectedOrgId}>{busy ? 'Querying...' : 'Fetch Live Telemetry'}</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Input label="Manager Host" value={wazuhHost} onChange={(e) => setWazuhHost(e.target.value)} placeholder="wazuh.local" />
+                <Input label="Port" value={String(wazuhPort)} onChange={(e) => setWazuhPort(Number(e.target.value))} placeholder="55000" />
+                <Input label="API Key / Password" value={wazuhApiKey} onChange={(e) => setWazuhApiKey(e.target.value)} placeholder="secret" />
+                <div className="flex items-center gap-2">
+                  <Button size="sm" onClick={async () => {
+                    if (!selectedOrgId) return; setBusy(true); setError(''); setNotice('');
+                    try {
+                      await configureWazuh({ wazuh_host: wazuhHost, wazuh_api_key: wazuhApiKey, wazuh_port: Number(wazuhPort) });
+                      setWazuhConfigured(true);
+                      setNotice('Wazuh configured successfully.');
+                    } catch (err) { setError((err as Error).message || 'Failed to configure Wazuh'); }
+                    setBusy(false);
+                  }} disabled={busy || !selectedOrgId || isReadOnly}>Connect Wazuh</Button>
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

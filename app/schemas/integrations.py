@@ -149,6 +149,131 @@ class SplunkEvidenceResponse(BaseModel):
     total_controls: int = 0
 
 
+# =============================================================================
+# Wazuh Integration Schemas (XDR Layer)
+# =============================================================================
+
+class WazuhConfigRequest(BaseModel):
+    """Request to configure Wazuh integration."""
+    wazuh_host: str = Field(..., description="Wazuh manager hostname/IP")
+    wazuh_api_key: str = Field(..., min_length=8, description="Wazuh API key")
+    wazuh_port: int = Field(default=55000, description="Wazuh API port")
+    verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
+
+
+class AgentStatusDTO(BaseModel):
+    """Agent status from Wazuh."""
+    agent_id: str
+    agent_name: str
+    ip_address: str
+    status: str  # "active", "pending", "never_connected", "disconnected"
+    last_keepalive: Optional[str] = None
+    os_platform: Optional[str] = None
+    os_version: Optional[str] = None
+
+
+class WazuhAgentStatusResponse(BaseModel):
+    """Response for Wazuh agent status endpoint."""
+    total_agents: int
+    active_agents: int
+    disconnected_agents: int
+    pending_agents: int
+    never_connected_agents: int
+    disconnection_rate_percent: float
+    agent_list: List[AgentStatusDTO]
+    verified_at: str
+
+
+class VulnerabilityAlertDTO(BaseModel):
+    """Vulnerability alert from Wazuh."""
+    cve_id: str
+    title: str
+    severity: str  # "critical", "high", "medium", "low", "info"
+    cvss_score: float
+    agent_id: str
+    agent_name: str
+    timestamp: str
+    description: Optional[str] = None
+    affected_packages: List[str] = []
+    remediation: Optional[str] = None
+
+
+class WazuhVulnerabilitiesResponse(BaseModel):
+    """Response for Wazuh vulnerabilities endpoint."""
+    total_vulnerabilities: int
+    critical_count: int
+    high_count: int
+    medium_count: int
+    low_count: int
+    vulnerabilities: List[VulnerabilityAlertDTO]
+    verified_at: str
+
+
+class SplunkLoggingHealthResponse(BaseModel):
+    """Response for Splunk logging health verification."""
+    logging_enabled: bool
+    last_event_time: Optional[str] = None
+    event_count_24h: int = 0
+    event_count_7d: int = 0
+    sourcetypes_active: List[str] = []
+    indexes_active: List[str] = []
+    verified_at: str
+
+
+class SplunkQueryRequest(BaseModel):
+    """Request to run a custom Splunk query."""
+    query: str = Field(..., description="SPL query string")
+    earliest: str = Field(default="-24h", description="Start time")
+    latest: str = Field(default="now", description="End time")
+    max_results: int = Field(default=1000, description="Maximum results to return")
+
+
+class SplunkQueryResponse(BaseModel):
+    """Response from custom Splunk query."""
+    results: List[Dict[str, Any]]
+    total_count: int
+    query_used: str
+
+
+# =============================================================================
+# SIEM Integration Status & GHI Enhancement
+# =============================================================================
+
+class SIEMIntegrationStatus(BaseModel):
+    """Overall SIEM integration health status."""
+    wazuh_status: str  # "configured" | "not_configured" | "error"
+    wazuh_message: Optional[str] = None
+    wazuh_last_successful: Optional[str] = None
+    
+    splunk_status: str  # "configured" | "not_configured" | "error"
+    splunk_message: Optional[str] = None
+    splunk_last_successful: Optional[str] = None
+    
+    siem_verified_controls: int = 0
+    siem_verified_percentage: float = 0.0
+
+
+class SIEMVerifiedFinding(BaseModel):
+    """Finding automatically generated from SIEM/XDR data."""
+    title: str
+    description: str
+    severity: str  # "critical", "high", "medium", "low"
+    source: str  # "wazuh" or "splunk"
+    source_evidence: Dict[str, Any]
+    ghi_impact: float = 0.0
+    automatically_generated: bool = True
+
+
+class GHIWithSIEMMultiplier(BaseModel):
+    """GHI score enhanced with SIEM verification multiplier."""
+    base_ghi: float
+    siem_verified: bool
+    siem_multiplier: float = 1.2  # If SIEM-verified controls present
+    final_ghi: float
+    grade: str
+    verified_controls_count: int
+
+
 class RoadmapTrackerItemCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
