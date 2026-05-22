@@ -1,4 +1,4 @@
-﻿# Sample Reports
+# Sample Reports
 
 This directory contains sanitized sample PDF reports demonstrating ResilAI capabilities.
 
@@ -28,6 +28,6 @@ Each sample report includes:
 
 ## Generate Your Own
 
-1. Complete an assessment in the Live Demo: `https://gen-lang-client-0384513977.web.app`
+1. Complete an assessment in the Live Demo: `https://demo.resilai.org`
 2. Open the results page and go to report actions
 3. Download or save the generated report artifact

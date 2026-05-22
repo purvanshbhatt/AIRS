@@ -1,4 +1,4 @@
-﻿# ResilAI Showcase Notes
+# ResilAI Showcase Notes
 
 Concise handoff for advisors, design partners, and pilot conversations.
 
@@ -8,9 +8,9 @@ ResilAI is an AI Incident Readiness Platform that helps organizations measure re
 
 ## Public Beta Links
 
-- Frontend: `https://gen-lang-client-0384513977.web.app`
-- API health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
-- API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
+- Frontend: `https://demo.resilai.org`
+- API health: `https://api-staging.resilai.org/health`
+- API docs: `https://api-staging.resilai.org/docs`
 
 ## 5-Minute Product Walkthrough
 

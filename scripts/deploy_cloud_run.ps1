@@ -7,15 +7,31 @@ param(
     [switch]$Prod,
     [switch]$AllowUnauthenticated = $true,
     [string]$CloudSqlInstance = $env:CLOUDSQL_INSTANCE,  # e.g., "project:region:instance"
-    [string]$SetSecrets = ""
+    [string]$SetSecrets = "",
+    [string]$Target = ""
 )
 
 $ErrorActionPreference = "Stop"
 
+# Handle Target shortcut parameter
+if ($Target) {
+    if ($Target -eq "staging") {
+        $Prod = $false
+    } elseif ($Target -eq "demo" -or $Target -eq "production") {
+        $Prod = $true
+    } elseif ($Target -eq "marketing") {
+        Write-Host "INFO: Marketing target is frontend-only. No Cloud Run backend service is associated with marketing." -ForegroundColor Green
+        exit 0
+    } else {
+        Write-Host "ERROR: Invalid target: $Target. Must be one of: staging, demo, marketing." -ForegroundColor Red
+        exit 1
+    }
+}
+
 # Determine target environment
 if ($Prod) {
     $ServiceName = "airs-api"
-    $EnvFile = "gcp/env.prod.yaml"
+    $EnvFile = "gcp/env.demo.yaml" # Demands env.demo.yaml for production deployment/demo domain mapping
     $envLabel = "PRODUCTION"
 
     # ── Branch guardrail: only main branch may deploy to prod ─────────
@@ -34,7 +50,7 @@ if ($Prod) {
 
     Write-Host ""
     Write-Host "WARNING: You are deploying to PRODUCTION!" -ForegroundColor Red
-    Write-Host "This will affect the live demo at v0.5-demo-locked." -ForegroundColor Red
+    Write-Host "This will affect the live demo at resilai.org / demo.resilai.org." -ForegroundColor Red
     $confirm = Read-Host "Type 'yes' to continue"
     if ($confirm -ne "yes") {
         Write-Host "Aborted." -ForegroundColor Yellow
@@ -60,7 +76,7 @@ try {
 }
 
 # Check if env file exists
-$EnvFilePath = Join-Path $PSScriptRoot ".." $EnvFile
+$EnvFilePath = Join-Path (Join-Path $PSScriptRoot "..") $EnvFile
 if (-not (Test-Path $EnvFilePath)) {
     Write-Host "ERROR: Environment file not found: $EnvFile" -ForegroundColor Red
     exit 1

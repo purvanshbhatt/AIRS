@@ -1,4 +1,4 @@
-﻿# ResilAI Overview
+# ResilAI Overview
 
 <p align="center">
   <img src="assets/airs-logo-dark.png" alt="ResilAI logo" width="150" />
@@ -57,7 +57,7 @@ graph TD
 
 ## Links
 
-- Live Demo: `https://gen-lang-client-0384513977.web.app`
-- Staging API health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
-- Staging API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
+- Live Demo: `https://demo.resilai.org`
+- Staging API health: `https://api-staging.resilai.org/health`
+- Staging API docs: `https://api-staging.resilai.org/docs`
 - Docs index: `index.md`

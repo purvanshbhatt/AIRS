@@ -54,8 +54,11 @@ function EnvironmentBanner() {
   const host = typeof window !== 'undefined' ? window.location.hostname : '';
   const isStaging = systemStatus?.environment === 'staging' || 
                     host.includes('staging') || 
-                    host.includes('airs-staging-0384513977') ||
                     import.meta.env.MODE === 'staging';
+
+  const isDemo = systemStatus?.environment === 'demo' || 
+                 host.includes('demo') || 
+                 import.meta.env.MODE === 'demo';
 
   if (isStaging) {
     return (
@@ -66,12 +69,16 @@ function EnvironmentBanner() {
     );
   }
 
-  return (
-    <div className="bg-blue-500/10 border-b border-blue-500/50 text-blue-600 dark:text-blue-400 py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2">
-      <Lock className="w-4 h-4 text-blue-500 shrink-0" />
-      <span>DEMO ENVIRONMENT - LOCKED AT NIST CSF 2.0 MILESTONE.</span>
-    </div>
-  );
+  if (isDemo) {
+    return (
+      <div className="bg-blue-500/10 border-b border-blue-500/50 text-blue-600 dark:text-blue-400 py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2">
+        <Lock className="w-4 h-4 text-blue-500 shrink-0" />
+        <span>DEMO ENVIRONMENT - LOCKED AT NIST CSF 2.0 MILESTONE.</span>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function DashboardRoutes() {

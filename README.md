@@ -1,8 +1,8 @@
-﻿# ResilAI
+# ResilAI
 
 **ResilAI** is an **AI Incident Readiness Platform** that helps organizations measure, improve, and report their preparedness for AI-era security incidents.
 
-[Live Demo](https://gen-lang-client-0384513977.web.app) | [API Docs](https://airs-api-227825933697.us-central1.run.app/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
+[Live Demo](https://demo.resilai.org) | [API Docs](https://api.resilai.org/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
 
 ## Problem Statement
 Did you ever wonder: "Are we safe if an Artificial Intelligence system goes wrong?" While most organizations have standard security tools (like antivirus or network monitors), they often struggle to answer:
@@ -45,9 +45,9 @@ graph TD
 ```
 
 ## Live Demo
-- Frontend (demo): `https://gen-lang-client-0384513977.web.app`
-- Backend health: `https://airs-api-227825933697.us-central1.run.app/health`
-- Backend docs: `https://airs-api-227825933697.us-central1.run.app/docs`
+- Frontend (demo): `https://demo.resilai.org`
+- Backend health: `https://api.resilai.org/health`
+- Backend docs: `https://api.resilai.org/docs`
 
 ## Environments
 
@@ -55,8 +55,8 @@ ResilAI operates in three distinct environments:
 
 | Environment | Purpose | URLs | Writes |
 |---|---|---|---|
-| **Demo** | Investor presentations, frozen synthetic data | `gen-lang-client-0384513977.web.app` | ❌ Read-only |
-| **Staging** | Active development, testing | `airs-staging-0384513977.web.app` | ✅ Enabled |
+| **Demo** | Investor presentations, frozen synthetic data | `demo.resilai.org` | ❌ Read-only |
+| **Staging** | Active development, testing | `staging.resilai.org` | ✅ Enabled |
 | **Local** | Developer workstations | `localhost:5173` / `localhost:8000` | ✅ Enabled |
 
 ### Demo Mode

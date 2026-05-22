@@ -1,4 +1,4 @@
-﻿# API Reference
+# API Reference
 
 Base URL comes from environment configuration.
 
@@ -38,4 +38,4 @@ Base URL comes from environment configuration.
 
 Interactive OpenAPI docs are available at:
 
-`https://airs-api-staging-227825933697.us-central1.run.app/docs`
+`https://api-staging.resilai.org/docs`

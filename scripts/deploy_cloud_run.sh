@@ -28,13 +28,14 @@ usage() {
 Usage:
   ./scripts/deploy_cloud_run.sh [service] [region] [env_file] [allow_unauthenticated]
   ./scripts/deploy_cloud_run.sh --service <name> --region <region> --env-file <path> [--project <id>] [--set-secrets <bindings>] [--prod]
+  ./scripts/deploy_cloud_run.sh --target <staging|demo|marketing> [--region <region>] [--project <id>] [--set-secrets <bindings>]
 
 Defaults (safe):
   --service  airs-api-staging
   --env-file gcp/env.staging.yaml
 
 Safety:
-  Refuses production demo deploy unless --prod is provided.
+  Refuses production demo deploy unless --prod is provided (or --target demo/production is used).
   Production demo project id: ${PROD_PROJECT_ID}
 EOF
 }
@@ -46,6 +47,24 @@ while [[ $# -gt 0 ]]; do
         --prod)
             ALLOW_PROD="true"
             shift
+            ;;
+        --target)
+            TARGET="${2:-}"
+            if [[ "$TARGET" == "staging" ]]; then
+                SERVICE_NAME="airs-api-staging"
+                ENV_FILE="gcp/env.staging.yaml"
+            elif [[ "$TARGET" == "demo" || "$TARGET" == "production" ]]; then
+                SERVICE_NAME="airs-api"
+                ENV_FILE="gcp/env.demo.yaml"
+                ALLOW_PROD="true"
+            elif [[ "$TARGET" == "marketing" ]]; then
+                echo "INFO: Marketing target is frontend-only. No Cloud Run backend service is associated with marketing."
+                exit 0
+            else
+                echo "ERROR: Invalid target: $TARGET. Must be one of: staging, demo, marketing."
+                exit 1
+            fi
+            shift 2
             ;;
         --service)
             SERVICE_NAME="${2:-}"
@@ -182,7 +201,7 @@ PROJECT_ID="$(strip_quotes "${PROJECT_ID:-}")"
 REQUIRE_PROD_CONFIRM="false"
 if [[ "$SERVICE_NAME" == "airs-api" ]]; then
     REQUIRE_PROD_CONFIRM="true"
-elif [[ "$ENV_FILE" == *"env.prod"* ]]; then
+elif [[ "$ENV_FILE" == *"env.prod"* || "$ENV_FILE" == *"env.demo"* ]]; then
     REQUIRE_PROD_CONFIRM="true"
 fi
 

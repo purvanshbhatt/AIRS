@@ -15,7 +15,7 @@
   },
   "hosting": [
     {
-      "target": "airs",
+      "target": "marketing",
       "public": "frontend/dist",
       "ignore": [
         "firebase.json",
@@ -33,7 +33,7 @@
       ]
     },
     {
-      "target": "airs-staging",
+      "target": "demo",
       "public": "frontend/dist",
       "ignore": [
         "firebase.json",
@@ -47,7 +47,7 @@
         }
       ],
       "predeploy": [
-        "cd frontend && npm run build:staging"
+        "cd frontend && npm run build:demo"
       ]
     },
     {
@@ -57,6 +57,17 @@
         "firebase.json",
         "**/.*",
         "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex, nofollow"
+            }
+          ]
+        }
       ],
       "rewrites": [
         {

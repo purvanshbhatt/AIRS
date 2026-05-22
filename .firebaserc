@@ -5,14 +5,14 @@
   "targets": {
     "gen-lang-client-0384513977": {
       "hosting": {
-        "airs-staging": [
-          "airs-staging-0384513977"
+        "marketing": [
+          "resilai-marketing"
+        ],
+        "demo": [
+          "resilai-demo"
         ],
         "staging": [
-          "airs-staging-0384513977"
-        ],
-        "airs": [
-          "gen-lang-client-0384513977"
+          "resilai-staging"
         ]
       }
     }
