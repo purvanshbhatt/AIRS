@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Card,
   CardHeader,
@@ -151,7 +152,6 @@ export default function AuditCalendar() {
     const dtStart = auditDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     const endDate = new Date(auditDate.getTime() + 60 * 60 * 1000); // 1 hour event
     const dtEnd = endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const reminderMinutes = (entry.reminder_days_before || 90) * 24 * 60;
 
     const icsContent = [
       'BEGIN:VCALENDAR',
@@ -187,47 +187,52 @@ export default function AuditCalendar() {
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
-      case 'high': return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      default: return 'text-green-600 bg-green-50 border-green-200';
+      case 'critical': return 'text-red-900 dark:text-red-305 bg-red-50/30 dark:bg-red-955/10 border-red-200 dark:border-red-900/50';
+      case 'high': return 'text-orange-900 dark:text-orange-305 bg-orange-50/30 dark:bg-orange-955/10 border-orange-200 dark:border-orange-900/50';
+      case 'medium': return 'text-yellow-900 dark:text-yellow-305 bg-yellow-50/30 dark:bg-yellow-955/10 border-yellow-250 dark:border-yellow-900/50';
+      default: return 'text-green-900 dark:text-green-305 bg-green-50/30 dark:bg-green-955/10 border-green-200 dark:border-green-900/50';
     }
   };
 
   // Risk-Based Color Bands for days until audit
   const getUrgencyBand = (daysUntil: number) => {
     if (daysUntil < 0) return { 
-      bg: 'bg-red-500', 
-      text: 'text-white', 
-      border: 'border-red-600',
+      bg: 'bg-red-50/30 dark:bg-red-955/10', 
+      text: 'text-red-700 dark:text-red-400', 
+      textM3: 'text-red-900 dark:text-red-300',
+      border: 'border-red-200 dark:border-red-900/50',
       label: 'OVERDUE',
       icon: ShieldAlert
     };
     if (daysUntil <= 14) return { 
-      bg: 'bg-red-100 dark:bg-red-900/30', 
+      bg: 'bg-red-50/30 dark:bg-red-955/10', 
       text: 'text-red-700 dark:text-red-400', 
-      border: 'border-red-300 dark:border-red-700',
+      textM3: 'text-red-900 dark:text-red-300',
+      border: 'border-red-200 dark:border-red-900/50',
       label: 'Critical',
       icon: AlertTriangle
     };
     if (daysUntil <= 30) return { 
-      bg: 'bg-orange-100 dark:bg-orange-900/30', 
+      bg: 'bg-orange-50/30 dark:bg-orange-955/10', 
       text: 'text-orange-700 dark:text-orange-400', 
-      border: 'border-orange-300 dark:border-orange-700',
+      textM3: 'text-orange-900 dark:text-orange-300',
+      border: 'border-orange-200 dark:border-orange-900/50',
       label: 'Urgent',
       icon: Clock
     };
     if (daysUntil <= 60) return { 
-      bg: 'bg-yellow-100 dark:bg-yellow-900/30', 
+      bg: 'bg-yellow-50/30 dark:bg-yellow-955/10', 
       text: 'text-yellow-700 dark:text-yellow-400', 
-      border: 'border-yellow-300 dark:border-yellow-700',
+      textM3: 'text-yellow-905 dark:text-yellow-300',
+      border: 'border-yellow-250 dark:border-yellow-900/50',
       label: 'Upcoming',
       icon: Timer
     };
     return { 
-      bg: 'bg-green-100 dark:bg-green-900/30', 
+      bg: 'bg-green-50/30 dark:bg-green-955/10', 
       text: 'text-green-700 dark:text-green-400', 
-      border: 'border-green-300 dark:border-green-700',
+      textM3: 'text-green-900 dark:text-green-300',
+      border: 'border-green-200 dark:border-green-900/50',
       label: 'Healthy',
       icon: CheckCircle
     };
@@ -249,7 +254,6 @@ export default function AuditCalendar() {
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
   };
 
-  // Find next critical deadline
   const getNextCriticalDeadline = () => {
     const upcoming = entries
       .filter(e => e.days_until_audit > 0)
@@ -259,7 +263,6 @@ export default function AuditCalendar() {
     return upcoming[0];
   };
 
-  // Get likely risk area based on forecasts
   const getLikelyRiskArea = () => {
     const forecastList = Object.values(forecasts);
     const criticalForecasts = forecastList.filter(f => 
@@ -274,29 +277,39 @@ export default function AuditCalendar() {
   const likelyRisk = getLikelyRiskArea();
 
   if (loading && organizations.length === 0) {
-    return <div className="space-y-6"><CardSkeleton /><CardSkeleton /></div>;
+    return (
+      <div className="space-y-6">
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="space-y-6"
+    >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-amber-600" />
+          <div className="w-10 h-10 bg-amber-50/10 dark:bg-amber-955/20 border border-amber-205 dark:border-amber-805/40 rounded-2xl flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150 tracking-tight">
               Audit Calendar
             </h1>
-            <p className="text-gray-500 dark:text-slate-400 text-sm">
+            <p className="text-slate-505 dark:text-slate-455 text-sm font-semibold">
               Track upcoming audits and get pre-audit risk forecasts
             </p>
           </div>
         </div>
         <div className="flex gap-3 items-center">
           <select
-            className="rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-w-[220px]"
+            className="rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold"
             value={selectedOrgId}
             onChange={(e) => setSelectedOrgId(e.target.value)}
           >
@@ -305,7 +318,7 @@ export default function AuditCalendar() {
             ))}
           </select>
           {!isReadOnly && (
-            <Button onClick={() => setShowAddForm(true)} className="gap-2">
+            <Button onClick={() => setShowAddForm(true)} className="gap-1.5 rounded-xl font-extrabold transition-all duration-205 hover:scale-[1.01]">
               <Plus className="w-4 h-4" /> Schedule Audit
             </Button>
           )}
@@ -313,9 +326,9 @@ export default function AuditCalendar() {
       </div>
 
       {error && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
-          <CardContent className="py-3">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <Card className="rounded-2xl border-red-200 bg-red-50/20 dark:bg-red-955/10 dark:border-red-900/40 shadow-sm">
+          <CardContent className="py-3.5">
+            <p className="text-sm text-red-700 dark:text-red-400 font-bold">{error}</p>
           </CardContent>
         </Card>
       )}
@@ -323,37 +336,37 @@ export default function AuditCalendar() {
       {/* Audit Health Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Audit Health Score */}
-        <Card padding="md" className={`border-2 ${
-          healthScore >= 80 ? 'border-green-200 dark:border-green-800' :
-          healthScore >= 50 ? 'border-yellow-200 dark:border-yellow-800' :
-          'border-red-200 dark:border-red-800'
+        <Card padding="md" className={`rounded-3xl border shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md bg-white/60 dark:bg-slate-955/20 ${
+          healthScore >= 80 ? 'border-green-200 dark:border-green-900/40' :
+          healthScore >= 50 ? 'border-yellow-250 dark:border-yellow-900/40' :
+          'border-red-205 dark:border-red-900/40'
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              healthScore >= 80 ? 'bg-green-100 dark:bg-green-900/30' :
-              healthScore >= 50 ? 'bg-yellow-100 dark:bg-yellow-900/30' :
-              'bg-red-100 dark:bg-red-900/30'
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+              healthScore >= 80 ? 'bg-green-50/30 dark:bg-green-955/10' :
+              healthScore >= 50 ? 'bg-yellow-50/30 dark:bg-yellow-955/10' :
+              'bg-red-50/30 dark:bg-red-955/10'
             }`}>
               <TrendingUp className={`w-6 h-6 ${
-                healthScore >= 80 ? 'text-green-600' :
-                healthScore >= 50 ? 'text-yellow-600' :
-                'text-red-600'
+                healthScore >= 80 ? 'text-green-600 dark:text-green-400' :
+                healthScore >= 50 ? 'text-yellow-605 dark:text-yellow-400' :
+                'text-red-600 dark:text-red-400'
               }`} />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wide">
+              <p className="text-xs text-slate-500 dark:text-slate-455 font-bold uppercase tracking-wider">
                 Audit Readiness
               </p>
-              <p className={`text-2xl font-bold ${
-                healthScore >= 80 ? 'text-green-600' :
-                healthScore >= 50 ? 'text-yellow-600' :
-                'text-red-600'
+              <p className={`text-2xl font-extrabold mt-1 ${
+                healthScore >= 80 ? 'text-green-605 dark:text-green-400' :
+                healthScore >= 50 ? 'text-yellow-605 dark:text-yellow-400' :
+                'text-red-600 dark:text-red-400'
               }`}>
                 {healthScore}%
               </p>
             </div>
           </div>
-          <div className="mt-3 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div className="mt-4 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div 
               className={`h-full rounded-full transition-all duration-500 ${
                 healthScore >= 80 ? 'bg-green-500' :
@@ -366,78 +379,80 @@ export default function AuditCalendar() {
         </Card>
 
         {/* Next Critical Deadline */}
-        <Card padding="md" className={`border-2 ${
+        <Card padding="md" className={`rounded-3xl border shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md bg-white/60 dark:bg-slate-955/20 ${
           nextDeadline 
             ? getUrgencyBand(nextDeadline.days_until_audit).border 
-            : 'border-green-200 dark:border-green-800'
+            : 'border-slate-200 dark:border-slate-800/40'
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
               nextDeadline 
                 ? getUrgencyBand(nextDeadline.days_until_audit).bg 
-                : 'bg-green-100 dark:bg-green-900/30'
+                : 'bg-green-50/30 dark:bg-green-955/10'
             }`}>
               <Timer className={`w-6 h-6 ${
                 nextDeadline 
                   ? getUrgencyBand(nextDeadline.days_until_audit).text 
-                  : 'text-green-600'
+                  : 'text-green-600 dark:text-green-400'
               }`} />
             </div>
-            <div>
-              <p className="text-xs text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wide">
-                Next Critical Deadline
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-slate-500 dark:text-slate-455 font-bold uppercase tracking-wider">
+                Next Deadline
               </p>
               {nextDeadline ? (
                 <>
-                  <p className={`text-lg font-bold ${getUrgencyBand(nextDeadline.days_until_audit).text}`}>
+                  <p className={`text-2xl font-extrabold mt-0.5 ${getUrgencyBand(nextDeadline.days_until_audit).textM3}`}>
                     {nextDeadline.days_until_audit} days
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 truncate max-w-[150px]">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5 font-bold">
                     {nextDeadline.framework}
                   </p>
                 </>
               ) : (
-                <p className="text-lg font-bold text-green-600">No upcoming</p>
+                <p className="text-lg font-bold text-green-600 dark:text-green-400 mt-1">No upcoming</p>
               )}
             </div>
           </div>
         </Card>
 
         {/* Total Audits */}
-        <Card padding="md">
+        <Card padding="md" className="rounded-3xl border border-slate-205 dark:border-slate-805 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-blue-50/30 dark:bg-blue-955/10 rounded-2xl flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wide">
+              <p className="text-xs text-slate-500 dark:text-slate-455 font-bold uppercase tracking-wider">
                 Total Audits
               </p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{entries.length}</p>
+              <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-150 mt-1">{entries.length}</p>
             </div>
           </div>
         </Card>
 
         {/* Likely Risk Area */}
-        <Card padding="md" className={likelyRisk ? 'border-2 border-orange-200 dark:border-orange-800' : ''}>
+        <Card padding="md" className={`rounded-3xl border shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md bg-white/60 dark:bg-slate-955/20 ${
+          likelyRisk ? 'border-orange-200 dark:border-orange-900/40' : 'border-slate-205 dark:border-slate-805'
+        }`}>
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              likelyRisk ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-gray-100 dark:bg-gray-800'
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+              likelyRisk ? 'bg-orange-50/30 dark:bg-orange-955/10' : 'bg-slate-50/30 dark:bg-slate-955/10'
             }`}>
               <ShieldAlert className={`w-6 h-6 ${
-                likelyRisk ? 'text-orange-600' : 'text-gray-400'
+                likelyRisk ? 'text-orange-600' : 'text-slate-400'
               }`} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wide">
+              <p className="text-xs text-slate-500 dark:text-slate-455 font-bold uppercase tracking-wider">
                 Likely Risk Area
               </p>
               {likelyRisk ? (
-                <p className="text-sm font-medium text-orange-600 dark:text-orange-400 truncate">
+                <p className="text-sm font-bold text-orange-600 dark:text-orange-400 truncate mt-1">
                   {likelyRisk.recommendation?.split(' ').slice(0, 4).join(' ')}...
                 </p>
               ) : (
-                <p className="text-sm text-gray-400 dark:text-slate-500">Run forecasts to identify</p>
+                <p className="text-sm font-semibold text-slate-400 dark:text-slate-500 mt-1">Run forecasts to identify</p>
               )}
             </div>
           </div>
@@ -446,23 +461,23 @@ export default function AuditCalendar() {
 
       {/* Add Form */}
       {showAddForm && (
-        <Card className="border-indigo-200 dark:border-indigo-800">
-          <CardHeader>
+        <Card className="rounded-3xl border border-indigo-200 dark:border-indigo-900/50 bg-white/60 dark:bg-slate-955/20 transition-all duration-300 shadow-md">
+          <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle>Schedule New Audit</CardTitle>
-              <button onClick={() => setShowAddForm(false)}>
-                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+              <CardTitle className="text-slate-900 dark:text-slate-150 font-extrabold text-lg">Schedule New Audit</CardTitle>
+              <button onClick={() => setShowAddForm(false)} className="p-1 hover:bg-slate-105 dark:hover:bg-slate-800/60 rounded-xl transition-all">
+                <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   Framework
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newEntry.framework}
                   onChange={(e) => setNewEntry({ ...newEntry, framework: e.target.value })}
                 >
@@ -473,22 +488,22 @@ export default function AuditCalendar() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   Audit Date
                 </label>
                 <input
                   type="date"
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newEntry.audit_date}
                   onChange={(e) => setNewEntry({ ...newEntry, audit_date: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   Type
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newEntry.audit_type}
                   onChange={(e) => setNewEntry({ ...newEntry, audit_type: e.target.value as 'external' | 'internal' })}
                 >
@@ -497,13 +512,13 @@ export default function AuditCalendar() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   Reminder (days before)
                 </label>
                 <input
                   type="number"
                   min={0}
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newEntry.reminder_days_before ?? ''}
                   onChange={(e) => {
                     const raw = e.target.value;
@@ -516,9 +531,11 @@ export default function AuditCalendar() {
                 />
               </div>
             </div>
-            <Button onClick={handleAdd} disabled={!newEntry.framework || !newEntry.audit_date}>
-              Add to Calendar
-            </Button>
+            <div className="pt-2">
+              <Button onClick={handleAdd} disabled={!newEntry.framework || !newEntry.audit_date} className="rounded-xl font-extrabold transition-all duration-205 hover:scale-[1.01]">
+                Schedule Audit
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -527,11 +544,11 @@ export default function AuditCalendar() {
       {loading ? (
         <CardSkeleton />
       ) : entries.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-slate-400">
-              No audits scheduled. Click "Schedule Audit" to get started.
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-850/60 shadow-sm bg-white/60 dark:bg-slate-955/20">
+          <CardContent className="py-20 text-center">
+            <Calendar className="w-16 h-16 text-slate-300 dark:text-slate-700 mx-auto mb-4 opacity-80" />
+            <p className="text-slate-505 dark:text-slate-455 font-bold text-lg">
+              No audits scheduled. Click &quot;Schedule Audit&quot; to get started.
             </p>
           </CardContent>
         </Card>
@@ -540,39 +557,40 @@ export default function AuditCalendar() {
           {entries.map((entry) => {
             const urgency = getUrgencyBand(entry.days_until_audit);
             const UrgencyIcon = urgency.icon;
+            const displayColorClass = urgency.textM3 || urgency.text;
             
             return (
               <Card 
                 key={entry.id} 
-                className={`${urgency.border} ${urgency.bg} transition-all duration-300`}
+                className={`${urgency.border} ${urgency.bg} transition-all duration-300 hover:scale-[1.005] hover:shadow-md rounded-3xl border shadow-sm`}
               >
-                <CardContent className="py-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-3 flex-wrap">
                         {/* Risk band indicator */}
-                        <div className={`px-2 py-1 rounded-md text-xs font-bold ${urgency.bg} ${urgency.text} border ${urgency.border} flex items-center gap-1`}>
-                          <UrgencyIcon className="w-3 h-3" />
+                        <div className={`px-2.5 py-1 rounded-xl text-xs font-bold ${urgency.bg} ${displayColorClass} border ${urgency.border} flex items-center gap-1.5 shadow-sm`}>
+                          <UrgencyIcon className="w-3.5 h-3.5" />
                           {urgency.label}
                         </div>
-                        <span className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                        <span className="text-lg font-extrabold text-slate-900 dark:text-slate-155">
                           {entry.framework}
                         </span>
-                        <Badge variant={entry.audit_type === 'external' ? 'default' : 'warning'}>
+                        <Badge variant={entry.audit_type === 'external' ? 'default' : 'warning'} className="font-extrabold text-xs rounded-lg px-2.5 py-0.5">
                           {entry.audit_type}
                         </Badge>
                       </div>
 
                       {/* Days countdown with prominent display */}
-                      <div className="flex items-center gap-4 mb-2">
-                        <div className={`text-2xl font-bold ${urgency.text}`}>
+                      <div className="flex items-center gap-4 mb-2.5">
+                        <div className={`text-2xl font-extrabold ${displayColorClass}`}>
                           {entry.days_until_audit > 0 
                             ? `${entry.days_until_audit} days` 
                             : entry.days_until_audit === 0 
                               ? 'Today!' 
                               : `${Math.abs(entry.days_until_audit)} days overdue`}
                         </div>
-                        <span className="text-sm text-gray-500 dark:text-slate-400">
+                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
                           {new Date(entry.audit_date).toLocaleDateString('en-US', {
                             weekday: 'short',
                             month: 'short', 
@@ -583,17 +601,17 @@ export default function AuditCalendar() {
                       </div>
 
                       {entry.notes && (
-                        <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">{entry.notes}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-450 mt-1.5 leading-relaxed font-semibold">{entry.notes}</p>
                       )}
 
                       {/* Forecast */}
                       {forecasts[entry.id] ? (
-                        <div className={`mt-3 p-3 rounded-lg border ${getRiskColor(forecasts[entry.id].risk_level)}`}>
-                          <p className="text-sm font-medium">
+                        <div className={`mt-3.5 p-4 rounded-2xl border ${getRiskColor(forecasts[entry.id].risk_level)} shadow-sm transition-all duration-200`}>
+                          <p className="text-sm font-extrabold">
                             Risk Level: {forecasts[entry.id].risk_level.toUpperCase()}
                           </p>
-                          <p className="text-xs mt-1">{forecasts[entry.id].recommendation}</p>
-                          <p className="text-xs mt-1 opacity-75">
+                          <p className="text-xs mt-1.5 leading-relaxed font-semibold">{forecasts[entry.id].recommendation}</p>
+                          <p className="text-[11px] mt-2 font-bold opacity-80">
                             {forecasts[entry.id].related_findings_count} related findings |{' '}
                             {forecasts[entry.id].critical_high_count} critical/high
                           </p>
@@ -602,7 +620,7 @@ export default function AuditCalendar() {
                         <button
                           onClick={() => loadForecast(entry.id)}
                           disabled={loadingForecast === entry.id}
-                          className="mt-2 text-xs text-indigo-600 hover:text-indigo-700 hover:underline"
+                          className="mt-3 text-xs font-bold text-indigo-650 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-305 hover:underline flex items-center gap-1 transition-all"
                         >
                           {loadingForecast === entry.id ? 'Loading forecast...' : 'View Risk Forecast'}
                         </button>
@@ -612,10 +630,10 @@ export default function AuditCalendar() {
                       {isStaging && (
                         <button
                           onClick={() => generateICSFile(entry)}
-                          className="mt-2 ml-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                          className="mt-3 ml-3 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-blue-50/40 dark:bg-blue-955/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all duration-200 hover:scale-[1.01]"
                           title="Download .ics file to add this audit to Google Calendar, Outlook, or Apple Calendar"
                         >
-                          <CalendarPlus className="w-3.5 h-3.5" />
+                          <CalendarPlus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                           Sync to Google Calendar
                         </button>
                       )}
@@ -623,7 +641,7 @@ export default function AuditCalendar() {
                     {!isReadOnly && (
                       <button
                         onClick={() => handleDelete(entry.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-xl transition-all"
                         title="Delete entry"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -636,6 +654,6 @@ export default function AuditCalendar() {
           })}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

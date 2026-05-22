@@ -13,14 +13,14 @@ export default function DocsOverview() {
         <div className="space-y-12">
             {/* Hero */}
             <div>
-                <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 mb-4">
+                <div className="flex items-center gap-2 text-primary-605 dark:text-primary-400 mb-4">
                     <Shield className="w-5 h-5" />
-                    <span className="text-sm font-medium">Documentation</span>
+                    <span className="text-sm font-semibold tracking-wide uppercase">Documentation</span>
                 </div>
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
                     ResilAI Documentation
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
+                <p className="text-xl text-slate-605 dark:text-slate-400 max-w-2xl leading-relaxed">
                     AI Incident Readiness Score — a comprehensive self-assessment tool that evaluates
                     your organization's security posture across five critical domains.
                 </p>
@@ -28,11 +28,11 @@ export default function DocsOverview() {
 
             {/* What is ResilAI */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
                     What is ResilAI?
                 </h2>
                 <div className="prose dark:prose-invert max-w-none">
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-slate-655 dark:text-slate-400 leading-relaxed text-base">
                         ResilAI is an open-source security assessment platform designed to help organizations
                         understand their incident response readiness. By answering 30 targeted questions
                         across 5 security domains, you receive an actionable readiness score,
@@ -43,7 +43,7 @@ export default function DocsOverview() {
 
             {/* Key Features */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6 tracking-tight">
                     Key Features
                 </h2>
                 <div className="grid md:grid-cols-3 gap-6">
@@ -66,13 +66,13 @@ export default function DocsOverview() {
                     ].map((feature) => (
                         <div
                             key={feature.title}
-                            className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+                            className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md"
                         >
                             <feature.icon className="w-8 h-8 text-primary-600 dark:text-primary-400 mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
                                 {feature.title}
                             </h3>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm">
+                            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                                 {feature.description}
                             </p>
                         </div>
@@ -81,38 +81,38 @@ export default function DocsOverview() {
             </section>
 
             {/* Quick Start */}
-            <section className="p-6 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-xl border border-primary-200 dark:border-primary-800">
-                <div className="flex items-start gap-4">
-                    <div className="p-2 bg-primary-600 rounded-lg">
-                        <Zap className="w-6 h-6 text-white" />
+            <section className="p-6 bg-gradient-to-br from-primary-50/40 to-primary-100/40 dark:from-primary-950/20 dark:to-primary-900/10 rounded-3xl border border-primary-100/80 dark:border-primary-900/50 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
+                <div className="flex flex-col md:flex-row items-start gap-5">
+                    <div className="p-3 bg-primary-600 dark:bg-primary-500 rounded-2xl shadow-md flex-shrink-0">
+                        <Zap className="w-7 h-7 text-white" />
                     </div>
                     <div className="flex-1">
-                        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 tracking-tight">
                             Quick Start
                         </h2>
-                        <ol className="space-y-2 text-gray-700 dark:text-gray-300">
-                            <li className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-primary-600" />
-                                Click "Start Assessment" to begin
+                        <ol className="space-y-2.5 text-slate-700 dark:text-slate-305 font-medium">
+                            <li className="flex items-center gap-3">
+                                <CheckCircle className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                                <span>Click "Start Assessment" to begin</span>
                             </li>
-                            <li className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-primary-600" />
-                                Answer 30 questions across 5 domains (~5 minutes)
+                            <li className="flex items-center gap-3">
+                                <CheckCircle className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                                <span>Answer 30 questions across 5 domains (~5 minutes)</span>
                             </li>
-                            <li className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-primary-600" />
-                                Receive your ResilAI score and maturity level
+                            <li className="flex items-center gap-3">
+                                <CheckCircle className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                                <span>Receive your ResilAI score and maturity level</span>
                             </li>
-                            <li className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-primary-600" />
-                                Download your executive-ready PDF report
+                            <li className="flex items-center gap-3">
+                                <CheckCircle className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                                <span>Download your executive-ready PDF report</span>
                             </li>
                         </ol>
                         <Link
                             to="/assessment/new"
-                            className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                            className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 bg-primary-600 text-white dark:bg-primary-500 rounded-full hover:bg-primary-700 dark:hover:bg-primary-600 transition-all duration-300 font-semibold shadow-sm hover:shadow"
                         >
-                            Start Assessment
+                            <span>Start Assessment</span>
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
@@ -121,7 +121,7 @@ export default function DocsOverview() {
 
             {/* Documentation Sections */}
             <section>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6 tracking-tight">
                     Documentation Sections
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -134,15 +134,15 @@ export default function DocsOverview() {
                         <Link
                             key={section.title}
                             to={section.href}
-                            className="group flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700 transition-colors"
+                            className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01] hover:border-primary-250 dark:hover:border-primary-800"
                         >
                             <div>
-                                <h3 className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400">
+                                <h3 className="font-bold text-slate-900 dark:text-slate-105 group-hover:text-primary-600 dark:group-hover:text-primary-400 text-base transition-colors duration-200">
                                     {section.title}
                                 </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{section.description}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{section.description}</p>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
+                            <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-primary-605 dark:group-hover:text-primary-400 transition-all duration-200 transform group-hover:translate-x-1" />
                         </Link>
                     ))}
                 </div>
@@ -150,4 +150,3 @@ export default function DocsOverview() {
         </div>
     );
 }
-

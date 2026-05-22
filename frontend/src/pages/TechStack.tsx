@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Card,
   CardHeader,
@@ -74,7 +75,7 @@ function ShadowAIBadge({ item }: { item: TechStackItem }) {
   const meta = parseAIMetadata(item.notes);
   if (!meta) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
         <Brain className="w-3 h-3" /> No governance metadata
       </span>
     );
@@ -82,10 +83,10 @@ function ShadowAIBadge({ item }: { item: TechStackItem }) {
   const isCritical = meta.dataSensitivity === 'HIGH' && meta.aiModelTier === 'unsanctioned';
   const isWarning = meta.aiModelTier === 'unsanctioned' || meta.aiModelTier === 'banned';
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded border ${
-      isCritical ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' :
-      isWarning ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700' :
-      'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700'
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full border ${
+      isCritical ? 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50' :
+      isWarning ? 'bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900/50' :
+      'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50'
     }`}>
       <Brain className="w-3 h-3" />
       {isCritical ? 'SHADOW AI — CRITICAL' : isWarning ? `Unsanctioned` : meta.aiModelTier || 'sanctioned'}
@@ -279,12 +280,12 @@ export default function TechStack() {
 
   const getRiskBadge = (item: TechStackItem) => {
     if (item.lts_status === 'eol')
-      return <Badge variant="danger"><ShieldAlert className="w-3 h-3 mr-1" />Critical</Badge>;
+      return <Badge variant="danger" className="rounded-full px-2.5 py-0.5 font-semibold"><ShieldAlert className="w-3.5 h-3.5 mr-1" />Critical</Badge>;
     if (item.lts_status === 'deprecated' || item.major_versions_behind >= 3)
-      return <Badge variant="danger"><AlertTriangle className="w-3 h-3 mr-1" />High</Badge>;
+      return <Badge variant="danger" className="rounded-full px-2.5 py-0.5 font-semibold"><AlertTriangle className="w-3.5 h-3.5 mr-1" />High</Badge>;
     if (item.major_versions_behind >= 1)
-      return <Badge variant="warning">Medium</Badge>;
-    return <Badge variant="outline">Low</Badge>;
+      return <Badge variant="warning" className="rounded-full px-2.5 py-0.5 font-semibold">Medium</Badge>;
+    return <Badge variant="outline" className="rounded-full px-2.5 py-0.5 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold bg-slate-50 dark:bg-slate-900/50">Low</Badge>;
   };
 
   // Get lifecycle status info for enhanced display
@@ -293,9 +294,9 @@ export default function TechStack() {
       icon: CheckCircle2,
       label: 'Up-to-date',
       description: 'Current supported version',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
-      borderColor: 'border-green-200 dark:border-green-800',
+      color: 'text-green-600 dark:text-green-400',
+      bgColor: 'bg-green-50 dark:bg-green-950/20',
+      borderColor: 'border-green-100 dark:border-green-900/50',
       badgeVariant: 'default' as const,
     };
 
@@ -304,9 +305,9 @@ export default function TechStack() {
         icon: XCircle,
         label: 'End of Life',
         description: 'No security patches — CRITICAL vulnerability exposure',
-        color: 'text-red-600',
-        bgColor: 'bg-red-50 dark:bg-red-900/20',
-        borderColor: 'border-red-300 dark:border-red-800',
+        color: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-red-50 dark:bg-red-950/20',
+        borderColor: 'border-red-200 dark:border-red-900/50',
         badgeVariant: 'danger' as const,
       };
     }
@@ -316,9 +317,9 @@ export default function TechStack() {
         icon: AlertCircle,
         label: 'Deprecated',
         description: 'Limited support — plan migration',
-        color: 'text-orange-600',
-        bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-        borderColor: 'border-orange-300 dark:border-orange-800',
+        color: 'text-orange-600 dark:text-orange-400',
+        bgColor: 'bg-orange-50 dark:bg-orange-950/20',
+        borderColor: 'border-orange-200 dark:border-orange-900/50',
         badgeVariant: 'warning' as const,
       };
     }
@@ -328,9 +329,9 @@ export default function TechStack() {
         icon: AlertTriangle,
         label: 'Unsupported Version Risk',
         description: `${item.major_versions_behind} major versions behind — security exposure`,
-        color: 'text-red-600',
-        bgColor: 'bg-red-50 dark:bg-red-900/20',
-        borderColor: 'border-red-300 dark:border-red-800',
+        color: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-red-50 dark:bg-red-950/20',
+        borderColor: 'border-red-200 dark:border-red-900/50',
         badgeVariant: 'danger' as const,
       };
     }
@@ -340,9 +341,9 @@ export default function TechStack() {
         icon: Clock,
         label: 'Update Available',
         description: `${item.major_versions_behind} major version(s) behind`,
-        color: 'text-yellow-600',
-        bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
-        borderColor: 'border-yellow-200 dark:border-yellow-800',
+        color: 'text-amber-600 dark:text-amber-400',
+        bgColor: 'bg-amber-50 dark:bg-amber-950/20',
+        borderColor: 'border-amber-200 dark:border-amber-900/50',
         badgeVariant: 'warning' as const,
       };
     }
@@ -352,9 +353,9 @@ export default function TechStack() {
         icon: CheckCircle2,
         label: 'LTS Active',
         description: 'Long Term Support — extended security coverage',
-        color: 'text-green-600',
-        bgColor: 'bg-green-50 dark:bg-green-900/20',
-        borderColor: 'border-green-200 dark:border-green-800',
+        color: 'text-green-600 dark:text-green-400',
+        bgColor: 'bg-green-50 dark:bg-green-950/20',
+        borderColor: 'border-green-100 dark:border-green-900/50',
         badgeVariant: 'success' as const,
       };
     }
@@ -363,36 +364,50 @@ export default function TechStack() {
   };
 
   const getRowBg = (item: TechStackItem) => {
-    if (item.lts_status === 'eol') return 'bg-red-50/50 dark:bg-red-900/10';
-    if (item.lts_status === 'deprecated') return 'bg-orange-50/50 dark:bg-orange-900/10';
-    if (item.major_versions_behind >= 3) return 'bg-orange-50/50 dark:bg-orange-900/10';
+    if (item.lts_status === 'eol') return 'bg-red-50/20 dark:bg-red-950/10';
+    if (item.lts_status === 'deprecated') return 'bg-orange-50/20 dark:bg-orange-950/10';
+    if (item.major_versions_behind >= 3) return 'bg-orange-50/20 dark:bg-orange-950/10';
     return '';
   };
 
   if (loading && organizations.length === 0) {
-    return <div className="space-y-6"><CardSkeleton /><CardSkeleton /></div>;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6"
+      >
+        <CardSkeleton />
+        <CardSkeleton />
+      </motion.div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="space-y-6"
+    >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-            <Cpu className="w-5 h-5 text-violet-600" />
+          <div className="w-10 h-10 bg-violet-55/10 dark:bg-violet-955/20 border border-violet-200 dark:border-violet-800/40 rounded-2xl flex items-center justify-center">
+            <Cpu className="w-5 h-5 text-violet-600 dark:text-violet-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150 tracking-tight">
               Tech Stack Registry
             </h1>
-            <p className="text-gray-500 dark:text-slate-400 text-sm">
+            <p className="text-slate-505 dark:text-slate-455 text-sm font-semibold">
               Track component versions and lifecycle risk
             </p>
           </div>
         </div>
         <div className="flex gap-3 items-center">
           <select
-            className="rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-w-[220px]"
+            className="rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold"
             value={selectedOrgId}
             onChange={(e) => setSelectedOrgId(e.target.value)}
           >
@@ -401,7 +416,7 @@ export default function TechStack() {
             ))}
           </select>
           {!isReadOnly && (
-            <Button onClick={() => setShowAddForm(true)} className="gap-2">
+            <Button onClick={() => setShowAddForm(true)} className="gap-1.5 rounded-xl font-extrabold transition-all duration-205 hover:scale-[1.01]">
               <Plus className="w-4 h-4" /> Add Component
             </Button>
           )}
@@ -409,9 +424,9 @@ export default function TechStack() {
       </div>
 
       {error && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
-          <CardContent className="py-3">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <Card className="rounded-2xl border-red-200 bg-red-50/20 dark:bg-red-955/10 dark:border-red-900/40 shadow-sm">
+          <CardContent className="py-3.5">
+            <p className="text-sm text-red-700 dark:text-red-400 font-bold">{error}</p>
           </CardContent>
         </Card>
       )}
@@ -419,27 +434,27 @@ export default function TechStack() {
       {/* Summary */}
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card padding="md">
-            <p className="text-sm text-gray-500 dark:text-slate-400">Total Components</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{items.length}</p>
+          <Card padding="md" className="rounded-3xl border border-slate-205 dark:border-slate-805 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider">Total Components</p>
+            <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-155 mt-1">{items.length}</p>
           </Card>
-          <Card padding="md" className="border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-500">EOL</p>
-            <p className="text-2xl font-bold text-red-600">{summary.eol_count}</p>
+          <Card padding="md" className="rounded-3xl border border-red-200 dark:border-red-900/40 bg-red-50/20 dark:bg-red-955/10 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md">
+            <p className="text-xs font-bold text-red-750 dark:text-red-400 uppercase tracking-wider">EOL</p>
+            <p className="text-2xl font-extrabold text-red-600 dark:text-red-400 mt-1">{summary.eol_count}</p>
           </Card>
-          <Card padding="md" className="border-orange-200 dark:border-orange-800">
-            <p className="text-sm text-orange-500">Deprecated</p>
-            <p className="text-2xl font-bold text-orange-600">{summary.deprecated_count}</p>
+          <Card padding="md" className="rounded-3xl border border-orange-200 dark:border-orange-900/40 bg-orange-50/20 dark:bg-orange-955/10 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md">
+            <p className="text-xs font-bold text-orange-750 dark:text-orange-400 uppercase tracking-wider">Deprecated</p>
+            <p className="text-2xl font-extrabold text-orange-600 dark:text-orange-400 mt-1">{summary.deprecated_count}</p>
           </Card>
-          <Card padding="md">
-            <p className="text-sm text-gray-500 dark:text-slate-400">Risk Breakdown</p>
-            <div className="flex items-center gap-2 mt-1">
+          <Card padding="md" className="rounded-3xl border border-slate-205 dark:border-slate-805 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider">Risk Breakdown</p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2">
               {Object.entries(summary.risk_breakdown).map(([level, count]) => (
-                <span key={level} className="text-xs">
+                <span key={level} className="text-xs font-bold">
                   <span className={
-                    level === 'critical' ? 'text-red-600' :
-                    level === 'high' ? 'text-orange-600' :
-                    level === 'medium' ? 'text-yellow-600' : 'text-green-600'
+                    level === 'critical' ? 'text-red-650 dark:text-red-400' :
+                    level === 'high' ? 'text-orange-600 dark:text-orange-400' :
+                    level === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-green-605 dark:text-green-400'
                   }>{level}: {count}</span>
                 </span>
               ))}
@@ -450,12 +465,12 @@ export default function TechStack() {
 
       {/* Upgrade Governance Summary */}
       {summary?.upgrade_governance_summary && (
-        <Card className="border-violet-200 dark:border-violet-800">
-          <CardContent className="py-3">
-            <p className="text-sm text-violet-700 dark:text-violet-300 font-medium">
+        <Card className="rounded-3xl border border-violet-200 dark:border-violet-900/30 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-violet-350 dark:hover:border-violet-750 bg-violet-50/10 dark:bg-violet-955/10">
+          <CardContent className="py-4">
+            <p className="text-sm text-violet-700 dark:text-violet-300 font-extrabold">
               Upgrade Governance Summary
             </p>
-            <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
+            <p className="text-sm text-slate-700 dark:text-slate-350 mt-1.5 leading-relaxed font-semibold">
               {summary.upgrade_governance_summary}
             </p>
           </CardContent>
@@ -464,47 +479,47 @@ export default function TechStack() {
 
       {/* Add Form */}
       {showAddForm && (
-        <Card className="border-indigo-200 dark:border-indigo-800">
-          <CardHeader>
+        <Card className="rounded-3xl border border-indigo-200 dark:border-indigo-800/80 shadow-md bg-white/60 dark:bg-slate-955/20 transition-all duration-300">
+          <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle>Add Component</CardTitle>
-              <button onClick={() => setShowAddForm(false)}>
-                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+              <CardTitle className="text-slate-900 dark:text-slate-150 font-extrabold text-lg">Add Component</CardTitle>
+              <button onClick={() => setShowAddForm(false)} className="p-1 rounded-xl hover:bg-slate-105 dark:hover:bg-slate-800/60 transition-colors">
+                <X className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" />
               </button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   Component Name
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. Python"
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.component_name}
                   onChange={(e) => setNewItem({ ...newItem, component_name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   Version
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. 3.11.4"
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.version}
                   onChange={(e) => setNewItem({ ...newItem, version: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   Category
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.category}
                   onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
                 >
@@ -514,11 +529,11 @@ export default function TechStack() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   LTS Status
                 </label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.lts_status}
                   onChange={(e) => setNewItem({ ...newItem, lts_status: e.target.value as TechStackItemCreate['lts_status'] })}
                 >
@@ -528,21 +543,23 @@ export default function TechStack() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
                   Major Versions Behind
                 </label>
                 <input
                   type="number"
                   min={0}
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.major_versions_behind || 0}
                   onChange={(e) => setNewItem({ ...newItem, major_versions_behind: parseInt(e.target.value) || 0 })}
                 />
               </div>
             </div>
-            <Button onClick={handleAdd} disabled={!newItem.component_name || !newItem.version}>
-              Add Component
-            </Button>
+            <div className="pt-2">
+              <Button onClick={handleAdd} disabled={!newItem.component_name || !newItem.version} className="rounded-xl font-extrabold transition-all duration-205 hover:scale-[1.01]">
+                Add Component
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -551,29 +568,29 @@ export default function TechStack() {
       {loading ? (
         <CardSkeleton />
       ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Cpu className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-slate-400">
-              No components tracked yet. Click "Add Component" to begin.
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm bg-white/60 dark:bg-slate-955/20">
+          <CardContent className="py-20 text-center">
+            <Cpu className="w-16 h-16 text-slate-350 dark:text-slate-700 mx-auto mb-4 opacity-80" />
+            <p className="text-slate-505 dark:text-slate-455 font-bold text-lg">
+              No components tracked yet. Click &quot;Add Component&quot; to begin.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm overflow-hidden bg-white/60 dark:bg-slate-955/20 hover:border-slate-350 dark:hover:border-slate-750 transition-all duration-300">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-slate-700">
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Component</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Version</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Category</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Lifecycle Status</th>
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-450">Component</th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Version</th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Category</th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Lifecycle Status</th>
                   {isStaging && (
-                    <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Version Status</th>
+                    <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Version Status</th>
                   )}
-                  <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-slate-400">Risk</th>
-                  <th className="text-right py-3 px-4"></th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Risk</th>
+                  <th className="text-right py-3.5 px-6"></th>
                 </tr>
               </thead>
               <tbody>
@@ -582,40 +599,40 @@ export default function TechStack() {
                   const LifecycleIcon = lifecycle.icon;
                   
                   return (
-                    <tr key={item.id} className={`border-b border-gray-100 dark:border-slate-800 ${getRowBg(item)} hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors`}>
-                      <td className="py-3 px-4 font-medium text-gray-900 dark:text-slate-100">
+                    <tr key={item.id} className={`border-b border-slate-150 dark:border-slate-850/60 ${getRowBg(item)} hover:bg-slate-50/60 dark:hover:bg-slate-900/20 transition-colors`}>
+                      <td className="py-4 px-6 font-extrabold text-slate-900 dark:text-slate-150">
                         {item.component_name}
                       </td>
-                      <td className="py-3 px-4 text-gray-600 dark:text-slate-400 font-mono text-xs">
+                      <td className="py-4 px-6 text-slate-700 dark:text-slate-350 font-mono text-xs">
                         {item.version}
                       </td>
-                      <td className="py-3 px-4 text-gray-600 dark:text-slate-400">{item.category || '—'}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-start gap-2">
-                          <div className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center ${lifecycle.bgColor} border ${lifecycle.borderColor}`}>
+                      <td className="py-4 px-6 text-slate-505 dark:text-slate-400 font-semibold">{item.category || '—'}</td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-start gap-2.5">
+                          <div className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${lifecycle.bgColor} border ${lifecycle.borderColor} shadow-sm`}>
                             <LifecycleIcon className={`w-4 h-4 ${lifecycle.color}`} />
                           </div>
                           <div className="min-w-0">
-                            <p className={`text-xs font-semibold ${lifecycle.color}`}>
+                            <p className={`text-xs font-extrabold ${lifecycle.color}`}>
                               {lifecycle.label}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-slate-500 truncate max-w-[200px]">
+                            <p className="text-xs text-slate-500 dark:text-slate-450 truncate max-w-[200px] mt-0.5 font-semibold">
                               {lifecycle.description}
                             </p>
                           </div>
                         </div>
                       </td>
                       {isStaging && (
-                        <td className="py-3 px-4">
+                        <td className="py-4 px-6">
                           {(() => {
                             const vs = getVersionStatus(item);
-                            if (!vs) return <span className="text-xs text-gray-400">—</span>;
+                            if (!vs) return <span className="text-xs text-slate-450">—</span>;
                             if (vs.status === 'cve') {
                               return (
-                                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-red-50/20 dark:bg-red-955/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 shadow-sm">
                                   <ShieldX className="w-3.5 h-3.5 shrink-0" />
                                   <span className="text-xs font-bold">
-                                    ⛔ {vs.label} — Upgrade to {vs.upgradeTarget}
+                                    {vs.label} — Upgrade to {vs.upgradeTarget}
                                   </span>
                                   {vs.cveId && (
                                     <span className="text-[10px] opacity-70 ml-1">({vs.cveId})</span>
@@ -625,34 +642,34 @@ export default function TechStack() {
                             }
                             if (vs.status === 'upgrade') {
                               return (
-                                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50/20 dark:bg-amber-955/10 text-amber-700 dark:text-amber-400 border border-amber-250 dark:border-amber-900/40 shadow-sm">
                                   <ArrowUpCircle className="w-3.5 h-3.5 shrink-0" />
-                                  <span className="text-xs font-semibold">
-                                    ⚠ {vs.label} → v{vs.latestStable}
+                                  <span className="text-xs font-bold">
+                                    {vs.label} → v{vs.latestStable}
                                   </span>
                                 </div>
                               );
                             }
                             return (
-                              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700">
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-green-50/20 dark:bg-green-955/10 text-green-750 dark:text-green-400 border border-green-200 dark:border-green-900/40 shadow-sm">
                                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                                <span className="text-xs font-medium">{vs.label}</span>
+                                <span className="text-xs font-bold">{vs.label}</span>
                               </div>
                             );
                           })()}
                         </td>
                       )}
-                      <td className="py-3 px-4">
+                      <td className="py-4 px-6">
                         <div className="flex flex-col gap-1">
                           {getRiskBadge(item)}
                           {isStaging && <ShadowAIBadge item={item} />}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-4 px-6 text-right">
                         {!isReadOnly && (
                           <button
                             onClick={() => handleDelete(item.id)}
-                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -667,6 +684,6 @@ export default function TechStack() {
           </div>
         </Card>
       )}
-    </div>
+    </motion.div>
   );
 }

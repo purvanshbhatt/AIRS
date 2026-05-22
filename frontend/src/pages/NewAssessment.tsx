@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useIsReadOnly } from '../contexts';
 import {
@@ -278,39 +278,39 @@ export default function NewAssessment() {
   // Render setup step
   const renderSetup = () => (
     <div className="max-w-xl mx-auto">
-      <Card variant="elevated">
+      <Card variant="elevated" className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-md transition-all duration-300">
         <CardHeader className="pb-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-              <ClipboardList className="w-5 h-5 text-primary-600" />
+            <div className="w-10 h-10 bg-primary-50 dark:bg-primary-950/40 border border-primary-100/50 dark:border-primary-900/30 rounded-xl flex items-center justify-center">
+              <ClipboardList className="w-5 h-5 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <CardTitle className="text-xl">New Assessment</CardTitle>
-              <CardDescription>Start a new security readiness assessment</CardDescription>
+              <CardTitle className="text-xl text-slate-900 dark:text-slate-100">New Assessment</CardTitle>
+              <CardDescription className="text-slate-500 dark:text-slate-400">Start a new security readiness assessment</CardDescription>
             </div>
           </div>
         </CardHeader>
 
         <CardContent>
           {error && (
-            <div className="mb-6 p-3 bg-danger-50 border border-danger-200 rounded-lg text-danger-700 text-sm flex items-center gap-2">
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 rounded-2xl text-red-700 dark:text-red-300 text-sm flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {error}
             </div>
           )}
 
           {hasDraft && (
-            <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
+            <div className="mb-6 p-4 bg-primary-50 dark:bg-primary-950/20 border border-primary-200/50 dark:border-primary-900/30 rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-primary-900">Draft available</p>
-                  <p className="text-sm text-primary-700">You have an unsaved assessment</p>
+                  <p className="font-semibold text-primary-900 dark:text-primary-100">Draft available</p>
+                  <p className="text-sm text-primary-700 dark:text-primary-300">You have an unsaved assessment</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={clearDraft}>
+                  <Button variant="outline" size="sm" onClick={clearDraft} className="rounded-lg">
                     Discard
                   </Button>
-                  <Button size="sm" onClick={restoreDraft}>
+                  <Button size="sm" onClick={restoreDraft} className="rounded-lg shadow-sm">
                     Restore
                   </Button>
                 </div>
@@ -329,9 +329,9 @@ export default function NewAssessment() {
             />
 
             {!loading && orgs.length === 0 && (
-              <p className="text-sm text-gray-500 dark:text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 No organizations found.{' '}
-                <Link to="/org/new" className="text-primary-600 hover:text-primary-700 font-medium">
+                <Link to="/org/new" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
                   Create one first
                 </Link>
                 .
@@ -351,7 +351,7 @@ export default function NewAssessment() {
           <Button
             onClick={() => setStep('questions')}
             disabled={!orgId || !rubric}
-            className="gap-2"
+            className="gap-2 rounded-xl px-5 py-2.5 shadow-sm hover:shadow-md transition-all duration-200"
           >
             Continue to Questions
             <ArrowRight className="w-4 h-4" />
@@ -360,7 +360,6 @@ export default function NewAssessment() {
       </Card>
     </div>
   );
-
   // Render questions step
   const renderQuestions = () => {
     if (!rubric) return null;
@@ -370,19 +369,19 @@ export default function NewAssessment() {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Progress Header */}
-        <Card>
-          <CardContent className="py-4">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300">
+          <CardContent className="py-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">{title}</h1>
-                <p className="text-sm text-gray-500 dark:text-slate-400">
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{title}</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {orgs.find((o) => o.id === orgId)?.name || 'Organization'}
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-primary-600">{progress.percentage}%</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">
+                  <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">{progress.percentage}%</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                     {progress.answered} of {progress.total} answered
                   </p>
                 </div>
@@ -393,7 +392,7 @@ export default function NewAssessment() {
                       cy="50"
                       r="40"
                       fill="none"
-                      className="stroke-gray-200 dark:stroke-slate-700"
+                      className="stroke-slate-200 dark:stroke-slate-800"
                       strokeWidth="8"
                     />
                     <circle
@@ -401,7 +400,7 @@ export default function NewAssessment() {
                       cy="50"
                       r="40"
                       fill="none"
-                      className="stroke-primary-500"
+                      className="stroke-primary-600 dark:stroke-primary-500"
                       strokeWidth="8"
                       strokeLinecap="round"
                       strokeDasharray={2 * Math.PI * 40}
@@ -413,9 +412,9 @@ export default function NewAssessment() {
             </div>
 
             {/* Progress bar */}
-            <div className="mt-4 h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="mt-4 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary-500 transition-all duration-300"
+                className="h-full bg-primary-600 dark:bg-primary-500 transition-all duration-300"
                 style={{ width: `${progress.percentage}%` }}
               />
             </div>
@@ -424,19 +423,19 @@ export default function NewAssessment() {
 
         {/* Error message */}
         {error && (
-          <div className="p-4 bg-danger-50 border border-danger-200 rounded-lg text-danger-700 flex items-center gap-2">
+          <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 rounded-2xl text-red-700 dark:text-red-300 flex items-center gap-2">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             {error}
           </div>
         )}
 
         {/* Domain Accordions */}
-        <Card>
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
           <CardContent className="p-0">
             <Accordion defaultOpen={[domains[0]?.[0]]}>
               {domains.map(([domainId, domain]) => {
                 const Icon = domainIcons[domainId] || Shield;
-                const color = domainColors[domainId] || 'bg-gray-50 dark:bg-slate-900';
+                const color = domainColors[domainId] || 'bg-slate-50 dark:bg-slate-900';
                 const domainProgress = getDomainProgress(domain);
                 const isComplete = domainProgress.answered === domainProgress.total;
 
@@ -446,13 +445,13 @@ export default function NewAssessment() {
                       <div className="flex items-center justify-between w-full pr-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-8 h-8 ${color} rounded-lg flex items-center justify-center`}
+                            className={`w-8 h-8 ${color} rounded-xl flex items-center justify-center shadow-sm`}
                           >
                             <Icon className="w-4 h-4 text-white" />
                           </div>
                           <div className="text-left">
-                            <p className="font-medium text-gray-900 dark:text-slate-100">{domain.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">{domain.description}</p>
+                            <p className="font-semibold text-slate-900 dark:text-slate-100">{domain.name}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{domain.description}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -467,22 +466,22 @@ export default function NewAssessment() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="space-y-4 pt-2">
+                      <div className="space-y-4 pt-2 px-4 pb-4">
                         {domain.questions.map((question, idx) => (
                           <div
                             key={question.id}
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-slate-900 rounded-lg"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-100/50 dark:border-slate-800/40 rounded-2xl transition-all duration-200 hover:bg-slate-100/45 dark:hover:bg-slate-950/65"
                           >
                             <div className="flex-1">
                               <div className="flex items-start gap-2">
-                                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                   {idx + 1}. {question.text}
                                 </p>
                                 {question.help_text && (
                                   <Tooltip content={question.help_text} placement="top">
                                     <button
                                       type="button"
-                                      className="mt-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                                      className="mt-0.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350"
                                       aria-label={`Question help for ${question.id}`}
                                     >
                                       <Info className="w-4 h-4" />
@@ -490,7 +489,7 @@ export default function NewAssessment() {
                                   </Tooltip>
                                 )}
                               </div>
-                              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                 {question.points} point{question.points !== 1 ? 's' : ''} -{' '}
                                 {questionTypeLabel(question.type)}
                               </p>
@@ -501,10 +500,10 @@ export default function NewAssessment() {
                                 <button
                                   type="button"
                                   onClick={() => handleAnswer(question.id, false)}
-                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-250 ${
                                     answers[question.id] === false
-                                      ? 'bg-danger-100 text-danger-700 ring-2 ring-danger-500'
-                                      : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-800'
+                                      ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 ring-2 ring-red-500 dark:ring-red-400 shadow-sm font-semibold'
+                                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
                                   }`}
                                 >
                                   No
@@ -512,10 +511,10 @@ export default function NewAssessment() {
                                 <button
                                   type="button"
                                   onClick={() => handleAnswer(question.id, true)}
-                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-250 ${
                                     answers[question.id] === true
-                                      ? 'bg-success-100 text-success-700 ring-2 ring-success-500'
-                                      : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-800'
+                                      ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 ring-2 ring-green-500 dark:ring-green-400 shadow-sm font-semibold'
+                                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
                                   }`}
                                 >
                                   Yes
@@ -532,13 +531,13 @@ export default function NewAssessment() {
                                     handleAnswer(question.id, parseFloat(e.target.value) || 0)
                                   }
                                   placeholder={question.type === 'percentage' ? '0-100' : 'Enter value'}
-                                  className="w-28 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                  className="w-28 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                                 />
                                 {question.type === 'percentage' && (
-                                  <span className="text-gray-500 dark:text-slate-400 text-sm">%</span>
+                                  <span className="text-slate-500 dark:text-slate-400 text-sm">%</span>
                                 )}
                                 {question.type === 'numeric' && question.id.includes('retention') && (
-                                  <span className="text-gray-500 dark:text-slate-400 text-sm">days</span>
+                                  <span className="text-slate-500 dark:text-slate-400 text-sm">days</span>
                                 )}
                               </div>
                             )}
@@ -556,18 +555,18 @@ export default function NewAssessment() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => setStep('setup')} className="gap-2">
+            <Button variant="ghost" onClick={() => setStep('setup')} className="gap-2 rounded-xl">
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
-            <Button variant="outline" onClick={clearDraft} className="gap-2">
+            <Button variant="outline" onClick={clearDraft} className="gap-2 rounded-xl">
               <RotateCcw className="w-4 h-4" />
               Reset
             </Button>
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={saveDraft} className="gap-2">
+            <Button variant="secondary" onClick={saveDraft} className="gap-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
               <Save className="w-4 h-4" />
               Save Draft
             </Button>
@@ -575,7 +574,7 @@ export default function NewAssessment() {
               onClick={handleSubmit}
               disabled={progress.percentage < 100 || submitting}
               loading={submitting}
-              className="gap-2"
+              className="gap-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
             >
               {submitting ? (
                 <>
@@ -593,7 +592,7 @@ export default function NewAssessment() {
         </div>
 
         {progress.percentage < 100 && (
-          <p className="text-center text-sm text-gray-500 dark:text-slate-400">
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400 font-medium">
             Complete all {progress.total - progress.answered} remaining questions to submit
           </p>
         )}
@@ -606,8 +605,8 @@ export default function NewAssessment() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-slate-300">Loading assessment...</p>
+          <Loader2 className="w-12 h-12 text-primary-600 dark:text-primary-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-350 font-medium">Loading assessment...</p>
         </div>
       </div>
     );

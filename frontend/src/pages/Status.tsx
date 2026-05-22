@@ -1,14 +1,29 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Activity, RefreshCw, Timer, Server, Bot, Boxes, Layers, ExternalLink, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Activity,
+  RefreshCw,
+  Timer,
+  Server,
+  Bot,
+  Boxes,
+  Layers,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Lock,
+  Cpu,
+} from 'lucide-react';
 import { Footer } from '../components/layout/Footer';
 import { checkHealth, getSystemStatus, ApiRequestError, getApiBaseUrl } from '../api';
-import type { ProductInfo, SystemStatus } from '../types';
+import type { ProductInfo, SystemStatus as SystemStatusType } from '../types';
 import { Button } from '../components/ui';
 
 interface StatusSnapshot {
   backendOperational: boolean | null;
   product: ProductInfo | null;
-  system: SystemStatus | null;
+  system: SystemStatusType | null;
   latencyMs: number | null;
   updatedAt: Date | null;
   error: string;
@@ -87,7 +102,9 @@ export default function StatusPage() {
   });
   const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [countdownProgress, setCountdownProgress] = useState(100);
   const [endpointChecks, setEndpointChecks] = useState<Record<string, EndpointCheck>>(createInitialEndpointChecks);
+  const [showRawPayload, setShowRawPayload] = useState(false);
 
   const apiBaseUrl = getApiBaseUrl();
 
@@ -201,13 +218,30 @@ export default function StatusPage() {
     void refreshStatus();
   }, [refreshStatus]);
 
+  // Visual countdown progress bar
   useEffect(() => {
-    if (!autoRefresh) return;
-    const timer = window.setInterval(() => {
-      void refreshStatus();
-    }, AUTO_REFRESH_MS);
-    return () => window.clearInterval(timer);
-  }, [autoRefresh, refreshStatus]);
+    if (!autoRefresh || refreshing) {
+      setCountdownProgress(100);
+      return;
+    }
+
+    const tickMs = 100;
+    const totalTicks = AUTO_REFRESH_MS / tickMs;
+    let currentTick = 0;
+
+    const interval = setInterval(() => {
+      currentTick += 1;
+      const progress = Math.max(0, 100 - (currentTick / totalTicks) * 100);
+      setCountdownProgress(progress);
+
+      if (currentTick >= totalTicks) {
+        currentTick = 0;
+        void refreshStatus();
+      }
+    }, tickMs);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, refreshing, refreshStatus]);
 
   const payload = useMemo(
     () => ({
@@ -222,94 +256,234 @@ export default function StatusPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-10 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-300">
+      {/* Top Countdown bar */}
+      <AnimatePresence>
+        {autoRefresh && !refreshing && (
+          <div className="fixed top-0 left-0 right-0 h-1 bg-slate-100 dark:bg-slate-900 z-50 overflow-hidden">
+            <motion.div
+              className="h-full bg-blue-500"
+              initial={{ width: '100%' }}
+              animate={{ width: `${countdownProgress}%` }}
+              transition={{ ease: 'linear', duration: 0.1 }}
+            />
+          </div>
+        )}
+      </AnimatePresence>
+
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-12 space-y-8 text-left">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-150 dark:border-slate-900 pb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">System Status</h1>
-            <p className="text-slate-600 dark:text-slate-300 mt-2">
-              Live platform health, deployment metadata, and runtime configuration.
+            <h1 className="text-3xl font-extrabold text-slate-950 dark:text-slate-50">System Status</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+              Real-time platform connectivity, AI core diagnostic metrics, and backend status.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               size="sm"
               variant="outline"
-              className="gap-2"
+              className="gap-2 text-xs rounded-xl"
               onClick={() => setAutoRefresh((value) => !value)}
             >
               <Timer className="h-4 w-4" />
-              {autoRefresh ? 'Auto-Refresh On' : 'Auto-Refresh Off'}
+              {autoRefresh ? 'Auto-Polling On' : 'Polling Off'}
             </Button>
             <Button
               size="sm"
-              className="gap-2"
+              className="gap-2 text-xs bg-slate-900 hover:bg-slate-800 dark:bg-slate-50 dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-xl"
               onClick={() => {
                 void refreshStatus();
               }}
               disabled={refreshing}
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh All
+              Check Status
             </Button>
           </div>
         </div>
 
         {snapshot.error && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-300">
+          <div className="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-2xl text-xs text-rose-700 dark:text-rose-350">
             {snapshot.error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <StatusCard
-            icon={<Server className="h-4 w-4 text-blue-500" />}
-            label="Backend"
-            value={snapshot.backendOperational === null ? 'Checking...' : snapshot.backendOperational ? 'Operational' : 'Unavailable'}
-          />
-          <StatusCard
-            icon={<Activity className="h-4 w-4 text-blue-500" />}
-            label="Environment"
-            value={snapshot.system?.environment || 'Unknown'}
-          />
-          <StatusCard
-            icon={<Bot className="h-4 w-4 text-blue-500" />}
-            label="LLM"
-            value={snapshot.system?.llm_enabled ? 'Enabled' : 'Disabled'}
-          />
-          <StatusCard
-            icon={<Layers className="h-4 w-4 text-blue-500" />}
-            label="Version"
-            value={snapshot.system?.version || snapshot.product?.version || 'Unknown'}
-          />
-          <StatusCard
-            icon={<Boxes className="h-4 w-4 text-blue-500" />}
-            label="Integrations"
-            value={snapshot.system?.integrations_enabled ? 'Enabled' : 'Disabled'}
-          />
-          <StatusCard
-            icon={<Timer className="h-4 w-4 text-blue-500" />}
-            label="Latency"
-            value={snapshot.latencyMs == null ? 'N/A' : `${snapshot.latencyMs} ms`}
-          />
+        {/* Services Status with Glowing/Pulsing Orbs */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Backend Status Card */}
+          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Server className="w-3.5 h-3.5" />
+                FastAPI Backend
+              </span>
+              <p className="text-base font-extrabold text-slate-900 dark:text-slate-550">
+                {snapshot.backendOperational === null ? 'Loading...' : snapshot.backendOperational ? 'Operational' : 'Offline'}
+              </p>
+            </div>
+            {/* Pulsing Orb */}
+            <div className="relative flex items-center justify-center w-8 h-8">
+              <div
+                className={`absolute w-4 h-4 rounded-full opacity-35 animate-ping ${
+                  snapshot.backendOperational ? 'bg-emerald-500' : 'bg-rose-500'
+                }`}
+              />
+              <div
+                className={`w-3.5 h-3.5 rounded-full border border-white/20 dark:border-black/20 shadow-md ${
+                  snapshot.backendOperational ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50'
+                }`}
+                style={{
+                  boxShadow: `0 0 12px ${snapshot.backendOperational ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'}`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Gemini AI Engine Status Card */}
+          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Bot className="w-3.5 h-3.5" />
+                Gemini Narrative Engine
+              </span>
+              <p className="text-base font-extrabold text-slate-900 dark:text-slate-550">
+                {snapshot.system?.llm_enabled ? 'Ready / Active' : 'Offline'}
+              </p>
+            </div>
+            {/* Pulsing Orb */}
+            <div className="relative flex items-center justify-center w-8 h-8">
+              {snapshot.system?.llm_enabled && (
+                <div className="absolute w-4 h-4 rounded-full opacity-35 bg-emerald-500 animate-ping" />
+              )}
+              <div
+                className={`w-3.5 h-3.5 rounded-full border border-white/20 dark:border-black/20 shadow-md ${
+                  snapshot.system?.llm_enabled ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50'
+                }`}
+                style={{
+                  boxShadow: `0 0 12px ${snapshot.system?.llm_enabled ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'}`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Firebase Authentication Status Card */}
+          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5" />
+                Firebase Auth
+              </span>
+              <p className="text-base font-extrabold text-slate-900 dark:text-slate-550">
+                {snapshot.system ? 'Active / Configured' : 'Offline'}
+              </p>
+            </div>
+            {/* Pulsing Orb */}
+            <div className="relative flex items-center justify-center w-8 h-8">
+              {snapshot.system && (
+                <div className="absolute w-4 h-4 rounded-full opacity-35 bg-emerald-500 animate-ping" />
+              )}
+              <div
+                className={`w-3.5 h-3.5 rounded-full border border-white/20 dark:border-black/20 shadow-md ${
+                  snapshot.system ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50'
+                }`}
+                style={{
+                  boxShadow: `0 0 12px ${snapshot.system ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'}`,
+                }}
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Interactive Endpoint Checks</h2>
+        {/* Latency Gauge & Metrics Row */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Latency Gauge Card */}
+          <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 space-y-4">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5" />
+                Latency Diagnostics
+              </span>
+              <p className="text-2xl font-extrabold mt-1">
+                {snapshot.latencyMs === null ? 'N/A' : `${snapshot.latencyMs} ms`}
+              </p>
+            </div>
+            {/* Visual Gauge Bar */}
+            <div className="space-y-1.5">
+              <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    snapshot.latencyMs === null
+                      ? 'w-0'
+                      : snapshot.latencyMs < 100
+                        ? 'bg-emerald-500 w-1/4'
+                        : snapshot.latencyMs < 300
+                          ? 'bg-amber-500 w-2/4'
+                          : 'bg-rose-500 w-4/4'
+                  }`}
+                />
+              </div>
+              <div className="flex justify-between text-[9px] font-bold text-slate-400">
+                <span>Fast (&lt;100ms)</span>
+                <span>Degraded (&gt;300ms)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* System Environment details */}
+          <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex flex-col justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5" />
+                Environment Deployment
+              </span>
+              <p className="text-base font-extrabold capitalize">
+                {snapshot.system?.environment || 'Unknown'} Mode
+              </p>
+            </div>
+            <div className="text-[10px] font-bold text-slate-400">
+              API Version: {snapshot.system?.version || snapshot.product?.version || 'N/A'}
+            </div>
+          </div>
+
+          {/* External Integrations */}
+          <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex flex-col justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Boxes className="w-3.5 h-3.5" />
+                SIEM Integrations
+              </span>
+              <p className="text-base font-extrabold">
+                {snapshot.system?.integrations_enabled ? 'Ready / Enabled' : 'Disabled'}
+              </p>
+            </div>
+            <div className="text-[10px] font-bold text-slate-400">
+              Wazuh &amp; Splunk active listeners
+            </div>
+          </div>
+        </div>
+
+        {/* Interactive Endpoint Check Cards */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-850 space-y-5 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-900 pb-3">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Live Endpoint Inspection</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Run specific health diagnostic routes.</p>
+            </div>
             <Button
               size="sm"
               variant="outline"
-              className="gap-2"
+              className="gap-2 text-xs rounded-xl"
               onClick={() => {
                 void runAllEndpointChecks();
               }}
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-3.5 w-3.5" />
               Re-run Checks
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid md:grid-cols-2 gap-4">
             {ENDPOINTS.map((endpoint) => (
               <EndpointCheckCard
                 key={endpoint.key}
@@ -324,24 +498,39 @@ export default function StatusPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">Runtime Endpoints</h2>
-          <div className="space-y-2 text-sm">
-            <EndpointRow label="Health" href={`${apiBaseUrl}/health`} />
-            <EndpointRow label="System" href={`${apiBaseUrl}/health/system`} />
-            <EndpointRow label="LLM" href={`${apiBaseUrl}/health/llm`} />
-            <EndpointRow label="CORS" href={`${apiBaseUrl}/health/cors`} />
+        {/* Runtime Endpoints Links */}
+        <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 space-y-4">
+          <div>
+            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200">Runtime API Routes</h2>
+            <p className="text-[11px] text-slate-500 dark:text-slate-450 mt-0.5">Direct link to raw backend JSON payloads.</p>
           </div>
-          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-            Last updated: {snapshot.updatedAt ? snapshot.updatedAt.toLocaleString() : 'Not yet loaded'}
-          </p>
+          <div className="grid sm:grid-cols-2 gap-3 text-xs">
+            <EndpointRow label="Health Diagnostics" href={`${apiBaseUrl}/health`} />
+            <EndpointRow label="System Configurations" href={`${apiBaseUrl}/health/system`} />
+            <EndpointRow label="LLM Narration State" href={`${apiBaseUrl}/health/llm`} />
+            <EndpointRow label="CORS Access Controls" href={`${apiBaseUrl}/health/cors`} />
+          </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Raw Status Payload</h2>
-          <pre className="text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-3 overflow-x-auto text-slate-700 dark:text-slate-200">
-            {JSON.stringify(payload, null, 2)}
-          </pre>
+        {/* Raw Payload Section */}
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden shadow-sm">
+          <button
+            onClick={() => setShowRawPayload(!showRawPayload)}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors"
+          >
+            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Raw Diagnostic JSON Payload</span>
+            <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">
+              {showRawPayload ? 'Hide' : 'Expand'}
+            </span>
+          </button>
+
+          {showRawPayload && (
+            <div className="p-6 border-t border-slate-100 dark:border-slate-900 bg-slate-950">
+              <pre className="text-[10px] leading-relaxed font-mono text-emerald-400 overflow-x-auto text-left whitespace-pre-wrap">
+                {JSON.stringify(payload, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       </main>
 
@@ -350,27 +539,15 @@ export default function StatusPage() {
   );
 }
 
-function StatusCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
-      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {icon}
-        {label}
-      </div>
-      <div className="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">{value}</div>
-    </div>
-  );
-}
-
 function EndpointRow({ label, href }: { label: string; href: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-      <span className="text-slate-600 dark:text-slate-300">{label}</span>
+    <div className="flex items-center justify-between gap-3 rounded-2xl px-4 py-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-900">
+      <span className="text-slate-600 dark:text-slate-400 font-semibold shrink-0">{label}</span>
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="font-mono text-xs text-primary-600 dark:text-primary-300 hover:underline break-all text-right"
+        className="font-mono text-[10px] text-blue-600 dark:text-blue-400 hover:underline break-all text-right"
       >
         {href}
       </a>
@@ -392,57 +569,61 @@ function EndpointCheckCard({
   const href = `${apiBaseUrl}${endpoint.path}`;
   const statusLabel =
     result.state === 'idle'
-      ? 'Not checked'
+      ? 'Awaiting Check'
       : result.state === 'checking'
-        ? 'Checking...'
+        ? 'Querying...'
         : result.state === 'ok'
-          ? `OK${result.statusCode ? ` (${result.statusCode})` : ''}`
-          : `Error${result.statusCode ? ` (${result.statusCode})` : ''}`;
+          ? `HTTP ${result.statusCode || 200} OK`
+          : `HTTP ${result.statusCode || 'FAIL'}`;
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-3 bg-slate-50 dark:bg-slate-950">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{endpoint.label}</div>
-          <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">{endpoint.description}</div>
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-900 p-4 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between gap-4 text-left">
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-sm font-bold text-slate-900 dark:text-slate-100">{endpoint.label}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal mt-0.5">{endpoint.description}</div>
+          </div>
+          <EndpointStateBadge state={result.state} label={statusLabel} />
         </div>
-        <EndpointStateBadge state={result.state} label={statusLabel} />
+
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2.5 inline-flex items-center gap-1 font-mono text-[10px] text-blue-600 dark:text-blue-400 hover:underline break-all"
+        >
+          {endpoint.path}
+          <ExternalLink className="h-3 w-3" />
+        </a>
       </div>
 
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-2 inline-flex items-center gap-1 font-mono text-xs text-primary-600 dark:text-primary-300 hover:underline break-all"
-      >
-        {endpoint.path}
-        <ExternalLink className="h-3.5 w-3.5" />
-      </a>
-
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="text-xs text-slate-500 dark:text-slate-400">
-          {result.durationMs != null && <span>{result.durationMs} ms</span>}
-          {result.durationMs != null && result.checkedAt && <span> • </span>}
-          {result.checkedAt && <span>{result.checkedAt.toLocaleTimeString()}</span>}
-          {result.durationMs == null && !result.checkedAt && <span>Awaiting check</span>}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-slate-100 dark:border-slate-850/60">
+          <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+            {result.durationMs != null && <span>Response: {result.durationMs} ms</span>}
+            {result.durationMs != null && result.checkedAt && <span> • </span>}
+            {result.checkedAt && <span>Checked: {result.checkedAt.toLocaleTimeString()}</span>}
+            {result.durationMs == null && !result.checkedAt && <span>Not checked yet</span>}
+          </div>
+          <Button size="sm" variant="outline" onClick={onRun} className="gap-1.5 text-[10px] px-2.5 h-7 rounded-lg">
+            <RefreshCw className="h-3 w-3" />
+            Query
+          </Button>
         </div>
-        <Button size="sm" variant="outline" onClick={onRun} className="gap-2">
-          <RefreshCw className="h-3.5 w-3.5" />
-          Run
-        </Button>
+
+        {result.error && (
+          <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 px-3 py-2 text-[10px] text-rose-700 dark:text-rose-350">
+            {result.error}
+          </div>
+        )}
+
+        {result.preview && (
+          <pre className="text-[10px] leading-relaxed text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-900 rounded-xl p-3 overflow-x-auto max-h-24">
+            {result.preview}
+          </pre>
+        )}
       </div>
-
-      {result.error && (
-        <div className="mt-2 rounded border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-2 py-1.5 text-xs text-red-700 dark:text-red-300">
-          {result.error}
-        </div>
-      )}
-
-      {result.preview && (
-        <pre className="mt-2 text-[11px] leading-relaxed text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded p-2 overflow-x-auto">
-          {result.preview}
-        </pre>
-      )}
     </div>
   );
 }
@@ -450,8 +631,8 @@ function EndpointCheckCard({
 function EndpointStateBadge({ state, label }: { state: EndpointState; label: string }) {
   if (state === 'checking') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 text-[11px] text-blue-700 dark:text-blue-300">
-        <Loader2 className="h-3 w-3 animate-spin" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 dark:border-blue-900/30 bg-blue-50 dark:bg-blue-950/20 px-2.5 py-0.5 text-[10px] font-semibold text-blue-750 dark:text-blue-400 shrink-0">
+        <Loader2 className="h-2.5 w-2.5 animate-spin" />
         {label}
       </span>
     );
@@ -459,8 +640,8 @@ function EndpointStateBadge({ state, label }: { state: EndpointState; label: str
 
   if (state === 'ok') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30 px-2 py-0.5 text-[11px] text-green-700 dark:text-green-300">
-        <CheckCircle2 className="h-3 w-3" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-250 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-800 dark:text-emerald-400 shrink-0">
+        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500" />
         {label}
       </span>
     );
@@ -468,15 +649,15 @@ function EndpointStateBadge({ state, label }: { state: EndpointState; label: str
 
   if (state === 'error') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 text-[11px] text-red-700 dark:text-red-300">
-        <AlertCircle className="h-3 w-3" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-950/20 px-2.5 py-0.5 text-[10px] font-semibold text-rose-800 dark:text-rose-400 shrink-0">
+        <AlertCircle className="h-2.5 w-2.5 text-rose-500" />
         {label}
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-300">
+    <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-905 px-2.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
       {label}
     </span>
   );

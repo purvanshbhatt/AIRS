@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useIsReadOnly } from '../contexts';
 import {
   Card,
@@ -153,33 +154,42 @@ export default function GovernanceProfile() {
 
   if (loading && organizations.length === 0) {
     return (
-      <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6"
+      >
         <CardSkeleton />
         <CardSkeleton />
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="space-y-6"
+    >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-indigo-600" />
+          <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl flex items-center justify-center border border-indigo-200 dark:border-indigo-900/40 shadow-sm">
+            <Shield className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150 tracking-tight">
               Governance Profile
             </h1>
-            <p className="text-gray-500 dark:text-slate-400 text-sm">
+            <p className="text-slate-505 dark:text-slate-450 text-sm font-medium">
               Define your compliance attributes to unlock framework recommendations
             </p>
           </div>
         </div>
         <div className="flex gap-3 items-center">
           <select
-            className="rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 min-w-[220px]"
+            className="rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-550/20 transition-all font-medium"
             value={selectedOrgId}
             onChange={(e) => setSelectedOrgId(e.target.value)}
           >
@@ -190,7 +200,7 @@ export default function GovernanceProfile() {
             ))}
           </select>
           {!isReadOnly && (
-            <Button onClick={handleSave} disabled={saving} className="gap-2">
+            <Button onClick={handleSave} disabled={saving} className="gap-2 rounded-xl font-bold hover:scale-[1.01] transition-all">
               {saved ? (
                 <CheckCircle className="w-4 h-4" />
               ) : (
@@ -203,9 +213,9 @@ export default function GovernanceProfile() {
       </div>
 
       {error && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+        <Card className="border-red-200 dark:border-red-900/30 bg-red-50/20 dark:bg-red-950/10 shadow-sm">
           <CardContent className="py-3">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <p className="text-sm text-red-655 dark:text-red-400 font-semibold">{error}</p>
           </CardContent>
         </Card>
       )}
@@ -213,18 +223,18 @@ export default function GovernanceProfile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Form */}
         <div className="lg:col-span-2 space-y-6">
-          <Card>
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
             <CardHeader>
-              <CardTitle>Organization Details</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-slate-150 font-bold">Organization Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1">
                     Revenue Band
                   </label>
                   <select
-                    className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                     value={form.revenue_band || ''}
                     onChange={(e) => setForm({ ...form, revenue_band: e.target.value || undefined })}
                   >
@@ -235,12 +245,12 @@ export default function GovernanceProfile() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1">
                     Employee Count
                   </label>
                   <input
                     type="number"
-                    className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                     value={form.employee_count || ''}
                     onChange={(e) =>
                       setForm({ ...form, employee_count: e.target.value ? parseInt(e.target.value) : undefined })
@@ -251,7 +261,7 @@ export default function GovernanceProfile() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2">
                   Geographic Regions
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -260,10 +270,10 @@ export default function GovernanceProfile() {
                       key={region}
                       type="button"
                       onClick={() => toggleGeo(region)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
                         (form.geo_regions || []).includes(region)
-                          ? 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/40 dark:border-indigo-600 dark:text-indigo-300'
-                          : 'bg-gray-50 border-gray-200 text-gray-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 hover:border-gray-300'
+                          ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300 shadow-sm'
+                          : 'bg-slate-50 border-slate-200 text-slate-650 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 hover:border-slate-350 dark:hover:border-slate-700'
                       }`}
                     >
                       {region}
@@ -274,9 +284,9 @@ export default function GovernanceProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
             <CardHeader>
-              <CardTitle>Data & Regulatory Attributes</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-slate-150 font-bold">Data & Regulatory Attributes</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -291,33 +301,33 @@ export default function GovernanceProfile() {
                 ].map(({ key, label }) => (
                   <label
                     key={key}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-150 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-900/30 cursor-pointer transition-all duration-200"
                   >
                     <input
                       type="checkbox"
                       checked={Boolean((form as Record<string, unknown>)[key])}
                       onChange={(e) => setForm({ ...form, [key]: e.target.checked })}
-                      className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-indigo-650 focus:ring-indigo-500/20 focus:ring-2 dark:bg-slate-950 dark:checked:bg-indigo-600"
                     />
-                    <span className="text-sm text-gray-700 dark:text-slate-300">{label}</span>
+                    <span className="text-sm text-slate-800 dark:text-slate-200 font-semibold">{label}</span>
                   </label>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
             <CardHeader>
-              <CardTitle>Uptime & SLA Configuration</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-slate-150 font-bold">Uptime & SLA Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1">
                     Application Tier
                   </label>
                   <select
-                    className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                     value={form.application_tier || ''}
                     onChange={(e) => setForm({ ...form, application_tier: e.target.value || undefined })}
                   >
@@ -328,7 +338,7 @@ export default function GovernanceProfile() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1">
                     Your SLA Target (%)
                   </label>
                   <input
@@ -336,7 +346,7 @@ export default function GovernanceProfile() {
                     step="0.01"
                     min="0"
                     max="100"
-                    className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                     value={form.sla_target ?? ''}
                     onChange={(e) =>
                       setForm({ ...form, sla_target: e.target.value ? parseFloat(e.target.value) : undefined })
@@ -348,23 +358,23 @@ export default function GovernanceProfile() {
 
               {uptimeAnalysis && (
                 <div
-                  className={`p-4 rounded-lg border ${
+                  className={`p-4 rounded-xl border transition-all duration-300 ${
                     uptimeAnalysis.status === 'on_track'
-                      ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
+                      ? 'bg-green-50/20 border-green-200 dark:bg-green-950/20 dark:border-green-900/40 text-green-700 dark:text-green-400'
                       : uptimeAnalysis.status === 'at_risk'
-                        ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800'
+                        ? 'bg-amber-50/20 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/40 text-amber-700 dark:text-amber-400'
                         : uptimeAnalysis.status === 'unrealistic'
-                          ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-                          : 'bg-gray-50 border-gray-200 dark:bg-slate-800 dark:border-slate-700'
+                          ? 'bg-red-50/20 border-red-200 dark:bg-red-950/20 dark:border-red-900/40 text-red-700 dark:text-red-400'
+                          : 'bg-slate-50/20 border-slate-200 dark:bg-slate-900/20 dark:border-slate-800 text-slate-700 dark:text-slate-300'
                   }`}
                 >
-                  <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                  <p className="text-sm font-extrabold text-slate-900 dark:text-slate-150">
                     {uptimeAnalysis.status === 'on_track' && '✅ '}
                     {uptimeAnalysis.status === 'at_risk' && '⚠️ '}
                     {uptimeAnalysis.status === 'unrealistic' && '🔴 '}
                     Uptime Analysis
                   </p>
-                  <p className="text-sm text-gray-700 dark:text-slate-300 mt-1">
+                  <p className="text-sm mt-1 leading-relaxed opacity-95">
                     {uptimeAnalysis.message}
                   </p>
                 </div>
@@ -375,13 +385,13 @@ export default function GovernanceProfile() {
 
         {/* Sidebar — Applicable Frameworks */}
         <div className="space-y-6">
-          <Card>
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
             <CardHeader>
-              <CardTitle className="text-lg">Applicable Frameworks</CardTitle>
+              <CardTitle className="text-lg text-slate-900 dark:text-slate-150 font-bold">Applicable Frameworks</CardTitle>
             </CardHeader>
             <CardContent>
               {frameworks.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-slate-400 italic">
+                <p className="text-sm text-slate-500 dark:text-slate-450 italic">
                   Complete your governance profile to see applicable frameworks.
                 </p>
               ) : (
@@ -389,19 +399,20 @@ export default function GovernanceProfile() {
                   {frameworks.map((fw) => (
                     <div
                       key={fw.framework}
-                      className="p-3 rounded-lg border border-gray-100 dark:border-slate-800"
+                      className="p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/10"
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-sm font-bold text-slate-900 dark:text-slate-150">
                           {fw.framework}
                         </span>
                         <Badge
                           variant={fw.mandatory ? 'danger' : 'default'}
+                          className="rounded-lg px-2.5 py-0.5 text-xs font-extrabold border border-indigo-200 dark:border-indigo-900/40"
                         >
                           {fw.mandatory ? 'Mandatory' : 'Recommended'}
                         </Badge>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">
+                      <p className="text-xs text-slate-600 dark:text-slate-355 leading-relaxed font-medium">
                         {fw.reason}
                       </p>
                       {fw.reference_url && (
@@ -409,7 +420,7 @@ export default function GovernanceProfile() {
                           href={fw.reference_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-indigo-600 hover:underline mt-1 inline-flex items-center gap-1"
+                          className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline mt-1.5 inline-flex items-center gap-1 font-bold"
                         >
                           Learn more <ChevronRight className="w-3 h-3" />
                         </a>
@@ -422,9 +433,9 @@ export default function GovernanceProfile() {
           </Card>
 
           {/* Governance Forecast (Gemini AI) */}
-          <Card>
+          <Card className="border-purple-200 dark:border-purple-900/30 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md bg-purple-50/10 dark:bg-purple-950/5">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg text-slate-900 dark:text-slate-150 font-bold flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-purple-500" />
                 Governance Forecast
               </CardTitle>
@@ -432,16 +443,16 @@ export default function GovernanceProfile() {
             <CardContent>
               {forecast ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                     {forecast.forecast}
                   </p>
-                  <div className="flex items-center gap-3 text-xs text-gray-400">
-                    <span className="px-2 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-450 font-semibold">
+                    <span className="px-2.5 py-0.5 bg-purple-50 dark:bg-purple-950/40 text-purple-705 dark:text-purple-300 rounded-lg font-bold border border-purple-200/50 dark:border-purple-900/40">
                       {forecast.focus_area}
                     </span>
                     <span>Confidence: {forecast.confidence}</span>
                     {forecast.llm_generated && (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
                         <Sparkles className="w-3 h-3" /> AI
                       </span>
                     )}
@@ -461,7 +472,7 @@ export default function GovernanceProfile() {
                     }
                   }}
                   disabled={forecastLoading || !selectedOrgId}
-                  className="w-full p-3 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-sm text-purple-700 dark:text-purple-300 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full p-3 rounded-xl border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200 text-sm text-purple-700 dark:text-purple-300 flex items-center justify-center gap-2 disabled:opacity-50 font-bold"
                 >
                   {forecastLoading ? (
                     <>Generating forecast...</>
@@ -476,36 +487,36 @@ export default function GovernanceProfile() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-355 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
             <CardHeader>
-              <CardTitle className="text-lg">Quick Links</CardTitle>
+              <CardTitle className="text-lg text-slate-900 dark:text-slate-150 font-bold">Quick Links</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2.5">
               <Link
                 to={`/dashboard/audit-calendar?org=${selectedOrgId}`}
-                className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
               >
-                <span className="text-sm text-gray-700 dark:text-slate-300">Audit Calendar</span>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">Audit Calendar</span>
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-550" />
               </Link>
               <Link
                 to={`/dashboard/tech-stack?org=${selectedOrgId}`}
-                className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
               >
-                <span className="text-sm text-gray-700 dark:text-slate-300">Tech Stack Registry</span>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">Tech Stack Registry</span>
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-555" />
               </Link>
               <Link
                 to={`/dashboard/pilot-program?org=${selectedOrgId}`}
-                className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
               >
-                <span className="text-sm text-gray-700 dark:text-slate-300">Pilot Program</span>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">Pilot Program</span>
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-555" />
               </Link>
 
               {/* Auditor Link Generator */}
-              <div className="pt-3 border-t border-gray-100 dark:border-slate-800">
-                <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">Share read-only access with auditors</p>
+              <div className="pt-3 border-t border-slate-150 dark:border-slate-800">
+                <p className="text-xs text-slate-500 dark:text-slate-450 mb-2 font-semibold">Share read-only access with auditors</p>
                 {auditorLink ? (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -513,7 +524,7 @@ export default function GovernanceProfile() {
                         type="text"
                         readOnly
                         value={auditorLink}
-                        className="flex-1 text-xs p-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded font-mono"
+                        className="flex-1 text-xs p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-mono text-slate-800 dark:text-slate-200 focus:outline-none"
                       />
                       <button
                         onClick={() => {
@@ -521,13 +532,13 @@ export default function GovernanceProfile() {
                           setAuditorCopied(true);
                           setTimeout(() => setAuditorCopied(false), 2000);
                         }}
-                        className="p-2 text-gray-500 hover:text-blue-600 transition"
+                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors"
                         title="Copy link"
                       >
                         {auditorCopied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                       </button>
                     </div>
-                    <p className="text-xs text-gray-400">Expires in 72 hours</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-505 font-medium">Expires in 72 hours</p>
                   </div>
                 ) : (
                   <button
@@ -540,9 +551,9 @@ export default function GovernanceProfile() {
                         setError('Failed to generate auditor link');
                       }
                     }}
-                    className="flex items-center gap-2 w-full p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-sm text-gray-700 dark:text-slate-300"
+                    className="flex items-center gap-2 w-full p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200 text-sm text-slate-700 dark:text-slate-300 font-bold"
                   >
-                    <Link2 className="w-4 h-4" />
+                    <Link2 className="w-4 h-4 text-slate-500 dark:text-slate-450" />
                     Generate Auditor Link
                   </button>
                 )}
@@ -551,6 +562,6 @@ export default function GovernanceProfile() {
           </Card>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -8,11 +8,11 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', padding = 'md', children, ...props }, ref) => {
-    const baseStyles = 'bg-white dark:bg-gray-900 rounded-xl border border-transparent dark:border-gray-800';
+    const baseStyles = 'bg-white dark:bg-slate-950/40 rounded-3xl border border-slate-200 dark:border-slate-800';
     
     const variants = {
       default: 'shadow-card',
-      bordered: 'border border-gray-200 dark:border-gray-700',
+      bordered: 'border border-slate-200 dark:border-slate-800',
       elevated: 'shadow-medium',
     };
 
@@ -53,7 +53,7 @@ export type CardTitleProps = HTMLAttributes<HTMLHeadingElement>;
 
 export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
   ({ className, children, ...props }, ref) => (
-    <h3 ref={ref} className={clsx('text-lg font-semibold text-gray-900 dark:text-gray-100', className)} {...props}>
+    <h3 ref={ref} className={clsx('text-lg font-bold text-slate-900 dark:text-slate-150', className)} {...props}>
       {children}
     </h3>
   )
@@ -65,7 +65,7 @@ export type CardDescriptionProps = HTMLAttributes<HTMLParagraphElement>;
 
 export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>(
   ({ className, children, ...props }, ref) => (
-    <p ref={ref} className={clsx('text-sm text-gray-500 dark:text-gray-400 mt-1', className)} {...props}>
+    <p ref={ref} className={clsx('text-sm text-slate-550 dark:text-slate-450 mt-1', className)} {...props}>
       {children}
     </p>
   )
@@ -89,7 +89,7 @@ export type CardFooterProps = HTMLAttributes<HTMLDivElement>;
 
 export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
   ({ className, children, ...props }, ref) => (
-    <div ref={ref} className={clsx('mt-4 pt-4 border-t border-gray-100 dark:border-gray-700', className)} {...props}>
+    <div ref={ref} className={clsx('mt-4 pt-4 border-t border-slate-200 dark:border-slate-800', className)} {...props}>
       {children}
     </div>
   )

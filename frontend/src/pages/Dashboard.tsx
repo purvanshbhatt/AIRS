@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Card,
   CardHeader,
@@ -234,14 +235,18 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6"
+      >
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="w-5 h-5 text-gray-600 dark:text-slate-300" />
+          <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-700">
+            <LayoutDashboard className="w-5 h-5 text-slate-600 dark:text-slate-350" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Dashboard</h1>
-            <p className="text-gray-500 dark:text-slate-400 text-sm">Overview of your security assessments</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150">Dashboard</h1>
+            <p className="text-slate-500 dark:text-slate-450 text-sm">Overview of your security assessments</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -253,7 +258,7 @@ export default function Dashboard() {
           <CardSkeleton />
           <CardSkeleton />
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -303,23 +308,28 @@ export default function Dashboard() {
   const displayReadinessLevel = getReadinessLevel(displayCurrentScore);
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="space-y-6"
+    >
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="w-5 h-5 text-primary-600" />
+          <div className="w-10 h-10 bg-primary-50 dark:bg-primary-950/30 rounded-xl flex items-center justify-center border border-primary-200 dark:border-primary-800/40 shadow-sm">
+            <LayoutDashboard className="w-5 h-5 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Dashboard</h1>
-            <p className="text-gray-500 dark:text-slate-400 text-sm">Overview of your security assessments</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150">Dashboard</h1>
+            <p className="text-slate-500 dark:text-slate-450 text-sm font-medium">Overview of your security assessments</p>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-end">
           <div className="min-w-55">
-            <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">Organization</label>
+            <label className="block text-xs text-slate-500 dark:text-slate-450 mb-1 font-semibold">Organization</label>
             <select
               aria-label="Organization"
-              className="w-full rounded-lg border border-gray-300 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition-all duration-200"
               value={selectedOrgId}
               onChange={(event) => {
                 setSelectedOrgId(event.target.value);
@@ -438,49 +448,49 @@ export default function Dashboard() {
           )}
 
           <Card padding="md">
-            <p className="text-sm text-gray-500 dark:text-slate-400">Organization Profile</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-slate-100">{displayOrganizationName}</p>
-            <div className="mt-2 text-sm text-gray-700 dark:text-slate-300">Industry: {displayIndustry}</div>
-            <div className="text-sm text-gray-700 dark:text-slate-300">Employees: {displayEmployees}</div>
+            <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Organization Profile</p>
+            <p className="mt-1.5 text-lg font-bold text-slate-900 dark:text-slate-150">{displayOrganizationName}</p>
+            <div className="mt-2 text-sm text-slate-700 dark:text-slate-350">Industry: {displayIndustry}</div>
+            <div className="text-sm text-slate-700 dark:text-slate-350">Employees: {displayEmployees}</div>
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card padding="md">
-              <p className="text-sm text-gray-500 dark:text-slate-400">Integration Status</p>
-              <div className="mt-2 text-sm text-gray-800 dark:text-slate-200 space-y-1">
-                <div>Splunk: {integrationSnapshot.splunkConnected ? 'Connected (Last sync: 5 min ago)' : 'Not connected'}</div>
-                <div>Webhook: {integrationSnapshot.webhookActive ? 'Active (Last delivery check: 2 min ago)' : 'Inactive'}</div>
-                <div>API Key: {integrationSnapshot.apiKeyEnabled ? 'Active' : 'Not generated'}</div>
+              <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Integration Status</p>
+              <div className="mt-2 text-sm text-slate-800 dark:text-slate-200 space-y-1.5 font-medium">
+                <div>Splunk: <span className="opacity-90">{integrationSnapshot.splunkConnected ? 'Connected (Last sync: 5 min ago)' : 'Not connected'}</span></div>
+                <div>Webhook: <span className="opacity-90">{integrationSnapshot.webhookActive ? 'Active (Last delivery check: 2 min ago)' : 'Inactive'}</span></div>
+                <div>API Key: <span className="opacity-90">{integrationSnapshot.apiKeyEnabled ? 'Active' : 'Not generated'}</span></div>
               </div>
-              <Link to="/dashboard/integrations" className="inline-flex mt-3 text-sm text-primary-600 hover:text-primary-700">
+              <Link to="/dashboard/integrations" className="inline-flex mt-3 text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
                 Open Integrations
               </Link>
             </Card>
             <Card padding="md">
-              <p className="text-sm text-gray-500 dark:text-slate-400">Last Assessment</p>
-              <p className="mt-2 text-base font-semibold text-gray-900 dark:text-slate-100">
+              <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Last Assessment</p>
+              <p className="mt-2 text-base font-bold text-slate-900 dark:text-slate-150">
                 {isDemoMode
                   ? 'Last evaluated: 2 hours ago'
                   : latestCompleted
                     ? new Date(latestCompleted.created_at).toLocaleString()
                     : 'No completed run yet'}
               </p>
-              <p className="text-sm text-gray-600 dark:text-slate-300 mt-1">
+              <p className="text-sm text-slate-650 dark:text-slate-350 mt-1 font-medium">
                 Readiness Level: {displayReadinessLevel}
               </p>
             </Card>
             <Card padding="md">
-              <p className="text-sm text-gray-500 dark:text-slate-400">Risk Trend</p>
-              <p className="mt-2 text-base font-semibold text-gray-900 dark:text-slate-100">
+              <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Risk Trend</p>
+              <p className="mt-2 text-base font-bold text-slate-900 dark:text-slate-150">
                 {displayCurrentScore != null ? `Current: ${displayCurrentScore}%` : 'Current: N/A'}
               </p>
-              <p className="text-sm text-gray-600 dark:text-slate-300">
+              <p className="text-sm text-slate-600 dark:text-slate-350 font-medium">
                 {displayPreviousScore != null ? `Previous: ${displayPreviousScore}%` : 'Previous: N/A'}
               </p>
-              <p className={`text-sm font-medium ${displayDelta != null && displayDelta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-sm font-bold mt-1 ${displayDelta != null && displayDelta >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-655 dark:text-red-400'}`}>
                 {displayDelta == null
                   ? 'Trend unavailable'
-                  : `${displayDelta >= 0 ? '^' : 'v'} ${displayDelta >= 0 ? '+' : '-'}${Math.abs(displayDelta).toFixed(0)} ${displayDelta >= 0 ? 'improvement' : 'change'}`}
+                  : `${displayDelta >= 0 ? '▲' : '▼'} ${displayDelta >= 0 ? '+' : ''}${displayDelta.toFixed(0)} ${displayDelta >= 0 ? 'improvement' : 'change'}`}
               </p>
             </Card>
           </div>
@@ -505,20 +515,20 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-lg border border-gray-200 dark:border-slate-700 p-3">
-                    <p className="text-xs text-gray-500 dark:text-slate-400">Open</p>
-                    <p className="text-xl font-semibold text-rose-600">{openActions}</p>
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 bg-rose-50/20 dark:bg-rose-950/10">
+                    <p className="text-xs text-slate-500 dark:text-slate-450 font-bold">Open</p>
+                    <p className="text-xl font-extrabold text-rose-600 dark:text-rose-450">{openActions}</p>
                   </div>
-                  <div className="rounded-lg border border-gray-200 dark:border-slate-700 p-3">
-                    <p className="text-xs text-gray-500 dark:text-slate-400">In Progress</p>
-                    <p className="text-xl font-semibold text-amber-600">{inProgressActions}</p>
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 bg-amber-50/20 dark:bg-amber-950/10">
+                    <p className="text-xs text-slate-500 dark:text-slate-450 font-bold">In Progress</p>
+                    <p className="text-xl font-extrabold text-amber-600 dark:text-amber-450">{inProgressActions}</p>
                   </div>
-                  <div className="rounded-lg border border-gray-200 dark:border-slate-700 p-3">
-                    <p className="text-xs text-gray-500 dark:text-slate-400">Resolved</p>
-                    <p className="text-xl font-semibold text-green-600">{resolvedActions}</p>
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3 bg-green-50/20 dark:bg-green-950/10">
+                    <p className="text-xs text-slate-500 dark:text-slate-450 font-bold">Resolved</p>
+                    <p className="text-xl font-extrabold text-green-600 dark:text-green-450">{resolvedActions}</p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-slate-300 mt-4">
+                <p className="text-sm text-slate-600 dark:text-slate-350 mt-4 font-semibold">
                   {scoreDelta == null
                     ? 'Complete two or more assessments to unlock deterministic improvement deltas.'
                     : `Most recent cycle changed readiness by ${scoreDelta >= 0 ? '+' : ''}${scoreDelta.toFixed(1)} points.`}
@@ -530,48 +540,48 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card padding="md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-950/30 rounded-xl flex items-center justify-center border border-blue-200 dark:border-blue-900/40 shadow-sm">
+                  <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-slate-400">Organizations</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{stats.totalOrgs}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Organizations</p>
+                  <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-150">{stats.totalOrgs}</p>
                 </div>
               </div>
             </Card>
 
             <Card padding="md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <ClipboardList className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 bg-purple-50 dark:bg-purple-950/30 rounded-xl flex items-center justify-center border border-purple-200 dark:border-purple-900/40 shadow-sm">
+                  <ClipboardList className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-slate-400">Total Assessments</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{stats.totalAssessments}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Total Assessments</p>
+                  <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-150">{stats.totalAssessments}</p>
                 </div>
               </div>
             </Card>
 
             <Card padding="md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <FileCheck className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 bg-green-50 dark:bg-green-950/30 rounded-xl flex items-center justify-center border border-green-200 dark:border-green-900/40 shadow-sm">
+                  <FileCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-slate-400">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{stats.completedAssessments}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Completed</p>
+                  <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-150">{stats.completedAssessments}</p>
                 </div>
               </div>
             </Card>
 
             <Card padding="md">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-orange-600" />
+                <div className="w-10 h-10 bg-orange-50 dark:bg-orange-950/30 rounded-xl flex items-center justify-center border border-orange-200 dark:border-orange-900/40 shadow-sm">
+                  <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-slate-400">Avg. Score</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+                  <p className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Avg. Score</p>
+                  <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-150">
                     {stats.averageScore != null ? `${Math.round(stats.averageScore)}%` : '-'}
                   </p>
                 </div>
@@ -597,7 +607,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 {recentAssessments.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-slate-400 italic py-4">No assessments yet</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-450 italic py-4">No assessments yet</p>
                 ) : (
                   <div className="space-y-3">
                     {recentAssessments.map((assessment) => (
@@ -608,21 +618,21 @@ export default function Dashboard() {
                             ? `/dashboard/results/${assessment.id}`
                             : `/dashboard/assessment/new?resume=${assessment.id}`
                         }
-                        className="block p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                        className="block p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all duration-200"
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-slate-100">{assessment.title}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                            <p className="font-semibold text-slate-900 dark:text-slate-150">{assessment.title}</p>
+                            <p className="text-xs text-slate-550 dark:text-slate-450 font-medium mt-0.5">
                               {assessment.organization_name || 'Unknown org'} |{' '}
                               {new Date(assessment.created_at).toLocaleDateString()}
                             </p>
                           </div>
                           <span
-                            className={`text-xs px-2 py-1 rounded-full ${
+                            className={`text-xs font-bold px-2.5 py-0.5 rounded-lg ${
                               assessment.status === 'completed'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-yellow-100 text-yellow-700'
+                                ? 'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-900/40'
+                                : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40'
                             }`}
                           >
                             {assessment.status === 'completed' ? 'Completed' : 'Draft'}
@@ -639,12 +649,12 @@ export default function Dashboard() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-gray-400" />
+                    <Building2 className="w-5 h-5 text-slate-400" />
                     Recent Organizations
                   </CardTitle>
                   <Link
                     to="/dashboard/organizations"
-                    className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                    className="text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1"
                   >
                     View all <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -652,16 +662,16 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 {recentOrgs.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-slate-400 italic py-4">No organizations yet</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-450 italic py-4">No organizations yet</p>
                 ) : (
                   <div className="space-y-3">
                     {recentOrgs.map((org) => (
                       <div
                         key={org.id}
-                        className="p-3 rounded-lg border border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                        className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all duration-200"
                       >
-                        <p className="font-medium text-gray-900 dark:text-slate-100">{org.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                        <p className="font-semibold text-slate-900 dark:text-slate-150">{org.name}</p>
+                        <p className="text-xs text-slate-550 dark:text-slate-450 font-medium mt-0.5">
                           {org.industry || 'No industry'} | {new Date(org.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -691,7 +701,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 {applicableFrameworks.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-slate-400 italic py-4">
+                  <p className="text-sm text-slate-500 dark:text-slate-450 italic py-4">
                     Complete your governance profile to see applicable frameworks
                   </p>
                 ) : (
@@ -699,16 +709,16 @@ export default function Dashboard() {
                     {applicableFrameworks.slice(0, 5).map((fw) => (
                       <div
                         key={fw.framework}
-                        className="flex items-center justify-between p-2 rounded-lg border border-gray-100 dark:border-slate-800"
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900/10"
                       >
-                        <span className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-150">
                           {fw.framework}
                         </span>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
+                          className={`text-xs font-bold px-2.5 py-0.5 rounded-lg ${
                             fw.mandatory
-                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                              ? 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 border border-red-200 dark:border-red-900/40'
+                              : 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40'
                           }`}
                         >
                           {fw.mandatory ? 'Mandatory' : 'Recommended'}
@@ -716,7 +726,7 @@ export default function Dashboard() {
                       </div>
                     ))}
                     {applicableFrameworks.length > 5 && (
-                      <p className="text-xs text-gray-500 text-center mt-1">
+                      <p className="text-xs text-slate-500 text-center mt-1.5 font-semibold">
                         +{applicableFrameworks.length - 5} more
                       </p>
                     )}
@@ -734,7 +744,7 @@ export default function Dashboard() {
                   </CardTitle>
                   <Link
                     to={`/dashboard/audit-calendar?org=${selectedOrgId}`}
-                    className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                    className="text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1"
                   >
                     View calendar <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -742,7 +752,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 {upcomingAudits.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-slate-400 italic py-4">
+                  <p className="text-sm text-slate-500 dark:text-slate-450 italic py-4">
                     No upcoming audits scheduled
                   </p>
                 ) : (
@@ -750,17 +760,17 @@ export default function Dashboard() {
                     {upcomingAudits.map((audit) => (
                       <div
                         key={audit.id}
-                        className="flex items-center justify-between p-2 rounded-lg border border-amber-100 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-900/10"
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-amber-100 dark:border-amber-900/30 bg-amber-50/20 dark:bg-amber-900/10"
                       >
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-150">
                             {audit.framework}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-slate-400">
+                          <p className="text-xs text-slate-500 dark:text-slate-450 font-medium mt-0.5">
                             {new Date(audit.audit_date).toLocaleDateString()}
                           </p>
                         </div>
-                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full">
+                        <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/40 px-2.5 py-0.5 rounded-lg">
                           {audit.days_until_audit}d
                         </span>
                       </div>
@@ -772,6 +782,6 @@ export default function Dashboard() {
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -1,0 +1,91 @@
+{
+  "_schema_version": "1.0.0",
+  "_description": "Industry benchmarks for Liability-to-ROI calculations. All values are auditor-reviewable.",
+  "_sources": {
+    "ibm_cost_of_breach": "IBM Cost of a Data Breach Report 2023",
+    "ponemon_incident_response": "Ponemon Institute, Cost of Incident Response 2023",
+    "mandiant_mtrends": "Mandiant M-Trends 2024",
+    "coveware_ransomware": "Coveware Quarterly Ransomware Report Q4 2023",
+    "microsoft_mfa": "Microsoft Digital Defense Report 2023",
+    "cisa_backup": "CISA StopRansomware Guide 2024",
+    "sans_siem": "SANS Institute, SOC Survey 2023"
+  },
+
+  "breach_economics": {
+    "avg_breach_cost_usd": 4450000,
+    "avg_breach_cost_per_record_usd": 165,
+    "avg_dwell_time_days": 204,
+    "avg_ransomware_downtime_days": 24,
+    "avg_hourly_incident_cost_usd": 1467,
+    "avg_containment_time_hours": 73
+  },
+
+  "risk_reduction_factors": {
+    "edr_deployment": {
+      "breach_probability_reduction_pct": 0.70,
+      "description": "EDR coverage >90% reduces breach probability by ~70%",
+      "source": "ibm_cost_of_breach"
+    },
+    "mfa_enforcement": {
+      "breach_probability_reduction_pct": 0.99,
+      "description": "MFA blocks 99.9% of credential-based attacks",
+      "source": "microsoft_mfa"
+    },
+    "immutable_backups": {
+      "ransomware_recovery_reduction_pct": 0.85,
+      "description": "Immutable/air-gapped backups reduce ransomware recovery time by 85%",
+      "source": "cisa_backup"
+    },
+    "centralized_logging": {
+      "dwell_time_reduction_pct": 0.60,
+      "description": "SIEM/centralized logging reduces attacker dwell time by ~60%",
+      "source": "sans_siem"
+    },
+    "tested_ir_plan": {
+      "breach_cost_reduction_pct": 0.54,
+      "description": "Organizations with tested IR plans reduce breach cost by 54%",
+      "source": "ibm_cost_of_breach"
+    },
+    "pam_deployment": {
+      "breach_probability_reduction_pct": 0.50,
+      "description": "PAM solutions reduce privileged credential compromise by ~50%",
+      "source": "ponemon_incident_response"
+    },
+    "email_security": {
+      "phishing_reduction_pct": 0.75,
+      "description": "Advanced email security reduces successful phishing by 75%",
+      "source": "sans_siem"
+    },
+    "network_monitoring": {
+      "lateral_movement_detection_pct": 0.65,
+      "description": "NDR/IDS detects lateral movement 65% faster",
+      "source": "mandiant_mtrends"
+    }
+  },
+
+  "remediation_cost_estimates": {
+    "low": {
+      "estimated_cost_usd": 5000,
+      "estimated_days": 7,
+      "description": "Policy changes, configuration toggles, role assignments"
+    },
+    "medium": {
+      "estimated_cost_usd": 25000,
+      "estimated_days": 30,
+      "description": "Tool deployment, process documentation, training"
+    },
+    "high": {
+      "estimated_cost_usd": 75000,
+      "estimated_days": 90,
+      "description": "Infrastructure deployment, vendor procurement, org-wide rollout"
+    }
+  },
+
+  "domain_weights_for_liability": {
+    "telemetry_logging": 0.15,
+    "detection_coverage": 0.25,
+    "identity_visibility": 0.30,
+    "ir_process": 0.15,
+    "resilience": 0.15
+  }
+}

@@ -52,7 +52,9 @@ class SystemHealthResponse(BaseModel):
     last_deployment_at: Optional[str] = None
     wazuh_connected: bool = False
     splunk_connected: bool = False
+    elastic_connected: bool = False
     siem_verified: bool = False
+
 
 
 router = APIRouter(tags=["health"])
@@ -194,16 +196,18 @@ async def system_health() -> SystemHealthResponse:
     # org-level configuration or global integrations module
     wazuh_connected = False
     splunk_connected = False
+    elastic_connected = False
     
     # Try to import integrations module to check client state
     try:
-        from app.api.v1.integrations import _wazuh_client, _splunk_client
+        from app.api.v1.integrations import _wazuh_client, _splunk_client, _elastic_client
         wazuh_connected = _wazuh_client is not None
         splunk_connected = _splunk_client is not None
+        elastic_connected = _elastic_client is not None
     except ImportError:
         pass
     
-    siem_verified = wazuh_connected or splunk_connected
+    siem_verified = wazuh_connected or splunk_connected or elastic_connected
     
     return SystemHealthResponse(
         version=product.get("version"),
@@ -215,5 +219,7 @@ async def system_health() -> SystemHealthResponse:
         last_deployment_at=settings.DEPLOYED_AT,
         wazuh_connected=wazuh_connected,
         splunk_connected=splunk_connected,
+        elastic_connected=elastic_connected,
         siem_verified=siem_verified,
     )
+

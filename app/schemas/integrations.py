@@ -239,6 +239,14 @@ class SplunkQueryResponse(BaseModel):
 # SIEM Integration Status & GHI Enhancement
 # =============================================================================
 
+class ElasticConfigRequest(BaseModel):
+    """Request to configure Elastic SIEM integration."""
+    elastic_host: str = Field(..., description="Elasticsearch hostname/IP")
+    elastic_api_key: str = Field(..., min_length=8, description="Elasticsearch API key")
+    elastic_port: int = Field(default=9200, description="Elastic port")
+    verify_ssl: bool = Field(default=False, description="Verify SSL certificates")
+
+
 class SIEMIntegrationStatus(BaseModel):
     """Overall SIEM integration health status."""
     wazuh_status: str  # "configured" | "not_configured" | "error"
@@ -248,9 +256,14 @@ class SIEMIntegrationStatus(BaseModel):
     splunk_status: str  # "configured" | "not_configured" | "error"
     splunk_message: Optional[str] = None
     splunk_last_successful: Optional[str] = None
+
+    elastic_status: str  # "configured" | "not_configured" | "error"
+    elastic_message: Optional[str] = None
+    elastic_last_successful: Optional[str] = None
     
     siem_verified_controls: int = 0
     siem_verified_percentage: float = 0.0
+
 
 
 class SIEMVerifiedFinding(BaseModel):

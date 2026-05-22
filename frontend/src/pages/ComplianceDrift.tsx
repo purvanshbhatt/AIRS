@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import {
   Card,
@@ -149,22 +150,22 @@ function DISGauge({ score, band, color }: { score: number; band: string; color: 
         <div className="absolute inset-0 border-8 border-b-0 rounded-t-full border-gray-200 dark:border-gray-700" />
         {/* Filled arc */}
         <div
-          className="absolute bottom-0 left-1/2 w-1 h-16 origin-bottom transition-transform duration-1000"
+          className="absolute bottom-0 left-1/2 w-1.5 h-16 origin-bottom transition-transform duration-1000"
           style={{
             transform: `rotate(${rotation - 90}deg)`,
-            backgroundColor: color === 'green' ? '#22c55e' : color === 'yellow' ? '#eab308' : color === 'orange' ? '#f97316' : '#ef4444',
+            backgroundColor: color === 'green' ? '#10b981' : color === 'yellow' ? '#f59e0b' : color === 'orange' ? '#f97316' : '#ef4444',
           }}
         />
         {/* Center point */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gray-600 dark:bg-gray-400" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-slate-650 dark:bg-slate-400 border border-white dark:border-slate-900 shadow-sm" />
       </div>
       <div className="mt-2 text-center">
-        <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">{score}</span>
-        <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">/ 100</span>
+        <span className="text-3xl font-extrabold text-slate-900 dark:text-slate-150">{score}</span>
+        <span className="text-sm text-slate-500 dark:text-slate-455 ml-1">/ 105</span>
       </div>
-      <Badge className={`mt-1 ${BAND_COLORS[color] || BAND_COLORS.gray}`}>
+      <span className={`mt-1.5 ${BAND_COLORS[color] || BAND_COLORS.gray}`}>
         {band}
-      </Badge>
+      </span>
     </div>
   );
 }
@@ -175,9 +176,9 @@ function DISGauge({ score, band, color }: { score: number; band: string; color: 
 function DriftTimeline({ entries }: { entries: DriftTimelineEntry[] }) {
   if (entries.length === 0) {
     return (
-      <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-        <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-        <p>No baseline history yet. Create a baseline to start tracking drift.</p>
+      <div className="text-center text-slate-500 dark:text-slate-450 py-12">
+        <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-40 text-slate-400" />
+        <p className="font-semibold">No baseline history yet. Create a baseline to start tracking drift.</p>
       </div>
     );
   }
@@ -187,34 +188,34 @@ function DriftTimeline({ entries }: { entries: DriftTimelineEntry[] }) {
   const range = maxGhi - minGhi || 1;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* Chart area */}
-      <div className="relative h-48 flex items-end gap-1 px-2">
+      <div className="relative h-48 flex items-end gap-1.5 px-2">
         {entries.map((entry, idx) => {
           const height = ((entry.ghi - minGhi) / range) * 100;
           const barColor = entry.band_color === 'red' ? 'bg-red-500' :
             entry.band_color === 'orange' ? 'bg-orange-500' :
-            entry.band_color === 'yellow' ? 'bg-yellow-500' : 'bg-green-500';
+            entry.band_color === 'yellow' ? 'bg-amber-500' : 'bg-green-500';
 
           return (
             <div key={idx} className="flex-1 flex flex-col items-center group relative">
               {/* Tooltip */}
-              <div className="hidden group-hover:block absolute bottom-full mb-2 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                <div>GHI: {entry.ghi.toFixed(1)}</div>
-                <div>Drift: {entry.drift_score.toFixed(1)}</div>
-                <div>Signals: {entry.signals_count}</div>
-                <div>{new Date(entry.date).toLocaleDateString()}</div>
+              <div className="hidden group-hover:block absolute bottom-full mb-3 bg-slate-900 dark:bg-slate-950 text-slate-100 dark:text-slate-200 text-xs rounded-xl shadow-lg border border-slate-700/50 p-2.5 whitespace-nowrap z-10">
+                <div className="font-bold text-slate-200">GHI: {entry.ghi.toFixed(1)}</div>
+                <div className="font-medium mt-0.5">Drift: {entry.drift_score.toFixed(1)}</div>
+                <div className="font-medium">Signals: {entry.signals_count}</div>
+                <div className="text-[10px] text-slate-400 mt-1 font-semibold">{new Date(entry.date).toLocaleDateString()}</div>
               </div>
               {/* Red flag for critical */}
               {entry.band_color === 'red' && (
-                <div className="text-red-500 mb-1">
-                  <AlertTriangle className="h-3 w-3" />
+                <div className="text-red-500 mb-1 animate-bounce">
+                  <AlertTriangle className="h-3.5 w-3.5" />
                 </div>
               )}
               {/* Bar */}
               <div
-                className={`w-full rounded-t ${barColor} transition-all duration-300 min-h-[4px]`}
-                style={{ height: `${Math.max(height, 2)}%` }}
+                className={`w-full rounded-t-lg ${barColor} transition-all duration-300 hover:brightness-110 min-h-[6px]`}
+                style={{ height: `${Math.max(height, 3)}%` }}
               />
             </div>
           );
@@ -222,7 +223,7 @@ function DriftTimeline({ entries }: { entries: DriftTimelineEntry[] }) {
       </div>
 
       {/* X-axis labels */}
-      <div className="flex justify-between px-2 text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex justify-between px-2 text-xs font-semibold text-slate-500 dark:text-slate-450 border-t border-slate-100 dark:border-slate-800/60 pt-2">
         {entries.length > 0 && (
           <>
             <span>{new Date(entries[0].date).toLocaleDateString()}</span>
@@ -232,11 +233,11 @@ function DriftTimeline({ entries }: { entries: DriftTimelineEntry[] }) {
       </div>
 
       {/* Legend */}
-      <div className="flex gap-3 justify-center text-xs">
-        <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-green-500" /> Stable</span>
-        <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-yellow-500" /> Mild</span>
-        <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-orange-500" /> Elevated</span>
-        <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-red-500" /> Critical</span>
+      <div className="flex gap-4 justify-center text-xs font-semibold text-slate-600 dark:text-slate-450">
+        <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-500" /> Stable</span>
+        <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-amber-500" /> Mild</span>
+        <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-500" /> Elevated</span>
+        <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500" /> Critical</span>
       </div>
     </div>
   );
@@ -250,28 +251,30 @@ function SignalCard({ signal }: { signal: DriftSignal }) {
 
   return (
     <div
-      className={`border rounded-lg p-3 ${SEVERITY_COLORS[signal.severity] || SEVERITY_COLORS.low} cursor-pointer transition-all`}
+      className={`border rounded-2xl p-4 ${SEVERITY_COLORS[signal.severity] || SEVERITY_COLORS.low} cursor-pointer transition-all duration-300 hover:scale-[1.005] hover:shadow-md`}
       onClick={() => setExpanded(!expanded)}
     >
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          {SIGNAL_ICONS[signal.signal_type] || <AlertTriangle className="h-4 w-4" />}
+        <div className="flex items-center gap-2.5">
+          <div className="p-1 rounded-lg bg-white/40 dark:bg-black/10">
+            {SIGNAL_ICONS[signal.signal_type] || <AlertTriangle className="h-4 w-4" />}
+          </div>
           <div>
-            <span className="font-medium text-sm">{signal.title}</span>
-            <Badge className="ml-2 text-xs" variant="outline">
+            <span className="font-bold text-sm tracking-wide">{signal.title}</span>
+            <Badge className="ml-2.5 text-xs font-bold" variant="outline">
               {signal.severity.toUpperCase()}
             </Badge>
           </div>
         </div>
-        {expanded ? <ChevronUp className="h-4 w-4 flex-shrink-0" /> : <ChevronDown className="h-4 w-4 flex-shrink-0" />}
+        {expanded ? <ChevronUp className="h-4.5 w-4.5 flex-shrink-0" /> : <ChevronDown className="h-4.5 w-4.5 flex-shrink-0" />}
       </div>
       {expanded && (
-        <div className="mt-2 text-sm opacity-90">
-          <p>{signal.description}</p>
+        <div className="mt-3.5 text-sm leading-relaxed opacity-95 pl-7 border-t border-slate-200/40 dark:border-slate-800/40 pt-2 transition-all duration-300">
+          <p className="font-medium">{signal.description}</p>
           {signal.delta != null && (
-            <p className="mt-1 font-mono text-xs">Delta: {signal.delta > 0 ? '+' : ''}{signal.delta.toFixed(1)}</p>
+            <p className="mt-1.5 font-mono text-xs font-semibold opacity-75">Delta: {signal.delta > 0 ? '+' : ''}{signal.delta.toFixed(1)}</p>
           )}
-          <p className="mt-1 text-xs opacity-70">{new Date(signal.detected_at).toLocaleString()}</p>
+          <p className="mt-2 text-xs font-medium opacity-60">{new Date(signal.detected_at).toLocaleString()}</p>
         </div>
       )}
     </div>
@@ -380,55 +383,70 @@ function ComplianceDriftContent() {
   const highCount = allSignals.filter(s => s.severity === 'high').length;
 
   if (loading && organizations.length === 0) {
-    return <div className="space-y-4 p-4"><CardSkeleton /><CardSkeleton /><CardSkeleton /></div>;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-4 p-4"
+      >
+        <CardSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
+      </motion.div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="space-y-6"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <Activity className="h-7 w-7 text-blue-500" />
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150 flex items-center gap-2.5">
+            <Activity className="h-7 w-7 text-indigo-650 dark:text-indigo-400" />
             Compliance Drift Detection
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-slate-505 dark:text-slate-455 mt-1 font-medium">
             Continuous Control Integrity Monitoring — track posture deviation over time
           </p>
         </div>
 
         {/* Staging badge */}
-        <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-300">
-          <Zap className="h-3 w-3 mr-1" />
+        <span className="inline-flex items-center gap-1.5 bg-purple-55/10 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 rounded-xl px-3 py-1.5 text-xs font-bold shadow-sm">
+          <Zap className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
           STAGING ONLY
-        </Badge>
+        </span>
       </div>
 
       {/* Org selector + baseline button */}
-      <Card>
-        <CardContent className="p-4">
+      <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+        <CardContent className="p-5">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1.5">
                 Organization
               </label>
               <select
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-slate-205 dark:border-slate-805 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-semibold"
                 value={selectedOrgId}
                 onChange={(e) => setSelectedOrgId(e.target.value)}
               >
-                <option value="">Select organization...</option>
+                <option value="" className="text-slate-505">Select organization...</option>
                 {organizations.map((org) => (
                   <option key={org.id} value={org.id}>{org.name}</option>
                 ))}
               </select>
             </div>
 
-            <div className="flex gap-2 mt-5">
+            <div className="flex gap-2.5 mt-5">
               <Button
                 onClick={handleCreateBaseline}
                 disabled={!selectedOrgId || baselineCreating || isReadOnly}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1.5 rounded-xl transition-all duration-205 hover:scale-[1.01] shadow-sm hover:shadow-md font-bold"
               >
                 <BookmarkCheck className="h-4 w-4" />
                 {baselineCreating ? 'Creating...' : 'Create Baseline'}
@@ -437,7 +455,7 @@ function ComplianceDriftContent() {
                 onClick={loadDriftData}
                 disabled={!selectedOrgId || loading}
                 variant="outline"
-                className="flex items-center gap-1"
+                className="flex items-center gap-1.5 rounded-xl border-slate-200 dark:border-slate-800 transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-900/30 hover:scale-[1.01] font-bold text-slate-750 dark:text-slate-300"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -448,19 +466,19 @@ function ComplianceDriftContent() {
       </Card>
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-red-800 dark:text-red-300 text-sm">
+        <div className="bg-red-50/20 dark:bg-red-955/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 text-red-700 dark:text-red-400 text-sm font-semibold shadow-sm transition-all duration-300">
           {error}
         </div>
       )}
 
       {/* Summary Cards Row */}
       {driftResult && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* DIS Card */}
-          <Card>
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                <Gauge className="h-4 w-4" />
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider flex items-center gap-1.5">
+                <Gauge className="h-4 w-4 text-slate-400" />
                 Drift Impact Score
               </CardTitle>
             </CardHeader>
@@ -474,24 +492,24 @@ function ComplianceDriftContent() {
           </Card>
 
           {/* GHI Delta */}
-          <Card>
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                <Activity className="h-4 w-4" />
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider flex items-center gap-1.5">
+                <Activity className="h-4 w-4 text-slate-400" />
                 GHI Change
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-150">
                 {driftResult.current_ghi.toFixed(1)}
               </div>
-              <div className={`text-sm font-medium mt-1 ${
-                driftResult.ghi_delta > 0 ? 'text-green-600' : driftResult.ghi_delta < 0 ? 'text-red-600' : 'text-gray-500'
+              <div className={`text-sm font-bold mt-1.5 ${
+                driftResult.ghi_delta > 0 ? 'text-green-600 dark:text-green-400' : driftResult.ghi_delta < 0 ? 'text-red-655 dark:text-red-400' : 'text-slate-505 dark:text-slate-455'
               }`}>
                 {driftResult.ghi_delta > 0 ? '+' : ''}{driftResult.ghi_delta.toFixed(1)} from baseline
               </div>
               {driftResult.baseline_date && (
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-xs font-semibold text-slate-500 dark:text-slate-450 mt-2">
                   Baseline: {new Date(driftResult.baseline_date).toLocaleDateString()}
                 </div>
               )}
@@ -499,61 +517,61 @@ function ComplianceDriftContent() {
           </Card>
 
           {/* CSI */}
-          <Card>
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                <Shield className="h-4 w-4" />
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider flex items-center gap-1.5">
+                <Shield className="h-4 w-4 text-slate-400" />
                 Sustainability Index
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               {sustainability ? (
                 <>
-                  <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-150">
                     {sustainability.compliance_sustainability_index.toFixed(0)}
                   </div>
-                  <Badge className={`mt-1 ${
-                    sustainability.csi_band === 'Excellent' ? 'bg-green-100 text-green-700' :
-                    sustainability.csi_band === 'Good' ? 'bg-blue-100 text-blue-700' :
-                    sustainability.csi_band === 'Fair' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
+                  <span className={`inline-block mt-2.5 ${
+                    sustainability.csi_band === 'Excellent' ? 'bg-green-55/10 text-green-800 border border-green-200 dark:bg-green-950/30 dark:text-green-300 dark:border-green-800/40' :
+                    sustainability.csi_band === 'Good' ? 'bg-blue-55/10 text-blue-800 border border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800/40' :
+                    sustainability.csi_band === 'Fair' ? 'bg-yellow-55/10 text-yellow-800 border border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-300 dark:border-yellow-800/40' :
+                    'bg-red-55/10 text-red-800 border border-red-200 dark:bg-red-955/20 dark:text-red-300 dark:border-red-800/40'
+                  } font-bold text-xs px-2.5 py-1.5 rounded-xl`}>
                     {sustainability.csi_band}
-                  </Badge>
+                  </span>
                 </>
-              ) : <span className="text-gray-400">—</span>}
+              ) : <span className="text-slate-400 dark:text-slate-600 font-semibold">—</span>}
             </CardContent>
           </Card>
 
           {/* Audit Failure Probability */}
-          <Card>
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                <Target className="h-4 w-4" />
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider flex items-center gap-1.5">
+                <Target className="h-4 w-4 text-slate-400" />
                 Audit Failure Probability
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               {sustainability ? (
                 <>
-                  <div className={`text-3xl font-bold ${
-                    sustainability.audit_failure_probability <= 20 ? 'text-green-600' :
-                    sustainability.audit_failure_probability <= 50 ? 'text-yellow-600' :
-                    sustainability.audit_failure_probability <= 75 ? 'text-orange-600' :
-                    'text-red-600'
+                  <div className={`text-3xl font-extrabold ${
+                    sustainability.audit_failure_probability <= 20 ? 'text-green-600 dark:text-green-400' :
+                    sustainability.audit_failure_probability <= 50 ? 'text-yellow-650 dark:text-yellow-400' :
+                    sustainability.audit_failure_probability <= 75 ? 'text-orange-600 dark:text-orange-400' :
+                    'text-red-655 dark:text-red-400'
                   }`}>
                     {sustainability.audit_failure_probability.toFixed(0)}%
                   </div>
-                  <Badge className={`mt-1 ${
-                    sustainability.afp_band === 'Low Risk' ? 'bg-green-100 text-green-700' :
-                    sustainability.afp_band === 'Moderate' ? 'bg-yellow-100 text-yellow-700' :
-                    sustainability.afp_band === 'High Risk' ? 'bg-orange-100 text-orange-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
+                  <span className={`inline-block mt-2.5 ${
+                    sustainability.afp_band === 'Low Risk' ? 'bg-green-55/10 text-green-800 border border-green-200 dark:bg-green-950/30 dark:text-green-300 dark:border-green-800/40' :
+                    sustainability.afp_band === 'Moderate' ? 'bg-yellow-55/10 text-yellow-800 border border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-300 dark:border-yellow-800/40' :
+                    sustainability.afp_band === 'High Risk' ? 'bg-orange-55/10 text-orange-800 border border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800/40' :
+                    'bg-red-55/10 text-red-800 border border-red-200 dark:bg-red-955/20 dark:text-red-300 dark:border-red-800/40'
+                  } font-bold text-xs px-2.5 py-1.5 rounded-xl`}>
                     {sustainability.afp_band}
-                  </Badge>
+                  </span>
                 </>
-              ) : <span className="text-gray-400">—</span>}
+              ) : <span className="text-slate-400 dark:text-slate-600 font-semibold">—</span>}
             </CardContent>
           </Card>
         </div>
@@ -561,13 +579,13 @@ function ComplianceDriftContent() {
 
       {/* Alert Summary Banner */}
       {(criticalCount > 0 || highCount > 0) && (
-        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
-          <ShieldAlert className="h-6 w-6 text-red-600 flex-shrink-0" />
+        <div className="bg-red-50/20 dark:bg-red-955/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 flex items-center gap-3 shadow-sm transition-all duration-300">
+          <ShieldAlert className="h-6 w-6 text-red-655 dark:text-red-400 flex-shrink-0" />
           <div>
-            <span className="font-semibold text-red-800 dark:text-red-300">
+            <span className="font-extrabold text-red-900 dark:text-red-300">
               {criticalCount + highCount} Active Alert{criticalCount + highCount !== 1 ? 's' : ''}
             </span>
-            <span className="text-red-600 dark:text-red-400 text-sm ml-2">
+            <span className="text-red-750 dark:text-red-400 text-sm ml-2.5 font-bold">
               {criticalCount > 0 && `${criticalCount} Critical`}
               {criticalCount > 0 && highCount > 0 && ' · '}
               {highCount > 0 && `${highCount} High`}
@@ -577,7 +595,7 @@ function ComplianceDriftContent() {
       )}
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="border-b border-slate-200 dark:border-slate-800/80">
         <nav className="flex space-x-4">
           {[
             { key: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" /> },
@@ -587,10 +605,10 @@ function ComplianceDriftContent() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as typeof activeTab)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 px-3.5 py-3 text-sm font-bold border-b-2 transition-all duration-200 ${
                 activeTab === tab.key
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                  ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-450 dark:hover:text-slate-205'
               }`}
             >
               {tab.icon}
@@ -604,10 +622,10 @@ function ComplianceDriftContent() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Drift Timeline */}
-          <Card>
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-blue-500" />
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-150 text-lg font-bold">
+                <BarChart3 className="h-5 w-5 text-indigo-605" />
                 Drift Timeline
               </CardTitle>
             </CardHeader>
@@ -618,22 +636,22 @@ function ComplianceDriftContent() {
 
           {/* Signal Summary by Category */}
           {driftResult && Object.keys(driftResult.signal_counts).length > 0 && (
-            <Card>
+            <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-purple-500" />
+                <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-150 text-lg font-bold">
+                  <Activity className="h-5 w-5 text-purple-600" />
                   Drift Signal Summary
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {Object.entries(driftResult.signal_counts).map(([type, count]) => (
-                    <div key={type} className="text-center p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                      <div className="flex justify-center mb-1 text-gray-600 dark:text-gray-400">
+                    <div key={type} className="text-center p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-150 dark:border-slate-800/40 hover:scale-[1.02] transition-transform duration-200">
+                      <div className="flex justify-center mb-1.5 text-slate-400 dark:text-slate-500">
                         {SIGNAL_ICONS[type]}
                       </div>
-                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{count}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{SIGNAL_LABELS[type] || type}</div>
+                      <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-150">{count}</div>
+                      <div className="text-xs font-bold text-slate-500 dark:text-slate-450 mt-1">{SIGNAL_LABELS[type] || type}</div>
                     </div>
                   ))}
                 </div>
@@ -643,20 +661,20 @@ function ComplianceDriftContent() {
 
           {/* Forecast summary */}
           {driftResult?.forecast_summary && (
-            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-sm text-blue-800 dark:text-blue-300">
-              <strong>Forecast:</strong> {driftResult.forecast_summary}
+            <div className="bg-indigo-50/20 dark:bg-indigo-950/10 border border-indigo-200 dark:border-indigo-900/40 rounded-2xl p-4 text-sm font-semibold text-indigo-950 dark:text-indigo-300 shadow-sm transition-all duration-300">
+              <strong className="text-indigo-700 dark:text-indigo-400">Forecast:</strong> {driftResult.forecast_summary}
             </div>
           )}
         </div>
       )}
 
       {activeTab === 'signals' && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {allSignals.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-500" />
-              <p className="text-lg font-medium">No Drift Signals Detected</p>
-              <p className="text-sm mt-1">Your compliance posture is stable relative to baseline.</p>
+            <div className="text-center py-16 text-slate-500 dark:text-slate-455">
+              <CheckCircle2 className="h-16 w-16 mx-auto mb-4 text-green-500 opacity-80" />
+              <p className="text-lg font-bold text-slate-850 dark:text-slate-150">No Drift Signals Detected</p>
+              <p className="text-sm mt-1 font-medium">Your compliance posture is stable relative to baseline.</p>
             </div>
           ) : (
             <>
@@ -667,15 +685,17 @@ function ComplianceDriftContent() {
                   if (!acc[key]) acc[key] = [];
                   acc[key].push(s);
                   return acc;
-                }, {})
+                  }, {})
               ).map(([type, signals]) => (
-                <div key={type}>
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <div key={type} className="space-y-2">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-350 mb-2 flex items-center gap-2">
                     {SIGNAL_ICONS[type]}
                     {SIGNAL_LABELS[type] || type}
-                    <Badge variant="outline" className="text-xs">{signals.length}</Badge>
+                    <span className="ml-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      {signals.length}
+                    </span>
                   </h3>
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-3 mb-5">
                     {signals.map((signal, idx) => (
                       <SignalCard key={`${type}-${idx}`} signal={signal} />
                     ))}
@@ -689,15 +709,15 @@ function ComplianceDriftContent() {
 
       {activeTab === 'shadow-ai' && (
         <div className="space-y-4">
-          <Card>
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-purple-500" />
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-155 text-lg font-bold">
+                <Brain className="h-5 w-5 text-purple-650" />
                 Shadow AI Governance
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-sm text-slate-505 dark:text-slate-455 mb-4 leading-relaxed font-semibold">
                 Detects unsanctioned AI models in the tech stack. Models with HIGH data sensitivity
                 and UNSANCTIONED tier generate CRITICAL governance violations.
               </p>
@@ -705,9 +725,9 @@ function ComplianceDriftContent() {
               {shadowAI && shadowAI.count > 0 ? (
                 <div className="space-y-3">
                   {shadowAI.has_critical && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2">
-                      <XCircle className="h-5 w-5 text-red-600" />
-                      <span className="text-red-800 dark:text-red-300 font-semibold">
+                    <div className="bg-red-50/20 dark:bg-red-955/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 flex items-center gap-2.5 shadow-sm">
+                      <XCircle className="h-5 w-5 text-red-655" />
+                      <span className="text-red-900 dark:text-red-300 font-extrabold">
                         CRITICAL: Unsanctioned AI processing sensitive data detected
                       </span>
                     </div>
@@ -717,10 +737,10 @@ function ComplianceDriftContent() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-500" />
-                  <p className="text-lg font-medium">No Shadow AI Violations</p>
-                  <p className="text-sm mt-1">
+                <div className="text-center py-12 text-slate-500 dark:text-slate-450">
+                  <CheckCircle2 className="h-16 w-16 mx-auto mb-4 text-green-500 opacity-80" />
+                  <p className="text-lg font-bold text-slate-850 dark:text-slate-150">No Shadow AI Violations</p>
+                  <p className="text-sm mt-1 font-medium">
                     All AI models in the tech stack are properly classified.
                     Add items with category &quot;AI Model&quot; to enable governance checks.
                   </p>
@@ -730,34 +750,34 @@ function ComplianceDriftContent() {
           </Card>
 
           {/* AI Model Tier Reference */}
-          <Card>
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
             <CardHeader>
-              <CardTitle className="text-sm">AI Model Governance Tiers</CardTitle>
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">AI Model Governance Tiers</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                  <div className="font-semibold text-green-800 dark:text-green-300">Sanctioned</div>
-                  <p className="text-green-700 dark:text-green-400 text-xs mt-1">Approved for production — vetted by security team</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-semibold">
+                <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/50 hover:scale-[1.01] transition-transform duration-200">
+                  <div className="font-extrabold text-green-900 dark:text-green-300">Sanctioned</div>
+                  <p className="text-green-700 dark:text-green-400 text-xs mt-1.5 leading-relaxed font-bold">Approved for production — vetted by security team</p>
                 </div>
-                <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-                  <div className="font-semibold text-yellow-800 dark:text-yellow-300">Conditional</div>
-                  <p className="text-yellow-700 dark:text-yellow-400 text-xs mt-1">Approved with restrictions — requires data classification review</p>
+                <div className="p-4 rounded-2xl bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/50 hover:scale-[1.01] transition-transform duration-200">
+                  <div className="font-extrabold text-yellow-900 dark:text-yellow-300">Conditional</div>
+                  <p className="text-yellow-700 dark:text-yellow-400 text-xs mt-1.5 leading-relaxed font-bold">Approved with restrictions — requires data classification review</p>
                 </div>
-                <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
-                  <div className="font-semibold text-orange-800 dark:text-orange-300">Unsanctioned</div>
-                  <p className="text-orange-700 dark:text-orange-400 text-xs mt-1">Not approved — requires security review before deployment</p>
+                <div className="p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50 hover:scale-[1.01] transition-transform duration-200">
+                  <div className="font-extrabold text-orange-900 dark:text-orange-300">Unsanctioned</div>
+                  <p className="text-orange-700 dark:text-orange-400 text-xs mt-1.5 leading-relaxed font-bold">Not approved — requires security review before deployment</p>
                 </div>
-                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                  <div className="font-semibold text-red-800 dark:text-red-300">Banned</div>
-                  <p className="text-red-700 dark:text-red-400 text-xs mt-1">Explicitly prohibited — violates organizational policy</p>
+                <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 hover:scale-[1.01] transition-transform duration-200">
+                  <div className="font-extrabold text-red-900 dark:text-red-300">Banned</div>
+                  <p className="text-red-700 dark:text-red-400 text-xs mt-1.5 leading-relaxed font-bold">Explicitly prohibited — violates organizational policy</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

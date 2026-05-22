@@ -206,7 +206,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <div className="flex-1" />
-          {isStaging ? <ThemeToggle /> : null}
+          <ThemeToggle />
         </header>
 
         {/* Page content */}

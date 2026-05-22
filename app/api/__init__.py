@@ -18,6 +18,7 @@ from app.api import (
     logic_firewall,
     intelligence,
     remediations,
+    verification,
 )
 from app.api.v1 import router as v1_router
 
@@ -56,3 +57,6 @@ router.include_router(intelligence.router, tags=["intelligence"])
 
 # Remediation/action tracker updates
 router.include_router(remediations.router, prefix="/remediations", tags=["remediations"])
+
+# SIEM Verification, Audit Trail, and Liability-to-ROI
+router.include_router(verification.router, prefix="/verification", tags=["verification"])

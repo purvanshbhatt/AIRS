@@ -48,6 +48,7 @@ from app.services.report import ReportService
 from app.services.integrations import dispatch_assessment_scored_webhooks
 from app.services.audit import record_audit_event
 from app.services.demo_seed import ensure_demo_seed_data
+from app.services.compliance_export import export_compliance_report_to_gcs
 from app.services.smart_annotations import generate_annotations
 from app.reports.pdf import ProfessionalPDFGenerator
 from app.models.assessment import Assessment
@@ -537,6 +538,11 @@ async def compute_score(
                 dispatch_assessment_scored_webhooks,
                 assessment.organization_id,
                 webhook_payload,
+            )
+            background_tasks.add_task(
+                export_compliance_report_to_gcs,
+                assessment_id,
+                user.uid if user else None,
             )
             record_audit_event(
                 db=db,

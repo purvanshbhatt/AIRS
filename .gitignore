@@ -69,3 +69,7 @@ submission_docs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Backups
+frontend/dist_backup/
+

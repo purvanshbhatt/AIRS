@@ -117,8 +117,8 @@ export default function Assessment() {
           type="button"
           onClick={() => handleAnswerChange(q.id, value !== true)}
           className={clsx(
-            'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-            value === true ? 'bg-primary-600' : 'bg-gray-200 dark:bg-slate-700'
+            'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+            value === true ? 'bg-primary-600 dark:bg-primary-500' : 'bg-slate-200 dark:bg-slate-700'
           )}
         >
           <span
@@ -140,9 +140,9 @@ export default function Assessment() {
           max={q.type === 'percentage' ? 100 : undefined}
           value={typeof value === 'number' ? value : ''}
           onChange={(e) => handleAnswerChange(q.id, parseFloat(e.target.value) || 0)}
-          className="w-24 px-3 py-1.5 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-24 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
         />
-        {q.type === 'percentage' && <span className="text-gray-500 dark:text-slate-400 text-sm">%</span>}
+        {q.type === 'percentage' && <span className="text-slate-500 dark:text-slate-400 text-sm">%</span>}
       </div>
     );
   };
@@ -151,8 +151,8 @@ export default function Assessment() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-slate-300">Loading assessment...</p>
+          <Loader2 className="w-12 h-12 text-primary-600 dark:text-primary-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-350 font-medium">Loading assessment...</p>
         </div>
       </div>
     );
@@ -160,11 +160,11 @@ export default function Assessment() {
 
   if (error) {
     return (
-      <Card>
+      <Card className="max-w-lg mx-auto mt-12 rounded-3xl border border-red-200/50 dark:border-red-900/30 bg-red-50/20 dark:bg-red-950/10 shadow-sm">
         <CardContent className="py-8">
-          <div className="flex items-center justify-center gap-3 text-danger-600">
+          <div className="flex items-center justify-center gap-3 text-red-600 dark:text-red-400">
             <AlertCircle className="w-6 h-6" />
-            <p className="text-lg">{error}</p>
+            <p className="text-lg font-medium">{error}</p>
           </div>
         </CardContent>
       </Card>
@@ -173,8 +173,8 @@ export default function Assessment() {
 
   if (!rubric || !assessment) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center text-gray-600 dark:text-slate-300">
+      <Card className="max-w-lg mx-auto mt-12 rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm">
+        <CardContent className="py-8 text-center text-slate-600 dark:text-slate-350">
           Assessment not found
         </CardContent>
       </Card>
@@ -188,23 +188,23 @@ export default function Assessment() {
   return (
     <div className="space-y-6">
       {/* Progress Header */}
-      <Card>
-        <CardContent className="py-4">
+      <Card className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300">
+        <CardContent className="py-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">{assessment.title}</h1>
-              <p className="text-sm text-gray-500 dark:text-slate-400">
+              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{assessment.title}</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Answer all questions to complete the assessment
               </p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-primary-600">{progress}%</p>
-              <p className="text-xs text-gray-500 dark:text-slate-400">Complete</p>
+              <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">{progress}%</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Complete</p>
             </div>
           </div>
-          <div className="mt-4 h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className="mt-4 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary-500 transition-all duration-300"
+              className="h-full bg-primary-600 dark:bg-primary-500 transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -223,10 +223,10 @@ export default function Assessment() {
               key={domain.id}
               onClick={() => setActiveDomain(domain.id)}
               className={clsx(
-                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border shadow-sm hover:scale-[1.02]',
                 isActive
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700'
+                  ? 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500 shadow-md font-semibold'
+                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800'
               )}
             >
               {domain.name}
@@ -244,21 +244,21 @@ export default function Assessment() {
 
       {/* Questions */}
       {currentDomain && (
-        <Card>
-          <CardContent className="divide-y divide-gray-100 dark:divide-slate-800">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 hover:shadow-md">
+          <CardContent className="divide-y divide-slate-100 dark:divide-slate-800/60 py-2">
             {currentDomain.questions.map((q, idx) => (
               <div key={q.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-start gap-2">
-                      <p className="font-medium text-gray-900 dark:text-slate-100">
+                      <p className="font-medium text-slate-900 dark:text-slate-100">
                         {idx + 1}. {q.text}
                       </p>
                       {q.help_text && (
                         <Tooltip content={q.help_text} placement="top">
                           <button
                             type="button"
-                            className="mt-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                            className="mt-0.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                             aria-label={`Question help for ${q.id}`}
                           >
                             <Info className="w-4 h-4" />
@@ -266,7 +266,7 @@ export default function Assessment() {
                         </Tooltip>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       {q.points} point{q.points !== 1 ? 's' : ''} • {questionTypeLabel(q.type)}
                     </p>
                   </div>
@@ -280,7 +280,7 @@ export default function Assessment() {
 
       {/* Submit */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
           {progress < 100
             ? `Complete all questions to submit (${100 - progress}% remaining)`
             : 'All questions answered!'}
@@ -289,6 +289,7 @@ export default function Assessment() {
           onClick={handleSubmit}
           disabled={progress < 100 || submitting}
           loading={submitting}
+          className="rounded-xl px-5 py-2.5 shadow-sm hover:shadow-md transition-all duration-200"
         >
           {submitting ? 'Submitting...' : 'Submit Assessment'}
         </Button>

@@ -1,5 +1,6 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { AlertTriangle, Lock } from 'lucide-react';
 import { DashboardLayout } from './components/layout';
 import DocsLayout from './components/layout/DocsLayout';
 import { ToastProvider } from './components/ui';
@@ -48,24 +49,27 @@ function ApiConfigBanner() {
   );
 }
 
-function PublicBetaBanner() {
-  const { isDemoMode, isReadOnly } = useDemoMode();
+function EnvironmentBanner() {
+  const { systemStatus } = useDemoMode();
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isStaging = systemStatus?.environment === 'staging' || 
+                    host.includes('staging') || 
+                    host.includes('airs-staging-0384513977') ||
+                    import.meta.env.MODE === 'staging';
 
-  if (!isDemoMode) return null;
+  if (isStaging) {
+    return (
+      <div className="bg-amber-500/10 border-b border-amber-500/50 text-amber-600 dark:text-amber-400 py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2">
+        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+        <span>STAGING ENVIRONMENT - GOVERNANCE SPRINT ACTIVE. DATA MAY BE FLUSHED.</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-blue-600 text-white px-4 py-2 text-center text-sm font-medium">
-      {isReadOnly ? (
-        <>
-          Demo Mode — Read Only
-          <span className="ml-2 opacity-90">This environment contains synthetic example data and is read-only.</span>
-        </>
-      ) : (
-        <>
-          Public Beta
-          <span className="ml-2 opacity-90">This environment contains synthetic example data.</span>
-        </>
-      )}
+    <div className="bg-blue-500/10 border-b border-blue-500/50 text-blue-600 dark:text-blue-400 py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2">
+      <Lock className="w-4 h-4 text-blue-500 shrink-0" />
+      <span>DEMO ENVIRONMENT - LOCKED AT NIST CSF 2.0 MILESTONE.</span>
     </div>
   );
 }
@@ -120,7 +124,7 @@ export default function App() {
         <ToastProvider>
           <AuthRedirectHandler />
           <ApiConfigBanner />
-          <PublicBetaBanner />
+          <EnvironmentBanner />
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
