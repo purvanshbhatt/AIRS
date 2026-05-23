@@ -77,12 +77,13 @@ fi
 
 # Run build based on target
 echo "Step 1: Building frontend for target '$TARGET'..."
+# Check if demo deployment is locked
 if [ "$TARGET" == "demo" ]; then
     echo "ERROR: Demo environment is currently locked. Deployments to demo are disabled by policy."
     exit 1
 fi
 
-if [ "$TARGET" == "production" ]; then
+if [ "$TARGET" == "marketing" ]; then
     npm run build:production
 elif [[ "$TARGET" == "demo" ]]; then
     npm run build:demo
