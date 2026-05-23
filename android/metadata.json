@@ -1,0 +1,6 @@
+{
+  "name": "ResilAI",
+  "description": "Continuous Governance & Readiness Intelligence Platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

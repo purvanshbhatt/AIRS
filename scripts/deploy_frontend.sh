@@ -64,9 +64,25 @@ fi
 
 cd "$PROJECT_ROOT/frontend"
 
+# ── Branch guardrail: only main or staging branch may deploy to marketing or demo ──
+if [[ "$TARGET" == "marketing" || "$TARGET" == "demo" ]]; then
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+    if [[ "$CURRENT_BRANCH" != "main" && "$CURRENT_BRANCH" != "staging" ]]; then
+        echo "CRITICAL: Deploying to target '$TARGET' is only allowed from the 'main' or 'staging' branch."
+        echo "Current branch: $CURRENT_BRANCH"
+        echo "Merge your changes to 'main' first, then re-run."
+        exit 1
+    fi
+fi
+
 # Run build based on target
 echo "Step 1: Building frontend for target '$TARGET'..."
-if [[ "$TARGET" == "marketing" ]]; then
+if [ "$TARGET" == "demo" ]; then
+    echo "ERROR: Demo environment is currently locked. Deployments to demo are disabled by policy."
+    exit 1
+fi
+
+if [ "$TARGET" == "production" ]; then
     npm run build:production
 elif [[ "$TARGET" == "demo" ]]; then
     npm run build:demo

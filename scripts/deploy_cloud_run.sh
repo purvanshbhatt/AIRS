@@ -14,6 +14,11 @@ PROD_PROJECT_ID_DEFAULT="gen-lang-client-0384513977"
 PROD_PROJECT_ID="${AIRS_PROD_PROJECT_ID:-$PROD_PROJECT_ID_DEFAULT}"
 
 # Configuration (can be overridden by flags or legacy positional args)
+if [ "${TARGET:-}" == "demo" ]; then
+    echo "ERROR: Demo environment is currently locked. Deployments to demo are disabled by policy."
+    exit 1
+fi
+
 SERVICE_NAME="airs-api-staging"
 REGION="us-central1"
 ENV_FILE="gcp/env.staging.yaml"
@@ -53,9 +58,13 @@ while [[ $# -gt 0 ]]; do
             if [[ "$TARGET" == "staging" ]]; then
                 SERVICE_NAME="airs-api-staging"
                 ENV_FILE="gcp/env.staging.yaml"
-            elif [[ "$TARGET" == "demo" || "$TARGET" == "production" ]]; then
-                SERVICE_NAME="airs-api"
+            elif [[ "$TARGET" == "demo" ]]; then
+                SERVICE_NAME="airs-api-demo"
                 ENV_FILE="gcp/env.demo.yaml"
+                ALLOW_PROD="true"
+            elif [[ "$TARGET" == "production" ]]; then
+                SERVICE_NAME="airs-api"
+                ENV_FILE="gcp/env.prod.yaml"
                 ALLOW_PROD="true"
             elif [[ "$TARGET" == "marketing" ]]; then
                 echo "INFO: Marketing target is frontend-only. No Cloud Run backend service is associated with marketing."
@@ -197,9 +206,18 @@ if [[ -z "$PROJECT_ID" ]]; then
 fi
 PROJECT_ID="$(strip_quotes "${PROJECT_ID:-}")"
 
+# ── Branch guardrail: only main branch may deploy to prod or demo ──
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+if [[ ("$SERVICE_NAME" == "airs-api" || "$SERVICE_NAME" == "airs-api-demo") && "$CURRENT_BRANCH" != "main" && "$CURRENT_BRANCH" != "staging" ]]; then
+    echo "CRITICAL: Deployments to $SERVICE_NAME are only allowed from the 'main' or 'staging' branch."
+    echo "Current branch: $CURRENT_BRANCH"
+    echo "Merge your changes to 'main' first, then re-run."
+    exit 1
+fi
+
 # Safety: block production deploys unless explicitly allowed with --prod
 REQUIRE_PROD_CONFIRM="false"
-if [[ "$SERVICE_NAME" == "airs-api" ]]; then
+if [[ "$SERVICE_NAME" == "airs-api" || "$SERVICE_NAME" == "airs-api-demo" ]]; then
     REQUIRE_PROD_CONFIRM="true"
 elif [[ "$ENV_FILE" == *"env.prod"* || "$ENV_FILE" == *"env.demo"* ]]; then
     REQUIRE_PROD_CONFIRM="true"

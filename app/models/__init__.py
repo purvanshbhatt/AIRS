@@ -22,6 +22,12 @@ from app.models.question_metadata import (
 from app.models.audit_calendar import AuditCalendarEntry, AuditType
 from app.models.tech_stack import TechStackItem, LtsStatus
 from app.models.framework_registry import FrameworkRegistry, FrameworkCategory
+from app.models.framework_mapping import FrameworkMappingRegistry
+from app.models.finding_provenance import (
+    FindingProvenance,
+    VerificationSource,
+    ProvenanceStatus,
+)
 
 __all__ = [
     "Organization",
@@ -50,4 +56,8 @@ __all__ = [
     "LtsStatus",
     "FrameworkRegistry",
     "FrameworkCategory",
+    "FrameworkMappingRegistry",
+    "FindingProvenance",
+    "VerificationSource",
+    "ProvenanceStatus",
 ]

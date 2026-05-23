@@ -28,8 +28,29 @@ try {
 $FrontendDir = Join-Path $ProjectRoot "frontend"
 Set-Location $FrontendDir
 
+# ── Branch guardrail: only main or staging branch may deploy to marketing or demo ──
+if ($Target -eq "marketing" -or $Target -eq "demo") {
+    try {
+        $currentBranch = (git rev-parse --abbrev-ref HEAD 2>$null).Trim()
+    } catch {
+        $currentBranch = "unknown"
+    }
+    if ($currentBranch -and $currentBranch -ne "main" -and $currentBranch -ne "staging") {
+        Write-Host ""
+        Write-Host "CRITICAL: Deploying to target '$Target' is only allowed from the 'main' or 'staging' branch." -ForegroundColor Red
+        Write-Host "Current branch: $currentBranch" -ForegroundColor Red
+        Write-Host "Merge your changes to 'main' first, then re-run." -ForegroundColor Yellow
+        exit 1
+    }
+}
+
 Write-Host "Step 1: Building frontend for target '$Target'..." -ForegroundColor Green
-if ($Target -eq "marketing") {
+if ($Target -eq "demo") {
+    Write-Host "ERROR: Demo environment is currently locked. Deployments to demo are disabled by policy." -ForegroundColor Red
+    exit 1
+}
+
+if ($Target -eq "production") {
     npm run build:production
 } elseif ($Target -eq "demo") {
     npm run build:demo

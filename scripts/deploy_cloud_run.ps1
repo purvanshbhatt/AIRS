@@ -14,43 +14,53 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Handle Target shortcut parameter
+$IsDemo = $false
 if ($Target) {
     if ($Target -eq "staging") {
         $Prod = $false
-    } elseif ($Target -eq "demo" -or $Target -eq "production") {
+    } elseif ($Target -eq "demo") {
         $Prod = $true
+        $IsDemo = $true
+    } elseif ($Target -eq "production") {
+        $Prod = $true
+        $IsDemo = $false
     } elseif ($Target -eq "marketing") {
         Write-Host "INFO: Marketing target is frontend-only. No Cloud Run backend service is associated with marketing." -ForegroundColor Green
         exit 0
     } else {
-        Write-Host "ERROR: Invalid target: $Target. Must be one of: staging, demo, marketing." -ForegroundColor Red
+        Write-Host "ERROR: Invalid target: $Target. Must be one of: staging, demo, production, marketing." -ForegroundColor Red
         exit 1
     }
 }
 
 # Determine target environment
 if ($Prod) {
-    $ServiceName = "airs-api"
-    $EnvFile = "gcp/env.demo.yaml" # Demands env.demo.yaml for production deployment/demo domain mapping
-    $envLabel = "PRODUCTION"
+    if ($IsDemo) {
+        Write-Host "ERROR: Demo environment is currently locked. Deployments to demo are disabled by policy." -ForegroundColor Red
+        exit 1
+    } else {
+        $ServiceName = "airs-api"
+        $EnvFile = "gcp/env.prod.yaml"
+        $envLabel = "PRODUCTION"
+    }
 
-    # ── Branch guardrail: only main branch may deploy to prod ─────────
+    # ── Branch guardrail: only main branch may deploy to prod or demo ──
     try {
         $currentBranch = (git rev-parse --abbrev-ref HEAD 2>$null).Trim()
     } catch {
         $currentBranch = "unknown"
     }
-    if ($currentBranch -and $currentBranch -ne "main") {
+    if ($currentBranch -and $currentBranch -ne "main" -and $currentBranch -ne "staging") {
         Write-Host ""
-        Write-Host "CRITICAL: Production deployments are only allowed from the 'main' branch." -ForegroundColor Red
+        Write-Host "CRITICAL: $envLabel deployments are only allowed from the 'main' or 'staging' branch." -ForegroundColor Red
         Write-Host "Current branch: $currentBranch" -ForegroundColor Red
         Write-Host "Merge your changes to 'main' first, then re-run." -ForegroundColor Yellow
         exit 1
     }
 
     Write-Host ""
-    Write-Host "WARNING: You are deploying to PRODUCTION!" -ForegroundColor Red
-    Write-Host "This will affect the live demo at resilai.org / demo.resilai.org." -ForegroundColor Red
+    Write-Host "WARNING: You are deploying to $envLabel!" -ForegroundColor Red
+    Write-Host "This will affect the live service at $envLabel." -ForegroundColor Red
     $confirm = Read-Host "Type 'yes' to continue"
     if ($confirm -ne "yes") {
         Write-Host "Aborted." -ForegroundColor Yellow
@@ -139,7 +149,8 @@ Write-Host "Deploying to Cloud Run..." -ForegroundColor Green
 Write-Host ""
 
 # Run deployment
-& gcloud @deployArgs
+$env:CLOUDSDK_PYTHON="py"
+& gcloud.cmd @deployArgs
 
 $exitCode = $LASTEXITCODE
 

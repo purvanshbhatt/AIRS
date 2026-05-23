@@ -35,6 +35,8 @@ from app.models import (
     AuditCalendarEntry,
     TechStackItem,
     FrameworkRegistry,
+    FrameworkMappingRegistry,
+    FindingProvenance,
 )
 
 # Alembic Config object

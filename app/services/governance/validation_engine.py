@@ -157,14 +157,33 @@ class ValidationResult:
 def compute_audit_readiness(
     findings: List[Finding],
     org_id: Optional[str] = None,
+    db: Optional[Session] = None,
 ) -> AuditReadinessResult:
     """
     Compute audit readiness score from open findings.
 
-    Formula: score = max(0, 100 − (Critical×15) − (High×8) − (Medium×3))
-    Only open/in_progress findings count.
+    Base formula: score = max(0, 100 − Σ(severity_weight × verification_multiplier))
+
+    Verification multipliers (Phase 3 — Deterministic Scoring Enforcement):
+      - SOC_VERIFIED:  1.0x — SIEM-confirmed finding, full deduction
+      - PROVISIONAL:   0.6x — Self-attested only, lower certainty
+      - CONTRADICTED:  1.2x — SIEM contradicts self-report, elevated risk
+
+    When no DB session is provided or no provenance exists, defaults to
+    the legacy 1.0x flat weight for backward compatibility.
     """
     result = AuditReadinessResult()
+
+    # Verification multipliers — deterministic, no LLM involvement
+    _VERIFICATION_MULTIPLIERS = {
+        "SOC_VERIFIED": 1.0,
+        "PROVISIONAL": 0.6,
+        "CONTRADICTED": 1.2,
+    }
+    _DEFAULT_MULTIPLIER = 0.6  # No provenance → treat as PROVISIONAL
+
+    total_weighted_deduction = 0.0
+    provenance_stats = {"soc_verified": 0, "provisional": 0, "contradicted": 0, "no_provenance": 0}
 
     for f in findings:
         if f.status in ("resolved", "accepted"):
@@ -180,6 +199,33 @@ def compute_audit_readiness(
         elif severity == "low":
             result.low_count += 1
 
+        base_weight = SEVERITY_WEIGHTS.get(severity, 0)
+
+        # --- Provenance-weighted deduction ---
+        v_multiplier = 1.0  # Default: legacy flat weight (no provenance query)
+        if db is not None:
+            try:
+                from app.models.finding_provenance import FindingProvenance
+                provenance = (
+                    db.query(FindingProvenance)
+                    .filter(FindingProvenance.finding_id == f.id)
+                    .first()
+                )
+                if provenance:
+                    status_val = provenance.verification_status.value if hasattr(
+                        provenance.verification_status, "value"
+                    ) else str(provenance.verification_status)
+                    v_multiplier = _VERIFICATION_MULTIPLIERS.get(status_val, _DEFAULT_MULTIPLIER)
+                    provenance_stats[status_val.lower()] = provenance_stats.get(status_val.lower(), 0) + 1
+                else:
+                    v_multiplier = _DEFAULT_MULTIPLIER
+                    provenance_stats["no_provenance"] += 1
+            except Exception:
+                # Graceful degradation: if provenance query fails, use flat weight
+                v_multiplier = 1.0
+
+        total_weighted_deduction += base_weight * v_multiplier
+
     crit_deduction = result.critical_count * SEVERITY_WEIGHTS["critical"]
     high_deduction = result.high_count * SEVERITY_WEIGHTS["high"]
     med_deduction = result.medium_count * SEVERITY_WEIGHTS["medium"]
@@ -190,26 +236,36 @@ def compute_audit_readiness(
         "medium": med_deduction,
     }
 
-    result.score = max(0.0, 100.0 - crit_deduction - high_deduction - med_deduction)
+    # Use provenance-weighted deduction when DB is available,
+    # otherwise fall back to legacy flat deduction
+    if db is not None:
+        result.score = max(0.0, 100.0 - total_weighted_deduction)
+    else:
+        result.score = max(0.0, 100.0 - crit_deduction - high_deduction - med_deduction)
 
     # Structured JSON log — audit_readiness_inputs
     if org_id:
+        log_payload = {
+            "event": "audit_readiness_inputs",
+            "organization_id": org_id,
+            "total_open": result.total_open,
+            "critical_count": result.critical_count,
+            "high_count": result.high_count,
+            "medium_count": result.medium_count,
+            "low_count": result.low_count,
+            "deductions": result.deductions,
+            "score": result.score,
+        }
+        if db is not None:
+            log_payload["provenance_weighted"] = True
+            log_payload["provenance_stats"] = provenance_stats
         logger.info(
             "audit_readiness_inputs %s",
-            json.dumps({
-                "event": "audit_readiness_inputs",
-                "organization_id": org_id,
-                "total_open": result.total_open,
-                "critical_count": result.critical_count,
-                "high_count": result.high_count,
-                "medium_count": result.medium_count,
-                "low_count": result.low_count,
-                "deductions": result.deductions,
-                "score": result.score,
-            }),
+            json.dumps(log_payload),
         )
 
     return result
+
 
 
 def compute_compliance(
@@ -465,7 +521,7 @@ def validate_organization(
     all_findings: List[Finding] = []
     for assessment in org.assessments:
         all_findings.extend(assessment.findings)
-    result.audit_readiness = compute_audit_readiness(all_findings, org_id=org.id)
+    result.audit_readiness = compute_audit_readiness(all_findings, org_id=org.id, db=db)
 
     # 3. SLA gap
     result.sla = compute_sla_gap(org, org_id=org.id)
