@@ -7,7 +7,7 @@ determining applicable compliance frameworks.
 
 import json
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.firestore import firestore_save_org
@@ -24,6 +24,7 @@ from app.services.governance.compliance_engine import get_applicable_frameworks
 from app.services.governance.validation_engine import validate_organization
 from app.services.organization import OrganizationService
 from app.services.governance_forecast import generate_governance_forecast
+from app.services.compliance_export import export_latest_compliance_report_to_gcs
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -109,6 +110,7 @@ async def get_profile(
 async def update_profile(
     org_id: str,
     data: OrganizationProfileUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
@@ -137,6 +139,12 @@ async def update_profile(
             geo_regions = json.loads(org.geo_regions)
         except (json.JSONDecodeError, TypeError):
             geo_regions = []
+
+    background_tasks.add_task(
+        export_latest_compliance_report_to_gcs,
+        org_id,
+        user.uid if user else None,
+    )
 
     return OrganizationProfileResponse(
         org_id=org.id,

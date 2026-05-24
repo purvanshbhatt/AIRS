@@ -8,10 +8,11 @@ Exposes:
 """
 
 from fastapi import APIRouter
-from app.api.v1 import methodology, pilot_leads, integrations, telemetry
+from app.api.v1 import methodology, pilot_leads, integrations, telemetry, frameworks
 
 router = APIRouter()
 router.include_router(methodology.router, tags=["methodology"])
 router.include_router(pilot_leads.router, tags=["pilot"])
 router.include_router(integrations.router, tags=["integrations"])
 router.include_router(telemetry.router, tags=["telemetry"])
+router.include_router(frameworks.router, tags=["frameworks"])

@@ -119,9 +119,8 @@ def framework_mapping(db_session, findings) -> FrameworkMappingRegistry:
     mapping = FrameworkMappingRegistry(
         id=str(uuid.uuid4()),
         finding_id=findings[0].id,
-        nist_csf_control_id="DE.CM-1",
-        nist_ai_rmf_control_id="MAP 1.1",
-        mitre_atlas_tactic_id="AML.T0043",
+        framework_type="NIST_CSF",
+        control_id="DE.CM-1",
         mapping_version="1.0.0",
     )
     db_session.add(mapping)
@@ -195,21 +194,16 @@ class TestModelIntegrity:
         """FrameworkMappingRegistry can be created with all control IDs."""
         mapping = FrameworkMappingRegistry(
             finding_id=findings[0].id,
-            nist_csf_control_id="DE.CM-1",
-            nist_ai_rmf_control_id="MAP 1.1",
-            mitre_atlas_tactic_id="AML.T0043",
-            soc2_control_id="CC6.1",
-            iso27001_control_id="A.8.7",
-            mapping_version="1.0.0",
+            framework_type="NIST_CSF",
+            control_id="DE.CM-1",
         )
         db_session.add(mapping)
         db_session.commit()
         db_session.refresh(mapping)
 
         assert mapping.finding_id == findings[0].id
-        assert mapping.nist_ai_rmf_control_id == "MAP 1.1"
-        assert mapping.mitre_atlas_tactic_id == "AML.T0043"
-        assert mapping.mapping_version == "1.0.0"
+        assert mapping.framework_type.value == "NIST_CSF"
+        assert mapping.control_id == "DE.CM-1"
 
     def test_provenance_relationship_to_finding(self, db_session, findings):
         """FindingProvenance has a backref accessible from Finding."""

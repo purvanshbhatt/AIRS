@@ -273,7 +273,7 @@ export default function StatusPage() {
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-12 space-y-8 text-left">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-150 dark:border-slate-900 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 dark:border-slate-900 pb-6">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-950 dark:text-slate-50">System Status</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
@@ -312,27 +312,25 @@ export default function StatusPage() {
 
         {/* Services Status with Glowing/Pulsing Orbs */}
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Backend Status Card */}
-          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4">
+          {/* FastAPI Core Runtime Card */}
+          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4 shadow-sm">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
-                <Server className="w-3.5 h-3.5" />
-                FastAPI Backend
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Server className="w-3.5 h-3.5 text-emerald-500" />
+                FastAPI Core Runtime
               </span>
-              <p className="text-base font-extrabold text-slate-900 dark:text-slate-550">
+              <p className="text-base font-extrabold text-slate-900 dark:text-slate-100">
                 {snapshot.backendOperational === null ? 'Loading...' : snapshot.backendOperational ? 'Operational' : 'Offline'}
               </p>
             </div>
-            {/* Pulsing Orb */}
+            {/* Pulsing Orb - Emerald */}
             <div className="relative flex items-center justify-center w-8 h-8">
-              <div
-                className={`absolute w-4 h-4 rounded-full opacity-35 animate-ping ${
-                  snapshot.backendOperational ? 'bg-emerald-500' : 'bg-rose-500'
-                }`}
-              />
+              {snapshot.backendOperational && (
+                <div className="absolute w-4 h-4 rounded-full opacity-35 bg-emerald-500 animate-ping" />
+              )}
               <div
                 className={`w-3.5 h-3.5 rounded-full border border-white/20 dark:border-black/20 shadow-md ${
-                  snapshot.backendOperational ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50'
+                  snapshot.backendOperational ? 'bg-emerald-500' : 'bg-rose-500'
                 }`}
                 style={{
                   boxShadow: `0 0 12px ${snapshot.backendOperational ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'}`,
@@ -341,55 +339,55 @@ export default function StatusPage() {
             </div>
           </div>
 
-          {/* Gemini AI Engine Status Card */}
-          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4">
+          {/* Gemini Automated Narrative Subsystem Card */}
+          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4 shadow-sm">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
-                <Bot className="w-3.5 h-3.5" />
-                Gemini Narrative Engine
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Bot className="w-3.5 h-3.5 text-sky-500" />
+                Gemini Automated Narrative Subsystem
               </span>
-              <p className="text-base font-extrabold text-slate-900 dark:text-slate-550">
+              <p className="text-base font-extrabold text-slate-900 dark:text-slate-100">
                 {snapshot.system?.llm_enabled ? 'Ready / Active' : 'Offline'}
               </p>
             </div>
-            {/* Pulsing Orb */}
+            {/* Pulsing Orb - Soft Sapphire */}
             <div className="relative flex items-center justify-center w-8 h-8">
               {snapshot.system?.llm_enabled && (
-                <div className="absolute w-4 h-4 rounded-full opacity-35 bg-emerald-500 animate-ping" />
+                <div className="absolute w-4 h-4 rounded-full opacity-35 bg-sky-500 animate-ping" />
               )}
               <div
                 className={`w-3.5 h-3.5 rounded-full border border-white/20 dark:border-black/20 shadow-md ${
-                  snapshot.system?.llm_enabled ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50'
+                  snapshot.system?.llm_enabled ? 'bg-sky-500' : 'bg-rose-500'
                 }`}
                 style={{
-                  boxShadow: `0 0 12px ${snapshot.system?.llm_enabled ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'}`,
+                  boxShadow: `0 0 12px ${snapshot.system?.llm_enabled ? 'rgba(14, 165, 233, 0.6)' : 'rgba(239, 68, 68, 0.6)'}`,
                 }}
               />
             </div>
           </div>
 
-          {/* Firebase Authentication Status Card */}
-          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4">
+          {/* SOC Ingestion Pipeline Card */}
+          <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4 shadow-sm">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5" />
-                Firebase Auth
+              <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-indigo-500" />
+                SOC Ingestion Pipeline
               </span>
-              <p className="text-base font-extrabold text-slate-900 dark:text-slate-550">
-                {snapshot.system ? 'Active / Configured' : 'Offline'}
+              <p className="text-base font-extrabold text-slate-900 dark:text-slate-100">
+                {snapshot.system?.integrations_enabled ? 'Active / Configured' : 'Offline'}
               </p>
             </div>
-            {/* Pulsing Orb */}
+            {/* Pulsing Orb - Guarded Indigo */}
             <div className="relative flex items-center justify-center w-8 h-8">
-              {snapshot.system && (
-                <div className="absolute w-4 h-4 rounded-full opacity-35 bg-emerald-500 animate-ping" />
+              {snapshot.system?.integrations_enabled && (
+                <div className="absolute w-4 h-4 rounded-full opacity-35 bg-indigo-500 animate-ping" />
               )}
               <div
                 className={`w-3.5 h-3.5 rounded-full border border-white/20 dark:border-black/20 shadow-md ${
-                  snapshot.system ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50'
+                  snapshot.system?.integrations_enabled ? 'bg-indigo-500' : 'bg-rose-500'
                 }`}
                 style={{
-                  boxShadow: `0 0 12px ${snapshot.system ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'}`,
+                  boxShadow: `0 0 12px ${snapshot.system?.integrations_enabled ? 'rgba(99, 102, 241, 0.6)' : 'rgba(239, 68, 68, 0.6)'}`,
                 }}
               />
             </div>
@@ -465,7 +463,7 @@ export default function StatusPage() {
         </div>
 
         {/* Interactive Endpoint Check Cards */}
-        <div className="p-6 rounded-3xl bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-850 space-y-5 shadow-sm">
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-5 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-900 pb-3">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Live Endpoint Inspection</h2>
@@ -502,7 +500,7 @@ export default function StatusPage() {
         <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 space-y-4">
           <div>
             <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200">Runtime API Routes</h2>
-            <p className="text-[11px] text-slate-500 dark:text-slate-450 mt-0.5">Direct link to raw backend JSON payloads.</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Direct link to raw backend JSON payloads.</p>
           </div>
           <div className="grid sm:grid-cols-2 gap-3 text-xs">
             <EndpointRow label="Health Diagnostics" href={`${apiBaseUrl}/health`} />
@@ -599,7 +597,7 @@ function EndpointCheckCard({
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-slate-100 dark:border-slate-850/60">
+        <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/60">
           <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
             {result.durationMs != null && <span>Response: {result.durationMs} ms</span>}
             {result.durationMs != null && result.checkedAt && <span> • </span>}
@@ -657,7 +655,7 @@ function EndpointStateBadge({ state, label }: { state: EndpointState; label: str
   }
 
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-905 px-2.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
+    <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">
       {label}
     </span>
   );

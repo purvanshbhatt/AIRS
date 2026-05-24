@@ -634,6 +634,7 @@ async def get_findings(
 async def add_finding(
     assessment_id: str,
     data: FindingCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable)
@@ -642,6 +643,11 @@ async def add_finding(
     service = get_assessment_service(db, user)
     try:
         finding = service.add_finding(assessment_id, data)
+        background_tasks.add_task(
+            export_compliance_report_to_gcs,
+            assessment_id,
+            user.uid if user else None,
+        )
         return finding
     except ValueError as e:
         raise HTTPException(
@@ -655,6 +661,7 @@ async def update_finding(
     assessment_id: str,
     finding_id: str,
     data: FindingUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
@@ -729,6 +736,13 @@ async def update_finding(
         "created_at": finding.created_at,
     }
     merged.update(tracking_updates)
+
+    background_tasks.add_task(
+        export_compliance_report_to_gcs,
+        assessment_id,
+        user.uid if user else None,
+    )
+
     return merged
 
 

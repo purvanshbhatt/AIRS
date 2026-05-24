@@ -9,7 +9,9 @@
  *   - Provides detailed error messages with status codes and request IDs
  */
 
-import { API_BASE_URL, isDevelopment } from './config';
+import { isDevelopment } from './config';
+
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // =============================================================================
 // ERROR TYPES
@@ -115,6 +117,26 @@ async function request<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   const method = options.method || 'GET';
+
+  // Check for read-only demo mode
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isDemo = host === 'demo.resilai.org' || 
+                 host.includes('demo') || 
+                 import.meta.env.VITE_APP_ENV === 'demo' || 
+                 import.meta.env.MODE === 'demo';
+  const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase());
+
+  if (isDemo && isMutation) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('resilai-readonly-action', {
+        detail: { message: 'Changes cannot be saved in the interactive demo.' }
+      }));
+    }
+    throw new ApiRequestError({
+      message: 'Read-Only Demo: Saving changes is disabled in the interactive demo.',
+      status: 403,
+    });
+  }
 
   // Get auth headers — errors here are non-fatal (proceed without auth)
   let authHeaders: Record<string, string> = {};
@@ -246,6 +268,15 @@ async function request<T>(
     detail: `Network request to ${API_BASE_URL} failed.`,
   });
 }
+
+// apiClient object dynamic configuration (e.g. for environment routing)
+export const apiClient = {
+  defaults: { baseURL: API_BASE_URL },
+  get: <T>(url: string, options?: RequestInit) => request<T>(url, { ...options, method: 'GET' }),
+  post: <T>(url: string, body?: any, options?: RequestInit) => request<T>(url, { ...options, method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  put: <T>(url: string, body?: any, options?: RequestInit) => request<T>(url, { ...options, method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+  delete: <T>(url: string, options?: RequestInit) => request<T>(url, { ...options, method: 'DELETE' }),
+};
 
 // Organizations
 export const createOrganization = (data: { name: string; industry?: string; size?: string }) =>

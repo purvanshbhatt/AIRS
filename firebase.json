@@ -16,7 +16,7 @@
   "hosting": [
     {
       "target": "marketing",
-      "public": "frontend/dist",
+      "public": "frontend/dist-production",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -34,7 +34,7 @@
     },
     {
       "target": "demo",
-      "public": "frontend/dist",
+      "public": "frontend/dist-demo",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -52,7 +52,7 @@
     },
     {
       "target": "staging",
-      "public": "frontend/dist",
+      "public": "frontend/dist-staging",
       "ignore": [
         "firebase.json",
         "**/.*",

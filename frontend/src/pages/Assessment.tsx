@@ -152,7 +152,7 @@ export default function Assessment() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-600 dark:text-primary-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-600 dark:text-slate-350 font-medium">Loading assessment...</p>
+          <p className="text-slate-600 dark:text-slate-300 font-medium">Loading assessment...</p>
         </div>
       </div>
     );
@@ -173,8 +173,8 @@ export default function Assessment() {
 
   if (!rubric || !assessment) {
     return (
-      <Card className="max-w-lg mx-auto mt-12 rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm">
-        <CardContent className="py-8 text-center text-slate-600 dark:text-slate-350">
+      <Card className="max-w-lg mx-auto mt-12 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+        <CardContent className="py-8 text-center text-slate-600 dark:text-slate-300">
           Assessment not found
         </CardContent>
       </Card>
@@ -188,7 +188,7 @@ export default function Assessment() {
   return (
     <div className="space-y-6">
       {/* Progress Header */}
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300">
+      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300">
         <CardContent className="py-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -226,7 +226,7 @@ export default function Assessment() {
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border shadow-sm hover:scale-[1.02]',
                 isActive
                   ? 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500 shadow-md font-semibold'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800'
+                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800'
               )}
             >
               {domain.name}
@@ -244,7 +244,7 @@ export default function Assessment() {
 
       {/* Questions */}
       {currentDomain && (
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 hover:shadow-md">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 hover:shadow-md">
           <CardContent className="divide-y divide-slate-100 dark:divide-slate-800/60 py-2">
             {currentDomain.questions.map((q, idx) => (
               <div key={q.id} className="py-4 first:pt-0 last:pb-0">

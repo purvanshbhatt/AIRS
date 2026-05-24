@@ -235,6 +235,8 @@ class AssessmentService:
         if not assessment:
             raise ValueError(f"Assessment not found: {assessment_id}")
         
+        previous_score = assessment.overall_score or 0.0
+        
         # Get answers as dict
         answers_dict = self.get_answers_dict(assessment_id)
         
@@ -313,6 +315,19 @@ class AssessmentService:
         for finding in saved_findings:
             self.db.refresh(finding)
         self.db.refresh(assessment)
+
+        # Emit structured audit log
+        from app.models.score_audit_log import ScoreAuditLog
+        audit_log = ScoreAuditLog(
+            assessment_id=assessment_id,
+            organization_id=assessment.organization_id,
+            previous_score=previous_score,
+            new_score=assessment.overall_score,
+            trigger_event="manual_compute_score",
+            affected_finding_ids=[f.id for f in saved_findings]
+        )
+        self.db.add(audit_log)
+        self.db.commit()
 
         # Persist scored assessment state (scores + findings) to Firestore.
         firestore_save_assessment(assessment)

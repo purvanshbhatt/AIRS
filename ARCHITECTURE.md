@@ -1,4 +1,4 @@
-﻿# ResilAI Architecture
+# ResilAI Architecture
 
 ResilAI is an AI Incident Readiness Platform built as a web application with API-first integration capabilities.
 
@@ -120,3 +120,30 @@ quarantines malicious chunks, and only forwards sanitized context to Gemini.
 - Auth state and tokens managed by Firebase client SDK
 - Backend performs authorization and org scoping
 - Secrets are expected through environment variables or secret manager bindings
+
+## Compliance-as-Code & Validation Gates
+
+ResilAI enforces a zero-trust compliance model via automated policy-enforcement gates within the CI/CD pipeline and the application runtime.
+
+### 1. Registry & Scoring Logic Merge Guard (CI Gate)
+- **Policy**: Pushing changes to core scoring rubrics, question catalogs, or framework-mapping registries triggers mandatory checks that block branch merging if tests fail.
+- **Implementation**: The GitHub workflow [ci.yml](.github/workflows/ci.yml) executes [check_igvf_gate.py](scripts/check_igvf_gate.py) to identify modifications to:
+  - Framework mapping registry (`app/core/frameworks.py`)
+  - Scoring questionnaires/rubric (`app/core/rubric.py`)
+  - Scoring engine (`app/services/scoring.py` and `app/services/governance/scoring_v2.py`)
+  - IGVF engine metrics (`app/services/governance/`)
+- **Enforcement**: If changes exist, `check_igvf_gate.py` runs `pytest tests/test_igvf.py`. Any regression or failure aborts the check-in and blocks merging the PR.
+
+### 2. Required Deployment Status Check (CD Gate)
+- **Policy**: No code can be deployed to production unless compliance checks are fully satisfied.
+- **Implementation**: The deployment workflow [deploy.yml](.github/workflows/deploy.yml) injects a required `Compliance-Verified` job.
+- **Enforcement**: The `deploy-production` job depends explicitly on the `compliance-verified` status check. The gate executes `pytest tests/test_igvf.py` and `validate_governance.py --brief`, checking that the codebase and organization configurations are fully validated.
+
+### 3. Automated Compliance Export (Dashboard Update Trigger)
+- **Policy**: Every operational change that updates the compliance assessment dashboard must be cryptographically recorded in our secure ledger.
+- **Implementation**: Background tasks run in the FastAPI API endpoints when:
+  - An assessment is scored/re-evaluated (`POST /assessments/{assessment_id}/score`)
+  - A new finding is created (`POST /assessments/{assessment_id}/findings`)
+  - A finding status/details are updated (`PATCH /assessments/{assessment_id}/findings/{finding_id}`)
+  - Governance profile parameters are updated (`PUT /governance/{org_id}/profile`)
+- **Action**: Generates a timestamped PDF compliance report, signs it cryptographically using HMAC-SHA256 with the `COMPLIANCE_SIGNING_KEY` secret, and uploads the PDF and metadata ledger directly to the secure Cloud Storage bucket (`COMPLIANCE_GCS_BUCKET` e.g., `resilai-audit-ledgers-prod` or `-staging`).

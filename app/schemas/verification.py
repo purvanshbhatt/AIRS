@@ -25,6 +25,8 @@ class VerificationStatusEnum(str, Enum):
     SOC_VERIFIED = "SOC-Verified"
     PROVISIONAL = "Provisional"
     CONTRADICTED = "Contradicted"
+    CONNECTION_ERROR = "Connection Error"
+    STALE_CONNECTION = "Stale Connection"
     NOT_APPLICABLE = "Not Applicable"
 
 

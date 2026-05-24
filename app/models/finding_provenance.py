@@ -47,6 +47,8 @@ class ProvenanceStatus(str, enum.Enum):
     SOC_VERIFIED = "SOC_VERIFIED"
     PROVISIONAL = "PROVISIONAL"
     CONTRADICTED = "CONTRADICTED"
+    CONNECTION_ERROR = "CONNECTION_ERROR"
+    STALE_CONNECTION = "STALE_CONNECTION"
 
 
 class FindingProvenance(Base):

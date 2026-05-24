@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -72,8 +72,46 @@ const stats = [
 ];
 
 export default function Landing() {
-  const [terminalTab, setTerminalTab] = useState<'request' | 'response'>('request');
+  const [terminalTab, setTerminalTab] = useState<'telemetry' | 'request' | 'response'>('telemetry');
   const [copied, setCopied] = useState(false);
+  const logContainerRef = useRef<HTMLDivElement>(null);
+
+  const [telemetryLogs, setTelemetryLogs] = useState<string[]>([
+    `[2026-05-23T21:15:23Z] INITIALIZING TELEMETRY STREAM...`,
+    `[2026-05-23T21:15:24Z] CONNECTED TO DAEMON // HOST: api.resilai.io`,
+    `[2026-05-23T21:15:25Z] SYNCHRONIZING NIST CSF 2.0 CONTROL SETS...`
+  ]);
+
+  useEffect(() => {
+    const events = [
+      () => `[${new Date().toISOString()}] [INFO] Checked /health/system - 200 OK`,
+      () => `[${new Date().toISOString()}] [SYNC] Synced MITRE ATT&CK Control ID T1548`,
+      () => `[${new Date().toISOString()}] [POLL] Fetched latest GHI domain metrics: Score=82.0%`,
+      () => `[${new Date().toISOString()}] [INFO] Active audit ledger sync completed successfully`,
+      () => `[${new Date().toISOString()}] [WARN] Endpoint latency drift warning: min 14d, current 3.0d`,
+      () => `[${new Date().toISOString()}] [SYNC] Telemetry logs matched OWASP AI Top 10 guidelines`,
+      () => `[${new Date().toISOString()}] [INFO] Re-validating FastAPI core runtime status...`,
+      () => `[${new Date().toISOString()}] [SUCCESS] All 340 engineering log loops validated`
+    ];
+
+    const interval = setInterval(() => {
+      setTelemetryLogs(prev => {
+        const next = [...prev, events[Math.floor(Math.random() * events.length)]()];
+        if (next.length > 20) {
+          next.shift();
+        }
+        return next;
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [telemetryLogs]);
 
   const requestText = `curl -X GET "https://api.resilai.io/api/assessments/latest/summary" \\
   -H "Accept: application/json" \\
@@ -95,7 +133,12 @@ export default function Landing() {
 }`;
 
   const handleCopy = async () => {
-    const textToCopy = terminalTab === 'request' ? requestText : responseText;
+    const textToCopy =
+      terminalTab === 'request'
+        ? requestText
+        : terminalTab === 'response'
+        ? responseText
+        : telemetryLogs.join('\n');
     await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -187,9 +230,9 @@ export default function Landing() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-slate-900 dark:text-slate-50"
             >
-              The Immutable Ledger <br />
+              Neutralizing Subjectivity <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">
-                of AI Readiness
+                in Compliance Audits
               </span>
             </motion.h1>
 
@@ -197,9 +240,9 @@ export default function Landing() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed"
+              className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed"
             >
-              Assess incident readiness, auto-detect compliance obligations, check upgrade risk paths, and sync logs with your SIEM. Proven with deterministic algorithms.
+              ResilAI continuously validates your system perimeters against active framework targets. Turn subjective readiness checks into deterministic, auditable compliance telemetry.
             </motion.p>
 
             <motion.div
@@ -257,6 +300,14 @@ export default function Landing() {
               {/* Tabs */}
               <div className="flex bg-slate-900/10 border-b border-slate-900 text-xs text-slate-400">
                 <button
+                  onClick={() => setTerminalTab('telemetry')}
+                  className={`px-4 py-2 border-r border-slate-900 hover:text-slate-100 transition-colors ${
+                    terminalTab === 'telemetry' ? 'bg-slate-950 text-blue-400 font-semibold border-b border-b-blue-500' : ''
+                  }`}
+                >
+                  Live Telemetry
+                </button>
+                <button
                   onClick={() => setTerminalTab('request')}
                   className={`px-4 py-2 border-r border-slate-900 hover:text-slate-100 transition-colors ${
                     terminalTab === 'request' ? 'bg-slate-950 text-blue-400 font-semibold border-b border-b-blue-500' : ''
@@ -275,15 +326,35 @@ export default function Landing() {
               </div>
 
               {/* Console Body */}
-              <div className="p-5 h-[230px] overflow-auto text-xs leading-relaxed text-slate-350 select-text">
+              <div ref={logContainerRef} className="p-5 h-[230px] overflow-auto text-xs leading-relaxed text-slate-300 select-text scrollbar-thin">
                 <AnimatePresence mode="wait">
-                  {terminalTab === 'request' ? (
+                  {terminalTab === 'telemetry' ? (
+                    <motion.div
+                      key="telemetry"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="space-y-1 font-mono text-[11px]"
+                    >
+                      {telemetryLogs.map((log, index) => {
+                        let color = 'text-slate-300';
+                        if (log.includes('[WARN]')) color = 'text-amber-400 font-semibold';
+                        if (log.includes('[SUCCESS]') || log.includes('Score=')) color = 'text-emerald-400';
+                        if (log.includes('[SYNC]')) color = 'text-blue-400';
+                        return (
+                          <div key={index} className={color}>
+                            <span className="text-slate-500 select-none">&gt;</span> {log}
+                          </div>
+                        );
+                      })}
+                    </motion.div>
+                  ) : terminalTab === 'request' ? (
                     <motion.pre
                       key="req"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="whitespace-pre-wrap text-blue-300"
+                      className="whitespace-pre-wrap text-blue-300 font-mono text-[11px]"
                     >
                       <span className="text-slate-500">$</span> {requestText}
                     </motion.pre>
@@ -293,7 +364,7 @@ export default function Landing() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="whitespace-pre text-emerald-400"
+                      className="whitespace-pre text-emerald-400 font-mono text-[11px]"
                     >
                       {responseText}
                     </motion.pre>
@@ -306,7 +377,7 @@ export default function Landing() {
       </section>
 
       {/* Stats Bar */}
-      <section className="py-12 bg-slate-50 dark:bg-slate-900/60 border-y border-slate-250/60 dark:border-slate-800/80 transition-colors duration-300">
+      <section className="py-12 bg-slate-50 dark:bg-slate-900/60 border-y border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, i) => (
@@ -400,7 +471,7 @@ export default function Landing() {
             {/* Interactive Report View */}
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-[32px] blur-2xl opacity-15 dark:opacity-25" />
-              <div className="relative bg-white dark:bg-slate-900 rounded-[24px] shadow-2xl border border-slate-250/80 dark:border-slate-800/80 overflow-hidden text-left">
+              <div className="relative bg-white dark:bg-slate-900 rounded-[24px] shadow-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden text-left">
                 {/* Banner header */}
                 <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-5">
                   <div className="flex items-center gap-3">
@@ -434,7 +505,7 @@ export default function Landing() {
                       { name: 'Detection Coverage', score: 81 },
                     ].map((d) => (
                       <div key={d.name}>
-                        <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700 dark:text-slate-350">
+                        <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">
                           <span>{d.name}</span>
                           <span className="font-bold">{d.score}%</span>
                         </div>
@@ -492,7 +563,7 @@ export default function Landing() {
             </Link>
             <Link
               to="/org/new"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-slate-850 dark:text-slate-200 text-base font-semibold rounded-2xl border border-slate-350 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-all active:scale-[0.98]"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-base font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-all active:scale-[0.98]"
             >
               Create Organization
             </Link>

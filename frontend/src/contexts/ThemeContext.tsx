@@ -13,8 +13,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = 'resilai-theme';
 const LEGACY_STORAGE_KEY = 'airs-theme';
-const APP_ENV = import.meta.env.VITE_APP_ENV;
-const FORCE_LIGHT_THEME = APP_ENV === 'demo';
+const FORCE_LIGHT_THEME = false;
 
 function getSystemTheme(): ResolvedTheme {
     if (typeof window === 'undefined') return 'light';

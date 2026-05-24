@@ -274,21 +274,19 @@ class TelemetryVerificationService:
                 return finding, "direct_rule_id"
 
         # Strategy 2: FrameworkMappingRegistry lookup
-        # Check if any mapping references this SIEM rule_id
-        mapping = (
-            self._db.query(FrameworkMappingRegistry)
-            .filter(
-                (FrameworkMappingRegistry.nist_csf_control_id == payload.rule_id)
-                | (FrameworkMappingRegistry.nist_ai_rmf_control_id == payload.rule_id)
-                | (FrameworkMappingRegistry.mitre_atlas_tactic_id == payload.rule_id)
-                | (FrameworkMappingRegistry.soc2_control_id == payload.rule_id)
-            )
-            .first()
-        )
-        if mapping:
-            finding = self._db.query(Finding).filter(Finding.id == mapping.finding_id).first()
-            if finding:
-                return finding, f"framework_registry:{mapping.id}"
+        if payload.rule_id:
+            try:
+                mapping = (
+                    self._db.query(FrameworkMappingRegistry)
+                    .filter(FrameworkMappingRegistry.control_id == payload.rule_id)
+                    .first()
+                )
+                if mapping:
+                    finding = self._db.query(Finding).filter(Finding.id == mapping.finding_id).first()
+                    if finding:
+                        return finding, f"framework_registry:{mapping.id}"
+            except Exception:
+                pass
 
         # Strategy 3: NIST category prefix match
         finding = (
@@ -412,8 +410,21 @@ class TelemetryVerificationService:
         new_score = ghi_value
         delta = round(new_score - old_score, 2)
 
-        # Emit structured score change log
+        # Emit structured score change log to database
         org_id = assessment.organization_id or ""
+        from app.models.score_audit_log import ScoreAuditLog
+        audit_log = ScoreAuditLog(
+            assessment_id=assessment_id,
+            organization_id=org_id,
+            previous_score=old_score,
+            new_score=new_score,
+            trigger_event="siem_provenance_update",
+            affected_finding_ids=[f.id for f in findings]
+        )
+        self._db.add(audit_log)
+        self._db.commit()
+
+        # Also emit to logger
         log_entry = ScoreChangeLog(
             assessment_id=assessment_id,
             organization_id=org_id,
@@ -433,3 +444,41 @@ class TelemetryVerificationService:
             "delta": delta,
             "evidence_hash": trigger_evidence_hash,
         }
+
+    def mark_siem_stale(self, organization_id: str, siem_source: str) -> int:
+        """Mark all findings for a given SIEM source and organization as STALE_CONNECTION.
+
+        If an organization has an active SIEM config but the last sync returned a connection error,
+        this will proactively flag findings as stale, excluding them from high-confidence GHI calculations.
+        """
+        # Find all provenances for this SIEM source in the given organization's assessments
+        from app.models.finding import Finding
+        from app.models.assessment import Assessment
+
+        provenances = (
+            self._db.query(FindingProvenance)
+            .join(Finding, Finding.id == FindingProvenance.finding_id)
+            .join(Assessment, Assessment.id == Finding.assessment_id)
+            .filter(
+                Assessment.organization_id == organization_id,
+                FindingProvenance.verified_by.like(f"siem:{siem_source}%"),
+            )
+            .all()
+        )
+
+        stale_count = 0
+        now = datetime.now(timezone.utc)
+        for prov in provenances:
+            if prov.verification_status != ProvenanceStatus.STALE_CONNECTION:
+                prov.verification_status = ProvenanceStatus.STALE_CONNECTION
+                prov.verified_at = now
+                stale_count += 1
+
+        self._db.commit()
+        
+        if stale_count > 0:
+            logger.warning(
+                "Marked %d findings as STALE_CONNECTION for org=%s siem=%s",
+                stale_count, organization_id, siem_source
+            )
+        return stale_count

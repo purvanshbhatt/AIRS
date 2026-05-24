@@ -3,8 +3,9 @@ import { useEffect } from 'react';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { DashboardLayout } from './components/layout';
 import DocsLayout from './components/layout/DocsLayout';
+import { EnvironmentHeader } from './components/layout/EnvironmentHeader';
 import { ToastProvider } from './components/ui';
-import { AuthProvider, DemoModeProvider, useDemoMode } from './contexts';
+import { AuthProvider, DemoModeProvider, useDemoMode, PersonaProvider } from './contexts';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
 import { setUnauthorizedHandler } from './api';
@@ -47,38 +48,6 @@ function ApiConfigBanner() {
       <span className="ml-2 opacity-75">Currently using: {apiBaseUrl}</span>
     </div>
   );
-}
-
-function EnvironmentBanner() {
-  const { systemStatus } = useDemoMode();
-  const host = typeof window !== 'undefined' ? window.location.hostname : '';
-  const isStaging = systemStatus?.environment === 'staging' || 
-                    host.includes('staging') || 
-                    import.meta.env.MODE === 'staging';
-
-  const isDemo = systemStatus?.environment === 'demo' || 
-                 host.includes('demo') || 
-                 import.meta.env.MODE === 'demo';
-
-  if (isStaging) {
-    return (
-      <div className="bg-amber-500/10 border-b border-amber-500/50 text-amber-600 dark:text-amber-400 py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2">
-        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-        <span>STAGING ENVIRONMENT - GOVERNANCE SPRINT ACTIVE. DATA MAY BE FLUSHED.</span>
-      </div>
-    );
-  }
-
-  if (isDemo) {
-    return (
-      <div className="bg-blue-500/10 border-b border-blue-500/50 text-blue-600 dark:text-blue-400 py-2 px-4 text-center text-xs font-semibold flex items-center justify-center gap-2">
-        <Lock className="w-4 h-4 text-blue-500 shrink-0" />
-        <span>DEMO ENVIRONMENT - LOCKED AT NIST CSF 2.0 MILESTONE.</span>
-      </div>
-    );
-  }
-
-  return null;
 }
 
 function DashboardRoutes() {
@@ -125,14 +94,31 @@ function AuthRedirectHandler() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const hostname = window.location.hostname;
+    const isFirebaseDefaultDomain = hostname.endsWith('.web.app') || hostname.endsWith('.firebaseapp.com');
+    if (isFirebaseDefaultDomain) {
+      let targetDomain = '';
+      if (hostname.includes('staging')) {
+        targetDomain = 'staging.resilai.org';
+      } else if (hostname.includes('demo') || hostname.includes('gen-lang-client-0384513977')) {
+        targetDomain = 'demo.resilai.org';
+      } else {
+        targetDomain = 'resilai.org';
+      }
+      window.location.replace(`https://${targetDomain}${window.location.pathname}${window.location.search}${window.location.hash}`);
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <DemoModeProvider>
-        <ToastProvider>
-          <AuthRedirectHandler />
-          <ApiConfigBanner />
-          <EnvironmentBanner />
-          <Routes>
+        <PersonaProvider>
+          <ToastProvider>
+            <AuthRedirectHandler />
+            <ApiConfigBanner />
+            <EnvironmentHeader />
+            <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
@@ -193,6 +179,7 @@ export default function App() {
             </Route>
           </Routes>
         </ToastProvider>
+        </PersonaProvider>
       </DemoModeProvider>
     </AuthProvider>
   );

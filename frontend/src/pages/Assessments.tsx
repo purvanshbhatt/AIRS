@@ -83,11 +83,11 @@ export default function Assessments() {
       >
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-700">
-            <ClipboardList className="w-5 h-5 text-slate-600 dark:text-slate-350" />
+            <ClipboardList className="w-5 h-5 text-slate-600 dark:text-slate-300" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150">Assessments</h1>
-            <p className="text-slate-500 dark:text-slate-450 text-sm">Manage your security assessments</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Assessments</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Manage your security assessments</p>
           </div>
         </div>
         <ListSkeleton count={5} />
@@ -120,8 +120,8 @@ export default function Assessments() {
             <ClipboardList className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150">Assessments</h1>
-            <p className="text-slate-500 dark:text-slate-450 text-sm font-medium">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Assessments</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
               {assessments.length} assessment{assessments.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function Assessments() {
                 placeholder="Search by title or organization..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition-all duration-200"
               />
             </div>
 
@@ -175,8 +175,8 @@ export default function Assessments() {
                   onClick={() => setStatusFilter('all')}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
                     statusFilter === 'all'
-                      ? 'bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-150 shadow-sm font-semibold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-150 font-medium'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-medium'
                   }`}
                 >
                   All ({assessments.length})
@@ -185,8 +185,8 @@ export default function Assessments() {
                   onClick={() => setStatusFilter('completed')}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1.5 ${
                     statusFilter === 'completed'
-                      ? 'bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-150 shadow-sm font-semibold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-150 font-medium'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-medium'
                   }`}
                 >
                   <FileCheck className="w-3.5 h-3.5" />
@@ -196,8 +196,8 @@ export default function Assessments() {
                   onClick={() => setStatusFilter('draft')}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1.5 ${
                     statusFilter === 'draft'
-                      ? 'bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-150 shadow-sm font-semibold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-150 font-medium'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-medium'
                   }`}
                 >
                   <Clock className="w-3.5 h-3.5" />
@@ -212,7 +212,7 @@ export default function Assessments() {
             {filteredAssessments.length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center">
-                  <p className="text-slate-500 dark:text-slate-450 font-medium">No assessments match your filters</p>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium">No assessments match your filters</p>
                 </CardContent>
               </Card>
             ) : (
@@ -244,8 +244,8 @@ export default function Assessments() {
                             )}
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-900 dark:text-slate-150">{assessment.title}</p>
-                            <p className="text-sm text-slate-500 dark:text-slate-450 font-medium mt-0.5">
+                            <p className="font-semibold text-slate-900 dark:text-slate-100">{assessment.title}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                               {assessment.organization_name || 'Unknown organization'} •{' '}
                               {new Date(assessment.created_at).toLocaleDateString()}
                             </p>
@@ -255,10 +255,10 @@ export default function Assessments() {
                         <div className="flex items-center gap-4">
                           {assessment.status === 'completed' && assessment.overall_score != null && (
                             <div className="text-right mr-2">
-                              <p className="text-lg font-extrabold text-slate-900 dark:text-slate-150">
+                              <p className="text-lg font-extrabold text-slate-900 dark:text-slate-100">
                                 {Math.round(assessment.overall_score)}%
                               </p>
-                              <p className="text-xs text-slate-500 dark:text-slate-455 font-bold uppercase tracking-wider">Score</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Score</p>
                             </div>
                           )}
 

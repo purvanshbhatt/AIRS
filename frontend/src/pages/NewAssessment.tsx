@@ -278,7 +278,7 @@ export default function NewAssessment() {
   // Render setup step
   const renderSetup = () => (
     <div className="max-w-xl mx-auto">
-      <Card variant="elevated" className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-md transition-all duration-300">
+      <Card variant="elevated" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-md transition-all duration-300">
         <CardHeader className="pb-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-primary-50 dark:bg-primary-950/40 border border-primary-100/50 dark:border-primary-900/30 rounded-xl flex items-center justify-center">
@@ -369,7 +369,7 @@ export default function NewAssessment() {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Progress Header */}
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300">
           <CardContent className="py-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -430,7 +430,7 @@ export default function NewAssessment() {
         )}
 
         {/* Domain Accordions */}
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
           <CardContent className="p-0">
             <Accordion defaultOpen={[domains[0]?.[0]]}>
               {domains.map(([domainId, domain]) => {
@@ -481,7 +481,7 @@ export default function NewAssessment() {
                                   <Tooltip content={question.help_text} placement="top">
                                     <button
                                       type="button"
-                                      className="mt-0.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350"
+                                      className="mt-0.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                                       aria-label={`Question help for ${question.id}`}
                                     >
                                       <Info className="w-4 h-4" />
@@ -606,7 +606,7 @@ export default function NewAssessment() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-primary-600 dark:text-primary-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-600 dark:text-slate-350 font-medium">Loading assessment...</p>
+          <p className="text-slate-600 dark:text-slate-300 font-medium">Loading assessment...</p>
         </div>
       </div>
     );

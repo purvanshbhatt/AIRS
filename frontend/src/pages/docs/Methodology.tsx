@@ -5,7 +5,7 @@ export default function DocsMethodology() {
         <div className="space-y-12">
             {/* Header */}
             <div>
-                <div className="flex items-center gap-2 text-primary-605 dark:text-primary-400 mb-4">
+                <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 mb-4">
                     <BarChart3 className="w-5 h-5" />
                     <span className="text-sm font-semibold tracking-wide uppercase">Methodology</span>
                 </div>
@@ -24,7 +24,7 @@ export default function DocsMethodology() {
                     <Target className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                     <span>Assessment Domains</span>
                 </h2>
-                <p className="text-slate-655 dark:text-slate-455 mb-6 leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                     ResilAI evaluates your security posture across five critical domains, each with
                     a specific weight reflecting its importance in incident response readiness.
                 </p>
@@ -64,12 +64,12 @@ export default function DocsMethodology() {
                     ].map((domain) => (
                         <div
                             key={domain.name}
-                            className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md flex flex-col justify-between"
+                            className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md flex flex-col justify-between"
                         >
                             <div>
                                 <div className="flex items-start justify-between gap-2 mb-3">
                                     <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base leading-tight">{domain.name}</h3>
-                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-850 flex-shrink-0">{domain.weight}% weight</span>
+                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-800 flex-shrink-0">{domain.weight}% weight</span>
                                 </div>
                                 <div className="w-full bg-slate-100 dark:bg-slate-950 rounded-full h-2 mb-4 overflow-hidden border border-slate-200/40 dark:border-slate-900/60">
                                     <div className={`${domain.color} h-2 rounded-full`} style={{ width: `${domain.weight}%` }} />
@@ -87,7 +87,7 @@ export default function DocsMethodology() {
                     <Info className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                     <span>How Domain Weights Are Determined</span>
                 </h2>
-                <p className="text-slate-655 dark:text-slate-455 mb-6 leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                     Domain weights are not arbitrary — they are derived from four evidence-based factors
                     that reflect real-world incident impact and regulatory expectations.
                 </p>
@@ -117,9 +117,9 @@ export default function DocsMethodology() {
                             of successful ransomware incidents.
                         </p>
                     </div>
-                    <div className="p-5 bg-amber-50/50 dark:bg-amber-955/20 rounded-3xl border border-amber-200/85 dark:border-amber-900/50 shadow-sm transition-all duration-300 hover:scale-[1.01]">
+                    <div className="p-5 bg-amber-50/50 dark:bg-amber-950/20 rounded-3xl border border-amber-200/85 dark:border-amber-900/50 shadow-sm transition-all duration-300 hover:scale-[1.01]">
                         <h4 className="font-bold text-amber-900 dark:text-amber-305 mb-2 text-base">Regulatory Exposure</h4>
-                        <p className="text-xs text-amber-805 dark:text-amber-400 leading-relaxed">
+                        <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
                             Domains with direct compliance implications (identity access controls, audit
                             logging, incident response documentation) are weighted to reflect obligations
                             under SEC, HIPAA, PCI-DSS, and NIS2 frameworks.
@@ -128,7 +128,7 @@ export default function DocsMethodology() {
                 </div>
 
                 {/* Weight Distribution Visual */}
-                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
+                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
                     <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-4">Weight Distribution Details:</h4>
                     <div className="space-y-4">
                         {[
@@ -139,21 +139,21 @@ export default function DocsMethodology() {
                             { name: 'IR Playbooks', weight: 15, function: 'RS', color: 'bg-orange-500', reason: 'Response coordination; lower weight reflects dependence on other controls' },
                         ].map((d) => (
                             <div key={d.name} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                                <div className="w-48 text-sm font-semibold text-slate-700 dark:text-slate-205 truncate" title={d.name}>{d.name}</div>
+                                <div className="w-48 text-sm font-semibold text-slate-700 dark:text-slate-200 truncate" title={d.name}>{d.name}</div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3">
-                                        <div className="flex-1 h-3 bg-slate-150 dark:bg-slate-950 rounded-full overflow-hidden border border-slate-200/30 dark:border-slate-900/60">
+                                        <div className="flex-1 h-3 bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden border border-slate-200/30 dark:border-slate-900/60">
                                             <div className={`h-full ${d.color} rounded-full`} style={{ width: `${d.weight}%` }} />
                                         </div>
                                         <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 w-10 text-right">{d.weight}%</span>
-                                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-md text-slate-500 dark:text-slate-400 w-10 text-center">{d.function}</span>
+                                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md text-slate-500 dark:text-slate-400 w-10 text-center">{d.function}</span>
                                     </div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{d.reason}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-405 mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 leading-relaxed">
                         Weights sum to 100%. They are applied multiplicatively to each domain's 0–5 raw score
                         to produce the overall 0–100 Risk Posture index. Weights are reviewed quarterly against
                         updated threat intelligence.
@@ -168,7 +168,7 @@ export default function DocsMethodology() {
                     <span>Scoring Formula</span>
                 </h2>
 
-                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800 shadow-sm space-y-5">
+                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-5">
                     <div>
                         <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-2 text-base">Domain Score (0-5 scale)</h3>
                         <code className="block p-4 bg-slate-950 dark:bg-black text-emerald-400 rounded-2xl text-xs sm:text-sm font-mono shadow-inner border border-slate-900 dark:border-slate-950 overflow-x-auto">
@@ -183,19 +183,19 @@ export default function DocsMethodology() {
                         </code>
                     </div>
 
-                    <div className="pt-5 border-t border-slate-200 dark:border-slate-805">
+                    <div className="pt-5 border-t border-slate-200 dark:border-slate-800">
                         <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2.5">Question Types & Evaluation:</h4>
-                        <ul className="space-y-2 text-sm text-slate-655 dark:text-slate-400 font-medium">
+                        <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400 font-medium">
                             <li className="flex items-start gap-2.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary-605 mt-2 flex-shrink-0" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary-600 mt-2 flex-shrink-0" />
                                 <span><strong>Boolean:</strong> Direct matching where Yes = 1 point, No = 0 points.</span>
                             </li>
                             <li className="flex items-start gap-2.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary-605 mt-2 flex-shrink-0" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary-600 mt-2 flex-shrink-0" />
                                 <span><strong>Percentage:</strong> Threshold-based scoring distributions (e.g., 95%+ = 1.0, 75%+ = 0.75).</span>
                             </li>
                             <li className="flex items-start gap-2.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary-605 mt-2 flex-shrink-0" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary-600 mt-2 flex-shrink-0" />
                                 <span><strong>Numeric:</strong> Threshold-based scoring with directional target controls (higher or lower based on context).</span>
                             </li>
                         </ul>
@@ -209,15 +209,15 @@ export default function DocsMethodology() {
                     <TrendingUp className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                     <span>Maturity Levels</span>
                 </h2>
-                <p className="text-slate-655 dark:text-slate-455 mb-6 leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                     Based on your overall score, ResilAI assigns a maturity level that describes
                     your organization's current state of incident response readiness.
                 </p>
 
-                <div className="overflow-hidden rounded-3xl border border-slate-150 dark:border-slate-800 shadow-sm">
+                <div className="overflow-hidden rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-150 dark:border-slate-800">
+                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                 <tr>
                                     <th className="px-5 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Level</th>
                                     <th className="px-5 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
@@ -225,13 +225,13 @@ export default function DocsMethodology() {
                                     <th className="px-5 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Description</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-150 dark:divide-slate-805 bg-white dark:bg-slate-950">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-950">
                                 {[
-                                    { level: 1, name: 'Initial', range: '0-20', description: 'Ad-hoc, reactive security posture', color: 'text-red-650 bg-red-50 dark:bg-red-955/20 border-red-100 dark:border-red-900/40' },
-                                    { level: 2, name: 'Developing', range: '21-40', description: 'Basic controls in place, gaps exist', color: 'text-orange-650 bg-orange-50 dark:bg-orange-955/20 border-orange-105 dark:border-orange-900/40' },
-                                    { level: 3, name: 'Defined', range: '41-60', description: 'Documented processes, consistent execution', color: 'text-yellow-650 bg-yellow-50 dark:bg-yellow-955/20 border-yellow-105 dark:border-yellow-900/40' },
-                                    { level: 4, name: 'Managed', range: '61-80', description: 'Measured and controlled, proactive approach', color: 'text-green-650 bg-green-50 dark:bg-green-955/20 border-green-105 dark:border-green-900/40' },
-                                    { level: 5, name: 'Optimized', range: '81-100', description: 'Continuous improvement, industry-leading', color: 'text-primary-605 bg-primary-50 dark:bg-primary-955/20 border-primary-105 dark:border-primary-900/40' },
+                                    { level: 1, name: 'Initial', range: '0-20', description: 'Ad-hoc, reactive security posture', color: 'text-red-600 bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/40' },
+                                    { level: 2, name: 'Developing', range: '21-40', description: 'Basic controls in place, gaps exist', color: 'text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/40' },
+                                    { level: 3, name: 'Defined', range: '41-60', description: 'Documented processes, consistent execution', color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20 border-yellow-100 dark:border-yellow-900/40' },
+                                    { level: 4, name: 'Managed', range: '61-80', description: 'Measured and controlled, proactive approach', color: 'text-green-600 bg-green-50 dark:bg-green-950/20 border-green-100 dark:border-green-900/40' },
+                                    { level: 5, name: 'Optimized', range: '81-100', description: 'Continuous improvement, industry-leading', color: 'text-primary-600 bg-primary-50 dark:bg-primary-955/20 border-primary-100 dark:border-primary-900/40' },
                                 ].map((level) => (
                                     <tr key={level.level} className="transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-900/30">
                                         <td className="px-5 py-4">

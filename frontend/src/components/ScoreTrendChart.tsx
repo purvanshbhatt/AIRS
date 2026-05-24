@@ -37,14 +37,14 @@ export function ScoreTrendChart({ data, height = 200 }: ScoreTrendChartProps) {
     const trend = currentScore - previousScore;
 
     return (
-        <Card className="h-full">
+        <Card className="h-full" padding="lg">
             <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-gray-500" />
+                        <TrendingUp className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                         Readiness Trend
                     </CardTitle>
-                    <div className={`flex items-center gap-1 text-sm font-medium ${trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-600'
+                    <div className={`flex items-center gap-1 text-sm font-medium ${trend > 0 ? 'text-green-600 dark:text-green-400' : trend < 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'
                         }`}>
                         {trend > 0 ? <TrendingUp className="w-4 h-4" /> : trend < 0 ? <TrendingDown className="w-4 h-4" /> : null}
                         {trend > 0 ? '+' : ''}{Math.round(trend)} points
@@ -59,23 +59,23 @@ export function ScoreTrendChart({ data, height = 200 }: ScoreTrendChartProps) {
                         preserveAspectRatio="none"
                     >
                         {/* Grid lines */}
-                        <line x1="0" y1="0" x2="100" y2="0" stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="2" />
-                        <line x1="0" y1="50" x2="100" y2="50" stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="2" />
-                        <line x1="0" y1="100" x2="100" y2="100" stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="2" />
-
+                        <line x1="0" y1="0" x2="100" y2="0" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="0.5" strokeDasharray="2" />
+                        <line x1="0" y1="50" x2="100" y2="50" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="0.5" strokeDasharray="2" />
+                        <line x1="0" y1="100" x2="100" y2="100" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="0.5" strokeDasharray="2" />
+ 
                         {/* Area fill */}
                         <path
                             d={`M0,100 L${points} L100,100 Z`}
                             fill="url(#trendGradient)"
-                            opacity="0.2"
+                            opacity="0.25"
                         />
                         <defs>
                             <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="var(--primary-color, #3b82f6)" />
-                                <stop offset="100%" stopColor="white" stopOpacity="0" />
+                                <stop offset="0%" stopColor="var(--primary-color, #3b82f6)" stopOpacity="0.4" />
+                                <stop offset="100%" stopColor="var(--primary-color, #3b82f6)" stopOpacity="0" />
                             </linearGradient>
                         </defs>
-
+ 
                         {/* Line */}
                         <polyline
                             fill="none"
@@ -86,7 +86,7 @@ export function ScoreTrendChart({ data, height = 200 }: ScoreTrendChartProps) {
                             points={points}
                             vectorEffect="non-scaling-stroke"
                         />
-
+ 
                         {/* Dots */}
                         {sortedData.map((d, i) => {
                             const x = (i / (sortedData.length - 1)) * 100;
@@ -97,7 +97,7 @@ export function ScoreTrendChart({ data, height = 200 }: ScoreTrendChartProps) {
                                     cx={x}
                                     cy={y}
                                     r="1.5"
-                                    className="fill-white stroke-primary-600"
+                                    className="fill-white dark:fill-slate-900 stroke-primary-600"
                                     strokeWidth="0.5"
                                     vectorEffect="non-scaling-stroke"
                                 >
@@ -107,7 +107,7 @@ export function ScoreTrendChart({ data, height = 200 }: ScoreTrendChartProps) {
                         })}
                     </svg>
                 </div>
-                <div className="flex justify-between text-xs text-gray-400 mt-2">
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-2">
                     <span>{new Date(sortedData[0].date).toLocaleDateString()}</span>
                     <span>{new Date(sortedData[sortedData.length - 1].date).toLocaleDateString()}</span>
                 </div>

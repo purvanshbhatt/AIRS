@@ -157,11 +157,11 @@ function DISGauge({ score, band, color }: { score: number; band: string; color: 
           }}
         />
         {/* Center point */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-slate-650 dark:bg-slate-400 border border-white dark:border-slate-900 shadow-sm" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-slate-600 dark:bg-slate-400 border border-white dark:border-slate-900 shadow-sm" />
       </div>
       <div className="mt-2 text-center">
-        <span className="text-3xl font-extrabold text-slate-900 dark:text-slate-150">{score}</span>
-        <span className="text-sm text-slate-500 dark:text-slate-455 ml-1">/ 105</span>
+        <span className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">{score}</span>
+        <span className="text-sm text-slate-500 dark:text-slate-400 ml-1">/ 105</span>
       </div>
       <span className={`mt-1.5 ${BAND_COLORS[color] || BAND_COLORS.gray}`}>
         {band}
@@ -176,7 +176,7 @@ function DISGauge({ score, band, color }: { score: number; band: string; color: 
 function DriftTimeline({ entries }: { entries: DriftTimelineEntry[] }) {
   if (entries.length === 0) {
     return (
-      <div className="text-center text-slate-500 dark:text-slate-450 py-12">
+      <div className="text-center text-slate-500 dark:text-slate-400 py-12">
         <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-40 text-slate-400" />
         <p className="font-semibold">No baseline history yet. Create a baseline to start tracking drift.</p>
       </div>
@@ -223,7 +223,7 @@ function DriftTimeline({ entries }: { entries: DriftTimelineEntry[] }) {
       </div>
 
       {/* X-axis labels */}
-      <div className="flex justify-between px-2 text-xs font-semibold text-slate-500 dark:text-slate-450 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+      <div className="flex justify-between px-2 text-xs font-semibold text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/60 pt-2">
         {entries.length > 0 && (
           <>
             <span>{new Date(entries[0].date).toLocaleDateString()}</span>
@@ -233,7 +233,7 @@ function DriftTimeline({ entries }: { entries: DriftTimelineEntry[] }) {
       </div>
 
       {/* Legend */}
-      <div className="flex gap-4 justify-center text-xs font-semibold text-slate-600 dark:text-slate-450">
+      <div className="flex gap-4 justify-center text-xs font-semibold text-slate-600 dark:text-slate-400">
         <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-500" /> Stable</span>
         <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-amber-500" /> Mild</span>
         <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-orange-500" /> Elevated</span>
@@ -406,11 +406,11 @@ function ComplianceDriftContent() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150 flex items-center gap-2.5">
-            <Activity className="h-7 w-7 text-indigo-650 dark:text-indigo-400" />
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+            <Activity className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
             Compliance Drift Detection
           </h1>
-          <p className="text-sm text-slate-505 dark:text-slate-455 mt-1 font-medium">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
             Continuous Control Integrity Monitoring — track posture deviation over time
           </p>
         </div>
@@ -423,19 +423,19 @@ function ComplianceDriftContent() {
       </div>
 
       {/* Org selector + baseline button */}
-      <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+      <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
         <CardContent className="p-5">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                 Organization
               </label>
               <select
-                className="w-full rounded-xl border border-slate-205 dark:border-slate-805 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-semibold"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-semibold"
                 value={selectedOrgId}
                 onChange={(e) => setSelectedOrgId(e.target.value)}
               >
-                <option value="" className="text-slate-505">Select organization...</option>
+                <option value="" className="text-slate-500">Select organization...</option>
                 {organizations.map((org) => (
                   <option key={org.id} value={org.id}>{org.name}</option>
                 ))}
@@ -455,7 +455,7 @@ function ComplianceDriftContent() {
                 onClick={loadDriftData}
                 disabled={!selectedOrgId || loading}
                 variant="outline"
-                className="flex items-center gap-1.5 rounded-xl border-slate-200 dark:border-slate-800 transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-900/30 hover:scale-[1.01] font-bold text-slate-750 dark:text-slate-300"
+                className="flex items-center gap-1.5 rounded-xl border-slate-200 dark:border-slate-800 transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-900/30 hover:scale-[1.01] font-bold text-slate-700 dark:text-slate-300"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -466,7 +466,7 @@ function ComplianceDriftContent() {
       </Card>
 
       {error && (
-        <div className="bg-red-50/20 dark:bg-red-955/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 text-red-700 dark:text-red-400 text-sm font-semibold shadow-sm transition-all duration-300">
+        <div className="bg-red-50/20 dark:bg-red-950/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 text-red-700 dark:text-red-400 text-sm font-semibold shadow-sm transition-all duration-300">
           {error}
         </div>
       )}
@@ -475,9 +475,9 @@ function ComplianceDriftContent() {
       {driftResult && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* DIS Card */}
-          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider flex items-center gap-1.5">
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Gauge className="h-4 w-4 text-slate-400" />
                 Drift Impact Score
               </CardTitle>
@@ -492,24 +492,24 @@ function ComplianceDriftContent() {
           </Card>
 
           {/* GHI Delta */}
-          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider flex items-center gap-1.5">
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Activity className="h-4 w-4 text-slate-400" />
                 GHI Change
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-150">
+              <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">
                 {driftResult.current_ghi.toFixed(1)}
               </div>
               <div className={`text-sm font-bold mt-1.5 ${
-                driftResult.ghi_delta > 0 ? 'text-green-600 dark:text-green-400' : driftResult.ghi_delta < 0 ? 'text-red-655 dark:text-red-400' : 'text-slate-505 dark:text-slate-455'
+                driftResult.ghi_delta > 0 ? 'text-green-600 dark:text-green-400' : driftResult.ghi_delta < 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'
               }`}>
                 {driftResult.ghi_delta > 0 ? '+' : ''}{driftResult.ghi_delta.toFixed(1)} from baseline
               </div>
               {driftResult.baseline_date && (
-                <div className="text-xs font-semibold text-slate-500 dark:text-slate-450 mt-2">
+                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-2">
                   Baseline: {new Date(driftResult.baseline_date).toLocaleDateString()}
                 </div>
               )}
@@ -517,9 +517,9 @@ function ComplianceDriftContent() {
           </Card>
 
           {/* CSI */}
-          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider flex items-center gap-1.5">
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Shield className="h-4 w-4 text-slate-400" />
                 Sustainability Index
               </CardTitle>
@@ -527,14 +527,14 @@ function ComplianceDriftContent() {
             <CardContent className="text-center">
               {sustainability ? (
                 <>
-                  <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-150">
+                  <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">
                     {sustainability.compliance_sustainability_index.toFixed(0)}
                   </div>
                   <span className={`inline-block mt-2.5 ${
                     sustainability.csi_band === 'Excellent' ? 'bg-green-55/10 text-green-800 border border-green-200 dark:bg-green-950/30 dark:text-green-300 dark:border-green-800/40' :
-                    sustainability.csi_band === 'Good' ? 'bg-blue-55/10 text-blue-800 border border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800/40' :
+                    sustainability.csi_band === 'Good' ? 'bg-blue-50/10 text-blue-800 border border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800/40' :
                     sustainability.csi_band === 'Fair' ? 'bg-yellow-55/10 text-yellow-800 border border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-300 dark:border-yellow-800/40' :
-                    'bg-red-55/10 text-red-800 border border-red-200 dark:bg-red-955/20 dark:text-red-300 dark:border-red-800/40'
+                    'bg-red-50/10 text-red-800 border border-red-200 dark:bg-red-950/20 dark:text-red-300 dark:border-red-800/40'
                   } font-bold text-xs px-2.5 py-1.5 rounded-xl`}>
                     {sustainability.csi_band}
                   </span>
@@ -544,9 +544,9 @@ function ComplianceDriftContent() {
           </Card>
 
           {/* Audit Failure Probability */}
-          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider flex items-center gap-1.5">
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Target className="h-4 w-4 text-slate-400" />
                 Audit Failure Probability
               </CardTitle>
@@ -556,9 +556,9 @@ function ComplianceDriftContent() {
                 <>
                   <div className={`text-3xl font-extrabold ${
                     sustainability.audit_failure_probability <= 20 ? 'text-green-600 dark:text-green-400' :
-                    sustainability.audit_failure_probability <= 50 ? 'text-yellow-650 dark:text-yellow-400' :
+                    sustainability.audit_failure_probability <= 50 ? 'text-yellow-600 dark:text-yellow-400' :
                     sustainability.audit_failure_probability <= 75 ? 'text-orange-600 dark:text-orange-400' :
-                    'text-red-655 dark:text-red-400'
+                    'text-red-600 dark:text-red-400'
                   }`}>
                     {sustainability.audit_failure_probability.toFixed(0)}%
                   </div>
@@ -566,7 +566,7 @@ function ComplianceDriftContent() {
                     sustainability.afp_band === 'Low Risk' ? 'bg-green-55/10 text-green-800 border border-green-200 dark:bg-green-950/30 dark:text-green-300 dark:border-green-800/40' :
                     sustainability.afp_band === 'Moderate' ? 'bg-yellow-55/10 text-yellow-800 border border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-300 dark:border-yellow-800/40' :
                     sustainability.afp_band === 'High Risk' ? 'bg-orange-55/10 text-orange-800 border border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800/40' :
-                    'bg-red-55/10 text-red-800 border border-red-200 dark:bg-red-955/20 dark:text-red-300 dark:border-red-800/40'
+                    'bg-red-50/10 text-red-800 border border-red-200 dark:bg-red-950/20 dark:text-red-300 dark:border-red-800/40'
                   } font-bold text-xs px-2.5 py-1.5 rounded-xl`}>
                     {sustainability.afp_band}
                   </span>
@@ -579,8 +579,8 @@ function ComplianceDriftContent() {
 
       {/* Alert Summary Banner */}
       {(criticalCount > 0 || highCount > 0) && (
-        <div className="bg-red-50/20 dark:bg-red-955/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 flex items-center gap-3 shadow-sm transition-all duration-300">
-          <ShieldAlert className="h-6 w-6 text-red-655 dark:text-red-400 flex-shrink-0" />
+        <div className="bg-red-50/20 dark:bg-red-950/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 flex items-center gap-3 shadow-sm transition-all duration-300">
+          <ShieldAlert className="h-6 w-6 text-red-600 dark:text-red-400 flex-shrink-0" />
           <div>
             <span className="font-extrabold text-red-900 dark:text-red-300">
               {criticalCount + highCount} Active Alert{criticalCount + highCount !== 1 ? 's' : ''}
@@ -608,7 +608,7 @@ function ComplianceDriftContent() {
               className={`flex items-center gap-1.5 px-3.5 py-3 text-sm font-bold border-b-2 transition-all duration-200 ${
                 activeTab === tab.key
                   ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-450 dark:hover:text-slate-205'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
               }`}
             >
               {tab.icon}
@@ -622,9 +622,9 @@ function ComplianceDriftContent() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Drift Timeline */}
-          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-150 text-lg font-bold">
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100 text-lg font-bold">
                 <BarChart3 className="h-5 w-5 text-indigo-605" />
                 Drift Timeline
               </CardTitle>
@@ -636,9 +636,9 @@ function ComplianceDriftContent() {
 
           {/* Signal Summary by Category */}
           {driftResult && Object.keys(driftResult.signal_counts).length > 0 && (
-            <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+            <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-150 text-lg font-bold">
+                <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100 text-lg font-bold">
                   <Activity className="h-5 w-5 text-purple-600" />
                   Drift Signal Summary
                 </CardTitle>
@@ -646,12 +646,12 @@ function ComplianceDriftContent() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {Object.entries(driftResult.signal_counts).map(([type, count]) => (
-                    <div key={type} className="text-center p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-150 dark:border-slate-800/40 hover:scale-[1.02] transition-transform duration-200">
+                    <div key={type} className="text-center p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/40 hover:scale-[1.02] transition-transform duration-200">
                       <div className="flex justify-center mb-1.5 text-slate-400 dark:text-slate-500">
                         {SIGNAL_ICONS[type]}
                       </div>
-                      <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-150">{count}</div>
-                      <div className="text-xs font-bold text-slate-500 dark:text-slate-450 mt-1">{SIGNAL_LABELS[type] || type}</div>
+                      <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{count}</div>
+                      <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">{SIGNAL_LABELS[type] || type}</div>
                     </div>
                   ))}
                 </div>
@@ -671,9 +671,9 @@ function ComplianceDriftContent() {
       {activeTab === 'signals' && (
         <div className="space-y-4">
           {allSignals.length === 0 ? (
-            <div className="text-center py-16 text-slate-500 dark:text-slate-455">
+            <div className="text-center py-16 text-slate-500 dark:text-slate-400">
               <CheckCircle2 className="h-16 w-16 mx-auto mb-4 text-green-500 opacity-80" />
-              <p className="text-lg font-bold text-slate-850 dark:text-slate-150">No Drift Signals Detected</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-100">No Drift Signals Detected</p>
               <p className="text-sm mt-1 font-medium">Your compliance posture is stable relative to baseline.</p>
             </div>
           ) : (
@@ -688,7 +688,7 @@ function ComplianceDriftContent() {
                   }, {})
               ).map(([type, signals]) => (
                 <div key={type} className="space-y-2">
-                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-350 mb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                     {SIGNAL_ICONS[type]}
                     {SIGNAL_LABELS[type] || type}
                     <span className="ml-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
@@ -709,15 +709,15 @@ function ComplianceDriftContent() {
 
       {activeTab === 'shadow-ai' && (
         <div className="space-y-4">
-          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-155 text-lg font-bold">
-                <Brain className="h-5 w-5 text-purple-650" />
+                <Brain className="h-5 w-5 text-purple-600" />
                 Shadow AI Governance
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-slate-505 dark:text-slate-455 mb-4 leading-relaxed font-semibold">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 leading-relaxed font-semibold">
                 Detects unsanctioned AI models in the tech stack. Models with HIGH data sensitivity
                 and UNSANCTIONED tier generate CRITICAL governance violations.
               </p>
@@ -725,8 +725,8 @@ function ComplianceDriftContent() {
               {shadowAI && shadowAI.count > 0 ? (
                 <div className="space-y-3">
                   {shadowAI.has_critical && (
-                    <div className="bg-red-50/20 dark:bg-red-955/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 flex items-center gap-2.5 shadow-sm">
-                      <XCircle className="h-5 w-5 text-red-655" />
+                    <div className="bg-red-50/20 dark:bg-red-950/10 border border-red-200 dark:border-red-900/40 rounded-2xl p-4 flex items-center gap-2.5 shadow-sm">
+                      <XCircle className="h-5 w-5 text-red-600" />
                       <span className="text-red-900 dark:text-red-300 font-extrabold">
                         CRITICAL: Unsanctioned AI processing sensitive data detected
                       </span>
@@ -737,9 +737,9 @@ function ComplianceDriftContent() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-slate-500 dark:text-slate-450">
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400">
                   <CheckCircle2 className="h-16 w-16 mx-auto mb-4 text-green-500 opacity-80" />
-                  <p className="text-lg font-bold text-slate-850 dark:text-slate-150">No Shadow AI Violations</p>
+                  <p className="text-lg font-bold text-slate-800 dark:text-slate-100">No Shadow AI Violations</p>
                   <p className="text-sm mt-1 font-medium">
                     All AI models in the tech stack are properly classified.
                     Add items with category &quot;AI Model&quot; to enable governance checks.
@@ -750,9 +750,9 @@ function ComplianceDriftContent() {
           </Card>
 
           {/* AI Model Tier Reference */}
-          <Card className="shadow-sm bg-white/60 dark:bg-slate-955/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750">
+          <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
             <CardHeader>
-              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider">AI Model Governance Tiers</CardTitle>
+              <CardTitle className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">AI Model Governance Tiers</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-semibold">

@@ -12,12 +12,23 @@ No LLM involvement in framework resolution.
 import uuid
 import enum
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import Column, String, DateTime, ForeignKey, UniqueConstraint, Index, Enum
 from sqlalchemy.dialects.sqlite import CHAR
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
+
+
+class FrameworkType(str, enum.Enum):
+    """Supported compliance and governance frameworks."""
+    NIST_CSF = "NIST_CSF"
+    NIST_AI_RMF = "NIST_AI_RMF"
+    ISO_42001 = "ISO_42001"
+    MITRE_ATLAS = "MITRE_ATLAS"
+    OWASP_LLM = "OWASP_LLM"
+    SOC2 = "SOC2"
+    ISO_27001 = "ISO_27001"
 
 
 class FrameworkMappingRegistry(Base):
@@ -41,26 +52,18 @@ class FrameworkMappingRegistry(Base):
         comment="FK to the finding this mapping covers.",
     )
 
-    # --- Framework control identifiers ---
-    nist_csf_control_id = Column(
-        String(50), nullable=True,
-        comment="NIST CSF 2.0 control ID (e.g., 'DE.CM-1', 'PR.AA-5').",
+    framework_type = Column(
+        Enum(FrameworkType),
+        nullable=False,
+        index=True,
+        comment="The specific framework this mapping targets (e.g., NIST_AI_RMF).",
     )
-    nist_ai_rmf_control_id = Column(
-        String(50), nullable=True,
-        comment="NIST AI RMF control ID (e.g., 'MAP 1.1', 'MEASURE 2.3').",
-    )
-    mitre_atlas_tactic_id = Column(
-        String(50), nullable=True,
-        comment="MITRE ATLAS tactic/technique ID (e.g., 'AML.T0043').",
-    )
-    soc2_control_id = Column(
-        String(50), nullable=True,
-        comment="SOC 2 Trust Services Criteria ID (e.g., 'CC6.1').",
-    )
-    iso27001_control_id = Column(
-        String(50), nullable=True,
-        comment="ISO 27001:2022 control ID (e.g., 'A.8.7').",
+    
+    control_id = Column(
+        String(100),
+        nullable=False,
+        index=True,
+        comment="The control identifier within the framework (e.g., 'MAP 1.1', 'DE.CM-1').",
     )
 
     # --- Versioning ---
@@ -76,13 +79,9 @@ class FrameworkMappingRegistry(Base):
     # --- Constraints ---
     __table_args__ = (
         UniqueConstraint(
-            "finding_id", "nist_csf_control_id", "nist_ai_rmf_control_id",
-            "mitre_atlas_tactic_id", "soc2_control_id", "iso27001_control_id",
-            "mapping_version",
-            name="uq_framework_mapping_composite",
+            "finding_id", "framework_type", "control_id", "mapping_version",
+            name="uq_framework_mapping_dynamic",
         ),
-        Index("ix_fmr_nist_ai_rmf", "nist_ai_rmf_control_id"),
-        Index("ix_fmr_mitre_atlas", "mitre_atlas_tactic_id"),
     )
 
     # --- Relationships ---
@@ -91,5 +90,5 @@ class FrameworkMappingRegistry(Base):
     def __repr__(self):
         return (
             f"<FrameworkMappingRegistry(id={self.id}, finding={self.finding_id}, "
-            f"nist_ai={self.nist_ai_rmf_control_id}, mitre={self.mitre_atlas_tactic_id})>"
+            f"framework={self.framework_type.value}, control={self.control_id})>"
         )

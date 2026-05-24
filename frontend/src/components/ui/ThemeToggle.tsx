@@ -12,7 +12,7 @@ export function ThemeToggle() {
     const { theme, setTheme } = useTheme();
 
     return (
-        <div className="inline-flex items-center gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
+        <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
             {themeOptions.map(({ value, icon: Icon, label }) => (
                 <button
                     key={value}
@@ -21,8 +21,8 @@ export function ThemeToggle() {
                     className={clsx(
                         'p-1.5 rounded-md transition-colors',
                         theme === value
-                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     )}
                     title={label}
                     aria-label={`Switch to ${label} theme`}

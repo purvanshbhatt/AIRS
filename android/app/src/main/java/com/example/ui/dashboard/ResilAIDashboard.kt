@@ -172,83 +172,12 @@ fun DashboardContent(
 
 @Composable
 fun HeaderSection(score: AssessmentScore) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Slate800),
-        shape = RoundedCornerShape(24.dp),
+    val status = if (score.overallScore >= 80) "SOC_VERIFIED" else "PROVISIONAL"
+    GovernanceHealthGauge(
+        score = score.overallScore.toFloat(),
+        status = status,
         modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(100.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                val circleColor = Slate700
-                val progressColor = when {
-                    score.overallScore >= 80 -> Emerald400
-                    score.overallScore >= 50 -> Amber400
-                    else -> Rose500
-                }
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawArc(
-                        color = circleColor,
-                        startAngle = 0f,
-                        sweepAngle = 360f,
-                        useCenter = false,
-                        style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
-                    )
-                    drawArc(
-                        color = progressColor,
-                        startAngle = -90f,
-                        sweepAngle = (score.overallScore / 100f * 360f).toFloat(),
-                        useCenter = false,
-                        style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
-                    )
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = score.overallScore.toInt().toString(),
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(24.dp))
-            Column {
-                Text(
-                    text = "Maturity Level",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelLarge
-                )
-                Text(
-                    text = "${score.maturityLevel} - ${score.maturityName}",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Rounded.Security,
-                        contentDescription = null,
-                        tint = Emerald400,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Deterministic Scoring",
-                        color = Emerald400,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-        }
-    }
+    )
 }
 
 @Composable

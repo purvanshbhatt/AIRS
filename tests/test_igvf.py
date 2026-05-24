@@ -123,6 +123,18 @@ def _make_finding(
     db.add(f)
     db.commit()
     db.refresh(f)
+
+    # Attach SOC_VERIFIED provenance to match 1.0x legacy scoring weights
+    from app.models.finding_provenance import FindingProvenance, ProvenanceStatus
+    prov = FindingProvenance(
+        id=str(uuid.uuid4()),
+        finding_id=f.id,
+        verification_status=ProvenanceStatus.SOC_VERIFIED,
+        evidence_hash="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    )
+    db.add(prov)
+    db.commit()
+
     return f
 
 

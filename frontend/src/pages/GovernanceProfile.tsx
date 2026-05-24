@@ -179,17 +179,17 @@ export default function GovernanceProfile() {
             <Shield className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150 tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               Governance Profile
             </h1>
-            <p className="text-slate-505 dark:text-slate-450 text-sm font-medium">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
               Define your compliance attributes to unlock framework recommendations
             </p>
           </div>
         </div>
         <div className="flex gap-3 items-center">
           <select
-            className="rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-550/20 transition-all font-medium"
+            className="rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
             value={selectedOrgId}
             onChange={(e) => setSelectedOrgId(e.target.value)}
           >
@@ -215,7 +215,7 @@ export default function GovernanceProfile() {
       {error && (
         <Card className="border-red-200 dark:border-red-900/30 bg-red-50/20 dark:bg-red-950/10 shadow-sm">
           <CardContent className="py-3">
-            <p className="text-sm text-red-655 dark:text-red-400 font-semibold">{error}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{error}</p>
           </CardContent>
         </Card>
       )}
@@ -223,18 +223,18 @@ export default function GovernanceProfile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Form */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
             <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-slate-150 font-bold">Organization Details</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-slate-100 font-bold">Organization Details</CardTitle>
             </CardHeader>
              <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                     Revenue Band
                   </label>
                   <select
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                     value={form.revenue_band || ''}
                     onChange={(e) => setForm({ ...form, revenue_band: e.target.value || undefined })}
                   >
@@ -245,12 +245,12 @@ export default function GovernanceProfile() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                     Employee Count
                   </label>
                   <input
                     type="number"
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                     value={form.employee_count || ''}
                     onChange={(e) =>
                       setForm({ ...form, employee_count: e.target.value ? parseInt(e.target.value) : undefined })
@@ -261,7 +261,7 @@ export default function GovernanceProfile() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                   Geographic Regions
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -273,7 +273,7 @@ export default function GovernanceProfile() {
                       className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
                         (form.geo_regions || []).includes(region)
                           ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300 shadow-sm'
-                          : 'bg-slate-50 border-slate-200 text-slate-650 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 hover:border-slate-350 dark:hover:border-slate-700'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {region}
@@ -284,9 +284,9 @@ export default function GovernanceProfile() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
             <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-slate-150 font-bold">Data & Regulatory Attributes</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-slate-100 font-bold">Data & Regulatory Attributes</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -301,13 +301,13 @@ export default function GovernanceProfile() {
                 ].map(({ key, label }) => (
                   <label
                     key={key}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-150 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-900/30 cursor-pointer transition-all duration-200"
+                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-900/30 cursor-pointer transition-all duration-200"
                   >
                     <input
                       type="checkbox"
                       checked={Boolean((form as Record<string, unknown>)[key])}
                       onChange={(e) => setForm({ ...form, [key]: e.target.checked })}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-indigo-650 focus:ring-indigo-500/20 focus:ring-2 dark:bg-slate-950 dark:checked:bg-indigo-600"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500/20 focus:ring-2 dark:bg-slate-950 dark:checked:bg-indigo-600"
                     />
                     <span className="text-sm text-slate-800 dark:text-slate-200 font-semibold">{label}</span>
                   </label>
@@ -316,18 +316,18 @@ export default function GovernanceProfile() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
             <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-slate-150 font-bold">Uptime & SLA Configuration</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-slate-100 font-bold">Uptime & SLA Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                     Application Tier
                   </label>
                   <select
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                     value={form.application_tier || ''}
                     onChange={(e) => setForm({ ...form, application_tier: e.target.value || undefined })}
                   >
@@ -338,7 +338,7 @@ export default function GovernanceProfile() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                     Your SLA Target (%)
                   </label>
                   <input
@@ -346,7 +346,7 @@ export default function GovernanceProfile() {
                     step="0.01"
                     min="0"
                     max="100"
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-955 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
                     value={form.sla_target ?? ''}
                     onChange={(e) =>
                       setForm({ ...form, sla_target: e.target.value ? parseFloat(e.target.value) : undefined })
@@ -368,7 +368,7 @@ export default function GovernanceProfile() {
                           : 'bg-slate-50/20 border-slate-200 dark:bg-slate-900/20 dark:border-slate-800 text-slate-700 dark:text-slate-300'
                   }`}
                 >
-                  <p className="text-sm font-extrabold text-slate-900 dark:text-slate-150">
+                  <p className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
                     {uptimeAnalysis.status === 'on_track' && '✅ '}
                     {uptimeAnalysis.status === 'at_risk' && '⚠️ '}
                     {uptimeAnalysis.status === 'unrealistic' && '🔴 '}
@@ -385,13 +385,13 @@ export default function GovernanceProfile() {
 
         {/* Sidebar — Applicable Frameworks */}
         <div className="space-y-6">
-          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
             <CardHeader>
-              <CardTitle className="text-lg text-slate-900 dark:text-slate-150 font-bold">Applicable Frameworks</CardTitle>
+              <CardTitle className="text-lg text-slate-900 dark:text-slate-100 font-bold">Applicable Frameworks</CardTitle>
             </CardHeader>
             <CardContent>
               {frameworks.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-450 italic">
+                <p className="text-sm text-slate-500 dark:text-slate-400 italic">
                   Complete your governance profile to see applicable frameworks.
                 </p>
               ) : (
@@ -399,10 +399,10 @@ export default function GovernanceProfile() {
                   {frameworks.map((fw) => (
                     <div
                       key={fw.framework}
-                      className="p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/10"
+                      className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/10"
                     >
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-sm font-bold text-slate-900 dark:text-slate-150">
+                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
                           {fw.framework}
                         </span>
                         <Badge
@@ -412,7 +412,7 @@ export default function GovernanceProfile() {
                           {fw.mandatory ? 'Mandatory' : 'Recommended'}
                         </Badge>
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-355 leading-relaxed font-medium">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                         {fw.reason}
                       </p>
                       {fw.reference_url && (
@@ -435,7 +435,7 @@ export default function GovernanceProfile() {
           {/* Governance Forecast (Gemini AI) */}
           <Card className="border-purple-200 dark:border-purple-900/30 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md bg-purple-50/10 dark:bg-purple-950/5">
             <CardHeader>
-              <CardTitle className="text-lg text-slate-900 dark:text-slate-150 font-bold flex items-center gap-2">
+              <CardTitle className="text-lg text-slate-900 dark:text-slate-100 font-bold flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-purple-500" />
                 Governance Forecast
               </CardTitle>
@@ -446,8 +446,8 @@ export default function GovernanceProfile() {
                   <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                     {forecast.forecast}
                   </p>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-450 font-semibold">
-                    <span className="px-2.5 py-0.5 bg-purple-50 dark:bg-purple-950/40 text-purple-705 dark:text-purple-300 rounded-lg font-bold border border-purple-200/50 dark:border-purple-900/40">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                    <span className="px-2.5 py-0.5 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 rounded-lg font-bold border border-purple-200/50 dark:border-purple-900/40">
                       {forecast.focus_area}
                     </span>
                     <span>Confidence: {forecast.confidence}</span>
@@ -487,36 +487,36 @@ export default function GovernanceProfile() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-355 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-955/20">
+          <Card className="shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
             <CardHeader>
-              <CardTitle className="text-lg text-slate-900 dark:text-slate-150 font-bold">Quick Links</CardTitle>
+              <CardTitle className="text-lg text-slate-900 dark:text-slate-100 font-bold">Quick Links</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2.5">
               <Link
                 to={`/dashboard/audit-calendar?org=${selectedOrgId}`}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
               >
                 <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">Audit Calendar</span>
-                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-550" />
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
               </Link>
               <Link
                 to={`/dashboard/tech-stack?org=${selectedOrgId}`}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
               >
                 <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">Tech Stack Registry</span>
-                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-555" />
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
               </Link>
               <Link
                 to={`/dashboard/pilot-program?org=${selectedOrgId}`}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
               >
                 <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">Pilot Program</span>
-                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-555" />
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
               </Link>
 
               {/* Auditor Link Generator */}
-              <div className="pt-3 border-t border-slate-150 dark:border-slate-800">
-                <p className="text-xs text-slate-500 dark:text-slate-450 mb-2 font-semibold">Share read-only access with auditors</p>
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-semibold">Share read-only access with auditors</p>
                 {auditorLink ? (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -532,13 +532,13 @@ export default function GovernanceProfile() {
                           setAuditorCopied(true);
                           setTimeout(() => setAuditorCopied(false), 2000);
                         }}
-                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors"
+                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                         title="Copy link"
                       >
                         {auditorCopied ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                       </button>
                     </div>
-                    <p className="text-xs text-slate-400 dark:text-slate-505 font-medium">Expires in 72 hours</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Expires in 72 hours</p>
                   </div>
                 ) : (
                   <button
@@ -551,9 +551,9 @@ export default function GovernanceProfile() {
                         setError('Failed to generate auditor link');
                       }
                     }}
-                    className="flex items-center gap-2 w-full p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200 text-sm text-slate-700 dark:text-slate-300 font-bold"
+                    className="flex items-center gap-2 w-full p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200 text-sm text-slate-700 dark:text-slate-300 font-bold"
                   >
-                    <Link2 className="w-4 h-4 text-slate-500 dark:text-slate-450" />
+                    <Link2 className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                     Generate Auditor Link
                   </button>
                 )}

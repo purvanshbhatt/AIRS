@@ -393,21 +393,21 @@ export default function TechStack() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-violet-55/10 dark:bg-violet-955/20 border border-violet-200 dark:border-violet-800/40 rounded-2xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-violet-50/10 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40 rounded-2xl flex items-center justify-center">
             <Cpu className="w-5 h-5 text-violet-600 dark:text-violet-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150 tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               Tech Stack Registry
             </h1>
-            <p className="text-slate-505 dark:text-slate-455 text-sm font-semibold">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold">
               Track component versions and lifecycle risk
             </p>
           </div>
         </div>
         <div className="flex gap-3 items-center">
           <select
-            className="rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold"
+            className="rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold"
             value={selectedOrgId}
             onChange={(e) => setSelectedOrgId(e.target.value)}
           >
@@ -424,7 +424,7 @@ export default function TechStack() {
       </div>
 
       {error && (
-        <Card className="rounded-2xl border-red-200 bg-red-50/20 dark:bg-red-955/10 dark:border-red-900/40 shadow-sm">
+        <Card className="rounded-2xl border-red-200 bg-red-50/20 dark:bg-red-950/10 dark:border-red-900/40 shadow-sm">
           <CardContent className="py-3.5">
             <p className="text-sm text-red-700 dark:text-red-400 font-bold">{error}</p>
           </CardContent>
@@ -434,25 +434,25 @@ export default function TechStack() {
       {/* Summary */}
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card padding="md" className="rounded-3xl border border-slate-205 dark:border-slate-805 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider">Total Components</p>
+          <Card padding="md" className="rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Components</p>
             <p className="text-2xl font-extrabold text-slate-900 dark:text-slate-155 mt-1">{items.length}</p>
           </Card>
-          <Card padding="md" className="rounded-3xl border border-red-200 dark:border-red-900/40 bg-red-50/20 dark:bg-red-955/10 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md">
+          <Card padding="md" className="rounded-3xl border border-red-200 dark:border-red-900/40 bg-red-50/20 dark:bg-red-950/10 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md">
             <p className="text-xs font-bold text-red-750 dark:text-red-400 uppercase tracking-wider">EOL</p>
             <p className="text-2xl font-extrabold text-red-600 dark:text-red-400 mt-1">{summary.eol_count}</p>
           </Card>
-          <Card padding="md" className="rounded-3xl border border-orange-200 dark:border-orange-900/40 bg-orange-50/20 dark:bg-orange-955/10 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md">
+          <Card padding="md" className="rounded-3xl border border-orange-200 dark:border-orange-900/40 bg-orange-50/20 dark:bg-orange-950/10 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md">
             <p className="text-xs font-bold text-orange-750 dark:text-orange-400 uppercase tracking-wider">Deprecated</p>
             <p className="text-2xl font-extrabold text-orange-600 dark:text-orange-400 mt-1">{summary.deprecated_count}</p>
           </Card>
-          <Card padding="md" className="rounded-3xl border border-slate-205 dark:border-slate-805 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider">Risk Breakdown</p>
+          <Card padding="md" className="rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Risk Breakdown</p>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2">
               {Object.entries(summary.risk_breakdown).map(([level, count]) => (
                 <span key={level} className="text-xs font-bold">
                   <span className={
-                    level === 'critical' ? 'text-red-650 dark:text-red-400' :
+                    level === 'critical' ? 'text-red-600 dark:text-red-400' :
                     level === 'high' ? 'text-orange-600 dark:text-orange-400' :
                     level === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-green-605 dark:text-green-400'
                   }>{level}: {count}</span>
@@ -465,12 +465,12 @@ export default function TechStack() {
 
       {/* Upgrade Governance Summary */}
       {summary?.upgrade_governance_summary && (
-        <Card className="rounded-3xl border border-violet-200 dark:border-violet-900/30 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-violet-350 dark:hover:border-violet-750 bg-violet-50/10 dark:bg-violet-955/10">
+        <Card className="rounded-3xl border border-violet-200 dark:border-violet-900/30 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-violet-350 dark:hover:border-violet-750 bg-violet-50/10 dark:bg-violet-950/10">
           <CardContent className="py-4">
             <p className="text-sm text-violet-700 dark:text-violet-300 font-extrabold">
               Upgrade Governance Summary
             </p>
-            <p className="text-sm text-slate-700 dark:text-slate-350 mt-1.5 leading-relaxed font-semibold">
+            <p className="text-sm text-slate-700 dark:text-slate-300 mt-1.5 leading-relaxed font-semibold">
               {summary.upgrade_governance_summary}
             </p>
           </CardContent>
@@ -479,10 +479,10 @@ export default function TechStack() {
 
       {/* Add Form */}
       {showAddForm && (
-        <Card className="rounded-3xl border border-indigo-200 dark:border-indigo-800/80 shadow-md bg-white/60 dark:bg-slate-955/20 transition-all duration-300">
+        <Card className="rounded-3xl border border-indigo-200 dark:border-indigo-800/80 shadow-md bg-white/60 dark:bg-slate-950/20 transition-all duration-300">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-slate-900 dark:text-slate-150 font-extrabold text-lg">Add Component</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg">Add Component</CardTitle>
               <button onClick={() => setShowAddForm(false)} className="p-1 rounded-xl hover:bg-slate-105 dark:hover:bg-slate-800/60 transition-colors">
                 <X className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" />
               </button>
@@ -491,35 +491,35 @@ export default function TechStack() {
           <CardContent className="space-y-4 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                   Component Name
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. Python"
-                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.component_name}
                   onChange={(e) => setNewItem({ ...newItem, component_name: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                   Version
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. 3.11.4"
-                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.version}
                   onChange={(e) => setNewItem({ ...newItem, version: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                   Category
                 </label>
                 <select
-                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.category}
                   onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
                 >
@@ -529,11 +529,11 @@ export default function TechStack() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                   LTS Status
                 </label>
                 <select
-                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.lts_status}
                   onChange={(e) => setNewItem({ ...newItem, lts_status: e.target.value as TechStackItemCreate['lts_status'] })}
                 >
@@ -543,13 +543,13 @@ export default function TechStack() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-455 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
                   Major Versions Behind
                 </label>
                 <input
                   type="number"
                   min={0}
-                  className="w-full rounded-xl border border-slate-205 dark:border-slate-805 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold"
                   value={newItem.major_versions_behind || 0}
                   onChange={(e) => setNewItem({ ...newItem, major_versions_behind: parseInt(e.target.value) || 0 })}
                 />
@@ -568,28 +568,28 @@ export default function TechStack() {
       {loading ? (
         <CardSkeleton />
       ) : items.length === 0 ? (
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm bg-white/60 dark:bg-slate-955/20">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm bg-white/60 dark:bg-slate-950/20">
           <CardContent className="py-20 text-center">
-            <Cpu className="w-16 h-16 text-slate-350 dark:text-slate-700 mx-auto mb-4 opacity-80" />
-            <p className="text-slate-505 dark:text-slate-455 font-bold text-lg">
+            <Cpu className="w-16 h-16 text-slate-300 dark:text-slate-700 mx-auto mb-4 opacity-80" />
+            <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">
               No components tracked yet. Click &quot;Add Component&quot; to begin.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm overflow-hidden bg-white/60 dark:bg-slate-955/20 hover:border-slate-350 dark:hover:border-slate-750 transition-all duration-300">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm overflow-hidden bg-white/60 dark:bg-slate-950/20 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-300">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
-                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-450">Component</th>
-                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Version</th>
-                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Category</th>
-                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Lifecycle Status</th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Component</th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Version</th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Category</th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Lifecycle Status</th>
                   {isStaging && (
-                    <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Version Status</th>
+                    <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Version Status</th>
                   )}
-                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-455">Risk</th>
+                  <th className="text-left py-3.5 px-6 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Risk</th>
                   <th className="text-right py-3.5 px-6"></th>
                 </tr>
               </thead>
@@ -599,14 +599,14 @@ export default function TechStack() {
                   const LifecycleIcon = lifecycle.icon;
                   
                   return (
-                    <tr key={item.id} className={`border-b border-slate-150 dark:border-slate-850/60 ${getRowBg(item)} hover:bg-slate-50/60 dark:hover:bg-slate-900/20 transition-colors`}>
-                      <td className="py-4 px-6 font-extrabold text-slate-900 dark:text-slate-150">
+                    <tr key={item.id} className={`border-b border-slate-100 dark:border-slate-800/60 ${getRowBg(item)} hover:bg-slate-50/60 dark:hover:bg-slate-900/20 transition-colors`}>
+                      <td className="py-4 px-6 font-extrabold text-slate-900 dark:text-slate-100">
                         {item.component_name}
                       </td>
-                      <td className="py-4 px-6 text-slate-700 dark:text-slate-350 font-mono text-xs">
+                      <td className="py-4 px-6 text-slate-700 dark:text-slate-300 font-mono text-xs">
                         {item.version}
                       </td>
-                      <td className="py-4 px-6 text-slate-505 dark:text-slate-400 font-semibold">{item.category || '—'}</td>
+                      <td className="py-4 px-6 text-slate-500 dark:text-slate-400 font-semibold">{item.category || '—'}</td>
                       <td className="py-4 px-6">
                         <div className="flex items-start gap-2.5">
                           <div className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${lifecycle.bgColor} border ${lifecycle.borderColor} shadow-sm`}>
@@ -616,7 +616,7 @@ export default function TechStack() {
                             <p className={`text-xs font-extrabold ${lifecycle.color}`}>
                               {lifecycle.label}
                             </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-450 truncate max-w-[200px] mt-0.5 font-semibold">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px] mt-0.5 font-semibold">
                               {lifecycle.description}
                             </p>
                           </div>
@@ -626,10 +626,10 @@ export default function TechStack() {
                         <td className="py-4 px-6">
                           {(() => {
                             const vs = getVersionStatus(item);
-                            if (!vs) return <span className="text-xs text-slate-450">—</span>;
+                            if (!vs) return <span className="text-xs text-slate-400">—</span>;
                             if (vs.status === 'cve') {
                               return (
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-red-50/20 dark:bg-red-955/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 shadow-sm">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-red-50/20 dark:bg-red-950/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 shadow-sm">
                                   <ShieldX className="w-3.5 h-3.5 shrink-0" />
                                   <span className="text-xs font-bold">
                                     {vs.label} — Upgrade to {vs.upgradeTarget}
@@ -642,7 +642,7 @@ export default function TechStack() {
                             }
                             if (vs.status === 'upgrade') {
                               return (
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50/20 dark:bg-amber-955/10 text-amber-700 dark:text-amber-400 border border-amber-250 dark:border-amber-900/40 shadow-sm">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50/20 dark:bg-amber-950/10 text-amber-700 dark:text-amber-400 border border-amber-250 dark:border-amber-900/40 shadow-sm">
                                   <ArrowUpCircle className="w-3.5 h-3.5 shrink-0" />
                                   <span className="text-xs font-bold">
                                     {vs.label} → v{vs.latestStable}
@@ -651,7 +651,7 @@ export default function TechStack() {
                               );
                             }
                             return (
-                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-green-50/20 dark:bg-green-955/10 text-green-750 dark:text-green-400 border border-green-200 dark:border-green-900/40 shadow-sm">
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-green-50/20 dark:bg-green-950/10 text-green-750 dark:text-green-400 border border-green-200 dark:border-green-900/40 shadow-sm">
                                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                                 <span className="text-xs font-bold">{vs.label}</span>
                               </div>

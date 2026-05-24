@@ -126,7 +126,7 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins
     # Example: "http://localhost:3000,https://myapp.com"
     # Use "*" to allow all origins (not recommended for production)
-    CORS_ALLOW_ORIGINS: str = "http://localhost:5173"
+    CORS_ALLOW_ORIGINS: str = "http://localhost:5173,https://staging.resilai.org,https://demo.resilai.org,https://resilai.org,https://www.resilai.org"
     
     # ===========================================
     # GCP Settings (Optional)

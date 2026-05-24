@@ -81,3 +81,33 @@ def export_compliance_report_to_gcs(assessment_id: str, owner_uid: str) -> None:
             
     finally:
         db.close()
+
+
+def export_latest_compliance_report_to_gcs(org_id: str, owner_uid: str) -> None:
+    """
+    Background task to locate the latest completed assessment for an organization
+    and trigger its compliance PDF report export to GCS.
+    """
+    db = SessionLocal()
+    try:
+        from app.models.assessment import Assessment, AssessmentStatus
+        assessment = (
+            db.query(Assessment)
+            .filter(
+                Assessment.organization_id == org_id,
+                Assessment.status == AssessmentStatus.COMPLETED
+            )
+            .order_by(Assessment.updated_at.desc())
+            .first()
+        )
+        if assessment:
+            logger.info(f"Triggering compliance report export for latest completed assessment {assessment.id} of org {org_id}")
+            # Note: export_compliance_report_to_gcs manages its own database session context
+            export_compliance_report_to_gcs(assessment.id, owner_uid)
+        else:
+            logger.warning(f"No completed assessment found for organization {org_id} to export compliance report.")
+    except Exception as e:
+        logger.error(f"Failed to find or export latest compliance report for org {org_id}: {e}")
+    finally:
+        db.close()
+

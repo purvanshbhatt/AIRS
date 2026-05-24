@@ -114,7 +114,7 @@ class VerificationService:
 
         except Exception as exc:
             logger.error("Verification failed for rule %s: %s", rule_id, exc)
-            return self._provisional_result(finding, f"SIEM query failed: {exc}. Finding remains self-attested.")
+            return self._connection_error_result(finding, f"SIEM query/connection failed: {exc}. Status could not be verified.")
 
     async def verify_all_findings(self, findings: List[Any], answers: Optional[Dict[str, Any]] = None) -> List[VerificationResultSchema]:
         """Batch-verify all findings against SIEM evidence."""
@@ -400,6 +400,21 @@ class VerificationService:
             rule_id=finding.rule_id,
             title=finding.title,
             status=VerificationStatusEnum.PROVISIONAL,
+            evidence_summary=reason,
+            siem_source=None,
+            siem_query_used=None,
+            event_count=0,
+            log_event_ids=[],
+            verified_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+    def _connection_error_result(self, finding: Any, reason: str) -> VerificationResultSchema:
+        """Create a Connection Error verification result."""
+        return VerificationResultSchema(
+            finding_id=getattr(finding, "rule_id", None),
+            rule_id=finding.rule_id,
+            title=finding.title,
+            status=VerificationStatusEnum.CONNECTION_ERROR,
             evidence_summary=reason,
             siem_source=None,
             siem_query_used=None,

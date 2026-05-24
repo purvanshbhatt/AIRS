@@ -11,7 +11,7 @@ export default function DocsFrameworks() {
         <div className="space-y-12">
             {/* Header */}
             <div>
-                <div className="flex items-center gap-2 text-primary-605 dark:text-primary-400 mb-4">
+                <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 mb-4">
                     <Shield className="w-5 h-5" />
                     <span className="text-sm font-semibold tracking-wide uppercase">Frameworks</span>
                 </div>
@@ -46,15 +46,15 @@ export default function DocsFrameworks() {
             <section>
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-red-50 dark:bg-red-950/40 rounded-2xl border border-red-100 dark:border-red-900/40">
-                        <AlertTriangle className="w-6 h-6 text-red-650 dark:text-red-400" />
+                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         MITRE ATT&CK
                     </h2>
                 </div>
 
-                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
-                    <p className="text-slate-650 dark:text-slate-455 mb-6 leading-relaxed">
+                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
+                    <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                         Findings map to specific ATT&CK techniques that adversaries may exploit when
                         security controls are missing. This helps security teams understand the real-world
                         attack behaviors enabled by identified gaps.
@@ -98,8 +98,8 @@ export default function DocsFrameworks() {
                     </h2>
                 </div>
 
-                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
-                    <p className="text-slate-655 dark:text-slate-455 mb-6 leading-relaxed">
+                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
+                    <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                         Findings map to specific CIS Controls, with Implementation Group (IG) classification
                         to help prioritize based on organizational maturity level.
                     </p>
@@ -120,7 +120,7 @@ export default function DocsFrameworks() {
                     </div>
 
                     <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-3 text-base">Key Control Areas:</h3>
-                    <ul className="grid sm:grid-cols-2 gap-2.5 text-sm text-slate-655 dark:text-slate-400 font-medium">
+                    <ul className="grid sm:grid-cols-2 gap-2.5 text-sm text-slate-600 dark:text-slate-400 font-medium">
                         {[
                             'Control 5: Account Management',
                             'Control 6: Access Control Management',
@@ -160,8 +160,8 @@ export default function DocsFrameworks() {
                     </h2>
                 </div>
 
-                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
-                    <p className="text-slate-655 dark:text-slate-455 mb-6 leading-relaxed">
+                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
+                    <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                         Authentication and access control findings map to OWASP Top 10 categories,
                         providing context for web application and identity security risks.
                     </p>
@@ -178,7 +178,7 @@ export default function DocsFrameworks() {
                                 className={`p-4 rounded-2xl border transition-all duration-300 hover:scale-[1.01] ${
                                     item.relevant
                                         ? 'bg-purple-50/50 dark:bg-purple-950/30 border-purple-205 dark:border-purple-900/60 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-850 shadow-sm'
+                                        : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm'
                                 }`}
                             >
                                 <div className="flex items-center gap-2 mb-2">
@@ -217,8 +217,8 @@ export default function DocsFrameworks() {
                     </h2>
                 </div>
 
-                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
-                    <p className="text-slate-655 dark:text-slate-455 mb-6 leading-relaxed">
+                <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
+                    <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                         Every assessment question maps to one of the six NIST CSF 2.0 lifecycle functions,
                         providing end-to-end coverage across the cybersecurity risk management lifecycle.
                         This ensures findings address governance, prevention, detection, and recovery equally.
@@ -227,12 +227,12 @@ export default function DocsFrameworks() {
                     {/* Lifecycle Diagram */}
                     <div className="mb-6">
                         <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4 text-base">CSF 2.0 Lifecycle Functions:</h3>
-                        <div className="flex flex-wrap items-center justify-center gap-3 mb-6 bg-slate-50 dark:bg-slate-950 p-6 rounded-3xl border border-slate-150 dark:border-slate-900/50">
+                        <div className="flex flex-wrap items-center justify-center gap-3 mb-6 bg-slate-50 dark:bg-slate-950 p-6 rounded-3xl border border-slate-100 dark:border-slate-900/50">
                             {[
-                                { code: 'GV', name: 'Govern', color: 'bg-slate-105 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-205 dark:border-slate-800', description: 'Establish and monitor cybersecurity risk management strategy, expectations, and policy' },
+                                { code: 'GV', name: 'Govern', color: 'bg-slate-105 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800', description: 'Establish and monitor cybersecurity risk management strategy, expectations, and policy' },
                                 { code: 'ID', name: 'Identify', color: 'bg-blue-50 dark:bg-blue-950/40 text-blue-750 dark:text-blue-300 border-blue-205 dark:border-blue-900/60', description: 'Understand organizational context, assets, and risk to prioritize efforts' },
                                 { code: 'PR', name: 'Protect', color: 'bg-green-50 dark:bg-green-950/40 text-green-755 dark:text-green-300 border-green-205 dark:border-green-900/60', description: 'Implement safeguards to ensure delivery of critical services' },
-                                { code: 'DE', name: 'Detect', color: 'bg-amber-50 dark:bg-amber-950/40 text-amber-755 dark:text-amber-300 border-amber-205 dark:border-amber-900/60', description: 'Identify the occurrence of cybersecurity events in a timely manner' },
+                                { code: 'DE', name: 'Detect', color: 'bg-amber-50 dark:bg-amber-950/40 text-amber-755 dark:text-amber-300 border-amber-200 dark:border-amber-900/60', description: 'Identify the occurrence of cybersecurity events in a timely manner' },
                                 { code: 'RS', name: 'Respond', color: 'bg-orange-50 dark:bg-orange-950/40 text-orange-755 dark:text-orange-300 border-orange-205 dark:border-orange-900/60', description: 'Take action regarding a detected cybersecurity incident' },
                                 { code: 'RC', name: 'Recover', color: 'bg-purple-50 dark:bg-purple-950/40 text-purple-755 dark:text-purple-300 border-purple-205 dark:border-purple-900/60', description: 'Restore capabilities or services impaired by a cybersecurity incident' },
                             ].map((func, index) => (
@@ -252,16 +252,16 @@ export default function DocsFrameworks() {
                     {/* Function Details */}
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         {[
-                            { code: 'GV', name: 'Govern', desc: 'Establish and monitor cybersecurity risk management strategy, expectations, and policy.', color: 'border-slate-150 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30' },
-                            { code: 'ID', name: 'Identify', desc: 'Understand organizational context, assets, and risk to prioritize cybersecurity efforts.', color: 'border-blue-150 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/30' },
-                            { code: 'PR', name: 'Protect', desc: 'Implement safeguards such as MFA, PAM, and access controls to ensure delivery of services.', color: 'border-green-150 dark:border-green-900/60 bg-green-50/50 dark:bg-green-950/30' },
-                            { code: 'DE', name: 'Detect', desc: 'Identify cybersecurity events through EDR, log monitoring, and alert triage processes.', color: 'border-amber-150 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/30' },
-                            { code: 'RS', name: 'Respond', desc: 'Take action on detected incidents through IR playbooks, communication plans, and containment.', color: 'border-orange-150 dark:border-orange-900/60 bg-orange-50/50 dark:bg-orange-950/30' },
-                            { code: 'RC', name: 'Recover', desc: 'Restore impaired capabilities via backup recovery, RTO targets, and DR planning.', color: 'border-purple-150 dark:border-purple-900/60 bg-purple-50/50 dark:bg-purple-950/30' },
+                            { code: 'GV', name: 'Govern', desc: 'Establish and monitor cybersecurity risk management strategy, expectations, and policy.', color: 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30' },
+                            { code: 'ID', name: 'Identify', desc: 'Understand organizational context, assets, and risk to prioritize cybersecurity efforts.', color: 'border-blue-100 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/30' },
+                            { code: 'PR', name: 'Protect', desc: 'Implement safeguards such as MFA, PAM, and access controls to ensure delivery of services.', color: 'border-green-100 dark:border-green-900/60 bg-green-50/50 dark:bg-green-950/30' },
+                            { code: 'DE', name: 'Detect', desc: 'Identify cybersecurity events through EDR, log monitoring, and alert triage processes.', color: 'border-amber-100 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/30' },
+                            { code: 'RS', name: 'Respond', desc: 'Take action on detected incidents through IR playbooks, communication plans, and containment.', color: 'border-orange-100 dark:border-orange-900/60 bg-orange-50/50 dark:bg-orange-950/30' },
+                            { code: 'RC', name: 'Recover', desc: 'Restore impaired capabilities via backup recovery, RTO targets, and DR planning.', color: 'border-purple-100 dark:border-purple-900/60 bg-purple-50/50 dark:bg-purple-950/30' },
                         ].map((func) => (
                             <div key={func.code} className={`p-4 rounded-2xl border transition-all duration-300 hover:scale-[1.01] ${func.color}`}>
                                 <div className="flex items-center gap-2 mb-1.5">
-                                    <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-205">{func.code}</span>
+                                    <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">{func.code}</span>
                                     <span className="font-bold text-sm text-slate-900 dark:text-slate-100">{func.name}</span>
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{func.desc}</p>
@@ -270,7 +270,7 @@ export default function DocsFrameworks() {
                     </div>
 
                     {/* Domain Mapping */}
-                    <div className="p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-850 mb-6">
+                    <div className="p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 mb-6">
                         <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
                             How Assessment Domains Map to NIST CSF 2.0:
                         </h4>
@@ -315,7 +315,7 @@ export default function DocsFrameworks() {
                 <section>
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2.5 bg-purple-50 dark:bg-purple-950/40 rounded-2xl border border-purple-100 dark:border-purple-900/40">
-                            <Zap className="w-6 h-6 text-purple-650 dark:text-purple-400" />
+                            <Zap className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                             Future Regulations
@@ -326,7 +326,7 @@ export default function DocsFrameworks() {
                     </div>
 
                     <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-purple-100 dark:border-purple-900/60 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
-                        <p className="text-slate-655 dark:text-slate-455 mb-6 leading-relaxed">
+                        <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
                             Upcoming regulatory frameworks that will impact organizational compliance posture.
                             ResilAI is mapping assessment domains to predicted regulatory requirements for
                             proactive gap analysis.
@@ -347,7 +347,7 @@ export default function DocsFrameworks() {
                                 transparency obligations, and human oversight requirements.
                             </p>
 
-                            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-205 mb-3">
+                            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
                                 Predicted Gap Areas for AIRS Organizations:
                             </h4>
                             <div className="grid sm:grid-cols-2 gap-3 mb-4">
@@ -364,7 +364,7 @@ export default function DocsFrameworks() {
                                         item.risk === 'medium' ? 'border-yellow-200 dark:border-yellow-900/60 bg-yellow-50/50 dark:bg-yellow-950/20' :
                                         'border-green-200 dark:border-green-900/60 bg-green-50/50 dark:bg-green-950/20'
                                     }`}>
-                                        <div className="font-semibold text-slate-850 dark:text-slate-200">{item.area}</div>
+                                        <div className="font-semibold text-slate-800 dark:text-slate-200">{item.area}</div>
                                         <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{item.gap}</div>
                                     </div>
                                 ))}
@@ -386,7 +386,7 @@ export default function DocsFrameworks() {
                             <div className="flex flex-wrap items-center gap-3 mb-3">
                                 <Scale className="w-5 h-5 text-blue-605 dark:text-blue-400" />
                                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">DORA — Digital Operational Resilience Act</h3>
-                                <span className="text-xs px-2.5 py-0.5 bg-green-105 dark:bg-green-950/50 text-green-805 dark:text-green-300 rounded-full font-bold">
+                                <span className="text-xs px-2.5 py-0.5 bg-green-100 dark:bg-green-950/50 text-green-805 dark:text-green-300 rounded-full font-bold">
                                     Effective Jan 2025
                                 </span>
                             </div>
@@ -404,7 +404,7 @@ export default function DocsFrameworks() {
                                     'Information Sharing',
                                     'Oversight Framework',
                                 ].map((pillar) => (
-                                    <div key={pillar} className="flex items-center gap-2 text-xs text-slate-650 dark:text-slate-400 font-medium">
+                                    <div key={pillar} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 font-medium">
                                         <CheckCircle className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
                                         <span>{pillar}</span>
                                     </div>
@@ -417,7 +417,7 @@ export default function DocsFrameworks() {
                             <div className="flex flex-wrap items-center gap-3 mb-3">
                                 <Shield className="w-5 h-5 text-teal-605 dark:text-teal-400" />
                                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">NIS2 Directive</h3>
-                                <span className="text-xs px-2.5 py-0.5 bg-green-105 dark:bg-green-950/50 text-green-805 dark:text-green-300 rounded-full font-bold">
+                                <span className="text-xs px-2.5 py-0.5 bg-green-100 dark:bg-green-950/50 text-green-805 dark:text-green-300 rounded-full font-bold">
                                     Effective Oct 2024
                                 </span>
                             </div>
@@ -433,10 +433,10 @@ export default function DocsFrameworks() {
                                     { label: 'Business Continuity', mapped: true },
                                     { label: 'Supply Chain Security', mapped: false },
                                 ].map((item) => (
-                                    <div key={item.label} className="flex items-center gap-2 text-xs text-slate-650 dark:text-slate-400 font-medium">
+                                    <div key={item.label} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 font-medium">
                                         {item.mapped ? <CheckCircle className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" /> : <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />}
                                         <span>{item.label}</span>
-                                        {!item.mapped && <span className="text-xs text-slate-405 dark:text-slate-500 font-normal">(planned)</span>}
+                                        {!item.mapped && <span className="text-xs text-slate-400 dark:text-slate-500 font-normal">(planned)</span>}
                                     </div>
                                 ))}
                             </div>
@@ -446,7 +446,7 @@ export default function DocsFrameworks() {
             )}
 
             {/* How It Works */}
-            <section className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
+            <section className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
                     How Framework Mapping Works
                 </h2>

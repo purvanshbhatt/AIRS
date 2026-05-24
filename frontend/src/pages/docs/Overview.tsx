@@ -13,7 +13,7 @@ export default function DocsOverview() {
         <div className="space-y-12">
             {/* Hero */}
             <div>
-                <div className="flex items-center gap-2 text-primary-605 dark:text-primary-400 mb-4">
+                <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 mb-4">
                     <Shield className="w-5 h-5" />
                     <span className="text-sm font-semibold tracking-wide uppercase">Documentation</span>
                 </div>
@@ -32,7 +32,7 @@ export default function DocsOverview() {
                     What is ResilAI?
                 </h2>
                 <div className="prose dark:prose-invert max-w-none">
-                    <p className="text-slate-655 dark:text-slate-400 leading-relaxed text-base">
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-base">
                         ResilAI is an open-source security assessment platform designed to help organizations
                         understand their incident response readiness. By answering 30 targeted questions
                         across 5 security domains, you receive an actionable readiness score,
@@ -66,7 +66,7 @@ export default function DocsOverview() {
                     ].map((feature) => (
                         <div
                             key={feature.title}
-                            className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md"
+                            className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md"
                         >
                             <feature.icon className="w-8 h-8 text-primary-600 dark:text-primary-400 mb-4" />
                             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
@@ -134,7 +134,7 @@ export default function DocsOverview() {
                         <Link
                             key={section.title}
                             to={section.href}
-                            className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01] hover:border-primary-250 dark:hover:border-primary-800"
+                            className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01] hover:border-primary-250 dark:hover:border-primary-800"
                         >
                             <div>
                                 <h3 className="font-bold text-slate-900 dark:text-slate-105 group-hover:text-primary-600 dark:group-hover:text-primary-400 text-base transition-colors duration-200">
@@ -142,7 +142,7 @@ export default function DocsOverview() {
                                 </h3>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{section.description}</p>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-primary-605 dark:group-hover:text-primary-400 transition-all duration-200 transform group-hover:translate-x-1" />
+                            <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-all duration-200 transform group-hover:translate-x-1" />
                         </Link>
                     ))}
                 </div>

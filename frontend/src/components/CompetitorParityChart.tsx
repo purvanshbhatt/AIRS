@@ -66,14 +66,14 @@ export default function CompetitorParityChart({
   ];
 
   return (
-    <Card className="border-indigo-200 dark:border-indigo-800">
+    <Card className="border-indigo-200 dark:border-indigo-850" padding="lg">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-indigo-500" />
+            <BarChart3 className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
             Competitor Parity — {industryName}
           </CardTitle>
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-xs border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/30">
             Staging Analytics
           </Badge>
         </div>
@@ -84,22 +84,22 @@ export default function CompetitorParityChart({
           {bars.map((bar) => (
             <div key={bar.label}>
               <div className="flex items-center justify-between mb-1">
-                <span className={`text-xs font-medium ${
+                <span className={`text-xs font-semibold ${
                   bar.highlight
                     ? 'text-indigo-700 dark:text-indigo-300'
-                    : 'text-gray-500 dark:text-slate-400'
+                    : 'text-slate-500 dark:text-slate-400'
                 }`}>
                   {bar.label}
                 </span>
                 <span className={`text-xs font-bold ${
                   bar.highlight
                     ? 'text-indigo-700 dark:text-indigo-300'
-                    : 'text-gray-600 dark:text-slate-300'
+                    : 'text-slate-700 dark:text-slate-300'
                 }`}>
                   {bar.value}
                 </span>
               </div>
-              <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+              <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${
                     bar.highlight ? 'bg-indigo-500' : getBarColor(bar.value)
@@ -112,19 +112,19 @@ export default function CompetitorParityChart({
         </div>
 
         {/* Gap verdict */}
-        <div className={`flex items-center gap-2 p-3 rounded-lg border ${
+        <div className={`flex items-center gap-3 p-4 rounded-2xl border ${
           gap > 5
-            ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
+            ? 'bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800/80'
             : gap >= -5
-              ? 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
-              : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'
+              ? 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800'
+              : 'bg-red-50/50 dark:bg-red-900/10 border-red-200 dark:border-red-800/80'
         }`}>
           <VerdictIcon className={`w-5 h-5 shrink-0 ${verdict.color}`} />
           <div>
-            <p className={`text-sm font-semibold ${verdict.color}`}>
+            <p className={`text-sm font-bold ${verdict.color}`}>
               {verdict.text} ({gap >= 0 ? '+' : ''}{gap} pts)
             </p>
-            <p className="text-xs text-gray-500 dark:text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
               {gap < -5
                 ? 'Your compliance posture is below industry peers. Prioritize remediation to close the gap.'
                 : gap > 5
@@ -134,7 +134,7 @@ export default function CompetitorParityChart({
           </div>
         </div>
 
-        <p className="text-[10px] text-gray-400 dark:text-slate-600 text-center">
+        <p className="text-[10px] text-slate-400 dark:text-slate-600 text-center font-medium">
           Benchmarks based on anonymised cross-industry aggregate data. Not an official ranking.
         </p>
       </CardContent>

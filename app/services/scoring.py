@@ -78,7 +78,7 @@ def _calculate_threshold_score(value: float, thresholds: Dict[str, float],
         return result_score
 
 
-def _score_question(question: dict, answer: Any) -> float:
+def _score_question(question: dict, answer: Any, verification_status: str = "SELF_ATTESTED", high_confidence_mode: bool = False) -> float:
     """
     Score a single question based on its type and the provided answer.
     
@@ -90,15 +90,18 @@ def _score_question(question: dict, answer: Any) -> float:
     Args:
         question: Question definition from rubric
         answer: The answer value
+        verification_status: SOC_VERIFIED gets 1.0 multiplier, SELF_ATTESTED gets 0.6
     
     Returns:
-        Points earned (0 to question's max points)
+        Points earned (0 to question's max points * reliability_factor)
     """
     q_type = question["type"]
     max_points = question["points"]
     
     if answer is None:
         return 0.0
+
+    base_points = 0.0
 
     # ── Maturity-tier string handling (backward-compatible) ──
     # If the question publishes tier_options AND the answer is a recognised
@@ -109,46 +112,54 @@ def _score_question(question: dict, answer: Any) -> float:
         canonical = answer.strip()
         for opt in tier_options:
             if opt["value"].lower() == canonical.lower():
-                return max_points * opt["score"]
-        # Unknown tier string → treat as unanswered (score 0) rather than
-        # accidentally falling through to boolean "truthy" logic.
-        return 0.0
+                base_points = max_points * opt["score"]
+                break
 
-    if q_type == "boolean":
+    elif q_type == "boolean":
         # Boolean: True = full points, False = 0
         if isinstance(answer, bool):
-            return max_points if answer else 0.0
-        if isinstance(answer, str):
-            return max_points if answer.lower() in ("yes", "true", "1") else 0.0
-        return max_points if answer else 0.0
+            base_points = max_points if answer else 0.0
+        elif isinstance(answer, str):
+            base_points = max_points if answer.lower() in ("yes", "true", "1") else 0.0
+        else:
+            base_points = max_points if answer else 0.0
     
     elif q_type in ("numeric", "percentage"):
         # Numeric/Percentage: Use thresholds
         try:
             value = float(answer)
+            thresholds = question.get("thresholds", {})
+            lower_is_better = question.get("scoring_direction") == "lower_is_better"
+            
+            threshold_score = _calculate_threshold_score(value, thresholds, lower_is_better)
+            base_points = max_points * threshold_score
         except (ValueError, TypeError):
-            return 0.0
+            base_points = 0.0
+
+    # Apply deterministic reliability factor
+    if verification_status in ("STALE_CONNECTION", "Stale Connection"):
+        reliability_factor = 0.0 if high_confidence_mode else 0.6
+    elif verification_status in ("SOC_VERIFIED", "SOC-Verified"):
+        reliability_factor = 1.0
+    else:
+        reliability_factor = 0.6
         
-        thresholds = question.get("thresholds", {})
-        lower_is_better = question.get("scoring_direction") == "lower_is_better"
-        
-        threshold_score = _calculate_threshold_score(value, thresholds, lower_is_better)
-        return max_points * threshold_score
-    
-    return 0.0
+    return base_points * reliability_factor
 
 
-def calculate_domain_score(domain_id: str, answers: Dict[str, Any]) -> Dict[str, Any]:
+def calculate_domain_score(domain_id: str, answers: Dict[str, Any], verification_statuses: Dict[str, str] = None, high_confidence_mode: bool = False) -> Dict[str, Any]:
     """
     Calculate score for a single domain.
     
     Args:
         domain_id: The domain identifier
         answers: Dict mapping question_id to answer value
+        verification_statuses: Dict mapping question_id to status string
     
     Returns:
         Dict with domain scoring details
     """
+    verification_statuses = verification_statuses or {}
     domain = RUBRIC["domains"].get(domain_id)
     if not domain:
         raise ScoringError(f"Unknown domain: {domain_id}")
@@ -162,7 +173,8 @@ def calculate_domain_score(domain_id: str, answers: Dict[str, Any]) -> Dict[str,
     for question in questions:
         q_id = question["id"]
         answer = answers.get(q_id)
-        points = _score_question(question, answer)
+        status = verification_statuses.get(q_id, "SELF_ATTESTED")
+        points = _score_question(question, answer, status, high_confidence_mode)
         total_points += points
         
         question_scores.append({
@@ -188,24 +200,14 @@ def calculate_domain_score(domain_id: str, answers: Dict[str, Any]) -> Dict[str,
     }
 
 
-def calculate_scores(answers: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Calculate complete readiness scores from assessment answers.
-    
-    Args:
-        answers: Dict mapping question_id to answer value
-                 Example: {"tl_01": True, "tl_05": 90, "dc_01": 85, ...}
-    
-    Returns:
-        Complete scoring result with domain scores and overall score
-    """
+def _calc_scores_internal(answers: Dict[str, Any], verification_statuses: Dict[str, str] = None, high_confidence_mode: bool = False) -> Dict[str, Any]:
     domain_results = []
     weighted_sum = 0.0
     total_weight = 0
     unknown_critical_metrics: List[str] = []
     
     for domain_id in RUBRIC["domains"]:
-        domain_result = calculate_domain_score(domain_id, answers)
+        domain_result = calculate_domain_score(domain_id, answers, verification_statuses, high_confidence_mode)
         domain_results.append(domain_result)
         
         # Calculate weighted contribution (score is 0-5, weight is %)
@@ -241,9 +243,9 @@ def calculate_scores(answers: Dict[str, Any]) -> Dict[str, Any]:
             "total_questions": sum(len(d["questions"]) for d in domain_results),
             "questions_answered": sum(
                 1 for d in domain_results 
-                for q in d["questions"] 
-                if q["answer"] is not None
+                for q in d["questions"] if q["answer"] is not None
             ),
+            "unknown_critical_metrics": unknown_critical_metrics,
             "strongest_domain": max(domain_results, key=lambda x: x["score"])["domain_name"],
             "weakest_domain": min(domain_results, key=lambda x: x["score"])["domain_name"]
         }
@@ -359,3 +361,25 @@ def validate_answers(answers: Dict[str, Any]) -> Dict[str, Any]:
         "questions_expected": len(valid_ids),
         "questions_provided": len([a for a in answers.values() if a is not None])
     }
+
+
+def calculate_scores(answers: Dict[str, Any], verification_statuses: Dict[str, str] = None) -> Dict[str, Any]:
+    """
+    Calculate complete readiness scores from assessment answers.
+    Includes base_ghi and high_confidence_ghi tracking.
+    """
+    # 1. Base calculation (STALE counts as 0.6)
+    base_result = _calc_scores_internal(answers, verification_statuses, high_confidence_mode=False)
+    
+    # 2. High confidence calculation (STALE counts as 0.0)
+    high_conf_result = _calc_scores_internal(answers, verification_statuses, high_confidence_mode=True)
+    
+    # 3. Enrichment
+    base_result["base_ghi"] = base_result["overall_score"]
+    base_result["high_confidence_ghi"] = high_conf_result["overall_score"]
+    
+    stale_findings = [q for q, s in (verification_statuses or {}).items() if s in ("STALE_CONNECTION", "Stale Connection")]
+    base_result["has_stale_connections"] = len(stale_findings) > 0
+    base_result["stale_finding_count"] = len(stale_findings)
+    
+    return base_result

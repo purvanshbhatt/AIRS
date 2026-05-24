@@ -2,7 +2,7 @@
 Telemetry Events API — SIEM Webhook Ingestion Endpoint.
 
 Exposes:
-  POST /api/v1/telemetry/events
+  POST /api/v1/integrations/siem/event
     Ingests SIEM events from Wazuh/Splunk/Elastic via webhook.
     Protected by either:
       a) HMAC-SHA256 signature verification (X-AIRS-Signature header), or
@@ -34,7 +34,7 @@ from app.services.telemetry import (
     VerificationResponse,
 )
 
-router = APIRouter(prefix="/telemetry")
+router = APIRouter(prefix="/integrations/siem")
 logger = logging.getLogger("airs.api.telemetry")
 
 
@@ -105,11 +105,11 @@ async def verify_webhook_signature(
 
 
 # ---------------------------------------------------------------------------
-# POST /api/v1/telemetry/events
+# POST /api/v1/integrations/siem/event
 # ---------------------------------------------------------------------------
 
 @router.post(
-    "/events",
+    "/event",
     response_model=VerificationResponse,
     status_code=status.HTTP_200_OK,
     summary="Ingest SIEM Telemetry Event",

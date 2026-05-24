@@ -160,3 +160,13 @@ html.dark textarea::placeholder {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-primary-500), 0 0 0 4px rgba(14, 165, 233, 0.2);
 }
+
+/* Push fixed sidebar and sticky header down when environment banner is present */
+aside.fixed {
+  top: var(--banner-height, 0px) !important;
+  height: calc(100vh - var(--banner-height, 0px)) !important;
+}
+
+header.sticky {
+  top: var(--banner-height, 0px) !important;
+}

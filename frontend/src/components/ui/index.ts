@@ -31,3 +31,4 @@ export type { Toast } from './Toast';
 export { EmptyState } from './EmptyState';
 export { Skeleton, CardSkeleton, TableRowSkeleton, ListSkeleton, StatCardSkeleton } from './Skeleton';
 export { Tooltip } from './Tooltip';
+export { default as EnvironmentBanner } from './EnvironmentBanner';

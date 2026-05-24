@@ -150,7 +150,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 # This validates scheme, hostname, and blocks wildcards in production
 cors_origins = get_allowed_origins(
     env_var="CORS_ALLOW_ORIGINS",
-    default="http://localhost:5173",
+    default=settings.CORS_ALLOW_ORIGINS,
     is_production=settings.is_prod
 )
 

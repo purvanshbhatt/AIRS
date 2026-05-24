@@ -53,12 +53,12 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
   const offset = circumference - (pct / 100) * circumference;
 
   return (
-    <div className={`rounded-2xl border ${meta.bg} border-gray-200 dark:border-slate-700 p-6 animate-fade-up`}>
+    <div className={`rounded-3xl border ${meta.bg} border-slate-200 dark:border-slate-800 p-8 animate-fade-up`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-primary-600" />
-          <h2 className="text-title text-gray-900 dark:text-slate-100">Security Posture</h2>
+          <ShieldCheck className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+          <h2 className="text-title text-slate-900 dark:text-slate-100">Security Posture</h2>
         </div>
         {/* Pulsing AI indicator */}
         <div className="flex items-center gap-2">
@@ -66,12 +66,12 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
             <span className="animate-pulse-ai absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-500" />
           </span>
-          <span className="text-caption text-gray-500 dark:text-slate-400 flex items-center gap-1">
+          <span className="text-caption text-slate-500 dark:text-slate-400 flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> AI-Verified
           </span>
         </div>
       </div>
-
+ 
       <div className="flex flex-col lg:flex-row items-center gap-8">
         {/* Circular gauge */}
         <div className="relative flex-shrink-0">
@@ -81,7 +81,7 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
               cx="70" cy="70" r={radius}
               fill="none"
               strokeWidth="10"
-              className="stroke-gray-200 dark:stroke-slate-700"
+              className="stroke-slate-200 dark:stroke-slate-800"
             />
             {/* Progress ring */}
             <circle
@@ -102,10 +102,10 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
             >
               <span className={`text-display ${meta.text} cursor-help`}>{data.grade}</span>
             </Tooltip>
-            <span className="text-caption text-gray-500 dark:text-slate-400">{data.ghi.toFixed(1)}%</span>
+            <span className="text-caption text-slate-500 dark:text-slate-400">{data.ghi.toFixed(1)}%</span>
           </div>
         </div>
-
+ 
         {/* Dimension breakdown */}
         <div className="flex-1 w-full grid grid-cols-2 gap-4">
           {Object.entries(data.dimensions).map(([key, score]) => {
@@ -116,14 +116,14 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
             return (
               <div key={key} className="space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <Icon className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
-                  <span className="text-caption text-gray-600 dark:text-slate-400">{label}</span>
+                  <Icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                  <span className="text-caption text-slate-600 dark:text-slate-400">{label}</span>
                   <Tooltip content={DIMENSION_TOOLTIPS[key] || ''} placement="top">
-                    <Info className="w-3 h-3 text-gray-300 dark:text-slate-600 cursor-help" />
+                    <Info className="w-3 h-3 text-slate-400 dark:text-slate-600 cursor-help" />
                   </Tooltip>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ease-out ${
                         score >= 80 ? 'bg-success-500' : score >= 60 ? 'bg-warning-500' : 'bg-danger-500'
@@ -131,11 +131,11 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
                       style={{ width: `${barPct}%` }}
                     />
                   </div>
-                  <span className="text-caption text-gray-700 dark:text-slate-300 w-10 text-right tabular-nums">
+                  <span className="text-caption text-slate-700 dark:text-slate-300 w-10 text-right tabular-nums">
                     {score.toFixed(0)}%
                   </span>
                 </div>
-                <span className="text-overline text-gray-400 dark:text-slate-500">
+                <span className="text-overline text-slate-400 dark:text-slate-500">
                   Weight: {((weight ?? 0) * 100).toFixed(0)}%
                 </span>
               </div>
@@ -143,14 +143,14 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
           })}
         </div>
       </div>
-
+ 
       {/* Footer status */}
       <div className="mt-6 flex items-center justify-between">
-        <span className={`text-body font-medium ${meta.text}`}>
+        <span className={`text-body font-semibold ${meta.text}`}>
           {meta.label} — GHI {data.grade}
         </span>
         {data.issues.length > 0 && (
-          <span className="text-caption text-gray-500 dark:text-slate-400">
+          <span className="text-caption text-slate-500 dark:text-slate-400">
             {data.issues.length} issue{data.issues.length !== 1 ? 's' : ''} detected
           </span>
         )}

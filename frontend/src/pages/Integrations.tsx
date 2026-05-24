@@ -365,7 +365,7 @@ export default function Integrations() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex items-center justify-center py-20 text-sm text-slate-505 dark:text-slate-455 font-bold"
+        className="flex items-center justify-center py-20 text-sm text-slate-500 dark:text-slate-400 font-bold"
       >
         <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading integrations...
       </motion.div>
@@ -380,21 +380,21 @@ export default function Integrations() {
       className="max-w-6xl mx-auto space-y-6"
     >
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-blue-55/10 dark:bg-blue-955/20 border border-blue-200 dark:border-blue-900/40 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-2xl bg-blue-50/10 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 flex items-center justify-center">
           <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-150 tracking-tight">Integrations</h1>
-          <p className="text-sm text-slate-505 dark:text-slate-455 font-semibold">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Integrations</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold">
             API keys, webhooks, and SIEM ingestion hooks for external tooling.
           </p>
         </div>
       </div>
 
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
+      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
         <CardHeader>
           <CardTitle className="text-slate-900 dark:text-slate-155 font-extrabold text-lg">Organization</CardTitle>
-          <CardDescription className="text-slate-500 dark:text-slate-455 font-semibold">Select which organization to manage.</CardDescription>
+          <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">Select which organization to manage.</CardDescription>
         </CardHeader>
         <CardContent>
           {organizations.length > 0 ? (
@@ -405,7 +405,7 @@ export default function Integrations() {
               options={organizations.map((o) => ({ value: o.id, label: o.name }))}
             />
           ) : (
-            <div className="rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/20 dark:bg-amber-955/10 p-4">
+            <div className="rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/20 dark:bg-amber-950/10 p-4">
               <p className="text-sm text-amber-800 dark:text-amber-300 font-bold">
                 Create an organization before configuring integrations.
               </p>
@@ -418,20 +418,20 @@ export default function Integrations() {
       </Card>
 
       {/* Wazuh Connector Card */}
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
+      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
         <CardHeader>
-          <CardTitle className="text-slate-900 dark:text-slate-150 font-extrabold text-lg flex items-center gap-2">
+          <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
             <PlugZap className="h-5 w-5 text-slate-500 dark:text-slate-400" />
             Wazuh Connector (Lab)
           </CardTitle>
-          <CardDescription className="text-slate-505 dark:text-slate-455 font-semibold">
+          <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">
             Connect a Wazuh manager to pull agent status and vulnerability telemetry.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-4 border border-slate-205 dark:border-slate-805 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
+          <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-150">Wazuh Manager</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Wazuh Manager</h3>
               <Badge variant={wazuhConnected ? 'default' : 'outline'} className="gap-1.5 rounded-xl px-3 py-1 font-bold">
                 <span
                   className={`inline-block h-2 w-2 rounded-full ${wazuhConnected ? 'bg-blue-500 animate-pulse' : 'bg-red-500 animate-pulse'}`}
@@ -480,36 +480,36 @@ export default function Integrations() {
       </Card>
 
       {error && (
-        <div className="p-3.5 bg-red-50/20 dark:bg-red-955/10 border border-red-200 dark:border-red-900/40 rounded-2xl text-sm text-red-700 dark:text-red-400 font-semibold shadow-sm">{error}</div>
+        <div className="p-3.5 bg-red-50/20 dark:bg-red-950/10 border border-red-200 dark:border-red-900/40 rounded-2xl text-sm text-red-700 dark:text-red-400 font-semibold shadow-sm">{error}</div>
       )}
       {notice && (
-        <div className="p-3.5 bg-green-50/20 dark:bg-green-955/10 border border-green-200 dark:border-green-900/40 rounded-2xl text-sm text-green-750 dark:text-green-400 font-semibold shadow-sm">
+        <div className="p-3.5 bg-green-50/20 dark:bg-green-950/10 border border-green-200 dark:border-green-900/40 rounded-2xl text-sm text-green-750 dark:text-green-400 font-semibold shadow-sm">
           {notice}
         </div>
       )}
 
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
+      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
         <CardHeader>
           <CardTitle className="text-slate-900 dark:text-slate-155 font-extrabold text-lg">Connected Integrations</CardTitle>
-          <CardDescription className="text-slate-505 dark:text-slate-455 font-semibold">Live status for enterprise integration capabilities.</CardDescription>
+          <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">Live status for enterprise integration capabilities.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border border-slate-205 dark:border-slate-805 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-              <div className="text-xs text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Splunk</div>
-              <div className="mt-1.5 font-extrabold text-slate-900 dark:text-slate-150">
+            <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Splunk</div>
+              <div className="mt-1.5 font-extrabold text-slate-900 dark:text-slate-100">
                 {splunkConnected ? 'Connected (Last sync: 5 min ago)' : 'Not Connected'}
               </div>
             </div>
-            <div className="p-4 border border-slate-205 dark:border-slate-805 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-              <div className="text-xs text-slate-500 dark:text-slate-455 font-bold uppercase tracking-wider">Webhook</div>
-              <div className="mt-1.5 font-extrabold text-slate-900 dark:text-slate-150">
+            <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Webhook</div>
+              <div className="mt-1.5 font-extrabold text-slate-900 dark:text-slate-100">
                 {webhooks.length > 0 ? 'Active (Last delivery check: 2 min ago)' : 'Inactive'}
               </div>
             </div>
-            <div className="p-4 border border-slate-205 dark:border-slate-805 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-              <div className="text-xs text-slate-500 dark:text-slate-455 font-bold uppercase tracking-wider">API Access</div>
-              <div className="mt-1.5 font-extrabold text-slate-900 dark:text-slate-150">
+            <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">API Access</div>
+              <div className="mt-1.5 font-extrabold text-slate-900 dark:text-slate-100">
                 {apiKeys.some((k) => k.is_active) ? 'Enabled (Key active)' : 'Not Enabled'}
               </div>
             </div>
@@ -518,7 +518,7 @@ export default function Integrations() {
       </Card>
 
       {newKey && (
-        <Card className="rounded-3xl border border-blue-200 dark:border-blue-800/40 bg-blue-50/10 dark:bg-blue-955/10 shadow-sm transition-all duration-300">
+        <Card className="rounded-3xl border border-blue-200 dark:border-blue-800/40 bg-blue-50/10 dark:bg-blue-950/10 shadow-sm transition-all duration-300">
           <CardHeader>
             <CardTitle className="text-blue-900 dark:text-blue-300 font-extrabold text-lg">New API Key (Copy Once)</CardTitle>
             <CardDescription className="text-blue-800/80 dark:text-blue-400 font-semibold">
@@ -526,7 +526,7 @@ export default function Integrations() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <code className="block text-xs bg-white dark:bg-slate-950 border border-blue-200/50 dark:border-blue-900/30 rounded-xl p-3.5 overflow-x-auto font-mono text-slate-900 dark:text-slate-150 font-bold shadow-inner">
+            <code className="block text-xs bg-white dark:bg-slate-950 border border-blue-200/50 dark:border-blue-900/30 rounded-xl p-3.5 overflow-x-auto font-mono text-slate-900 dark:text-slate-100 font-bold shadow-inner">
               {newKey.api_key}
             </code>
             <Button size="sm" onClick={handleCopy} className="gap-2 rounded-xl font-bold shadow-sm">
@@ -538,13 +538,13 @@ export default function Integrations() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
           <CardHeader>
-            <CardTitle className="text-slate-900 dark:text-slate-150 font-extrabold text-lg flex items-center gap-2">
+            <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-slate-500 dark:text-slate-400" />
               API Access
             </CardTitle>
-            <CardDescription className="text-slate-505 dark:text-slate-455 font-semibold">Use keys for pull-based integration (SIEM, dashboards).</CardDescription>
+            <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">Use keys for pull-based integration (SIEM, dashboards).</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
@@ -556,15 +556,15 @@ export default function Integrations() {
               )}
             </div>
             <div className="space-y-2">
-              {apiKeys.length === 0 && <p className="text-sm text-slate-505 dark:text-slate-455 italic font-semibold">No API keys yet.</p>}
+              {apiKeys.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-400 italic font-semibold">No API keys yet.</p>}
               {apiKeys.map((key) => (
                 <div
                   key={key.id}
-                  className="flex items-center justify-between p-3.5 border border-slate-205 dark:border-slate-805 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                  className="flex items-center justify-between p-3.5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                 >
                   <div>
-                    <div className="text-sm font-bold text-slate-900 dark:text-slate-150 font-mono text-xs">{key.prefix}...</div>
-                    <div className="text-xs text-slate-505 dark:text-slate-455 font-semibold mt-0.5">{new Date(key.created_at).toLocaleString()}</div>
+                    <div className="text-sm font-bold text-slate-900 dark:text-slate-100 font-mono text-xs">{key.prefix}...</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{new Date(key.created_at).toLocaleString()}</div>
                   </div>
                   <Button
                     size="sm"
@@ -581,13 +581,13 @@ export default function Integrations() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
           <CardHeader>
-            <CardTitle className="text-slate-900 dark:text-slate-150 font-extrabold text-lg flex items-center gap-2">
+            <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
               <WebhookIcon className="h-5 w-5 text-slate-500 dark:text-slate-400" />
               Webhooks
             </CardTitle>
-            <CardDescription className="text-slate-505 dark:text-slate-455 font-semibold">Push assessment-scored events to your tooling.</CardDescription>
+            <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">Push assessment-scored events to your tooling.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
@@ -614,16 +614,16 @@ export default function Integrations() {
             </div>
 
             <div className="space-y-2 pt-2">
-              {webhooks.length === 0 && <p className="text-sm text-slate-550 dark:text-slate-400 italic font-semibold">No webhooks configured.</p>}
+              {webhooks.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-400 italic font-semibold">No webhooks configured.</p>}
               {webhooks.map((hook) => (
-                <div key={hook.id} className="p-3.5 border border-slate-205 dark:border-slate-805 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-2">
-                  <div className="text-sm font-bold text-slate-900 dark:text-slate-150 break-all text-xs font-mono">{hook.url}</div>
+                <div key={hook.id} className="p-3.5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-2">
+                  <div className="text-sm font-bold text-slate-900 dark:text-slate-100 break-all text-xs font-mono">{hook.url}</div>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline" className="rounded-xl font-bold shadow-sm" onClick={() => handleTestWebhook(hook.id)} disabled={busy}>
                       Run Check
                     </Button>
                     {!isReadOnly && (
-                      <Button size="sm" variant="outline" className="rounded-xl font-bold text-red-500 hover:text-red-650 shadow-sm" onClick={() => handleDeleteWebhook(hook.id)} disabled={busy}>
+                      <Button size="sm" variant="outline" className="rounded-xl font-bold text-red-500 hover:text-red-600 shadow-sm" onClick={() => handleDeleteWebhook(hook.id)} disabled={busy}>
                         Disable
                       </Button>
                     )}
@@ -650,7 +650,7 @@ export default function Integrations() {
                   Send Check
                 </Button>
               </div>
-              {webhookTestResult && <p className="text-xs text-slate-900 dark:text-slate-150 font-bold">{webhookTestResult}</p>}
+              {webhookTestResult && <p className="text-xs text-slate-900 dark:text-slate-100 font-bold">{webhookTestResult}</p>}
               {webhookTestPayload && (
                 <pre className="text-xs bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl p-3 overflow-x-auto font-mono text-slate-800 dark:text-slate-200">
                   {webhookTestPayload}
@@ -661,21 +661,21 @@ export default function Integrations() {
         </Card>
       </div>
 
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-350 dark:hover:border-slate-750 bg-white/60 dark:bg-slate-955/20">
+      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
         <CardHeader>
-          <CardTitle className="text-slate-900 dark:text-slate-150 font-extrabold text-lg flex items-center gap-2">
+          <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
             <PlugZap className="h-5 w-5 text-slate-500 dark:text-slate-400" />
             Splunk Connector (Public Beta)
           </CardTitle>
-          <CardDescription className="text-slate-505 dark:text-slate-455 font-semibold">
+          <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">
             Connect your Splunk instance for evidence-based security verification, or seed synthetic findings for demos.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           {/* HEC Configuration */}
-          <div className="p-4 border border-slate-205 dark:border-slate-805 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
+          <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-150">Splunk HEC Configuration</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Splunk HEC Configuration</h3>
               {splunkConfigured && (
                 <Badge variant="default" className="gap-1.5 rounded-xl px-2.5 py-1 font-bold">
                   <CheckCircle2 className="w-3.5 h-3.5" />
@@ -693,7 +693,7 @@ export default function Integrations() {
                     {evidenceLoading ? 'Pulling Evidence...' : 'Pull Live Evidence'}
                   </Button>
                   {!isReadOnly && (
-                    <Button size="sm" variant="outline" className="rounded-xl font-bold text-red-500 hover:text-red-650 shadow-sm" onClick={handleRemoveSplunkConfig} disabled={busy}>
+                    <Button size="sm" variant="outline" className="rounded-xl font-bold text-red-500 hover:text-red-600 shadow-sm" onClick={handleRemoveSplunkConfig} disabled={busy}>
                       Disconnect
                     </Button>
                   )}
@@ -729,9 +729,9 @@ export default function Integrations() {
 
           {/* Evidence Verification Results */}
           {evidenceResults && (
-            <div className="p-4 border border-slate-205 dark:border-slate-805 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
+            <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-150">Evidence Verification</h3>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Evidence Verification</h3>
                 <Badge variant={
                   evidenceResults.overall_status === 'verified' ? 'default' : 'outline'
                 } className="rounded-xl px-2.5 py-1 font-bold">
@@ -744,14 +744,14 @@ export default function Integrations() {
                     key={idx}
                     className={`p-3.5 rounded-2xl border ${
                       result.status === 'verified'
-                        ? 'border-green-200 dark:border-green-900/40 bg-green-50/10 dark:bg-green-955/10'
+                        ? 'border-green-200 dark:border-green-900/40 bg-green-50/10 dark:bg-green-950/10'
                         : result.status === 'partial'
-                        ? 'border-amber-250 dark:border-amber-900/40 bg-amber-50/10 dark:bg-amber-955/10'
-                        : 'border-red-200 dark:border-red-900/40 bg-red-50/10 dark:bg-red-955/10'
+                        ? 'border-amber-250 dark:border-amber-900/40 bg-amber-50/10 dark:bg-amber-950/10'
+                        : 'border-red-200 dark:border-red-900/40 bg-red-50/10 dark:bg-red-950/10'
                     } transition-all`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-extrabold text-slate-900 dark:text-slate-150">{result.control}</span>
+                      <span className="text-sm font-extrabold text-slate-900 dark:text-slate-100">{result.control}</span>
                       <span className="inline-flex items-center gap-1 text-xs font-bold">
                         {result.status === 'verified' ? (
                           <span className="text-green-700 dark:text-green-400 flex items-center gap-1">
@@ -761,15 +761,15 @@ export default function Integrations() {
                         ) : result.status === 'partial' ? (
                           <span className="text-amber-700 dark:text-amber-400">Partial Evidence</span>
                         ) : result.status === 'not_configured' ? (
-                          <span className="text-slate-505 dark:text-slate-455">Not Configured</span>
+                          <span className="text-slate-500 dark:text-slate-400">Not Configured</span>
                         ) : (
                           <span className="text-red-700 dark:text-red-400 font-extrabold">Not Verified</span>
                         )}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-650 dark:text-slate-400 mt-1 font-semibold">{result.message}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-semibold">{result.message}</p>
                     {result.event_count > 0 && (
-                      <p className="text-xs text-slate-500 dark:text-slate-455 mt-1 font-bold">{result.event_count} events found</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold">{result.event_count} events found</p>
                     )}
                   </div>
                 ))}
@@ -805,31 +805,31 @@ export default function Integrations() {
 
           <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/60 rounded-2xl">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50/50 dark:bg-slate-900/30 border-b border-slate-205 dark:border-slate-805">
+              <thead className="bg-slate-50/50 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-450">Timestamp</th>
-                  <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-slate-505 dark:text-slate-455">Severity</th>
-                  <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-slate-505 dark:text-slate-455">Title</th>
-                  <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-slate-505 dark:text-slate-455">Source</th>
+                  <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Timestamp</th>
+                  <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Severity</th>
+                  <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Title</th>
+                  <th className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Source</th>
                 </tr>
               </thead>
               <tbody>
                 {externalFindings.length === 0 && (
                   <tr>
-                    <td className="px-4 py-6 text-slate-505 dark:text-slate-455 italic font-semibold text-center" colSpan={4}>
+                    <td className="px-4 py-6 text-slate-500 dark:text-slate-400 italic font-semibold text-center" colSpan={4}>
                       No ingested findings yet.
                     </td>
                   </tr>
                 )}
                 {externalFindings.map((finding) => (
-                  <tr key={finding.id} className="border-b border-slate-150 dark:border-slate-850/60 hover:bg-slate-50/60 dark:hover:bg-slate-900/20 transition-colors">
-                    <td className="px-4 py-3 text-slate-705 dark:text-slate-350 font-semibold">{new Date(finding.created_at).toLocaleString()}</td>
+                  <tr key={finding.id} className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/60 dark:hover:bg-slate-900/20 transition-colors">
+                    <td className="px-4 py-3 text-slate-705 dark:text-slate-300 font-semibold">{new Date(finding.created_at).toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <Badge variant="outline" className="rounded-xl px-2 py-0.5 font-bold border-slate-300 dark:border-slate-700">{finding.severity}</Badge>
                     </td>
-                    <td className="px-4 py-3 text-slate-900 dark:text-slate-150 font-extrabold">{finding.title}</td>
-                    <td className="px-4 py-3 text-slate-650 dark:text-slate-400">
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-xs text-slate-505 dark:text-slate-455">
+                    <td className="px-4 py-3 text-slate-900 dark:text-slate-100 font-extrabold">{finding.title}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-xs text-slate-500 dark:text-slate-400">
                         <Database className="w-3.5 h-3.5" />
                         {finding.source}
                       </span>

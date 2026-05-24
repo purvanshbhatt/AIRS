@@ -126,7 +126,7 @@ print(response.json())`;
           <button
             onClick={() => setLang('curl')}
             className={`text-xs px-2.5 py-1 rounded-md transition-colors ${
-              lang === 'curl' ? 'bg-slate-850 text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
+              lang === 'curl' ? 'bg-slate-800 text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             cURL
@@ -134,7 +134,7 @@ print(response.json())`;
           <button
             onClick={() => setLang('python')}
             className={`text-xs px-2.5 py-1 rounded-md transition-colors ${
-              lang === 'python' ? 'bg-slate-850 text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
+              lang === 'python' ? 'bg-slate-800 text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Python
@@ -142,7 +142,7 @@ print(response.json())`;
           <button
             onClick={() => setLang('js')}
             className={`text-xs px-2.5 py-1 rounded-md transition-colors ${
-              lang === 'js' ? 'bg-slate-850 text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
+              lang === 'js' ? 'bg-slate-800 text-blue-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             JS Fetch
@@ -156,7 +156,7 @@ print(response.json())`;
           {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
         </button>
       </div>
-      <div className="p-4 overflow-x-auto text-[11px] text-slate-350 max-h-72">
+      <div className="p-4 overflow-x-auto text-[11px] text-slate-300 max-h-72">
         <pre className="whitespace-pre">{getCode()}</pre>
       </div>
     </div>
@@ -257,16 +257,16 @@ export default function DocsApi() {
 
             <div className="space-y-4">
               <div>
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-350 mb-2">Base Endpoint (VITE_API_BASE_URL)</p>
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Base Endpoint (VITE_API_BASE_URL)</p>
                 <div className="relative">
-                  <pre className="p-4 bg-slate-950 border border-slate-850 rounded-2xl text-xs font-mono text-slate-200 overflow-x-auto">
+                  <pre className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-mono text-slate-200 overflow-x-auto">
                     <code>{apiBaseUrl}</code>
                   </pre>
                   <button
                     onClick={async () => {
                       await navigator.clipboard.writeText(apiBaseUrl);
                     }}
-                    className="absolute top-3 right-3 p-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-slate-250 transition-colors"
+                    className="absolute top-3 right-3 p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </button>
@@ -279,7 +279,7 @@ export default function DocsApi() {
                     <Key className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <span className="text-sm font-bold text-slate-900 dark:text-slate-50">Firebase ID Token</span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-450 leading-relaxed mb-4">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
                     Required for user-scoped dashboard routes. Exchanged from client login flow.
                   </p>
                   <pre className="p-3.5 bg-slate-950 rounded-xl text-[10px] font-mono text-slate-300 overflow-x-auto">
@@ -292,7 +292,7 @@ export default function DocsApi() {
                     <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <span className="text-sm font-bold text-slate-900 dark:text-slate-50">Headless API Key</span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-450 leading-relaxed mb-4">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
                     Generated under Settings &gt; Integrations. Used for outbound telemetry scripts.
                   </p>
                   <pre className="p-3.5 bg-slate-950 rounded-xl text-[10px] font-mono text-slate-300 overflow-x-auto">
@@ -347,7 +347,7 @@ export default function DocsApi() {
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-650 dark:text-slate-350">{endpoint.description}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">{endpoint.description}</p>
 
                 {/* Tabbed Interactive Code Widget */}
                 <div className="space-y-2">
