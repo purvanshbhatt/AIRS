@@ -58,16 +58,16 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-          <h2 className="text-title text-slate-900 dark:text-slate-100">Security Posture</h2>
+          <h2 className="text-title text-slate-900 dark:text-slate-100 font-extrabold tracking-tight">Security Posture</h2>
         </div>
-        {/* Pulsing AI indicator */}
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-pulse-ai absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-500" />
+        {/* Pulsing SIEM indicator */}
+        <div className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-900/40 px-2.5 py-1 rounded-full border border-slate-200/50 dark:border-slate-800/40">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-pulse-siem absolute inline-flex h-full w-full rounded-full bg-primary-500 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500" />
           </span>
-          <span className="text-caption text-slate-500 dark:text-slate-400 flex items-center gap-1">
-            <Sparkles className="w-3 h-3" /> AI-Verified
+          <span className="text-[10px] font-bold font-mono text-slate-500 dark:text-slate-400 tracking-wider">
+            VERIFIED_VIA_SIEM
           </span>
         </div>
       </div>
@@ -76,33 +76,56 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
         {/* Circular gauge */}
         <div className="relative flex-shrink-0">
           <svg width="140" height="140" viewBox="0 0 140 140" className="transform -rotate-90">
+            {/* Outer Tick Ring */}
+            <circle
+              cx="70" cy="70" r="64"
+              fill="none"
+              strokeWidth="1"
+              strokeDasharray="1, 4"
+              className="stroke-slate-400 dark:stroke-slate-600 opacity-60"
+            />
+            {/* Compass Ticks */}
+            <line x1="70" y1="2" x2="70" y2="7" stroke="currentColor" className="text-primary-500/60" strokeWidth="1.5" />
+            <line x1="70" y1="133" x2="70" y2="138" stroke="currentColor" className="text-primary-500/60" strokeWidth="1.5" />
+            <line x1="2" y1="70" x2="7" y2="70" stroke="currentColor" className="text-primary-500/60" strokeWidth="1.5" />
+            <line x1="133" y1="70" x2="138" y2="70" stroke="currentColor" className="text-primary-500/60" strokeWidth="1.5" />
+            
             {/* Background ring */}
             <circle
               cx="70" cy="70" r={radius}
               fill="none"
-              strokeWidth="10"
+              strokeWidth="8"
               className="stroke-slate-200 dark:stroke-slate-800"
             />
             {/* Progress ring */}
             <circle
               cx="70" cy="70" r={radius}
               fill="none"
-              strokeWidth="10"
+              strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={offset}
               className={`${meta.ring} transition-[stroke-dashoffset] duration-1000 ease-out`}
             />
+            {/* Inner grid ring */}
+            <circle
+              cx="70" cy="70" r="44"
+              fill="none"
+              strokeWidth="0.5"
+              strokeDasharray="2, 6"
+              className="stroke-slate-350 dark:stroke-slate-700 opacity-40"
+            />
           </svg>
           {/* Center text */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center mt-1">
             <Tooltip
               content="GHI = (Audit × 0.4) + (Lifecycle × 0.3) + (SLA × 0.2) + (Compliance × 0.1). Deterministic — no LLM."
               placement="bottom"
             >
-              <span className={`text-display ${meta.text} cursor-help`}>{data.grade}</span>
+              <span className={`text-3xl font-extrabold font-mono tracking-tighter ${meta.text} cursor-help`}>{data.grade}</span>
             </Tooltip>
-            <span className="text-caption text-slate-500 dark:text-slate-400">{data.ghi.toFixed(1)}%</span>
+            <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 mt-0.5">{data.ghi.toFixed(1)}%</span>
+            <span className="text-[8px] font-mono text-primary-600 dark:text-primary-400 mt-0.5 uppercase tracking-wider scale-90">SECURE_SYNC</span>
           </div>
         </div>
  
@@ -117,19 +140,25 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
               <div key={key} className="space-y-1">
                 <div className="flex items-center gap-1.5">
                   <Icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-                  <span className="text-caption text-slate-600 dark:text-slate-400">{label}</span>
+                  <span className="text-caption text-slate-500 dark:text-slate-400">{label}</span>
                   <Tooltip content={DIMENSION_TOOLTIPS[key] || ''} placement="top">
                     <Info className="w-3 h-3 text-slate-400 dark:text-slate-600 cursor-help" />
                   </Tooltip>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden relative flex items-center">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ease-out ${
                         score >= 80 ? 'bg-success-500' : score >= 60 ? 'bg-warning-500' : 'bg-danger-500'
                       }`}
                       style={{ width: `${barPct}%` }}
                     />
+                    {/* High-precision LED segments grid (10 blocks) */}
+                    <div className="absolute inset-0 flex justify-between pointer-events-none px-0.5">
+                      {Array.from({ length: 9 }).map((_, i) => (
+                        <div key={i} className="w-[1.5px] h-full bg-white dark:bg-slate-950/80 opacity-40" />
+                      ))}
+                    </div>
                   </div>
                   <span className="text-caption text-slate-700 dark:text-slate-300 w-10 text-right tabular-nums">
                     {score.toFixed(0)}%
@@ -145,13 +174,13 @@ export default function GHIGauge({ data }: GHIGaugeProps) {
       </div>
  
       {/* Footer status */}
-      <div className="mt-6 flex items-center justify-between">
-        <span className={`text-body font-semibold ${meta.text}`}>
+      <div className="mt-6 flex items-center justify-between border-t border-slate-200/50 dark:border-slate-800/40 pt-4">
+        <span className={`text-body font-bold ${meta.text}`}>
           {meta.label} — GHI {data.grade}
         </span>
         {data.issues.length > 0 && (
-          <span className="text-caption text-slate-500 dark:text-slate-400">
-            {data.issues.length} issue{data.issues.length !== 1 ? 's' : ''} detected
+          <span className="text-caption text-slate-500 dark:text-slate-400 font-mono">
+            {data.issues.length} ISSUE{data.issues.length !== 1 ? 'S' : ''}_DETECTED
           </span>
         )}
       </div>

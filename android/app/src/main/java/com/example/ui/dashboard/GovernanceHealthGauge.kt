@@ -3,6 +3,7 @@ package com.example.ui.dashboard
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -11,15 +12,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.Amber400
-import com.example.ui.theme.Emerald400
-import com.example.ui.theme.Rose500
-import com.example.ui.theme.Slate750 // high contrast accessibility fallback if needed
+import com.example.ui.theme.*
 
 @Composable
 fun GovernanceHealthGauge(
@@ -27,123 +29,103 @@ fun GovernanceHealthGauge(
     status: String,
     modifier: Modifier = Modifier
 ) {
-    // Animatable to animate progress on initial load
     val animatedScore = remember { Animatable(0f) }
     LaunchedEffect(score) {
         animatedScore.animateTo(
             targetValue = score.coerceIn(0f, 100f),
-            animationSpec = tween(durationMillis = 1000)
+            animationSpec = tween(durationMillis = 1500)
         )
     }
 
-    // Using FilledCard styling with tonal elevation (M3 Surface Tones)
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = Slate800.copy(alpha = 0.4f)
         ),
         shape = RoundedCornerShape(24.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
         modifier = modifier.fillMaxWidth()
     ) {
-        Column(
+        Row(
             modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = "Governance Health Index",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "TRUST_VISUALIZER",
+                    color = Cyan400,
+                    style = MaterialTheme.typography.labelSmall,
+                    letterSpacing = 1.5.sp
+                )
+                Text(
+                    text = "Governance Health Index",
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+
+                BackendStatus(status = status)
+            }
 
             Box(
-                modifier = Modifier.size(120.dp),
+                modifier = Modifier.size(140.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val circleTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                val circleTrackColor = Color.White.copy(alpha = 0.05f)
                 val progressColor = when {
                     score >= 80f -> Emerald400
                     score >= 50f -> Amber400
                     else -> Rose500
                 }
 
+                // Glow Effect
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .blur(30.dp)
+                        .background(progressColor.copy(alpha = 0.15f), RoundedCornerShape(50))
+                )
+
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    // Full track arc for high accessibility contrast
                     drawArc(
                         color = circleTrackColor,
                         startAngle = 135f,
                         sweepAngle = 270f,
                         useCenter = false,
-                        style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)
                     )
-                    // Animated score progress arc
                     drawArc(
-                        color = progressColor,
+                        brush = Brush.sweepGradient(
+                            0f to progressColor.copy(alpha = 0.5f),
+                            0.5f to progressColor,
+                            1f to progressColor
+                        ),
                         startAngle = 135f,
                         sweepAngle = (animatedScore.value / 100f * 270f),
                         useCenter = false,
-                        style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)
                     )
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = animatedScore.value.toInt().toString(),
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        fontSize = 42.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White
                     )
                     Text(
                         text = "GHI",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Cyan400,
+                        letterSpacing = 1.sp
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            VerificationBadge(status = status)
         }
     }
 }
 
-@Composable
-fun VerificationBadge(status: String) {
-    val (backgroundColor, textColor, textLabel) = when (status) {
-        "SOC_VERIFIED" -> Triple(
-            Emerald400.copy(alpha = 0.15f),
-            Emerald400,
-            "SOC VERIFIED"
-        )
-        "PROVISIONAL" -> Triple(
-            Amber400.copy(alpha = 0.15f),
-            Amber400,
-            "PROVISIONAL"
-        )
-        else -> Triple(
-            MaterialTheme.colorScheme.errorContainer,
-            MaterialTheme.colorScheme.onErrorContainer,
-            status.uppercase()
-        )
-    }
-
-    Surface(
-        color = backgroundColor,
-        contentColor = textColor,
-        shape = RoundedCornerShape(8.dp),
-        border = CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(textColor.copy(alpha = 0.3f))
-        )
-    ) {
-        Text(
-            text = textLabel,
-            modifier = Modifier.padding(horizontal = 12.dp, py = 6.dp),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.2.sp
-        )
-    }
-}

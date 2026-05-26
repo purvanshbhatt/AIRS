@@ -1,5 +1,5 @@
 [versions]
-agp = "8.7.3"
+agp = "9.2.1"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -8,13 +8,13 @@ lifecycleRuntimeKtx = "2.8.7"
 lifecycleViewmodelCompose = "2.8.7"
 lifecycleRuntimeCompose = "2.8.7"
 activityCompose = "1.9.3"
-kotlin = "2.1.0"
+kotlin = "2.2.10"
 composeBom = "2024.12.01"
-googleDevtoolsKsp = "2.1.0-1.0.29"
+googleDevtoolsKsp = "2.3.2"
 navigationCompose = "2.8.5"
-roomRuntime = "2.6.1"
-roomKtx = "2.6.1"
-roomCompiler = "2.6.1"
+roomRuntime = "2.7.0-alpha11"
+roomKtx = "2.7.0-alpha11"
+roomCompiler = "2.7.0-alpha11"
 kotlinxCoroutinesTest = "1.9.0"
 core = "1.6.1"
 runner = "1.6.2"
@@ -37,9 +37,11 @@ datastorePreferences = "1.1.1"
 robolectric = "4.14.1"
 roborazzi = "1.30.1"
 firebaseBom = "33.7.0"
+googleServices = "4.4.2"
 secretsGradlePlugin = "2.0.1"
 kotlinxSerializationJson = "1.7.3"
 retrofitKotlinxSerializationConverter = "1.0.0"
+googleFonts = "1.7.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -61,6 +63,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomRuntime" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomCompiler" }
+androidx-compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "googleFonts" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
@@ -101,4 +104,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "googleDevtoolsKsp" }
 roborazzi-plugin = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
+googleServicesPlugin = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

@@ -29,6 +29,7 @@ from app.models.finding_provenance import (
     ProvenanceStatus,
 )
 from app.models.framework_mapping import FrameworkMappingRegistry
+from app.models.control_rule_registry import ControlRuleRegistry
 
 logger = logging.getLogger("airs.telemetry")
 
@@ -123,6 +124,215 @@ class TelemetryVerificationService:
 
     def __init__(self, db: Session):
         self._db = db
+
+    # ---------------------------------------------------------------------------
+    # New canonical webhook ingestion method (Module 2 blueprint spec)
+    # ---------------------------------------------------------------------------
+
+    def ingest_siem_telemetry(
+        self,
+        alert_id: str,
+        rule_id: str,
+        source_integration: str,
+        organization_id: str,
+        raw_telemetry_dump: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Ingest a SIEM webhook event with org-scoped idempotency.
+
+        Steps:
+          1. Idempotency guard on (siem_alert_id, organization_id) composite.
+          2. Compute SHA-256 evidence hash from sorted raw_telemetry_dump keys.
+          3. Resolve finding via ControlRuleRegistry by finding_rule_id.
+          4. Create/update FindingProvenance to SOC_VERIFIED.
+          5. Trigger GHI recomputation.
+          6. Emit structlog-style audit record.
+
+        Returns:
+            Dict with status, finding_id, evidence_hash, and message.
+        """
+        from datetime import datetime, timezone
+
+        # ── Step 1: Org-scoped idempotency ─────────────────────────────────
+        existing = (
+            self._db.query(FindingProvenance)
+            .join(Finding, Finding.id == FindingProvenance.finding_id)
+            .filter(
+                FindingProvenance.siem_alert_id == alert_id,
+                Finding.assessment_id.in_(
+                    self._db.query(Finding.assessment_id)
+                    .join(
+                        __import__('app.models.assessment', fromlist=['Assessment']).Assessment,
+                        __import__('app.models.assessment', fromlist=['Assessment']).Assessment.id == Finding.assessment_id,
+                    )
+                    .filter(
+                        __import__('app.models.assessment', fromlist=['Assessment']).Assessment.organization_id == organization_id
+                    )
+                    .scalar_subquery()
+                ),
+            )
+            .first()
+        )
+        if existing:
+            logger.info(
+                json.dumps({
+                    "event": "telemetry.idempotent_skip",
+                    "alert_id": alert_id,
+                    "organization_id": organization_id,
+                    "finding_id": existing.finding_id,
+                    "existing_status": existing.verification_status.value,
+                })
+            )
+            return {
+                "status": "already_exists",
+                "finding_id": existing.finding_id,
+                "verification_status": existing.verification_status.value,
+                "evidence_hash": existing.evidence_hash,
+                "siem_alert_id": alert_id,
+                "organization_id": organization_id,
+                "message": "Alert already processed for this organization. Idempotent no-op.",
+                "processed_at": existing.verified_at.isoformat() if existing.verified_at else None,
+            }
+
+        # ── Step 2: Compute evidence hash from sorted raw_telemetry_dump ───
+        evidence_hash = hashlib.sha256(
+            json.dumps(
+                dict(sorted(raw_telemetry_dump.items())),
+                sort_keys=True,
+                separators=(",", ":"),
+                default=str,
+            ).encode("utf-8")
+        ).hexdigest()
+
+        # ── Step 3: Resolve finding via ControlRuleRegistry ────────────────
+        rule_entry = (
+            self._db.query(ControlRuleRegistry)
+            .filter(
+                ControlRuleRegistry.finding_rule_id == rule_id,
+                ControlRuleRegistry.is_active.is_(True),
+            )
+            .first()
+        )
+
+        # Attempt to find a matching open Finding in this org via rule_id
+        from app.models.assessment import Assessment
+        finding = (
+            self._db.query(Finding)
+            .join(Assessment, Assessment.id == Finding.assessment_id)
+            .filter(
+                Assessment.organization_id == organization_id,
+                Finding.nist_category == rule_id,
+                Finding.status.notin_(["resolved", "accepted"]),
+            )
+            .first()
+        )
+
+        if not finding:
+            logger.warning(
+                json.dumps({
+                    "event": "telemetry.no_match",
+                    "alert_id": alert_id,
+                    "rule_id": rule_id,
+                    "organization_id": organization_id,
+                    "has_registry_entry": rule_entry is not None,
+                })
+            )
+            return {
+                "status": "no_match",
+                "evidence_hash": evidence_hash,
+                "siem_alert_id": alert_id,
+                "organization_id": organization_id,
+                "message": (
+                    f"No open finding matched rule_id='{rule_id}' for org '{organization_id}'. "
+                    f"ControlRuleRegistry entry {'found' if rule_entry else 'not found'}."
+                ),
+                "processed_at": datetime.now(timezone.utc).isoformat(),
+            }
+
+        # ── Step 4: Create/update FindingProvenance ─────────────────────────
+        source_map = {
+            "wazuh": VerificationSource.SIEM_WAZUH,
+            "splunk": VerificationSource.SIEM_SPLUNK,
+        }
+        verification_source = source_map.get(
+            source_integration.lower(), VerificationSource.MANUAL_AUDIT
+        )
+
+        provenance = (
+            self._db.query(FindingProvenance)
+            .filter(FindingProvenance.finding_id == finding.id)
+            .first()
+        )
+        now = datetime.now(timezone.utc)
+        old_status = None
+
+        if provenance:
+            old_status = provenance.verification_status.value
+            provenance.siem_alert_id = alert_id
+            provenance.evidence_hash = evidence_hash
+            provenance.verification_source = verification_source
+            provenance.verification_status = ProvenanceStatus.SOC_VERIFIED
+            provenance.rule_id_matched = rule_id
+            provenance.verified_at = now
+            provenance.verified_by = f"webhook:{source_integration}"
+        else:
+            provenance = FindingProvenance(
+                finding_id=finding.id,
+                siem_alert_id=alert_id,
+                evidence_hash=evidence_hash,
+                evidence_payload_ref=json.dumps(raw_telemetry_dump, default=str)[:4000],
+                verification_source=verification_source,
+                verification_status=ProvenanceStatus.SOC_VERIFIED,
+                rule_id_matched=rule_id,
+                verified_at=now,
+                verified_by=f"webhook:{source_integration}",
+            )
+            self._db.add(provenance)
+
+        self._db.commit()
+        self._db.refresh(provenance)
+
+        # ── Step 5: GHI recomputation ───────────────────────────────────────
+        score_delta = 0.0
+        score_update = self.recompute_ghi_for_assessment(
+            assessment_id=finding.assessment_id,
+            trigger_evidence_hash=evidence_hash,
+        )
+        if score_update:
+            score_delta = score_update.get("delta", 0.0)
+
+        # ── Step 6: structlog-style audit record ───────────────────────────
+        logger.info(
+            json.dumps({
+                "event": "telemetry.verified",
+                "finding_id": finding.id,
+                "finding_title": finding.title,
+                "hash": evidence_hash,
+                "score_delta": score_delta,
+                "old_status": old_status,
+                "new_status": ProvenanceStatus.SOC_VERIFIED.value,
+                "siem_alert_id": alert_id,
+                "source_integration": source_integration,
+                "organization_id": organization_id,
+                "nist_ai_rmf_control": rule_entry.nist_ai_rmf_control_id if rule_entry else None,
+                "mitre_atlas_tactic": rule_entry.mitre_atlas_tactic_id if rule_entry else None,
+                "verified_at": now.isoformat(),
+            })
+        )
+
+        return {
+            "status": "verified",
+            "finding_id": finding.id,
+            "finding_title": finding.title,
+            "verification_status": ProvenanceStatus.SOC_VERIFIED.value,
+            "evidence_hash": evidence_hash,
+            "siem_alert_id": alert_id,
+            "organization_id": organization_id,
+            "score_delta": score_delta,
+            "nist_ai_rmf_control": rule_entry.nist_ai_rmf_control_id if rule_entry else None,
+            "mitre_atlas_tactic": rule_entry.mitre_atlas_tactic_id if rule_entry else None,
+            "message": f"Finding '{finding.title}' promoted to SOC_VERIFIED via {source_integration}.",
+            "processed_at": now.isoformat(),
+        }
 
     def process_siem_event(self, payload: SIEMEventPayload) -> VerificationResponse:
         """Process a single SIEM event and update finding provenance.

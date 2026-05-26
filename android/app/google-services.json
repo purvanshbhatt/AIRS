@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "227825933697",
+    "project_id": "gen-lang-client-0384513977",
+    "storage_bucket": "gen-lang-client-0384513977.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227825933697:android:49bb79618569dfb38edc80",
+        "android_client_info": {
+          "package_name": "com.aistudio.resilai.abxqr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "227825933697-08754qlasb94pgb96oulcv6gs7f32og6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3xXoH0DCev848o6aQ8aLe8K3YmXN-L5U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "227825933697-08754qlasb94pgb96oulcv6gs7f32og6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

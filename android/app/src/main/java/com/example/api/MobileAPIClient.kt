@@ -14,6 +14,9 @@ import retrofit2.http.Path
 import retrofit2.http.Body
 
 import com.resilai.app.data.models.*
+import com.resilai.app.data.models.AssessmentSummary
+import com.resilai.app.data.models.Finding
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.android.gms.tasks.Tasks
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -58,7 +61,17 @@ interface MobileAPIClient {
     // 3. Report Contracts
     @GET("/api/reports")
     suspend fun getReports(): Map<String, Any> // Typically returns { reports: Report[], total: Int }
+
+    // 4. Health Check
+    @GET("/health")
+    suspend fun checkHealth(): HealthStatus
 }
+
+@JsonClass(generateAdapter = true)
+data class HealthStatus(
+    @Json(name = "status") val status: String,
+    @Json(name = "version") val version: String? = null
+)
 
 /**
  * Authentication Interceptor
@@ -67,19 +80,30 @@ interface MobileAPIClient {
  */
 class FirebaseAuthInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val user = FirebaseAuth.getInstance().currentUser
         val requestBuilder = chain.request().newBuilder()
 
-        if (user != null) {
-            try {
-                val tokenResult = Tasks.await(user.getIdToken(false))
-                val token = tokenResult.token
-                if (!token.isNullOrEmpty()) {
-                    requestBuilder.addHeader("Authorization", "Bearer $token")
-                }
+        try {
+            // Check if Firebase is initialized before calling getInstance
+            val isInitialized = try {
+                FirebaseApp.getInstance()
+                true
             } catch (e: Exception) {
-                // Token fetch failed
+                false
             }
+
+            if (isInitialized) {
+                val user = FirebaseAuth.getInstance().currentUser
+                if (user != null) {
+                    val tokenResult = Tasks.await(user.getIdToken(false))
+                    val token = tokenResult.token
+                    if (!token.isNullOrEmpty()) {
+                        requestBuilder.addHeader("Authorization", "Bearer $token")
+                    }
+                }
+            }
+        } catch (e: Throwable) {
+            // Firebase not initialized or other failure
+            android.util.Log.e("FirebaseAuthInterceptor", "Error getting auth token", e)
         }
 
         val response = chain.proceed(requestBuilder.build())

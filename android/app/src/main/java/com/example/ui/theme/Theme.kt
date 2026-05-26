@@ -13,13 +13,13 @@ import androidx.compose.ui.platform.LocalContext
 
 private val ModernDarkColorScheme =
   darkColorScheme(
-    primary = Cyan400,
-    secondary = Amber400,
+    primary = BrandPrimary,
+    secondary = BrandSecondary,
     tertiary = Emerald400,
     background = Slate900,
     surface = Slate800,
-    onPrimary = Slate900,
-    onSecondary = Slate900,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
     onBackground = TextPrimary,
     onSurface = TextPrimary,
     surfaceVariant = Slate700,
@@ -29,16 +29,16 @@ private val ModernDarkColorScheme =
 
 private val ModernLightColorScheme =
   lightColorScheme(
-    primary = Cyan500,
-    secondary = Amber400,
+    primary = BrandPrimary,
+    secondary = BrandSecondary,
     tertiary = Emerald400,
     background = Color.White,
-    surface = Slate700.copy(alpha = 0.05f),
+    surface = Color(0xFFF8FAFC),
     onPrimary = Color.White,
-    onSecondary = Slate900,
+    onSecondary = Color.White,
     onBackground = Slate900,
     onSurface = Slate900,
-    surfaceVariant = Slate700.copy(alpha = 0.1f),
+    surfaceVariant = Color(0xFFF1F5F9),
     onSurfaceVariant = Slate700,
     error = Rose500
   )

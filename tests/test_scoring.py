@@ -52,7 +52,7 @@ class TestScoring:
             "rs_04": True, "rs_05": 0, "rs_06": True,  # RTO: 0 = immediate, best
         }
         
-        result = calculate_scores(answers)
+        result = calculate_scores(answers, verification_statuses={qid: "SOC_VERIFIED" for qid in answers})
         
         assert result["overall_score"] == 100
         assert result["maturity_level"] == 5
@@ -87,7 +87,7 @@ class TestScoring:
             "tl_04": False, "tl_05": 0, "tl_06": False,
         }
         
-        result = calculate_domain_score("telemetry_logging", answers)
+        result = calculate_domain_score("telemetry_logging", answers, verification_statuses={qid: "SOC_VERIFIED" for qid in answers})
         
         assert result["score"] == 2.5  # 3/6 * 5 = 2.5
     
@@ -95,16 +95,14 @@ class TestScoring:
         """Test log retention thresholds."""
         # 90 days should give 0.75 points
         answers = {"tl_05": 90}
-        result = calculate_domain_score("telemetry_logging", answers)
-        
+        result = calculate_domain_score("telemetry_logging", answers, verification_statuses={"tl_05": "SOC_VERIFIED"})
         q_score = next(q for q in result["questions"] if q["question_id"] == "tl_05")
         assert q_score["points_earned"] == 0.75
     
     def test_percentage_thresholds_edr(self):
         """Test EDR coverage percentage thresholds."""
         answers = {"dc_01": 85}  # 85% should give 0.75 points
-        result = calculate_domain_score("detection_coverage", answers)
-        
+        result = calculate_domain_score("detection_coverage", answers, verification_statuses={"dc_01": "SOC_VERIFIED"})
         q_score = next(q for q in result["questions"] if q["question_id"] == "dc_01")
         assert q_score["points_earned"] == 0.75
     
@@ -112,14 +110,14 @@ class TestScoring:
         """Test RTO scoring where lower values are better."""
         # 4 hours RTO should give full points
         answers = {"rs_05": 4}
-        result = calculate_domain_score("resilience", answers)
+        result = calculate_domain_score("resilience", answers, verification_statuses={"rs_05": "SOC_VERIFIED"})
         
         q_score = next(q for q in result["questions"] if q["question_id"] == "rs_05")
         assert q_score["points_earned"] == 1.0
         
         # 72 hours RTO should give 0.5 points
         answers = {"rs_05": 72}
-        result = calculate_domain_score("resilience", answers)
+        result = calculate_domain_score("resilience", answers, verification_statuses={"rs_05": "SOC_VERIFIED"})
         
         q_score = next(q for q in result["questions"] if q["question_id"] == "rs_05")
         assert q_score["points_earned"] == 0.5

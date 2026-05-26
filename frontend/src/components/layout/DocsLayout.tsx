@@ -58,13 +58,10 @@ export default function DocsLayout() {
                             className="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl lg:hidden"
                         >
                             {/* Logo */}
-                            <div className="flex items-center justify-between h-16 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
-                                <Link to="/" className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-md">
-                                        <Shield className="w-4 h-4 text-white" />
-                                    </div>
-                                    <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">ResilAI</span>
-                                </Link>
+                             <div className="flex items-center justify-between h-16 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                                 <Link to="/" className="flex items-center">
+                                     <img src="/logo_header.svg" alt="ResilAI Logo" className="h-10 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
+                                 </Link>
                                 <button
                                     onClick={() => setSidebarOpen(false)}
                                     className="p-1.5 rounded-full text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -137,14 +134,11 @@ export default function DocsLayout() {
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex-col shadow-sm">
                 {/* Logo */}
-                <div className="flex items-center h-16 px-6 border-b border-slate-200 dark:border-slate-800 shrink-0">
-                    <Link to="/" className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20">
-                            <Shield className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">ResilAI</span>
-                    </Link>
-                </div>
+                 <div className="flex items-center h-16 px-6 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                     <Link to="/" className="flex items-center">
+                         <img src="/logo_header.svg" alt="ResilAI Logo" className="h-10 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
+                     </Link>
+                 </div>
 
                 {/* Navigation */}
                 <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">

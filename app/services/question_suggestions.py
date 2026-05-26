@@ -105,13 +105,14 @@ def _compute_function_scores_from_db(
 
 
 def _compute_function_scores_from_answers(
-    answers: Dict[str, Any]
+    answers: Dict[str, Any],
+    verification_statuses: Optional[Dict[str, str]] = None,
 ) -> Dict[str, float]:
     """
     Compute per-function scores from raw answers dict (no DB needed).
     Useful for in-memory / test scenarios.
     """
-    result = calculate_scores(answers)
+    result = calculate_scores(answers, verification_statuses)
     function_totals: Dict[str, List[float]] = {fn: [] for fn in CONTROL_FUNCTIONS}
 
     for domain in result["domains"]:
@@ -162,11 +163,12 @@ def get_suggestions_from_answers(
     *,
     max_results: int = 10,
     industry: Optional[str] = None,
+    verification_statuses: Optional[Dict[str, str]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Stateless variant: compute suggestions from raw answers without DB.
     """
-    function_scores = _compute_function_scores_from_answers(answers)
+    function_scores = _compute_function_scores_from_answers(answers, verification_statuses)
     return _build_suggestions(function_scores, max_results=max_results, industry=industry)
 
 

@@ -37,6 +37,7 @@ from app.services.integrations import (
 )
 from app.services.wazuh_client import WazuhClient
 from app.services.audit import record_audit_event
+from app.models.wazuh_config import WazuhConfig
 
 router = APIRouter()
 
@@ -268,6 +269,12 @@ async def configure_wazuh(
     _: None = Depends(require_writable),
 ):
     """Save Wazuh manager credentials for the current user/org context."""
+    from app.services.organization import OrganizationService
+    svc = OrganizationService(db, owner_uid=user.uid)
+    org = svc.get(data.org_id)
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
     client = WazuhClient(
         host=data.wazuh_host,
         api_key=data.wazuh_api_key,
@@ -281,11 +288,23 @@ async def configure_wazuh(
         # Keep the config even if the lab is temporarily unreachable.
         pass
 
-    _wazuh_configs[user.uid] = {
-        "wazuh_host": data.wazuh_host,
-        "wazuh_port": data.wazuh_port,
-        "verify_ssl": data.verify_ssl,
-    }
+    config = db.query(WazuhConfig).filter(WazuhConfig.org_id == data.org_id).first()
+    if config:
+        config.wazuh_host = data.wazuh_host
+        config.wazuh_port = data.wazuh_port
+        config.wazuh_api_key = data.wazuh_api_key
+        config.verify_ssl = data.verify_ssl
+    else:
+        config = WazuhConfig(
+            org_id=data.org_id,
+            wazuh_host=data.wazuh_host,
+            wazuh_port=data.wazuh_port,
+            wazuh_api_key=data.wazuh_api_key,
+            verify_ssl=data.verify_ssl
+        )
+        db.add(config)
+    db.commit()
+
     return {
         "status": "configured",
         "host": data.wazuh_host,
@@ -296,11 +315,21 @@ async def configure_wazuh(
 
 @router.get("/integrations/status")
 async def get_integration_status(
+    org_id: str | None = Query(default=None),
+    db: Session = Depends(get_db),
     user: User = Depends(require_auth),
 ):
     """Return a unified integration health snapshot for the dashboard."""
-    wazuh_status = "configured" if user.uid in _wazuh_configs else "not_configured"
-    splunk_status = "configured" if bool(_splunk_configs) else "not_configured"
+    wazuh_status = "not_configured"
+    splunk_status = "not_configured"
+    
+    if org_id:
+        cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
+        if cfg:
+            wazuh_status = "configured"
+        if _splunk_configs.get(org_id):
+            splunk_status = "configured"
+            
     return {
         "wazuh_status": wazuh_status,
         "wazuh_message": "Wazuh manager connected" if wazuh_status == "configured" else "Not configured",
@@ -313,18 +342,26 @@ async def get_integration_status(
 
 @router.get("/integrations/wazuh/agent-status")
 async def get_wazuh_agent_status(
+    org_id: str = Query(...),
+    db: Session = Depends(get_db),
     user: User = Depends(require_auth),
 ):
     """Fetch live Wazuh agent status for the signed-in user."""
-    cfg = _wazuh_configs.get(user.uid)
+    cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if not cfg:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wazuh not configured. Call /api/integrations/wazuh/configure first.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Wazuh not configured",
+                "action_required": "/api/integrations/wazuh/configure"
+            }
+        )
 
     client = WazuhClient(
-        host=str(cfg["wazuh_host"]),
-        api_key="",
-        port=int(cfg["wazuh_port"]),
-        verify_ssl=bool(cfg["verify_ssl"]),
+        host=str(cfg.wazuh_host),
+        api_key=str(cfg.wazuh_api_key),
+        port=int(cfg.wazuh_port),
+        verify_ssl=bool(cfg.verify_ssl),
     )
 
     # Reuse the saved host/port to pull live status. If authentication fails,
@@ -335,20 +372,28 @@ async def get_wazuh_agent_status(
 
 @router.get("/integrations/wazuh/vulnerabilities")
 async def get_wazuh_vulnerabilities(
+    org_id: str = Query(...),
     severity: str | None = Query(default=None),
     limit: int = Query(default=100, ge=1, le=500),
+    db: Session = Depends(get_db),
     user: User = Depends(require_auth),
 ):
     """Fetch live Wazuh vulnerabilities for the signed-in user."""
-    cfg = _wazuh_configs.get(user.uid)
+    cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if not cfg:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wazuh not configured. Call /api/integrations/wazuh/configure first.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Wazuh not configured",
+                "action_required": "/api/integrations/wazuh/configure"
+            }
+        )
 
     client = WazuhClient(
-        host=str(cfg["wazuh_host"]),
-        api_key="",
-        port=int(cfg["wazuh_port"]),
-        verify_ssl=bool(cfg["verify_ssl"]),
+        host=str(cfg.wazuh_host),
+        api_key=str(cfg.wazuh_api_key),
+        port=int(cfg.wazuh_port),
+        verify_ssl=bool(cfg.verify_ssl),
     )
     result = await client.get_vulnerabilities(severity=severity, limit=limit)
     return result.to_dict()

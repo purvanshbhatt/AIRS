@@ -3,9 +3,9 @@
 Estimated Review Time: 2 minutes
 
 ## What this project solves
-Security teams monitor threats but struggle to measure actual incident readiness.
+Security teams monitor threats but struggle to measure and verify actual compliance posture.
 
-ResilAI measures incident readiness using deterministic governance scoring and translates technical findings into executive risk narratives using Gemini.
+ResilAI serves as a Deterministic Governance Factory, measuring compliance posture using deterministic governance scoring and translating technical findings into executive risk narratives using Gemini.
 
 ---
 

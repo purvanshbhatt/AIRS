@@ -61,10 +61,9 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4">
-            <Shield className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center mb-2">
+            <img src="/logo_footer_and github.svg" alt="ResilAI Logo" className="h-32 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">ResilAI</h1>
           <p className="text-gray-500 dark:text-slate-300 text-sm mt-1">AI Incident Readiness Score</p>
         </div>
 

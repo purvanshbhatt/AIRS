@@ -43,8 +43,14 @@ def _terminate(proc: subprocess.Popen[bytes]) -> None:
 
 
 def main() -> int:
-    _require_binary("npm")
-    _require_binary("firebase")
+    npm_path = shutil.which("npm")
+    firebase_path = shutil.which("firebase")
+    if not npm_path:
+        print("ERROR: 'npm' was not found in PATH.", file=sys.stderr)
+        raise SystemExit(1)
+    if not firebase_path:
+        print("ERROR: 'firebase' was not found in PATH.", file=sys.stderr)
+        raise SystemExit(1)
 
     processes = [
         _spawn(
@@ -54,12 +60,12 @@ def main() -> int:
         ),
         _spawn(
             "frontend",
-            ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"],
+            [npm_path, "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"],
             FRONTEND_DIR,
         ),
         _spawn(
             "auth-emulator",
-            ["firebase", "emulators:start", "--only", "auth", "--project", "demo-airs"],
+            [firebase_path, "emulators:start", "--only", "auth", "--project", "demo-airs"],
             ROOT,
         ),
     ]

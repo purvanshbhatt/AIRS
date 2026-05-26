@@ -21,9 +21,10 @@ sealed class DashboardState {
         val score: AssessmentScore,
         val findings: List<Finding>,
         val apiKeys: List<ApiKeyMetadata>,
-        val webhooks: List<Webhook>
+        val webhooks: List<Webhook>,
+        val health: String = "OK"
     ) : DashboardState()
-    data class Error(val message: String) : DashboardState()
+    data class Error(val message: String, val isBackendDown: Boolean = false) : DashboardState()
 }
 
 class DashboardViewModel(
@@ -48,6 +49,14 @@ class DashboardViewModel(
         viewModelScope.launch {
             _state.value = DashboardState.Loading
             try {
+                // Check Backend Health first as per new contract verification requirements
+                val health = try {
+                    apiClient.checkHealth()
+                } catch (e: Exception) {
+                    _state.value = DashboardState.Error("Backend Service Unreachable", isBackendDown = true)
+                    return@launch
+                }
+
                 // In a real app we fetch this id from navigation arguments or a user session
                 val assessmentId = "assessment_demo_1" // Demo ID for staging
                 val orgId = "org_demo"
@@ -67,7 +76,8 @@ class DashboardViewModel(
                     score = score,
                     findings = findings,
                     apiKeys = apiKeys,
-                    webhooks = webhooks
+                    webhooks = webhooks,
+                    health = health.status
                 )
             } catch (e: Exception) {
                 _state.value = DashboardState.Error(e.message ?: "Unknown error occurred")

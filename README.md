@@ -1,6 +1,10 @@
 # ResilAI
 
-**ResilAI** is an **AI Incident Readiness Platform** that helps organizations measure, improve, and report their preparedness for AI-era security incidents.
+<p align="center">
+  <img src="docs/assets/resilai_logo.svg" alt="ResilAI emblem" width="120" />
+</p>
+
+**ResilAI** is a **Deterministic Governance Factory** that helps organizations measure, verify, and report their preparedness for AI-era security incidents.
 
 [Live Demo](https://demo.resilai.org) | [API Docs](https://api.resilai.org/docs) | [Documentation](https://purvanshbhatt.github.io/AIRS/)
 

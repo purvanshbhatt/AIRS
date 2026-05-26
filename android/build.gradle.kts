@@ -6,4 +6,5 @@ plugins {
   alias(libs.plugins.google.devtools.ksp) apply false
   alias(libs.plugins.roborazzi.plugin) apply false
   alias(libs.plugins.secrets) apply false
+  id("com.google.gms.google-services") version libs.versions.googleServices.get() apply false
 }

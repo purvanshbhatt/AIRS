@@ -4,7 +4,7 @@ Concise handoff for advisors, design partners, and pilot conversations.
 
 ## Positioning
 
-ResilAI is an AI Incident Readiness Platform that helps organizations measure readiness, prioritize remediation, and integrate findings into security operations.
+ResilAI is a Deterministic Governance Factory that helps organizations measure compliance posture, enforce environment-locked governance policies, and programmatically verify their overall security compliance posture.
 
 ## Public Beta Links
 

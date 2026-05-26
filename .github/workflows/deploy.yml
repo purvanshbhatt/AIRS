@@ -11,7 +11,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ─── Job 1: Full Backend Test Suite ─────────────────────────────────────────
+  # 659+ assertions — hard block for all downstream jobs.
   test:
+    name: "Backend Tests (659+ assertions)"
     runs-on: ubuntu-latest
     env:
       ENV: local
@@ -26,13 +29,20 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
       - name: Install backend deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run backend tests
-        run: pytest -q
+      - name: Run full backend test suite
+        run: pytest -q --tb=short
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -49,8 +59,15 @@ jobs:
             npm run build:production
           fi
 
-  governance-validation:
-    name: Governance Validation
+  # ─── Job 2: Governance Regression Gate ───────────────────────────────────────
+  # 🔐 HARD BLOCK — staging deploy cannot proceed if ANY of these fail.
+  # Verifies the Trust Anchor invariants:
+  #   ① Deterministic SHA-256 evidence hash computation
+  #   ② SOC_VERIFIED state transition integrity
+  #   ③ Idempotency barrier (no duplicate provenance rows)
+  #   ④ Cross-tenant alert_id namespace isolation
+  governance-regression-gate:
+    name: "🔐 Governance Regression Gate (staging block)"
     runs-on: ubuntu-latest
     needs: test
     env:
@@ -66,21 +83,59 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run IGVF tests
+      - name: "① Trust Anchor ingestion tests (tests/governance/)"
+        run: pytest tests/governance/ -v --tb=short
+
+      - name: "② Telemetry verification tests"
+        run: |
+          if [ -f tests/test_telemetry_verification.py ]; then
+            pytest tests/test_telemetry_verification.py -v --tb=short
+          else
+            echo "::notice::test_telemetry_verification.py not found — skipping (not yet implemented)"
+          fi
+
+      - name: "③ IGVF merge gate check"
+        run: |
+          if [ -f scripts/check_igvf_gate.py ]; then
+            python scripts/check_igvf_gate.py
+          fi
+
+      - name: "④ IGVF tests"
         run: pytest tests/test_igvf.py -v --tb=short
 
-      - name: Run governance CLI validation
+      - name: "⑤ Governance CLI validation"
         run: python scripts/validate_governance.py --brief
 
+      - name: "⑥ UI color compliance validation"
+        run: python scripts/validate_ui_colors.py
+
+      - name: "🔐 Gate status summary"
+        run: |
+          echo "══════════════════════════════════════════════════"
+          echo "  ✅ Governance Regression Gate: ALL CHECKS PASSED"
+          echo "  Staging deploy is AUTHORIZED to proceed."
+          echo "══════════════════════════════════════════════════"
+
+  # ─── Job 3: Staging Deploy ────────────────────────────────────────────────
+  # ⚠️  STAGING ONLY (dev branch). Production and demo are NOT touched.
+  # Requires both test AND governance-regression-gate to pass.
+  # Runs Alembic schema migration BEFORE Cloud Run container swap.
   deploy-staging:
     if: github.ref_name == 'dev'
     runs-on: ubuntu-latest
-    needs: governance-validation
+    needs: [test, governance-regression-gate]       # ← hard block on gate
     environment: staging
     steps:
       - name: Check staging deploy secrets
@@ -106,13 +161,96 @@ jobs:
         if: steps.staging_secrets.outputs.ready == 'true'
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Setup Python (for migration)
+        if: steps.staging_secrets.outputs.ready == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip (migration)
+        if: steps.staging_secrets.outputs.ready == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install Python deps (for migration)
+        if: steps.staging_secrets.outputs.ready == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ── Alembic Schema Migration ─────────────────────────────────────────
+      # Runs BEFORE the Cloud Run container swap to prevent serving a new
+      # container revision against an un-migrated schema.
+      # Uses Cloud SQL Auth Proxy for secure private IP connectivity.
+      - name: Install Cloud SQL Auth Proxy
+        if: steps.staging_secrets.outputs.ready == 'true' && env.STAGING_DB_CONNECTION_NAME != ''
+        env:
+          STAGING_DB_CONNECTION_NAME: ${{ secrets.STAGING_DB_CONNECTION_NAME }}
+        run: |
+          curl -fsSL https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.linux.amd64 \
+            -o cloud-sql-proxy
+          chmod +x cloud-sql-proxy
+
+      - name: Start Cloud SQL Auth Proxy (staging)
+        id: cloud_sql_proxy
+        if: steps.staging_secrets.outputs.ready == 'true' && env.STAGING_DB_CONNECTION_NAME != ''
+        env:
+          STAGING_DB_CONNECTION_NAME: ${{ secrets.STAGING_DB_CONNECTION_NAME }}
+        run: |
+          ./cloud-sql-proxy \
+            --port 5432 \
+            "$STAGING_DB_CONNECTION_NAME" &
+          echo "proxy_pid=$!" >> "$GITHUB_OUTPUT"
+          # Wait for proxy to be ready
+          sleep 4
+          echo "Cloud SQL Auth Proxy started (PID: $!)"
+
+      - name: "🗄️ Alembic schema migration — staging"
+        if: steps.staging_secrets.outputs.ready == 'true'
+        env:
+          ENV: staging
+          AUTH_REQUIRED: "false"
+          DEMO_MODE: "false"
+          # If STAGING_DATABASE_URL is set (Cloud SQL), it takes priority.
+          # Falls back to SQLite on-disk which matches the Cloud Run runtime.
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "════════════════════════════════════════════════"
+          echo "  🗄️  Running Alembic migration — STAGING ONLY"
+          echo "  Branch: $GITHUB_REF_NAME"
+          echo "  Target: airs-api-staging (Cloud SQL)"
+          echo "════════════════════════════════════════════════"
+
+          # Show current revision before migration
+          python -m alembic current 2>&1 || echo "(no current revision — fresh DB)"
+
+          # Dry-run check: fail fast if migration would break
+          python -m alembic upgrade head --sql 2>&1 | head -40
+
+          # Apply migration
+          python -m alembic upgrade head
+
+          echo "✅ Migration applied successfully."
+
+          # Verify the control_rule_registry table exists post-migration
+          python scripts/verify_staging_migration.py
+
+      - name: Stop Cloud SQL Auth Proxy
+        if: always() && steps.cloud_sql_proxy.outputs.proxy_pid != ''
+        run: |
+          kill ${{ steps.cloud_sql_proxy.outputs.proxy_pid }} 2>/dev/null || true
+
+      # ── Cloud Run Deploy ─────────────────────────────────────────────────
       - name: Deploy backend staging
         if: steps.staging_secrets.outputs.ready == 'true'
         env:
           PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           STAGING_SECRETS: ${{ secrets.GCP_STAGING_SECRET_BINDINGS }}
         run: |
-          ARGS=(--service airs-api-staging --region us-central1 --env-file gcp/env.staging.yaml --project "$PROJECT_ID")
+          ARGS=(--target staging --region us-central1 --project "$PROJECT_ID")
           if [ -n "$STAGING_SECRETS" ]; then
             ARGS+=(--set-secrets "$STAGING_SECRETS")
           fi
@@ -144,6 +282,8 @@ jobs:
         if: steps.staging_secrets.outputs.ready != 'true'
         run: |
           echo "Skipping staging deploy because one or more required secrets are not configured."
+          echo "Required: GCP_SA_KEY, GCP_PROJECT_ID, FIREBASE_TOKEN"
+          echo "Optional: STAGING_DATABASE_URL, STAGING_DB_CONNECTION_NAME (for Cloud SQL migration)"
 
   compliance-verified:
     name: Compliance-Verified Status Check

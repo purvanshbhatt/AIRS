@@ -4,7 +4,7 @@ This demo is designed for judges, security leaders, and technical stakeholders t
 
 ## Demo Flow
 1. User logs into dashboard
-2. System calculates incident readiness score
+2. System calculates deterministic governance posture
 3. Gemini generates executive risk narrative
 4. Dashboard visualizes risk posture
 
@@ -14,10 +14,10 @@ This demo is designed for judges, security leaders, and technical stakeholders t
 - A user signs in and selects an organization profile.
 - The platform loads the latest governance and assessment context for that tenant.
 
-### 2. System calculates incident readiness score
+### 2. System calculates deterministic governance posture
 - Responses are evaluated by deterministic scoring logic.
 - Controls are weighted and mapped against NIST CSF 2.0 domains.
-- A reproducible readiness score and maturity profile are produced.
+- A reproducible governance score and maturity profile are produced.
 
 ### 3. Gemini generates executive risk narrative
 - Gemini Flash receives structured outputs (scores, findings, and mappings).

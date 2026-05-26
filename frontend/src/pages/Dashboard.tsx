@@ -275,7 +275,7 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <Card className="max-w-lg mx-auto mt-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800" padding="lg">
+      <Card className="max-w-lg mx-auto mt-12" padding="lg">
         <CardContent className="py-8 text-center">
           <p className="text-red-600 dark:text-red-400 font-semibold mb-4">{error}</p>
           <Button onClick={() => window.location.reload()}>Retry</Button>
@@ -483,7 +483,7 @@ export default function Dashboard() {
       </div>
 
       {hasNoData ? (
-        <Card className="border border-slate-200 dark:border-slate-800" padding="lg">
+        <Card padding="lg">
           <EmptyState
             icon={ShieldCheck}
             title="Welcome to ResilAI"
@@ -530,7 +530,7 @@ export default function Dashboard() {
 
                 {/* Plain-English Assessment Verdict Card (Lots of whitespace) */}
                 <div className="lg:col-span-2">
-                  <Card padding="lg" className="h-full flex flex-col justify-center border-l-4 border-l-primary-500 dark:border-l-primary-400 bg-white dark:bg-slate-900 shadow-sm">
+                  <Card padding="lg" className="h-full flex flex-col justify-center border-l-4 border-l-primary-500 dark:border-l-primary-400 shadow-sm">
                     <CardHeader className="mb-2">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-primary-500 dark:text-primary-400 animate-pulse" />
@@ -565,7 +565,7 @@ export default function Dashboard() {
               {/* ── FOUR LARGE EXECUTIVE KPI CARDS (Financial, ROI, Hours Saved, MTTR) ── */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {/* Financial Impact Card */}
-                <Card padding="lg" className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all duration-300">
+                <Card padding="lg" className="hover:shadow-md transition-all duration-300">
                   <div className="space-y-4">
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Calculated Liability Offset</p>
                     <h3 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -578,7 +578,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* ROI Card */}
-                <Card padding="lg" className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all duration-300">
+                <Card padding="lg" className="hover:shadow-md transition-all duration-300">
                   <div className="space-y-4">
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Tooling ROI</p>
                     <h3 className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">
@@ -591,7 +591,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Hours Saved Card */}
-                <Card padding="lg" className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all duration-300">
+                <Card padding="lg" className="hover:shadow-md transition-all duration-300">
                   <div className="space-y-4">
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Remediation Velocity Accelerator</p>
                     <div className="flex items-baseline gap-2">
@@ -608,7 +608,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* MTTR Improvement Card */}
-                <Card padding="lg" className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-md transition-all duration-300">
+                <Card padding="lg" className="hover:shadow-md transition-all duration-300">
                   <div className="space-y-4">
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Audit Overhead Reduction</p>
                     <h3 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -621,9 +621,8 @@ export default function Dashboard() {
                 </Card>
               </div>
 
-              {/* ── SIMPLIFIED ACTIONS SUMMARY ── */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <Card padding="lg">
                   <CardHeader className="mb-4">
                     <CardTitle className="text-lg font-bold">Postures Momentum</CardTitle>
                     <CardDescription className="text-xs">Summary of active and resolved compliance tasks</CardDescription>
@@ -653,7 +652,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Recent Assessments - Executive Summary Style */}
-                <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <Card padding="lg">
                   <CardHeader className="mb-4 flex items-center justify-between">
                     <div>
                       <CardTitle className="text-lg font-bold">Recent Appraisals</CardTitle>
@@ -679,7 +678,7 @@ export default function Dashboard() {
                                 Completed on {new Date(assessment.created_at).toLocaleDateString()}
                               </p>
                             </div>
-                            <Badge className="bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400 border border-green-200 dark:border-green-900/30 text-xs">
+                            <Badge variant="success" className="font-bold text-xs">
                               Score: {Math.round(assessment.overall_score || 0)}%
                             </Badge>
                           </div>
@@ -691,7 +690,7 @@ export default function Dashboard() {
               </div>
 
               {/* 90-Day Roadmap Section */}
-              <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mt-8">
+              <Card padding="lg" className="mt-8">
                 <CardHeader className="mb-4">
                   <CardTitle className="text-lg font-bold flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-primary-500" />
@@ -750,7 +749,7 @@ export default function Dashboard() {
 
               {/* Technical stat highlights */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <Card padding="lg">
                   <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Audit Metadata & Profile</p>
                   <p className="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">{displayOrganizationName}</p>
                   <div className="mt-3 text-xs text-slate-600 dark:text-slate-400 space-y-1 font-mono">
@@ -760,29 +759,29 @@ export default function Dashboard() {
                   </div>
                 </Card>
 
-                <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <Card padding="lg">
                   <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">SIEM Integration Hooks</p>
                   <div className="mt-2 text-xs font-mono text-slate-700 dark:text-slate-300 space-y-2">
                     <div className="flex items-center justify-between">
                       <span>Wazuh Agent API:</span>
-                      <span className="text-green-600 dark:text-green-400 font-bold">CONNECTED</span>
+                      <Badge variant="success" className="font-bold">CONNECTED</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Splunk Endpoint HEC:</span>
-                      <span className={integrationSnapshot.splunkConnected ? 'text-green-600 dark:text-green-400 font-bold' : 'text-slate-400 dark:text-slate-500'}>
+                      <Badge variant={integrationSnapshot.splunkConnected ? 'success' : 'outline'} className="font-bold">
                         {integrationSnapshot.splunkConnected ? 'ACTIVE' : 'OFFLINE'}
-                      </span>
+                      </Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Webhooks Endpoint:</span>
-                      <span className={integrationSnapshot.webhookActive ? 'text-green-600 dark:text-green-400 font-bold' : 'text-slate-400 dark:text-slate-500'}>
+                      <Badge variant={integrationSnapshot.webhookActive ? 'success' : 'outline'} className="font-bold">
                         {integrationSnapshot.webhookActive ? 'VERIFIED' : 'DISABLED'}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                 </Card>
 
-                <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <Card padding="lg">
                   <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Posture Drift Trend</p>
                   <div className="mt-2 font-mono text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
                     <div>LATEST_SCORE: {displayCurrentScore != null ? `${displayCurrentScore}%` : 'N/A'}</div>
@@ -804,7 +803,7 @@ export default function Dashboard() {
                 <ScoreTrendChart data={scoreHistory} />
 
                 {/* Technical Remediation Momentum */}
-                <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <Card padding="lg">
                   <CardHeader className="mb-4">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg flex items-center gap-2">
@@ -843,7 +842,7 @@ export default function Dashboard() {
               </div>
 
               {/* ── DETERMINISTIC FORENSIC TELEMETRY STREAM ── */}
-              <Card padding="lg" className="bg-slate-900 dark:bg-slate-950 border border-slate-800 dark:border-slate-900 text-left">
+              <Card padding="lg" className="bg-slate-950/85 dark:bg-slate-950/45 border border-slate-800/80 text-left">
                 <CardHeader className="mb-4 border-b border-slate-800 pb-4">
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-2">
@@ -875,7 +874,7 @@ export default function Dashboard() {
               </Card>
 
               {/* ── STRICT NIST/CIS/OWASP FRAMEWORK MAPPING MATRIX ── */}
-              <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <Card padding="lg">
                 <CardHeader className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
@@ -933,13 +932,12 @@ export default function Dashboard() {
                             <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{mapping.framework}</td>
                             <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{mapping.source}</td>
                             <td className="px-4 py-3">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
-                                mapping.status === 'Verified'
-                                  ? 'bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400 border border-green-200 dark:border-green-900/30'
-                                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30'
-                              }`}>
+                              <Badge
+                                variant={mapping.status === 'Verified' ? 'success' : 'warning'}
+                                className="font-extrabold uppercase tracking-wider text-[9px] font-mono rounded-lg px-2 py-0.5"
+                              >
                                 {mapping.status}
-                              </span>
+                              </Badge>
                             </td>
                           </tr>
                         ))}
@@ -950,7 +948,7 @@ export default function Dashboard() {
               </Card>
 
               {/* ── RAW JSON PAYLOAD EXPLORER ── */}
-              <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <Card padding="lg">
                 <CardHeader>
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
@@ -985,7 +983,7 @@ export default function Dashboard() {
 
               {/* Framework compliance / Calendar Lists */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <Card padding="lg">
                   <CardHeader className="mb-4">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg flex items-center gap-2">
@@ -1033,7 +1031,7 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card padding="lg" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <Card padding="lg">
                   <CardHeader className="mb-4">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg flex items-center gap-2">

@@ -1,6 +1,6 @@
 # Deterministic Governance Inference & Validation Architecture for Continuous Compliance Intelligence
 
-**AIRS Platform — Technical White Paper**
+**Deterministic Governance Factory — Technical White Paper**
 **Version 1.0 | February 2026**
 
 ---
@@ -204,5 +204,5 @@ The separation of AI narrative generation from deterministic governance computat
 
 ---
 
-*AIRS — AI Incident Readiness & Security Platform*
+*Deterministic Governance Factory Platform*
 *© 2026. All rights reserved.*

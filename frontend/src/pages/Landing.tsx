@@ -150,11 +150,8 @@ export default function Landing() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">ResilAI</span>
+            <div className="flex items-center">
+              <img src="/logo_header.svg" alt="ResilAI Logo" className="h-11 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
             </div>
             
             <div className="flex items-center gap-4">
@@ -575,13 +572,9 @@ export default function Landing() {
       <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800/80 py-12 transition-colors duration-300 text-xs text-slate-500 dark:text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                <Shield className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-slate-900 dark:text-slate-200">ResilAI</span>
-              <span className="text-slate-300 dark:text-slate-800">|</span>
-              <span className="font-medium">Continuous Readiness Intelligence</span>
+            <div className="flex flex-col items-center md:items-start gap-3">
+              <img src="/logo_footer_and github.svg" alt="ResilAI Logo" className="h-20 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
+              <span className="font-medium text-slate-500 dark:text-slate-400">Continuous Readiness Intelligence</span>
             </div>
 
             <div className="flex items-center gap-6">

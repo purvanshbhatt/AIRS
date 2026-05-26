@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.roborazzi.plugin)
     alias(libs.plugins.secrets)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.googleServicesPlugin)
 }
 
 android {
@@ -71,6 +72,7 @@ secrets {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.compose.material.icons.extended)
@@ -78,6 +80,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -90,6 +93,8 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.okhttp)
     implementation(libs.retrofit)
+    implementation(libs.converter.moshi)
+    implementation(libs.moshi.kotlin)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     
@@ -99,7 +104,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
-    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.core)
     testImplementation(libs.roborazzi.compose)
     testImplementation(libs.roborazzi.junit.rule)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -110,4 +115,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     ksp(libs.androidx.room.compiler)
+    ksp(libs.moshi.kotlin.codegen)
 }

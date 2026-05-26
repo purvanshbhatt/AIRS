@@ -118,11 +118,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-semibold text-slate-800 dark:text-slate-100">ResilAI</span>
+          <Link to="/" className="flex items-center">
+            <img src="/logo_header.svg" alt="ResilAI Logo" className="h-11 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

@@ -1,6 +1,6 @@
 # ResilAI Documentation
 
-Welcome to the documentation hub for **ResilAI**, the AI Incident Readiness Platform.
+Welcome to the documentation hub for **ResilAI**, the Deterministic Governance Factory.
 
 ## Start Here
 

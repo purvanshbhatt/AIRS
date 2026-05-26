@@ -10,7 +10,10 @@
  */
 
 import { isDevelopment } from './config';
+import { getApiBaseUrl } from './runtimeConfig';
 
+// Re-exported for backwards compatibility — always reflects the runtime-resolved URL.
+// Prefer getApiBaseUrl() in new code to always get the current value.
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // =============================================================================
@@ -115,7 +118,11 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // Use runtime-resolved URL — picks up the value from GET /api/v1/config
+  // after bootstrap, falling back to build-time env var during the brief
+  // window before fetchRuntimeConfig() resolves.
+  const baseUrl = getApiBaseUrl();
+  const url = `${baseUrl}${endpoint}`;
   const method = options.method || 'GET';
 
   // Check for read-only demo mode
@@ -222,7 +229,7 @@ async function request<T>(
           } else {
             // Direct error properties
             if (err.detail) {
-              errorMessage = String(err.detail);
+              errorMessage = typeof err.detail === 'object' ? JSON.stringify(err.detail) : String(err.detail);
             } else if (err.message) {
               errorMessage = String(err.message);
             }
@@ -435,21 +442,22 @@ export const downloadExecutiveSummary = async (assessmentId: string): Promise<Bl
 // Integrations / SIEM helpers
 // -----------------------------
 
-export const getIntegrationStatus = () => request<{
+export const getIntegrationStatus = (orgId?: string) => request<{
   wazuh_status: string;
+  wazuh_message: string;
   splunk_status: string;
   siem_verified_controls: number;
   siem_verified_percentage: number;
-}>('/api/integrations/status');
+}>(`/api/integrations/status${orgId ? `?org_id=${orgId}` : ''}`);
 
-export const configureWazuh = (data: { wazuh_host: string; wazuh_api_key: string; wazuh_port?: number; verify_ssl?: boolean }) =>
+export const configureWazuh = (data: { org_id: string; wazuh_host: string; wazuh_api_key: string; wazuh_port?: number; verify_ssl?: boolean }) =>
   request('/api/integrations/wazuh/configure', { method: 'POST', body: JSON.stringify(data) });
 
-export const getWazuhAgentStatus = () => request<any>('/api/integrations/wazuh/agent-status');
+export const getWazuhAgentStatus = (orgId: string) => request<any>(`/api/integrations/wazuh/agent-status?org_id=${orgId}`);
 
-export const getWazuhVulnerabilities = (params?: { severity?: string; limit?: number }) => {
-  const qs = params ? `?${new URLSearchParams(Object.entries(params).reduce((acc, [k, v]) => ({ ...acc, [k]: String(v) }), {}))}` : '';
-  return request<any>(`/api/integrations/wazuh/vulnerabilities${qs}`);
+export const getWazuhVulnerabilities = (orgId: string, params?: { severity?: string; limit?: number }) => {
+  const qs = params ? `&${new URLSearchParams(Object.entries(params).reduce((acc, [k, v]) => ({ ...acc, [k]: String(v) }), {}))}` : '';
+  return request<any>(`/api/integrations/wazuh/vulnerabilities?org_id=${orgId}${qs}`);
 };
 
 export const runSplunkQuery = (body: { query: string; earliest?: string; latest?: string; max_results?: number }) =>

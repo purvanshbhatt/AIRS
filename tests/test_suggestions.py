@@ -192,7 +192,8 @@ class TestBuildSuggestions:
 class TestGetSuggestionsFromAnswers:
 
     def test_perfect_answers(self):
-        suggestions = get_suggestions_from_answers(ALL_YES, max_results=10)
+        verification_statuses = {qid: "SOC_VERIFIED" for qid in ALL_YES}
+        suggestions = get_suggestions_from_answers(ALL_YES, max_results=10, verification_statuses=verification_statuses)
         assert isinstance(suggestions, list)
         # Perfect org should get only advanced suggestions
         for s in suggestions:

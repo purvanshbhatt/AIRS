@@ -21,6 +21,7 @@ import {
   pullSplunkEvidence,
   configureWazuh,
   getWazuhAgentStatus,
+  getIntegrationStatus,
 } from '../api';
 import type {
   ApiKeyMetadata,
@@ -117,15 +118,17 @@ export default function Integrations() {
     const run = async () => {
       setError('');
       try {
-        const [keys, hooks, findings] = await Promise.all([
+        const [keys, hooks, findings, integrationStatus] = await Promise.all([
           listApiKeys(selectedOrgId),
           listWebhooks(selectedOrgId),
           getExternalFindings({ source: 'splunk', limit: 50, orgId: selectedOrgId }),
+          getIntegrationStatus(selectedOrgId),
         ]);
         setApiKeys(keys);
         setWebhooks(hooks);
         setExternalFindings(findings);
         setSplunkConnected(findings.length > 0);
+        setWazuhConfigured(integrationStatus.wazuh_status === 'configured');
         // Check if Splunk HEC is configured
         try {
           const cfg = await getSplunkConfig(selectedOrgId);
@@ -391,7 +394,7 @@ export default function Integrations() {
         </div>
       </div>
 
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
+      <Card className="hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
         <CardHeader>
           <CardTitle className="text-slate-900 dark:text-slate-155 font-extrabold text-lg">Organization</CardTitle>
           <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">Select which organization to manage.</CardDescription>
@@ -418,7 +421,7 @@ export default function Integrations() {
       </Card>
 
       {/* Wazuh Connector Card */}
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
+      <Card className="hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
         <CardHeader>
           <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
             <PlugZap className="h-5 w-5 text-slate-500 dark:text-slate-400" />
@@ -432,9 +435,9 @@ export default function Integrations() {
           <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Wazuh Manager</h3>
-              <Badge variant={wazuhConnected ? 'default' : 'outline'} className="gap-1.5 rounded-xl px-3 py-1 font-bold">
+              <Badge variant={wazuhConnected ? 'success' : 'outline'} className="gap-1.5 rounded-xl px-3 py-1 font-bold">
                 <span
-                  className={`inline-block h-2 w-2 rounded-full ${wazuhConnected ? 'bg-blue-500 animate-pulse' : 'bg-red-500 animate-pulse'}`}
+                  className={`inline-block h-2 w-2 rounded-full ${wazuhConnected ? 'bg-primary-500 animate-pulse' : 'bg-slate-400 animate-pulse'}`}
                 />
                 {wazuhConnected ? 'Connected' : wazuhConfigured ? 'Offline' : 'Not Configured'}
               </Badge>
@@ -449,10 +452,18 @@ export default function Integrations() {
                     if (!selectedOrgId) return;
                     setBusy(true); setError(''); setNotice('');
                     try {
-                      const status = await getWazuhAgentStatus();
+                      const status = await getWazuhAgentStatus(selectedOrgId);
                       setWazuhConnected(status.disconnection_rate <= 10);
                       setNotice(`Agents: ${status.active_agents}/${status.total_agents} active (${status.disconnection_rate}% disconnected)`);
-                    } catch (err) { setError((err as Error).message || 'Failed to query Wazuh'); }
+                    } catch (err) {
+                      const msg = (err as Error).message || '';
+                      if (msg.includes('action_required') || msg.includes('Wazuh not configured')) {
+                        setWazuhConfigured(false);
+                        setError('Wazuh not configured. Connect your SOC Lab.');
+                      } else {
+                        setError(msg || 'Failed to query Wazuh');
+                      }
+                    }
                     setBusy(false);
                   }} disabled={busy || !selectedOrgId}>{busy ? 'Querying...' : 'Fetch Live Telemetry'}</Button>
                 </div>
@@ -466,7 +477,7 @@ export default function Integrations() {
                   <Button size="sm" className="rounded-xl font-extrabold shadow-sm" onClick={async () => {
                     if (!selectedOrgId) return; setBusy(true); setError(''); setNotice('');
                     try {
-                      await configureWazuh({ wazuh_host: wazuhHost, wazuh_api_key: wazuhApiKey, wazuh_port: Number(wazuhPort) });
+                      await configureWazuh({ org_id: selectedOrgId, wazuh_host: wazuhHost, wazuh_api_key: wazuhApiKey, wazuh_port: Number(wazuhPort) });
                       setWazuhConfigured(true);
                       setNotice('Wazuh configured successfully.');
                     } catch (err) { setError((err as Error).message || 'Failed to configure Wazuh'); }
@@ -488,7 +499,7 @@ export default function Integrations() {
         </div>
       )}
 
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
+      <Card className="hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
         <CardHeader>
           <CardTitle className="text-slate-900 dark:text-slate-155 font-extrabold text-lg">Connected Integrations</CardTitle>
           <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">Live status for enterprise integration capabilities.</CardDescription>
@@ -518,7 +529,7 @@ export default function Integrations() {
       </Card>
 
       {newKey && (
-        <Card className="rounded-3xl border border-blue-200 dark:border-blue-800/40 bg-blue-50/10 dark:bg-blue-950/10 shadow-sm transition-all duration-300">
+        <Card className="border-blue-200 dark:border-blue-800/40 bg-blue-50/10 dark:bg-blue-950/10 shadow-sm hover:shadow-md">
           <CardHeader>
             <CardTitle className="text-blue-900 dark:text-blue-300 font-extrabold text-lg">New API Key (Copy Once)</CardTitle>
             <CardDescription className="text-blue-800/80 dark:text-blue-400 font-semibold">
@@ -538,7 +549,7 @@ export default function Integrations() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
+        <Card className="hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
           <CardHeader>
             <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-slate-500 dark:text-slate-400" />
@@ -581,7 +592,7 @@ export default function Integrations() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
+        <Card className="hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
           <CardHeader>
             <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
               <WebhookIcon className="h-5 w-5 text-slate-500 dark:text-slate-400" />
@@ -661,7 +672,7 @@ export default function Integrations() {
         </Card>
       </div>
 
-      <Card className="rounded-3xl border border-slate-200 dark:border-slate-800/60 shadow-sm transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 bg-white/60 dark:bg-slate-950/20">
+      <Card className="hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
         <CardHeader>
           <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
             <PlugZap className="h-5 w-5 text-slate-500 dark:text-slate-400" />
@@ -677,7 +688,7 @@ export default function Integrations() {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Splunk HEC Configuration</h3>
               {splunkConfigured && (
-                <Badge variant="default" className="gap-1.5 rounded-xl px-2.5 py-1 font-bold">
+                <Badge variant="success" className="gap-1.5 rounded-xl px-2.5 py-1 font-bold">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Configured
                 </Badge>
@@ -733,7 +744,7 @@ export default function Integrations() {
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Evidence Verification</h3>
                 <Badge variant={
-                  evidenceResults.overall_status === 'verified' ? 'default' : 'outline'
+                  evidenceResults.overall_status === 'verified' ? 'success' : 'outline'
                 } className="rounded-xl px-2.5 py-1 font-bold">
                   {evidenceResults.verified_controls}/{evidenceResults.total_controls} Controls Verified
                 </Badge>
@@ -779,7 +790,7 @@ export default function Integrations() {
 
           {/* Mock Seed / External Findings */}
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={splunkConnected ? 'default' : 'outline'} className="rounded-xl px-2.5 py-1 font-bold">
+            <Badge variant={splunkConnected ? 'success' : 'outline'} className="rounded-xl px-2.5 py-1 font-bold">
               {splunkConnected ? 'Findings Synced' : 'No Findings'}
             </Badge>
             {!isReadOnly && (

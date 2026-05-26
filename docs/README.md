@@ -1,5 +1,5 @@
 # ResilAI
-AI Incident Readiness Platform
+Deterministic Governance Factory
 
 ## Problem
 Security teams monitor alerts but cannot easily measure actual incident readiness.

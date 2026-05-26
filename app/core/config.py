@@ -139,6 +139,9 @@ class Settings(BaseSettings):
     # ===========================================
     AUTH_REQUIRED: bool = True  # Default secure: require Firebase auth
     FIREBASE_AUTH_EMULATOR_HOST: Optional[str] = None
+    DOCS_USERNAME: str = "admin"
+    DOCS_PASSWORD: str = "resilai_docs_admin"
+    
     
     # ===========================================
     # Demo Mode

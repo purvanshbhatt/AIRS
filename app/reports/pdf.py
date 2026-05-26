@@ -39,9 +39,9 @@ from app.core.config import settings
 class Colors:
     """Professional color palette."""
     # Primary
-    DARK_BLUE = colors.HexColor('#1a365d')      # Headers
-    MEDIUM_BLUE = colors.HexColor('#2b6cb0')    # Accents
-    LIGHT_BLUE = colors.HexColor('#4299e1')     # Links, highlights
+    DARK_BLUE = colors.HexColor('#1A1A1A')      # Deep Charcoal
+    MEDIUM_BLUE = colors.HexColor('#00C853')    # Emerald Green
+    LIGHT_BLUE = colors.HexColor('#2979FF')     # Titanium Blue
     
     # Severity
     CRITICAL = colors.HexColor('#9b2c2c')       # Dark red

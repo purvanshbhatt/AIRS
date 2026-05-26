@@ -4,22 +4,25 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.resilai.app.data.models.Finding
+import androidx.compose.ui.unit.sp
 import com.example.ui.dashboard.DashboardState
 import com.example.ui.dashboard.DashboardViewModel
-import com.example.ui.theme.Amber400
+import com.example.ui.dashboard.PremiumFindingItem
 import com.example.ui.theme.Cyan400
-import com.example.ui.theme.Rose500
+import com.example.ui.theme.Slate900
+import com.example.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,85 +32,63 @@ fun FindingsScreen(viewModel: DashboardViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("All Findings", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                title = {
+                    Column {
+                        Text("FINDINGS_RELIABILITY", fontWeight = FontWeight.Black, color = Color.White, letterSpacing = 1.sp)
+                        Text("ACTIVE THREAT TELEMETRY", style = MaterialTheme.typography.labelSmall, color = Cyan400)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Slate900),
+                actions = {
+                    IconButton(onClick = { /* Filter */ }) {
+                        Icon(Icons.Rounded.FilterList, contentDescription = null, tint = Cyan400)
+                    }
+                }
             )
-        }
+        },
+        containerColor = Slate900
     ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+        Column(modifier = Modifier.padding(padding).fillMaxSize().background(Slate900)) {
+            // Search Bar
+            OutlinedTextField(
+                value = "",
+                onValueChange = {},
+                placeholder = { Text("Search deterministic findings...", color = TextSecondary) },
+                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = Cyan400) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Cyan400,
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                singleLine = true
+            )
+
             when (val currentState = state) {
                 is DashboardState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                is DashboardState.Error -> {
-                    Text(
-                        currentState.message,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Cyan400)
+                    }
                 }
                 is DashboardState.Success -> {
-                    if (currentState.findings.isEmpty()) {
-                        Text(
-                            "No active findings.",
-                            modifier = Modifier.align(Alignment.Center),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(currentState.findings) { finding ->
-                                findingItem(finding)
-                            }
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(currentState.findings) { finding ->
+                            PremiumFindingItem(finding = finding)
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun findingItem(finding: Finding) {
-    val severityColor = when (finding.severity.uppercase()) {
-        "CRITICAL" -> Rose500
-        "HIGH" -> Rose500.copy(alpha = 0.8f)
-        "MEDIUM" -> Amber400
-        else -> Cyan400
-    }
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(severityColor)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(
-                    text = finding.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${finding.severity} Severity",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = severityColor
-                )
+                is DashboardState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Failed to sync findings: ${currentState.message}", color = MaterialTheme.colorScheme.error)
+                    }
+                }
             }
         }
     }

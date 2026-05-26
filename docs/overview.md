@@ -1,10 +1,10 @@
 # ResilAI Overview
 
 <p align="center">
-  <img src="assets/airs-logo-dark.png" alt="ResilAI logo" width="150" />
+  <img src="assets/resilai_logo.svg" alt="ResilAI logo" width="150" />
 </p>
 
-ResilAI is an **AI Incident Readiness Platform** that helps organizations evaluate readiness, prioritize risk reduction, and communicate posture to executives.
+ResilAI is a **Deterministic Governance Factory** that helps organizations evaluate readiness, execute automated compliance validations, and programmatically verify their overall security compliance posture.
 
 ## Audience
 

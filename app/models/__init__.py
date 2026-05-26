@@ -23,6 +23,8 @@ from app.models.audit_calendar import AuditCalendarEntry, AuditType
 from app.models.tech_stack import TechStackItem, LtsStatus
 from app.models.framework_registry import FrameworkRegistry, FrameworkCategory
 from app.models.framework_mapping import FrameworkMappingRegistry
+from app.models.wazuh_config import WazuhConfig
+from app.models.control_rule_registry import ControlRuleRegistry
 from app.models.score_audit_log import ScoreAuditLog
 from app.models.finding_provenance import (
     FindingProvenance,
@@ -61,4 +63,5 @@ __all__ = [
     "FindingProvenance",
     "VerificationSource",
     "ProvenanceStatus",
+    "ControlRuleRegistry",
 ]
