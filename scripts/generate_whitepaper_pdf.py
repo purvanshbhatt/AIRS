@@ -387,12 +387,12 @@ def build_section_4(pdf: WhitepaperPDF):
 
     pdf.subsection_title("4.2", "CI/CD Integration")
     pdf.body_text(
-        "The GitHub Actions CI pipeline includes a dedicated governance-validation job "
+        "The GitHub Actions CI pipeline includes a dedicated governance-regression-gate job "
         "that runs after the main test suite:"
     )
 
     pdf.code_block(
-        "governance-validation:\n"
+        "governance-regression-gate:\n"
         "  needs: backend-tests\n"
         "  steps:\n"
         "    - run: pytest tests/test_igvf.py -v    # 79 unit tests\n"

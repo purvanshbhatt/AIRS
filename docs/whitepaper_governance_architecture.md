@@ -137,10 +137,10 @@ The IGVF operates through three interfaces:
 
 ### 4.2 CI/CD Integration
 
-The platform's GitHub Actions CI pipeline includes a dedicated `governance-validation` job that executes after the main test suite:
+The platform's GitHub Actions CI pipeline includes a dedicated `governance-regression-gate` job that executes after the main test suite:
 
 ```yaml
-governance-validation:
+governance-regression-gate:
   needs: backend-tests
   steps:
     - run: pytest tests/test_igvf.py -v --tb=short   # 79 unit tests
