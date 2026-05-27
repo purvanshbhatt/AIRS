@@ -288,7 +288,7 @@ jobs:
   compliance-verified:
     name: Compliance-Verified Status Check
     runs-on: ubuntu-latest
-    needs: governance-validation
+    needs: governance-regression-gate
     env:
       ENV: local
       AUTH_REQUIRED: "false"
@@ -327,7 +327,7 @@ jobs:
     # ╚═══════════════════════════════════════════════════════════════════════╝
     if: github.ref_name == 'main'
     runs-on: ubuntu-latest
-    needs: [governance-validation, compliance-verified]
+    needs: [governance-regression-gate, compliance-verified]
     environment: 
       name: production
       # GitHub will require manual approval from designated reviewers
