@@ -219,3 +219,16 @@ aside.fixed {
 header.sticky, nav.fixed {
   top: var(--banner-height, 0px) !important;
 }
+
+@keyframes roi-flash {
+  0% { color: #00C853; text-shadow: 0 0 12px rgba(0, 200, 83, 0.8); transform: scale(1.05); }
+  50% { color: #00C853; text-shadow: 0 0 6px rgba(0, 200, 83, 0.4); transform: scale(1.02); }
+  100% { }
+}
+
+.animate-roi-flash {
+  animation: roi-flash 1.2s ease-out;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+

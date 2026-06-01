@@ -172,13 +172,17 @@ async def download_report(
     org_name = (result.get("organization_name") or "unknown").replace(" ", "_")
     filename = f"ResilAI_Report_{org_name}_{report_id[:8]}.pdf"
     
-    return StreamingResponse(
-        BytesIO(pdf_content),
-        media_type="application/pdf",
-        headers={
-            "Content-Disposition": f"attachment; filename={filename}"
-        }
-    )
+    # Upload to GCS and generate signed URL
+    from app.core.gcs import upload_and_sign_pdf
+    signed_url = upload_and_sign_pdf(pdf_content, filename)
+    
+    if not signed_url:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate secure download URL."
+        )
+        
+    return {"url": signed_url}
 
 
 @router.delete(

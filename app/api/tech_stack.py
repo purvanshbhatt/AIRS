@@ -49,6 +49,13 @@ async def list_items(
 ):
     """GET /api/governance/{org_id}/tech-stack"""
     _verify_org(db, user, org_id)
+    
+    from app.core.config import settings
+    if settings.is_staging or settings.ENV == "staging":
+        from app.services.asset_discovery import AssetDiscoveryService
+        discovery_svc = AssetDiscoveryService(db, org_id)
+        discovery_svc.discover_assets()
+        
     svc = TechStackService(db, org_id)
     items = svc.list_all()
     enriched = [svc.enrich_response(i) for i in items]

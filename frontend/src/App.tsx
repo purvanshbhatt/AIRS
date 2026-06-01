@@ -20,6 +20,7 @@ import AnalyticsPage from './pages/Analytics';
 import Reports from './pages/Reports';
 import NewOrg from './pages/NewOrg';
 import NewAssessment from './pages/NewAssessment';
+import QuickAssessment from './pages/QuickAssessment';
 import Results from './pages/Results';
 import Settings from './pages/Settings';
 import Integrations from './pages/Integrations';
@@ -61,6 +62,7 @@ function DashboardRoutes() {
           <Route path="/assessments" element={<Assessments />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/assessment/new" element={<NewAssessment />} />
+          <Route path="/assessment/quick" element={<QuickAssessment />} />
           <Route path="/results/:id" element={<Results />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
@@ -135,6 +137,16 @@ export default function App() {
                 <ProtectedRoute>
                   <DashboardLayout>
                     <NewAssessment />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessment/quick"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <QuickAssessment />
                   </DashboardLayout>
                 </ProtectedRoute>
               }

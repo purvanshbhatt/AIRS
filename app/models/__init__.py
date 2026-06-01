@@ -24,6 +24,7 @@ from app.models.tech_stack import TechStackItem, LtsStatus
 from app.models.framework_registry import FrameworkRegistry, FrameworkCategory
 from app.models.framework_mapping import FrameworkMappingRegistry
 from app.models.wazuh_config import WazuhConfig
+from app.models.wazuh_telemetry_cache import WazuhTelemetryCache
 from app.models.control_rule_registry import ControlRuleRegistry
 from app.models.score_audit_log import ScoreAuditLog
 from app.models.finding_provenance import (
@@ -31,8 +32,36 @@ from app.models.finding_provenance import (
     VerificationSource,
     ProvenanceStatus,
 )
+from app.models.connector import (
+    Connector, ConnectorSyncLog,
+    ConnectorType, ConnectorAuthMethod, ConnectorStatus,
+)
+from app.models.ai_asset import (
+    AIAsset, AIAssetVersion, AIAssetRelationship,
+    AIAssetType, BusinessCriticality, ExposureLevel, LifecycleStage,
+)
+from app.models.telemetry_event import TelemetryEvent
+from app.models.score_snapshot import ScoreSnapshot, SnapshotTrigger
+from app.models.simulation_result import SimulationResult, SimulationCategory
+from app.models.governance_policy import (
+    GovernancePolicy, PolicyEvaluationLog,
+    PolicyType, EnforcementMode,
+)
+from app.models.drift_event import DriftEvent
+from app.models.software_catalog import SoftwareCatalog
+from app.models.discovered_asset import DiscoveredAsset
+from app.models.verification import (
+    VerificationResult,
+    ControlEvidence,
+    VerificationAuditLog,
+    VerificationState,
+    VerificationConfidence,
+)
+from app.sentinel.evidence.models import TelemetryEvidence
+from app.sentinel.twin.models import SentinelSimulation
 
 __all__ = [
+    "DiscoveredAsset",
     "Organization",
     "Assessment",
     "AssessmentStatus",
@@ -64,4 +93,35 @@ __all__ = [
     "VerificationSource",
     "ProvenanceStatus",
     "ControlRuleRegistry",
+    "WazuhTelemetryCache",
+    "Connector",
+    "ConnectorSyncLog",
+    "ConnectorType",
+    "ConnectorAuthMethod",
+    "ConnectorStatus",
+    "AIAsset",
+    "AIAssetVersion",
+    "AIAssetRelationship",
+    "AIAssetType",
+    "BusinessCriticality",
+    "ExposureLevel",
+    "LifecycleStage",
+    "TelemetryEvent",
+    "ScoreSnapshot",
+    "SnapshotTrigger",
+    "SimulationResult",
+    "SimulationCategory",
+    "GovernancePolicy",
+    "PolicyEvaluationLog",
+    "PolicyType",
+    "EnforcementMode",
+    "DriftEvent",
+    "SoftwareCatalog",
+    "VerificationResult",
+    "ControlEvidence",
+    "VerificationAuditLog",
+    "VerificationState",
+    "VerificationConfidence",
+    "TelemetryEvidence",
+    "SentinelSimulation",
 ]

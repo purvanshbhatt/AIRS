@@ -11,6 +11,7 @@
 
 import { isDevelopment } from './config';
 import { getApiBaseUrl } from './runtimeConfig';
+export { getApiBaseUrl };
 
 // Re-exported for backwards compatibility — always reflects the runtime-resolved URL.
 // Prefer getApiBaseUrl() in new code to always get the current value.
@@ -445,13 +446,17 @@ export const downloadExecutiveSummary = async (assessmentId: string): Promise<Bl
 export const getIntegrationStatus = (orgId?: string) => request<{
   wazuh_status: string;
   wazuh_message: string;
+  wazuh_host?: string;
+  wazuh_port?: number;
   splunk_status: string;
   siem_verified_controls: number;
   siem_verified_percentage: number;
 }>(`/api/integrations/status${orgId ? `?org_id=${orgId}` : ''}`);
 
-export const configureWazuh = (data: { org_id: string; wazuh_host: string; wazuh_api_key: string; wazuh_port?: number; verify_ssl?: boolean }) =>
-  request('/api/integrations/wazuh/configure', { method: 'POST', body: JSON.stringify(data) });
+export const configureWazuh = (data: { org_id: string; wazuh_host: string; wazuh_api_key: string; wazuh_port?: number; verify_ssl?: boolean }) => {
+  console.log("Wazuh Payload", data);
+  return request('/api/integrations/wazuh/configure', { method: 'POST', body: JSON.stringify(data) });
+};
 
 export const getWazuhAgentStatus = (orgId: string) => request<any>(`/api/integrations/wazuh/agent-status?org_id=${orgId}`);
 
@@ -618,8 +623,7 @@ export const checkCors = async (): Promise<{
   return response.json();
 };
 
-// Get current API base URL (for debugging)
-export const getApiBaseUrl = (): string => API_BASE_URL;
+
 
 // =============================================================================
 // ORGANIZATION ENRICHMENT
@@ -1246,3 +1250,6 @@ export const getLogicFirewallTrace = (requestId: string) =>
   request<import('./types').LogicFirewallTraceResponse>(
     `/api/logic-firewall/trace/${requestId}`
   );
+
+export const getSimulationHistory = (orgId: string) =>
+  request<{ results: any[]; total: number }>(`/api/v1/simulations/results/${orgId}`);

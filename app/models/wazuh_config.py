@@ -8,6 +8,7 @@ from sqlalchemy.dialects.sqlite import CHAR
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+from app.db.types import EncryptedString
 
 class WazuhConfig(Base):
     """Wazuh SIEM configuration for an organization."""
@@ -18,7 +19,7 @@ class WazuhConfig(Base):
     org_id = Column(CHAR(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
     wazuh_host = Column(String(255), nullable=False)
     wazuh_port = Column(Integer, nullable=False, default=55000)
-    wazuh_api_key = Column(String(255), nullable=False)
+    wazuh_api_key = Column(EncryptedString, nullable=False)
     verify_ssl = Column(Boolean, nullable=False, default=False)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())

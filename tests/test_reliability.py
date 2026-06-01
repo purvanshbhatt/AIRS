@@ -1048,10 +1048,10 @@ class TestAuditTrailLogging:
         _log_rri_audit_event(self.db, org.id, "system", 45.5, 62.0)
         from app.models.audit_event import AuditEvent
         events = self.db.query(AuditEvent).filter_by(org_id=org.id).all()
-        assert len(events) == 1
-        assert "rri_calculated" in events[0].action
-        assert "score=45.5" in events[0].action
-        assert "rcs=62.0" in events[0].action
+        rri_events = [e for e in events if "rri_calculated" in e.action]
+        assert len(rri_events) == 1
+        assert "score=45.5" in rri_events[0].action
+        assert "rcs=62.0" in rri_events[0].action
 
     def test_logs_multiple_events(self):
         """Multiple calls create multiple audit events."""
@@ -1060,7 +1060,8 @@ class TestAuditTrailLogging:
         _log_rri_audit_event(self.db, org.id, "system", 42.0, 65.0)
         from app.models.audit_event import AuditEvent
         events = self.db.query(AuditEvent).filter_by(org_id=org.id).all()
-        assert len(events) == 2
+        rri_events = [e for e in events if "rri_calculated" in e.action]
+        assert len(rri_events) == 2
 
 
 # ═════════════════════════════════════════════════════════════════════

@@ -21,6 +21,7 @@ from app.api import (
     verification,
 )
 from app.api.v1 import router as v1_router
+from app.api.routes.sentinel import router as sentinel_router
 
 router = APIRouter()
 
@@ -60,3 +61,6 @@ router.include_router(remediations.router, prefix="/remediations", tags=["remedi
 
 # SIEM Verification, Audit Trail, and Liability-to-ROI
 router.include_router(verification.router, prefix="/verification", tags=["verification"])
+
+# ResilAI Sentinel Module
+router.include_router(sentinel_router, prefix="/sentinel", tags=["sentinel"])

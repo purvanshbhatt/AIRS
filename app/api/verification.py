@@ -168,7 +168,7 @@ async def verify_assessment(
 
     # Build SIEM clients and verify
     wazuh, splunk = _build_siem_clients()
-    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk)
+    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk, db=db)
     verification_results = await svc.verify_all_findings(findings, answers)
 
     # Build response
@@ -235,7 +235,7 @@ async def get_audit_trail(
 
     # Verify
     wazuh, splunk = _build_siem_clients()
-    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk)
+    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk, db=db)
     verification_results = await svc.verify_all_findings(findings, answers)
 
     # Generate audit trail
@@ -286,7 +286,7 @@ async def get_finding_verification_status(
         )
 
     wazuh, splunk = _build_siem_clients()
-    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk)
+    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk, db=db)
     result = await svc.verify_finding(target_finding, answers)
     return result
 

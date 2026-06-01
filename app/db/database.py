@@ -35,14 +35,36 @@ engine = create_engine(
     **get_engine_args(),
 )
 
+# Optional Read Replica Support
+replica_engine = None
+if hasattr(settings, "DATABASE_REPLICA_URL") and settings.DATABASE_REPLICA_URL:
+    replica_engine = create_engine(
+        settings.DATABASE_REPLICA_URL,
+        **get_engine_args(),
+    )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+if replica_engine:
+    ReplicaSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=replica_engine)
+else:
+    # Fallback to primary if no replica is configured
+    ReplicaSessionLocal = SessionLocal
 
 Base = declarative_base()
 
 
 def get_db():
-    """Dependency to get database session."""
+    """Dependency to get primary database session (Read/Write)."""
     db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def get_replica_db():
+    """Dependency to get replica database session (Read-Only)."""
+    db = ReplicaSessionLocal()
     try:
         yield db
     finally:

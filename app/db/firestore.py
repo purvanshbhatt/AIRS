@@ -868,3 +868,117 @@ def firestore_get_finding_tracking_map(assessment_id: str) -> Dict[str, Dict[str
     except Exception as exc:
         logger.warning("Firestore get_finding_tracking_map failed for %s: %s", assessment_id, exc)
         return {}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Wazuh Configuration Persistence
+# ═══════════════════════════════════════════════════════════════════════
+
+WAZUH_CONFIG_SENSITIVE_FIELDS = {"wazuh_api_key"}
+
+def _wazuh_config_to_doc(config) -> Dict[str, Any]:
+    """Convert a SQLAlchemy WazuhConfig to a Firestore document dict."""
+    doc = {
+        "id": config.id,
+        "org_id": config.org_id,
+        "wazuh_host": config.wazuh_host,
+        "wazuh_port": config.wazuh_port,
+        "wazuh_api_key": config.wazuh_api_key,
+        "verify_ssl": bool(config.verify_ssl),
+        "created_at": config.created_at.isoformat() if config.created_at else datetime.now(timezone.utc).isoformat(),
+        "updated_at": config.updated_at.isoformat() if config.updated_at else None,
+    }
+    from app.core.security.encryption import SENSITIVE_INTEGRATION_FIELDS
+    return _encrypt_doc_fields(doc, SENSITIVE_INTEGRATION_FIELDS)
+
+def firestore_save_wazuh_config(config) -> bool:
+    """Save/update a WazuhConfig to Firestore."""
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        payload = _wazuh_config_to_doc(config)
+        client.collection("wazuh_configs").document(config.org_id).set(payload)
+        logger.info("Firestore: saved wazuh config for org %s", config.org_id)
+        return True
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error("CRITICAL: Firestore save_wazuh_config failed for org %s: %s", config.org_id, exc)
+        raise FirestoreUnavailableError(f"Failed to save wazuh config to Firestore: {exc}")
+
+def firestore_delete_wazuh_config(org_id: str) -> bool:
+    """Delete a WazuhConfig from Firestore."""
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        client.collection("wazuh_configs").document(org_id).delete()
+        logger.info("Firestore: deleted wazuh config for org %s", org_id)
+        return True
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error("CRITICAL: Firestore delete_wazuh_config failed for org %s: %s", org_id, exc)
+        raise FirestoreUnavailableError(f"Failed to delete wazuh config from Firestore: {exc}")
+
+def firestore_get_all_wazuh_configs() -> List[Dict[str, Any]]:
+    """Fetch all wazuh configs from Firestore."""
+    if not is_firestore_available():
+        logger.warning("Firestore not available for get_all_wazuh_configs — returning empty list")
+        return []
+    try:
+        client = get_firestore_client()
+        docs = client.collection("wazuh_configs").stream()
+        return [_decrypt_doc_fields(doc.to_dict() or {}) for doc in docs]
+    except Exception as exc:
+        logger.error("Firestore get_all_wazuh_configs failed: %s", exc)
+        return []
+
+def sync_wazuh_configs_from_firestore(db_session) -> int:
+    """Sync all Wazuh configs from Firestore to local SQLite database on startup."""
+    if not is_firestore_available():
+        return 0
+    from app.models.wazuh_config import WazuhConfig
+    from datetime import datetime
+
+    try:
+        docs = firestore_get_all_wazuh_configs()
+        count = 0
+        for doc in docs:
+            org_id = doc.get("org_id")
+            if not org_id:
+                continue
+
+            existing = db_session.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
+            if existing:
+                for key, value in doc.items():
+                    if key in ("created_at", "updated_at"):
+                        if value:
+                            try:
+                                value = datetime.fromisoformat(value)
+                            except (ValueError, TypeError):
+                                continue
+                    if hasattr(existing, key):
+                        setattr(existing, key, value)
+            else:
+                config = WazuhConfig(org_id=org_id)
+                for key, value in doc.items():
+                    if key in ("created_at", "updated_at"):
+                        if value:
+                            try:
+                                value = datetime.fromisoformat(value)
+                            except (ValueError, TypeError):
+                                continue
+                        else:
+                            continue
+                    if hasattr(config, key) and key != "org_id":
+                        setattr(config, key, value)
+                db_session.add(config)
+            count += 1
+        db_session.commit()
+        logger.info("Firestore sync: %d wazuh configs loaded into SQLite", count)
+        return count
+    except Exception as exc:
+        db_session.rollback()
+        logger.warning("Firestore wazuh configs sync failed: %s", exc)
+        return 0
+

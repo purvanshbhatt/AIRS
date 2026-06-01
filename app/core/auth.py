@@ -235,6 +235,9 @@ async def require_org_admin(
     return user
 
 
+# Import RBAC dependencies here to expose them via auth module
+from app.core.security.rbac import require_role, require_permission, Role
+
 # Convenience alias
 CurrentUser = Optional[User]
 RequiredUser = User
@@ -245,6 +248,10 @@ __all__ = [
     "get_current_user",
     "require_auth",
     "require_org_admin",
+    "require_role",
+    "require_permission",
+    "Role",
     "CurrentUser",
     "RequiredUser",
 ]
+

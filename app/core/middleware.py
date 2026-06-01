@@ -48,12 +48,17 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
     - Sets request ID in context for logging correlation
     - Adds X-Request-ID to response headers
     - Logs request timing
+    - Records Prometheus metrics
+    - Adds tracing attributes
     """
     
     # Paths to skip detailed logging (health checks, etc.)
-    SKIP_LOGGING_PATHS = {"/health", "/", "/favicon.ico"}
+    SKIP_LOGGING_PATHS = {"/health", "/", "/favicon.ico", "/api/v1/observability/metrics"}
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        from opentelemetry import trace
+        from app.observability.metrics import API_REQUEST_DURATION
+        
         # Get or generate request ID
         request_id = request.headers.get("X-Request-ID") or generate_request_id()
         set_request_id(request_id)
@@ -64,8 +69,19 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         # Skip logging for health checks
         skip_logging = request.url.path in self.SKIP_LOGGING_PATHS
         
+        # Get active span
+        tracer = trace.get_tracer(__name__)
+        span = trace.get_current_span()
+        if span.is_recording():
+            span.set_attribute("http.request_id", request_id)
+            span.set_attribute("http.method", request.method)
+            span.set_attribute("http.url", str(request.url))
+            
         if not skip_logging:
             org_id = request.path_params.get("org_id") or request.query_params.get("org_id")
+            if span.is_recording() and org_id:
+                span.set_attribute("app.org_id", org_id)
+                
             logger.info(
                 "request_start request_id=%s method=%s path=%s org_id=%s",
                 request_id,
@@ -79,10 +95,21 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             
             # Calculate duration
-            duration_ms = (time.perf_counter() - start_time) * 1000
+            duration = time.perf_counter() - start_time
+            duration_ms = duration * 1000
             
             # Add request ID to response headers
             response.headers["X-Request-ID"] = request_id
+            
+            # Record metric
+            API_REQUEST_DURATION.labels(
+                method=request.method,
+                endpoint=request.url.path,
+                status_code=response.status_code
+            ).observe(duration)
+            
+            if span.is_recording():
+                span.set_attribute("http.status_code", response.status_code)
             
             if not skip_logging:
                 org_id = request.path_params.get("org_id") or request.query_params.get("org_id")
@@ -100,7 +127,19 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             
         except Exception as exc:
             # Calculate duration even on error
-            duration_ms = (time.perf_counter() - start_time) * 1000
+            duration = time.perf_counter() - start_time
+            duration_ms = duration * 1000
+            
+            # Record metric
+            API_REQUEST_DURATION.labels(
+                method=request.method,
+                endpoint=request.url.path,
+                status_code=500
+            ).observe(duration)
+            
+            if span.is_recording():
+                span.record_exception(exc)
+                span.set_status(trace.status.Status(trace.status.StatusCode.ERROR))
             
             # Log error with full context
             logger.error(
@@ -187,6 +226,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         message = f"Validation error: {field} - {first_error.get('msg', 'Invalid value')}"
     else:
         message = "Request validation failed"
+        
+    try:
+        body_bytes = await request.body()
+        logger.warning(f"Validation Error Payload [path={request.url.path}]: {body_bytes.decode('utf-8')} || Errors: {errors}")
+    except Exception as e:
+        logger.warning(f"Failed to read validation error payload: {e}")
     
     response = JSONResponse(
         status_code=422,

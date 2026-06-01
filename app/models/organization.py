@@ -56,6 +56,8 @@ class Organization(Base):
     audit_events = relationship("AuditEvent", back_populates="organization", cascade="all, delete-orphan")
     audit_calendar_entries = relationship("AuditCalendarEntry", back_populates="organization", cascade="all, delete-orphan")
     tech_stack_items = relationship("TechStackItem", back_populates="organization", cascade="all, delete-orphan")
+    software_catalog_items = relationship("SoftwareCatalog", back_populates="organization", cascade="all, delete-orphan")
+    discovered_assets = relationship("DiscoveredAsset", back_populates="organization", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Organization(id={self.id}, name={self.name}, owner={self.owner_uid})>"
