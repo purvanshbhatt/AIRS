@@ -301,15 +301,26 @@ async def configure_wazuh(
     from app.services.audit import record_connector_audit
 
     svc = OrganizationService(db, owner_uid=user.uid)
-    org = svc.get(data.org_id)
+    
+    # Resolve org_id from user if not provided in request
+    org_id = data.org_id
+    if not org_id:
+        orgs = svc.get_all()
+        if not orgs:
+            raise HTTPException(status_code=404, detail="No organization found for the current user.")
+        org_id = orgs[0].id
+
+    org = svc.get(org_id)
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    is_update = db.query(WazuhConfig).filter(WazuhConfig.org_id == data.org_id).first() is not None
+    logger.info("Resolved organization for Wazuh config", extra={"org_id": org_id, "user_uid": user.uid})
+
+    is_update = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first() is not None
     action_type = "updated" if is_update else "configured"
 
     # Save to database
-    config = db.query(WazuhConfig).filter(WazuhConfig.org_id == data.org_id).first()
+    config = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if config:
         config.wazuh_host = data.wazuh_host
         config.wazuh_port = data.wazuh_port
@@ -317,7 +328,7 @@ async def configure_wazuh(
         config.verify_ssl = data.verify_ssl
     else:
         config = WazuhConfig(
-            org_id=data.org_id,
+            org_id=org_id,
             wazuh_host=data.wazuh_host,
             wazuh_port=data.wazuh_port,
             wazuh_api_key=data.wazuh_api_key,
@@ -327,7 +338,7 @@ async def configure_wazuh(
     db.commit()
 
     # Invalidate client factory cache
-    WazuhClientFactory.invalidate_client(data.org_id)
+    WazuhClientFactory.invalidate_client(org_id)
 
     # Dual-write to Firestore
     try:
@@ -336,7 +347,7 @@ async def configure_wazuh(
     except Exception as exc:
         record_connector_audit(
             db=db,
-            org_id=data.org_id,
+            org_id=org_id,
             action=action_type,
             actor=user.uid,
             connector_type="wazuh",
@@ -347,7 +358,7 @@ async def configure_wazuh(
     # Spawn background task to connect, sync, verify, and emit progress
     background_tasks.add_task(
         run_wazuh_connect_sync,
-        org_id=data.org_id,
+        org_id=org_id,
         client_params={
             "wazuh_host": data.wazuh_host,
             "wazuh_port": data.wazuh_port,

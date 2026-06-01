@@ -92,16 +92,22 @@ async def configure_wazuh(
     from app.services.organization import OrganizationService
     from app.services.audit import record_connector_audit
 
+    org_id = config.org_id
+    if not org_id:
+        org_id = _get_user_org_id(db, user)
+
     svc = OrganizationService(db, owner_uid=user.uid)
-    org = svc.get(config.org_id)
+    org = svc.get(org_id)
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    is_update = db.query(WazuhConfig).filter(WazuhConfig.org_id == config.org_id).first() is not None
+    logger.info("Resolved organization for Wazuh config", extra={"org_id": org_id, "user_uid": user.uid})
+
+    is_update = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first() is not None
     action_type = "updated" if is_update else "configured"
 
     # Save to database
-    db_config = db.query(WazuhConfig).filter(WazuhConfig.org_id == config.org_id).first()
+    db_config = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if db_config:
         db_config.wazuh_host = config.wazuh_host
         db_config.wazuh_port = config.wazuh_port
@@ -109,7 +115,7 @@ async def configure_wazuh(
         db_config.verify_ssl = config.verify_ssl
     else:
         db_config = WazuhConfig(
-            org_id=config.org_id,
+            org_id=org_id,
             wazuh_host=config.wazuh_host,
             wazuh_port=config.wazuh_port,
             wazuh_api_key=config.wazuh_api_key,
@@ -119,7 +125,7 @@ async def configure_wazuh(
     db.commit()
 
     # Invalidate client factory cache
-    WazuhClientFactory.invalidate_client(config.org_id)
+    WazuhClientFactory.invalidate_client(org_id)
 
     # Dual-write to Firestore
     try:
@@ -128,7 +134,7 @@ async def configure_wazuh(
     except Exception as exc:
         record_connector_audit(
             db=db,
-            org_id=config.org_id,
+            org_id=org_id,
             action=action_type,
             actor=user.uid,
             connector_type="wazuh",
@@ -137,11 +143,11 @@ async def configure_wazuh(
         )
 
     # Trigger immediate cache polling refresh
-    cache_refreshed = await refresh_wazuh_cache(config.org_id, db)
+    cache_refreshed = await refresh_wazuh_cache(org_id, db)
     if not cache_refreshed:
         record_connector_audit(
             db=db,
-            org_id=config.org_id,
+            org_id=org_id,
             action="auth_failed",
             actor=user.uid,
             connector_type="wazuh",
@@ -155,7 +161,7 @@ async def configure_wazuh(
 
     record_connector_audit(
         db=db,
-        org_id=config.org_id,
+        org_id=org_id,
         action=action_type,
         actor=user.uid,
         connector_type="wazuh",
