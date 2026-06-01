@@ -59,19 +59,6 @@ SENSITIVE_FIELDS: Set[str] = {
     "revenue_band",
 }
 
-# Credentials & secrets that must be encrypted at-rest in Firestore.
-SENSITIVE_INTEGRATION_FIELDS: Set[str] = {
-    "wazuh_api_key",
-    "api_key",
-    "password",
-    "token",
-    "hec_token",
-    "client_secret",
-    "webhook_secret",
-    "secret",
-    "auth_token",
-}
-
 # Fields that must NEVER be encrypted (required for queries / indexing).
 NON_SENSITIVE_FIELDS: Set[str] = {
     "id",
@@ -255,8 +242,6 @@ class EncryptionService:
                 for k, v in document.items()
                 if k not in ("encrypted_blob", "encrypted_iv", "key_version", "encrypted_fields")
             }
-            if "name" not in result:
-                result["name"] = "Encrypted Organization (Key Missing)"
             return result
 
         if not isinstance(sensitive, dict):
@@ -266,8 +251,6 @@ class EncryptionService:
                 for k, v in document.items()
                 if k not in ("encrypted_blob", "encrypted_iv", "key_version", "encrypted_fields")
             }
-            if "name" not in result:
-                result["name"] = "Encrypted Organization (Key Missing)"
             return result
 
         # Merge non-sensitive fields with decrypted sensitive fields
