@@ -93,8 +93,6 @@ async def configure_wazuh(
     from app.services.audit import record_connector_audit
 
     org_id = config.org_id
-    if not org_id:
-        org_id = _get_user_org_id(db, user)
 
     svc = OrganizationService(db, owner_uid=user.uid)
     org = svc.get(org_id)

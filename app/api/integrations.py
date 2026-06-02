@@ -302,13 +302,7 @@ async def configure_wazuh(
 
     svc = OrganizationService(db, owner_uid=user.uid)
     
-    # Resolve org_id from user if not provided in request
     org_id = data.org_id
-    if not org_id:
-        orgs = svc.get_all()
-        if not orgs:
-            raise HTTPException(status_code=404, detail="No organization found for the current user.")
-        org_id = orgs[0].id
 
     org = svc.get(org_id)
     if not org:

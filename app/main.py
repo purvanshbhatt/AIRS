@@ -362,6 +362,21 @@ async def root():
     """Root endpoint."""
     return {"message": f"Welcome to {settings.APP_NAME}"}
 
+@app.get("/api/debug/build-info")
+async def build_info():
+    import os
+    import subprocess
+    git_sha = "unknown"
+    try:
+        git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()
+    except Exception:
+        pass
+    return {
+        "git_sha": git_sha,
+        "build_date": os.environ.get("BUILD_DATE", "unknown"),
+        "environment": settings.ENV.value
+    }
+
 
 if __name__ == "__main__":
     import uvicorn

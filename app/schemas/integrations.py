@@ -155,7 +155,7 @@ class SplunkEvidenceResponse(BaseModel):
 
 class WazuhConfigRequest(BaseModel):
     """Request to configure Wazuh integration."""
-    org_id: Optional[str] = None
+    org_id: str
     wazuh_host: str = Field(..., description="Wazuh manager hostname/IP")
     wazuh_api_key: str = Field(..., min_length=8, description="Wazuh API key")
     wazuh_port: int = Field(default=55000, description="Wazuh API port")
