@@ -265,6 +265,7 @@ DEPLOY_ARGS=(
     --min-instances 0
     --max-instances 10
     --timeout 120
+    --no-cpu-throttling
 )
 DEPLOYED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 

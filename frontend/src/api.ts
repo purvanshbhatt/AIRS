@@ -550,6 +550,19 @@ export const downloadReportById = async (reportId: string): Promise<Blob> => {
       status: response.status,
     });
   }
+  
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    const data = await response.json();
+    if (data && data.url) {
+      const pdfResponse = await fetch(data.url);
+      if (!pdfResponse.ok) {
+        throw new Error('Failed to download PDF from storage');
+      }
+      return pdfResponse.blob();
+    }
+  }
+  
   return response.blob();
 };
 
