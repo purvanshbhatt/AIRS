@@ -59,6 +59,13 @@ SENSITIVE_FIELDS: Set[str] = {
     "revenue_band",
 }
 
+# Fields in integrations/configs that should be encrypted
+SENSITIVE_INTEGRATION_FIELDS: Set[str] = {
+    "wazuh_api_key",
+    "splunk_hec_token",
+    "elastic_api_key",
+}
+
 # Fields that must NEVER be encrypted (required for queries / indexing).
 NON_SENSITIVE_FIELDS: Set[str] = {
     "id",
@@ -227,6 +234,8 @@ class EncryptionService:
                 for k, v in document.items()
                 if k not in ("encrypted_blob", "encrypted_iv", "key_version", "encrypted_fields")
             }
+            if "name" not in result:
+                result["name"] = "Encrypted Organization (Key Missing)"
             return result
 
         try:

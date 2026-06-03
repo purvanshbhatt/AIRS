@@ -634,10 +634,10 @@ startxref
                 action: { label: 'Create', href: '/dashboard/org/new' },
               },
               {
-                icon: PlugZap,
-                title: 'Connect Security Data Sources',
-                description: 'Connect Splunk HEC or Wazuh manager to verify readiness controls automatically.',
-                action: { label: 'Connect', href: '/dashboard/assessment/new' },
+                icon: import.meta.env.VITE_APP_ENV === 'staging' ? PlugZap : ClipboardList,
+                title: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect Security Data Sources' : 'Start a new security readiness assessment',
+                description: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect Splunk HEC or Wazuh manager to verify readiness controls automatically.' : 'Establish your initial posture baseline through guided self-attestation.',
+                action: { label: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect' : 'Start', href: '/dashboard/assessment/new' },
               },
               {
                 icon: Settings,

@@ -61,7 +61,7 @@ function DashboardRoutes() {
           <Route path="/org/new" element={<NewOrg />} />
           <Route path="/assessments" element={<Assessments />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/assessment/new" element={<NewAssessment />} />
+          <Route path="/assessment/new" element={import.meta.env.VITE_APP_ENV === 'staging' ? <NewAssessment /> : <QuickAssessment />} />
           <Route path="/assessment/quick" element={<QuickAssessment />} />
           <Route path="/results/:id" element={<Results />} />
           <Route path="/reports" element={<Reports />} />
@@ -136,7 +136,7 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <DashboardLayout>
-                    <NewAssessment />
+                    {import.meta.env.VITE_APP_ENV === 'staging' ? <NewAssessment /> : <QuickAssessment />}
                   </DashboardLayout>
                 </ProtectedRoute>
               }

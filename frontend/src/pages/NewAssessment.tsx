@@ -146,6 +146,7 @@ export default function NewAssessment() {
   }, [selectedOrgId, loadIntegrationStatus]);
 
   const handleConfigureWazuh = async () => {
+    console.log("selectedOrgId", selectedOrgId);
     if (!selectedOrgId || !wazuhHost.trim()) return;
     setBusy(true);
     setError('');

@@ -6,6 +6,9 @@ from app.models.telemetry_event import TelemetryEvent
 from app.models.connector import Connector
 import uuid
 
+import pytest
+
+@pytest.mark.asyncio
 async def test_verification_engine():
     db = SessionLocal()
     try:

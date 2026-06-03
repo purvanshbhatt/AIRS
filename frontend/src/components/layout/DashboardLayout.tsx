@@ -40,7 +40,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
   { name: 'Results', href: '/dashboard/reports', icon: FileText },
-  { name: 'Integrations', href: '/dashboard/integrations', icon: Settings },
+  { name: 'Integrations', href: '/dashboard/integrations', icon: Settings, stagingOnly: true },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
   { name: 'Governance', href: '/dashboard/governance', icon: ShieldCheck },
