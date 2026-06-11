@@ -113,6 +113,8 @@ elseif ($SetSecrets -notmatch "ENCRYPTION_SECRET=") {
     Write-Host "WARNING: -SetSecrets does not include ENCRYPTION_SECRET. Firestore encryption may be disabled at runtime." -ForegroundColor Yellow
 }
 
+$minInstances = if ($Prod) { "1" } else { "0" }
+
 # Build gcloud command — use the YAML env-vars-file directly
 $deployArgs = @(
     "run", "deploy", $ServiceName,
@@ -120,7 +122,7 @@ $deployArgs = @(
     "--region", $Region,
     "--memory", "512Mi",
     "--cpu", "1",
-    "--min-instances", "0",
+    "--min-instances", $minInstances,
     "--max-instances", "10",
     "--timeout", "120"
 )

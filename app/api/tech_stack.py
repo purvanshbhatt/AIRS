@@ -49,12 +49,13 @@ async def list_items(
 ):
     """GET /api/governance/{org_id}/tech-stack"""
     _verify_org(db, user, org_id)
-    
-    from app.core.config import settings
-    if settings.is_staging or settings.ENV == "staging":
-        from app.services.asset_discovery import AssetDiscoveryService
-        discovery_svc = AssetDiscoveryService(db, org_id)
-        discovery_svc.discover_assets()
+    # Run technology discovery (Wazuh, Splunk, Intune, AWS) to sync actual assets
+    try:
+        from app.services.discovery.orchestrator import TechnologyDiscoveryOrchestrator
+        orchestrator = TechnologyDiscoveryOrchestrator(db, org_id)
+        orchestrator.run_discovery_cycle()
+    except Exception as e:
+        logger.error(f"Auto-discovery cycle failed during tech stack list: {e}")
         
     svc = TechStackService(db, org_id)
     items = svc.list_all()

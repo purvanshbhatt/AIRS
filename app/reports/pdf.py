@@ -495,7 +495,7 @@ class ProfessionalPDFGenerator:
                                   'frontend', 'public', 'favicon.png')
         if os.path.exists(logo_path):
             try:
-                logo = Image(logo_path, width=0.8 * inch, height=0.8 * inch)
+                logo = Image(logo_path, width=1.5 * inch, height=1.5 * inch)
                 logo.hAlign = 'CENTER'
                 elements.append(logo)
                 elements.append(Spacer(1, 0.2 * inch))

@@ -67,11 +67,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
                 root.classList.remove('dark');
             }
             
-            // Dynamically update favicon based on the application's active theme
-            const favicons = document.querySelectorAll('link[rel="icon"]');
-            favicons.forEach(favicon => {
-                favicon.setAttribute('href', resolved === 'dark' ? '/Favicon Dark.svg' : '/Favicon Light.svg');
-            });
+            // Dynamically update legacy SVG favicon based on the application's active theme
+            const svgFavicon = document.querySelector('#favicon-svg');
+            if (svgFavicon) {
+                svgFavicon.setAttribute('href', resolved === 'dark' ? '/Favicon Dark.svg' : '/Favicon Light.svg');
+            }
         };
 
         if (FORCE_LIGHT_THEME) {
