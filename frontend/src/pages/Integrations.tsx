@@ -52,6 +52,7 @@ import {
   Database,
   RefreshCw,
 } from 'lucide-react';
+import { ConnectorActivityPanel } from '../components/ConnectorActivityPanel';
 
 export default function Integrations() {
   const isReadOnly = useIsReadOnly();
@@ -86,6 +87,7 @@ export default function Integrations() {
   const [wazuhApiKey, setWazuhApiKey] = useState('');
   const [wazuhConfigured, setWazuhConfigured] = useState(false);
   const [wazuhConnected, setWazuhConnected] = useState(false);
+  const [wazuhSyncing, setWazuhSyncing] = useState(false);
   const [evidenceResults, setEvidenceResults] = useState<SplunkEvidenceResponse | null>(null);
   const [evidenceLoading, setEvidenceLoading] = useState(false);
 
@@ -128,7 +130,15 @@ export default function Integrations() {
         setWebhooks(hooks);
         setExternalFindings(findings);
         setSplunkConnected(findings.length > 0);
-        setWazuhConfigured(integrationStatus.wazuh_status === 'configured');
+        const isWazuhConfigured = integrationStatus.wazuh_status === 'configured';
+        setWazuhConfigured(isWazuhConfigured);
+        if (isWazuhConfigured) {
+          setWazuhHost(integrationStatus.wazuh_host || '');
+          setWazuhPort(integrationStatus.wazuh_port || 55000);
+        } else {
+          setWazuhHost('');
+          setWazuhPort(55000);
+        }
         // Check if Splunk HEC is configured
         try {
           const cfg = await getSplunkConfig(selectedOrgId);
@@ -421,74 +431,87 @@ export default function Integrations() {
       </Card>
 
       {/* Wazuh Connector Card */}
-      <Card className="hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
-        <CardHeader>
-          <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
-            <PlugZap className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-            Wazuh Connector (Lab)
-          </CardTitle>
-          <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">
-            Connect a Wazuh manager to pull agent status and vulnerability telemetry.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Wazuh Manager</h3>
-              <Badge variant={wazuhConnected ? 'success' : 'outline'} className="gap-1.5 rounded-xl px-3 py-1 font-bold">
-                <span
-                  className={`inline-block h-2 w-2 rounded-full ${wazuhConnected ? 'bg-primary-500 animate-pulse' : 'bg-slate-400 animate-pulse'}`}
-                />
-                {wazuhConnected ? 'Connected' : wazuhConfigured ? 'Offline' : 'Not Configured'}
-              </Badge>
-            </div>
-            {wazuhConfigured ? (
-              <div className="space-y-2">
-                <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
-                  Connected to: <span className="font-mono text-xs text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800">{wazuhHost}:{wazuhPort}</span>
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button size="sm" className="rounded-xl font-extrabold shadow-sm" onClick={async () => {
-                    if (!selectedOrgId) return;
-                    setBusy(true); setError(''); setNotice('');
-                    try {
-                      const status = await getWazuhAgentStatus(selectedOrgId);
-                      setWazuhConnected(status.disconnection_rate <= 10);
-                      setNotice(`Agents: ${status.active_agents}/${status.total_agents} active (${status.disconnection_rate}% disconnected)`);
-                    } catch (err) {
-                      const msg = (err as Error).message || '';
-                      if (msg.includes('action_required') || msg.includes('Wazuh not configured')) {
-                        setWazuhConfigured(false);
-                        setError('Wazuh not configured. Connect your SOC Lab.');
-                      } else {
-                        setError(msg || 'Failed to query Wazuh');
+      {wazuhSyncing ? (
+        <ConnectorActivityPanel
+          orgId={selectedOrgId}
+          host={wazuhHost}
+          port={Number(wazuhPort)}
+          onClose={() => setWazuhSyncing(false)}
+          onSuccess={() => {
+            setWazuhSyncing(false);
+            setWazuhConfigured(true);
+            setWazuhConnected(true);
+          }}
+        />
+      ) : (
+        <Card className="hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg flex items-center gap-2">
+              <PlugZap className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+              Wazuh Connector (Lab)
+            </CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold">
+              Connect a Wazuh manager to pull agent status and vulnerability telemetry.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Wazuh Manager</h3>
+                <Badge variant={wazuhConnected ? 'success' : 'outline'} className="gap-1.5 rounded-xl px-3 py-1 font-bold">
+                  <span
+                    className={`inline-block h-2 w-2 rounded-full ${wazuhConnected ? 'bg-primary-500 animate-pulse' : 'bg-slate-400 animate-pulse'}`}
+                  />
+                  {wazuhConnected ? 'Connected' : wazuhConfigured ? 'Offline' : 'Not Configured'}
+                </Badge>
+              </div>
+              {wazuhConfigured ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 font-semibold">
+                    Connected to: <span className="font-mono text-xs text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800">{wazuhHost}:{wazuhPort}</span>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" className="rounded-xl font-extrabold shadow-sm" onClick={async () => {
+                      if (!selectedOrgId) return;
+                      setBusy(true); setError(''); setNotice('');
+                      try {
+                        const status = await getWazuhAgentStatus(selectedOrgId);
+                        setWazuhConnected(status.disconnection_rate <= 10);
+                        setNotice(`Agents: ${status.active_agents}/${status.total_agents} active (${status.disconnection_rate}% disconnected)`);
+                      } catch (err) {
+                        const msg = (err as Error).message || '';
+                        if (msg.includes('action_required') || msg.includes('Wazuh not configured')) {
+                          setWazuhConfigured(false);
+                          setError('Wazuh not configured. Connect your SOC Lab.');
+                        } else {
+                          setError(msg || 'Failed to query Wazuh');
+                        }
                       }
-                    }
-                    setBusy(false);
-                  }} disabled={busy || !selectedOrgId}>{busy ? 'Querying...' : 'Fetch Live Telemetry'}</Button>
+                      setBusy(false);
+                    }} disabled={busy || !selectedOrgId}>{busy ? 'Querying...' : 'Fetch Live Telemetry'}</Button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <Input label="Manager Host" value={wazuhHost} onChange={(e) => setWazuhHost(e.target.value)} placeholder="wazuh.local" />
-                <Input label="Port" value={String(wazuhPort)} onChange={(e) => setWazuhPort(Number(e.target.value))} placeholder="55000" />
-                <Input label="API Key / Password" value={wazuhApiKey} onChange={(e) => setWazuhApiKey(e.target.value)} placeholder="secret" />
-                <div className="flex items-center gap-2 pt-1">
-                  <Button size="sm" className="rounded-xl font-extrabold shadow-sm" onClick={async () => {
-                    if (!selectedOrgId) return; setBusy(true); setError(''); setNotice('');
-                    try {
-                      await configureWazuh({ org_id: selectedOrgId, wazuh_host: wazuhHost, wazuh_api_key: wazuhApiKey, wazuh_port: Number(wazuhPort) });
-                      setWazuhConfigured(true);
-                      setNotice('Wazuh configured successfully.');
-                    } catch (err) { setError((err as Error).message || 'Failed to configure Wazuh'); }
-                    setBusy(false);
-                  }} disabled={busy || !selectedOrgId || isReadOnly}>Connect Wazuh</Button>
+              ) : (
+                <div className="space-y-3">
+                  <Input label="Manager Host" value={wazuhHost} onChange={(e) => setWazuhHost(e.target.value)} placeholder="wazuh.local" />
+                  <Input label="Port" value={String(wazuhPort)} onChange={(e) => setWazuhPort(Number(e.target.value))} placeholder="55000" />
+                  <Input label="API Key / Password" value={wazuhApiKey} onChange={(e) => setWazuhApiKey(e.target.value)} placeholder="secret" />
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button size="sm" className="rounded-xl font-extrabold shadow-sm" onClick={async () => {
+                      if (!selectedOrgId) return; setBusy(true); setError(''); setNotice('');
+                      try {
+                        await configureWazuh({ org_id: selectedOrgId, wazuh_host: wazuhHost, wazuh_api_key: wazuhApiKey, wazuh_port: Number(wazuhPort) });
+                        setWazuhSyncing(true);
+                      } catch (err) { setError((err as Error).message || 'Failed to configure Wazuh'); }
+                      setBusy(false);
+                    }} disabled={busy || !selectedOrgId || isReadOnly}>Connect Wazuh</Button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {error && (
         <div className="p-3.5 bg-red-50/20 dark:bg-red-950/10 border border-red-200 dark:border-red-900/40 rounded-2xl text-sm text-red-700 dark:text-red-400 font-semibold shadow-sm">{error}</div>

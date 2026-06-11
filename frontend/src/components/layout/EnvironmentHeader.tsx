@@ -20,14 +20,17 @@ export function EnvironmentHeader() {
   }, [addToast]);
 
   const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const search = typeof window !== 'undefined' ? window.location.search : '';
   
   const isStaging = host === 'staging.resilai.org' || 
                     host.includes('staging') || 
+                    search.includes('env=staging') ||
                     import.meta.env.VITE_APP_ENV === 'staging' || 
                     import.meta.env.MODE === 'staging';
 
   const isDemo = host === 'demo.resilai.org' || 
                  host.includes('demo') || 
+                 search.includes('env=demo') ||
                  import.meta.env.VITE_APP_ENV === 'demo' || 
                  import.meta.env.MODE === 'demo';
 
@@ -45,18 +48,24 @@ export function EnvironmentHeader() {
 
   if (isStaging) {
     return (
-      <div className="h-[36px] bg-amber-500/10 border-b border-amber-500/50 text-amber-600 dark:text-amber-400 text-xs font-semibold flex items-center justify-center gap-2 select-none z-[60] sticky top-0 backdrop-blur-sm">
+      <div className="h-[36px] overflow-hidden bg-amber-100 dark:bg-amber-950 border-b border-amber-300 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 text-xs font-semibold flex items-center justify-center gap-2 select-none z-[60] sticky top-0 shadow-sm">
         <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 animate-pulse" />
-        <span>STAGING ENVIRONMENT - GOVERNANCE SPRINT ACTIVE. DATA MAY BE FLUSHED.</span>
+        <span className="truncate px-2">
+          <span className="md:hidden">STAGING ACTIVE</span>
+          <span className="hidden md:inline">STAGING ENVIRONMENT - GOVERNANCE SPRINT ACTIVE. DATA MAY BE FLUSHED.</span>
+        </span>
       </div>
     );
   }
 
   if (isDemo) {
     return (
-      <div className="h-[36px] bg-blue-500/10 border-b border-blue-500/50 text-blue-600 dark:text-blue-400 text-xs font-semibold flex items-center justify-center gap-2 select-none z-[60] sticky top-0 backdrop-blur-sm">
+      <div className="h-[36px] overflow-hidden bg-blue-100 dark:bg-blue-950 border-b border-blue-300 dark:border-blue-900/60 text-blue-800 dark:text-blue-200 text-xs font-semibold flex items-center justify-center gap-2 select-none z-[60] sticky top-0 shadow-sm">
         <Lock className="w-4 h-4 text-blue-500 shrink-0" />
-        <span>DEMO ENVIRONMENT - LOCKED AT NIST CSF 2.0 MILESTONE.</span>
+        <span className="truncate px-2">
+          <span className="md:hidden">DEMO - NIST CSF 2.0</span>
+          <span className="hidden md:inline">DEMO ENVIRONMENT - LOCKED AT NIST CSF 2.0 MILESTONE.</span>
+        </span>
       </div>
     );
   }

@@ -21,8 +21,9 @@ from fastapi import Depends, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 from app.db.database import engine, Base
-from app.api import router as api_router
 from app.api.routes.health import router as health_router
+from app.api import router as api_router
+from app.services.audit import register_system_auditor
 
 import logging
 
@@ -30,6 +31,10 @@ logger = logging.getLogger("airs.main")
 
 # Initialize logging first
 setup_logging()
+
+# Initialize tracing
+from app.observability.tracing import setup_tracing
+setup_tracing()
 
 # ── Deployment Validation (Fail-Fast) ──
 # CRITICAL: This MUST run before any other initialization.
@@ -134,6 +139,9 @@ def _sync_firestore_on_startup():
 
 _sync_firestore_on_startup()
 
+# Register the system auditing trace to record all configuration mutations
+register_system_auditor()
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="ResilAI - AI Incident Readiness Score API",
@@ -143,6 +151,91 @@ app = FastAPI(
     redoc_url=None,
     openapi_url=None,
 )
+
+async def poll_wazuh_telemetry():
+    """Background task to periodically poll Wazuh manager telemetry and update cache."""
+    import asyncio
+    from app.db.database import SessionLocal
+    from app.models.wazuh_config import WazuhConfig
+    from app.services.wazuh_client import WazuhClientFactory
+    from app.models.wazuh_telemetry_cache import WazuhTelemetryCache
+    from app.services.audit import record_connector_audit
+    import json
+    
+    # Wait for the app to initialize
+    await asyncio.sleep(5)
+    
+    while True:
+        try:
+            db = SessionLocal()
+            try:
+                configs = db.query(WazuhConfig).all()
+                for cfg in configs:
+                    org_id = cfg.org_id
+                    client = WazuhClientFactory.get_client(org_id, db)
+                    if client:
+                        try:
+                            status_resp = await client.get_agent_status()
+                            vuln_resp = await client.get_vulnerabilities()
+                            
+                            cache = db.query(WazuhTelemetryCache).filter(WazuhTelemetryCache.org_id == org_id).first()
+                            if not cache:
+                                cache = WazuhTelemetryCache(org_id=org_id)
+                                db.add(cache)
+                            
+                            cache.agent_status = json.dumps(status_resp.to_dict())
+                            cache.vulnerabilities = json.dumps(vuln_resp.to_dict())
+                            db.commit()
+                            
+                            record_connector_audit(
+                                db=db,
+                                org_id=org_id,
+                                action="poll_success",
+                                actor="system",
+                                connector_type="wazuh",
+                                status="success"
+                            )
+                        except Exception as poll_err:
+                            logger.error(f"Failed polling telemetry for org {org_id}: {poll_err}")
+                            record_connector_audit(
+                                db=db,
+                                org_id=org_id,
+                                action="poll_failed",
+                                actor="system",
+                                connector_type="wazuh",
+                                status="failed",
+                                extra_details={"error": str(poll_err)}
+                            )
+            finally:
+                db.close()
+        except Exception as e:
+            logger.error(f"Error in poll_wazuh_telemetry loop: {e}")
+            
+        await asyncio.sleep(60)
+
+@app.on_event("startup")
+async def start_background_tasks():
+    """Start background tasks and schedulers."""
+    import asyncio
+    asyncio.create_task(poll_wazuh_telemetry())
+    
+    # Start the global task scheduler
+    from app.tasks.scheduler import scheduler
+    scheduler.start()
+
+    # Start the intelligence task scheduler
+    from app.tasks.intelligence_task import start_intelligence_scheduler
+    start_intelligence_scheduler()
+
+@app.on_event("shutdown")
+async def stop_background_tasks():
+    """Stop all background tasks."""
+    from app.tasks.scheduler import scheduler
+    scheduler.stop()
+
+    # Stop the intelligence task scheduler
+    from app.tasks.intelligence_task import stop_intelligence_scheduler
+    stop_intelligence_scheduler()
 
 security = HTTPBasic()
 
@@ -182,14 +275,17 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 # Get validated CORS origins - single source of truth
 # This validates scheme, hostname, and blocks wildcards in production
+# Relax CORS in staging to allow local frontend testing
+is_strict_cors = settings.ENV in ("prod", "demo")
+
 cors_origins = get_allowed_origins(
     env_var="CORS_ALLOW_ORIGINS",
     default=settings.CORS_ALLOW_ORIGINS,
-    is_production=settings.is_prod
+    is_production=is_strict_cors
 )
 
 # Log CORS configuration at startup for operator visibility
-log_cors_config(cors_origins, is_production=settings.is_prod)
+log_cors_config(cors_origins, is_production=is_strict_cors)
 
 # Configure CORS middleware
 # Explicitly allow Authorization header for Firebase token auth
@@ -215,11 +311,71 @@ app.include_router(api_router, prefix="/api")
 from app.api.internal import router as internal_router
 app.include_router(internal_router, prefix="/internal")
 
+# ── Real-Time Telemetry WebSocket Endpoint ──
+from fastapi import WebSocket, WebSocketDisconnect
+
+@app.websocket("/ws/telemetry")
+async def websocket_telemetry_endpoint(websocket: WebSocket, org_id: str | None = None):
+    """WebSocket connection that registers clients for real-time, event-driven GHI posture updates."""
+    from app.core.websocket_manager import telemetry_ws_manager
+    from app.db.database import SessionLocal
+    from app.models.organization import Organization
+    import json
+
+    # Resolve active organization
+    db = SessionLocal()
+    resolved_org_id = org_id
+    try:
+        if not resolved_org_id:
+            org = db.query(Organization).first()
+            if org:
+                resolved_org_id = org.id
+    except Exception as exc:
+        logger.error(f"Error resolving default organization for WebSocket: {exc}")
+    finally:
+        db.close()
+
+    if not resolved_org_id:
+        await websocket.accept()
+        await websocket.send_text(json.dumps({"error": "No organization found"}))
+        await websocket.close()
+        return
+
+    await telemetry_ws_manager.connect(resolved_org_id, websocket)
+
+    # Send the current posture state immediately upon connection
+    await telemetry_ws_manager.broadcast_org_update(resolved_org_id)
+
+    try:
+        while True:
+            # Keep connection open and listen for client disconnects
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        telemetry_ws_manager.disconnect(resolved_org_id, websocket)
+    except Exception as exc:
+        logger.error(f"WebSocket telemetry client error: {exc}")
+        telemetry_ws_manager.disconnect(resolved_org_id, websocket)
+
 
 @app.get("/")
 async def root():
     """Root endpoint."""
     return {"message": f"Welcome to {settings.APP_NAME}"}
+
+@app.get("/api/debug/build-info")
+async def build_info():
+    import os
+    import subprocess
+    git_sha = "unknown"
+    try:
+        git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("ascii").strip()
+    except Exception:
+        pass
+    return {
+        "git_sha": git_sha,
+        "build_date": os.environ.get("BUILD_DATE", "unknown"),
+        "environment": settings.ENV.value
+    }
 
 
 if __name__ == "__main__":

@@ -692,3 +692,82 @@ class TelemetryVerificationService:
                 stale_count, organization_id, siem_source
             )
         return stale_count
+
+    def calculate_roi_metrics(self, org_id: str) -> Dict[str, Any]:
+        """Calculate dynamic ROI metrics for the organization.
+
+        Base Manual Audit Hours = (Total Applicable Controls * 4 hours).
+        Automated Hours = (Controls verified via active Splunk/Wazuh connectors * 4 hours).
+        Audit Hours Saved = Base Manual Hours - (Base Manual Hours - Automated Hours).
+        Revenue Protected = mapped GHI score tier to predefined risk-reduction model.
+        """
+        from app.models.assessment import Assessment, AssessmentStatus
+        from app.services.continuous_scoring import ContinuousScoringEngine
+
+        # Find the latest completed assessment for the organization
+        latest_assessment = (
+            self._db.query(Assessment)
+            .filter(
+                Assessment.organization_id == org_id,
+                Assessment.status == AssessmentStatus.COMPLETED
+            )
+            .order_by(Assessment.created_at.desc())
+            .first()
+        )
+
+        total_controls = 25
+        automated_controls = 0
+
+        if latest_assessment:
+            # Total controls count
+            total_controls_count = (
+                self._db.query(Finding)
+                .filter(Finding.assessment_id == latest_assessment.id)
+                .count()
+            )
+            if total_controls_count > 0:
+                total_controls = total_controls_count
+
+            # Automated controls count (SOC_VERIFIED status)
+            automated_controls = (
+                self._db.query(Finding)
+                .join(FindingProvenance, Finding.id == FindingProvenance.finding_id)
+                .filter(
+                    Finding.assessment_id == latest_assessment.id,
+                    FindingProvenance.verification_status == ProvenanceStatus.SOC_VERIFIED
+                )
+                .count()
+            )
+
+        base_manual_hours = total_controls * 4
+        automated_hours = automated_controls * 4
+        hours_saved = base_manual_hours - (base_manual_hours - automated_hours)
+
+        # Get continuous GHI score
+        scoring_engine = ContinuousScoringEngine(self._db)
+        score_data = scoring_engine.calculate_continuous_score(org_id)
+        ghi = score_data.get("ghi_score", 0.0)
+
+        # Fallback to the latest completed assessment overall_score if continuous score is 0.0
+        if ghi == 0.0 and latest_assessment:
+            ghi = latest_assessment.overall_score or 0.0
+
+        # Map GHI score tier to predefined risk-reduction financial model
+        if ghi >= 90:
+            revenue_protected = 1500000
+        elif ghi >= 75:
+            revenue_protected = 1000000
+        elif ghi >= 50:
+            revenue_protected = 500000
+        else:
+            revenue_protected = 250000
+
+        return {
+            "base_manual_hours": base_manual_hours,
+            "automated_hours": automated_hours,
+            "hours_saved": hours_saved,
+            "revenue_protected": revenue_protected,
+            "total_controls": total_controls,
+            "automated_controls": automated_controls,
+        }
+

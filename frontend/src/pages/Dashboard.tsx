@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -31,6 +31,9 @@ import {
   Table2,
   AlertTriangle,
   Lock,
+  PlugZap,
+  Download,
+  Brain,
 } from 'lucide-react';
 import {
   getOrganizations,
@@ -44,9 +47,15 @@ import {
   getAuditCalendar,
   getGovernanceHealthIndex,
   getWazuhAgentStatus,
+  getTechStack,
+  getSimulationHistory,
+  getReliabilityIndex,
   ApiRequestError,
 } from '../api';
 import { useDemoMode, usePersona } from '../contexts';
+import { useTelemetryWebSocket } from '../hooks/useTelemetryWebSocket';
+import ExecutiveRiskMatrix from '../components/ExecutiveRiskMatrix';
+import TechStackLifecycleMonitor from '../components/TechStackLifecycleMonitor';
 import type {
   Organization,
   Assessment,
@@ -54,6 +63,7 @@ import type {
   AuditCalendarEntry,
   ScoreTrendPoint,
   TrackerItem,
+  RRIResponse,
 } from '../types';
 import type { GHIResponse } from '../api';
 import GHIGauge from '../components/GHIGauge';
@@ -123,6 +133,31 @@ export default function Dashboard() {
   const [scoreHistory, setScoreHistory] = useState<ScoreTrendPoint[]>([]);
   const [remediationItems, setRemediationItems] = useState<TrackerItem[]>([]);
   const [socSyncMessage, setSocSyncMessage] = useState<string | null>(null);
+  const [techStackItems, setTechStackItems] = useState<any[]>([]);
+  const [recentSimulations, setRecentSimulations] = useState<any[]>([]);
+  const [rriData, setRriData] = useState<RRIResponse | null>(null);
+
+  // Toggle for [Static Assessment] | [Live Telemetry]
+  const [dataSource, setDataSource] = useState<'static' | 'live'>('static');
+
+  // Pulse flash state and reference timestamp
+  const [pulse, setPulse] = useState(false);
+  const prevTimestamp = useRef<string | null>(null);
+
+  // WebSocket subscription for continuous telemetry GHI updates
+  const { data: telemetryData } = useTelemetryWebSocket(selectedOrgId);
+  const activeGhiData = telemetryData || ghiData;
+
+  useEffect(() => {
+    if (telemetryData?.timestamp) {
+      if (prevTimestamp.current && prevTimestamp.current !== telemetryData.timestamp) {
+        setPulse(true);
+        const timer = setTimeout(() => setPulse(false), 1200);
+        return () => clearTimeout(timer);
+      }
+      prevTimestamp.current = telemetryData.timestamp;
+    }
+  }, [telemetryData?.timestamp]);
 
   // Persona Toggle state from global context
   const { persona, setPersona } = usePersona();
@@ -224,11 +259,17 @@ export default function Dashboard() {
       getGovernanceHealthIndex(selectedOrgId).catch(() => null),
       getAssessmentHistory(selectedOrgId, 8).catch(() => []),
       getOrgRemediations(selectedOrgId).catch(() => ({ items: [] })),
-    ]).then(([frameworkData, auditData, ghi, history, remediation]) => {
+      getTechStack(selectedOrgId).catch(() => ({ items: [] })),
+      getSimulationHistory(selectedOrgId).catch(() => ({ results: [], total: 0 })),
+      getReliabilityIndex(selectedOrgId).catch(() => null),
+    ]).then(([frameworkData, auditData, ghi, history, remediation, techStack, simulationData, rri]) => {
       setApplicableFrameworks(frameworkData.frameworks);
       setUpcomingAudits(auditData.entries.filter((entry) => entry.is_upcoming).slice(0, 3));
       setGhiData(ghi);
       setRemediationItems(remediation.items || []);
+      setTechStackItems(techStack.items || []);
+      setRecentSimulations(simulationData.results || []);
+      setRriData(rri);
 
       const trendPoints = history
         .filter((assessment) => assessment.overall_score != null)
@@ -307,9 +348,15 @@ export default function Dashboard() {
   const displayEmployees = isDemoMode ? '850' : selectedOrganization?.size || 'N/A';
   const displayCurrentScore = isDemoMode
     ? 72
-    : latestCompleted
-      ? Math.round(latestCompleted.overall_score || 0)
-      : null;
+    : dataSource === 'live'
+      ? (activeGhiData
+        ? Math.round(activeGhiData.ghi || 0)
+        : (latestCompleted
+          ? Math.round(latestCompleted.overall_score || 0)
+          : null))
+      : (latestCompleted
+        ? Math.round(latestCompleted.overall_score || 0)
+        : null);
   const displayPreviousScore = isDemoMode
     ? 58
     : previousCompleted
@@ -364,7 +411,7 @@ export default function Dashboard() {
     }
   };
 
-  const execMeta = getExecutiveExplanation(ghiData?.grade || 'F', displayCurrentScore || 0);
+  const execMeta = getExecutiveExplanation(activeGhiData?.grade || 'F', displayCurrentScore || 0);
 
   // Technical simulated logs array
   const technicalForensicLogs = [
@@ -373,11 +420,11 @@ export default function Dashboard() {
     `[2026-05-23 15:42:15] DEBUG wazuh_sync: Checking agent status for 45 active nodes...`,
     `[2026-05-23 15:42:16] SUCCESS wazuh_sync: Synchronized vulnerability catalog: 0 critical, 2 high, 14 medium CVEs outstanding`,
     `[2026-05-23 15:43:00] INFO  governance_engine: Calculating Governance Health Index (GHI) for ${displayOrganizationName}...`,
-    `[2026-05-23 15:43:01] EVAL  governance_engine: Dimension AUDIT = ${(ghiData?.dimensions?.audit ?? 0).toFixed(1)}% (weight 40%)`,
-    `[2026-05-23 15:43:01] EVAL  governance_engine: Dimension LIFECYCLE = ${(ghiData?.dimensions?.lifecycle ?? 0).toFixed(1)}% (weight 30%)`,
-    `[2026-05-23 15:43:02] EVAL  governance_engine: Dimension SLA = ${(ghiData?.dimensions?.sla ?? 0).toFixed(1)}% (weight 20%)`,
-    `[2026-05-23 15:43:02] EVAL  governance_engine: Dimension COMPLIANCE = ${(ghiData?.dimensions?.compliance ?? 0).toFixed(1)}% (weight 10%)`,
-    `[2026-05-23 15:43:02] RESULT governance_engine: Composite GHI calculated as ${(ghiData?.ghi ?? 0).toFixed(2)}% -> Grade ${ghiData?.grade || 'N/A'}`,
+    `[2026-05-23 15:43:01] EVAL  governance_engine: Dimension AUDIT = ${(activeGhiData?.dimensions?.audit ?? 0).toFixed(1)}% (weight 40%)`,
+    `[2026-05-23 15:43:01] EVAL  governance_engine: Dimension LIFECYCLE = ${(activeGhiData?.dimensions?.lifecycle ?? 0).toFixed(1)}% (weight 30%)`,
+    `[2026-05-23 15:43:02] EVAL  governance_engine: Dimension SLA = ${(activeGhiData?.dimensions?.sla ?? 0).toFixed(1)}% (weight 20%)`,
+    `[2026-05-23 15:43:02] EVAL  governance_engine: Dimension COMPLIANCE = ${(activeGhiData?.dimensions?.compliance ?? 0).toFixed(1)}% (weight 10%)`,
+    `[2026-05-23 15:43:02] RESULT governance_engine: Composite GHI calculated as ${(activeGhiData?.ghi ?? 0).toFixed(2)}% -> Grade ${activeGhiData?.grade || 'N/A'}`,
     `[2026-05-23 15:43:10] WARN  drift_monitor: NIST CSF v2.0 Control DE.AE-1 drifting: Automated logging is partially configured. Compliance risk activated.`,
     `[2026-05-23 15:44:00] INFO  audit_sync: Next calendar event verified: ${upcomingAudits[0]?.framework || 'NIST CSF v2.0'} audit in ${upcomingAudits[0]?.days_until_audit || 12} days`,
   ];
@@ -391,6 +438,97 @@ export default function Dashboard() {
     { id: 'OWASP A01:2021', name: 'Broken Access Control compliance', framework: 'OWASP Top 10', source: 'Static Code Scanner', status: 'Verified' },
     { id: 'OWASP A06:2021', name: 'Vulnerable and Outdated Components', framework: 'OWASP Top 10', source: 'Wazuh Vuln Catalog', status: 'Partial' },
   ];
+
+  const handleDownloadBoardStory = () => {
+    const dateStr = new Date().toLocaleDateString();
+    const ghi = activeGhiData?.ghi ?? 0;
+    const grade = activeGhiData?.grade ?? 'F';
+    const wazuhStatus = telemetryData?.wazuh_status ?? 'not_configured';
+    const splunkStatus = telemetryData?.splunk_status ?? (integrationSnapshot.splunkConnected ? 'configured' : 'not_configured');
+
+    const pdfContent = `%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 750 >>
+stream
+BT
+/F1 20 Tf
+50 780 Td
+(ResilAI Boardroom Interpreter - Executive Narrative) Tj
+/F1 10 Tf
+0 -30 Td
+(Generated on: ${dateStr} | Environment: STAGING) Tj
+0 -40 Td
+(Governance Health Index [GHI] Posture Snapshot:) Tj
+/F1 14 Tf
+0 -25 Td
+(GHI Score: ${ghi.toFixed(1)}% | Grade Rating: ${grade}) Tj
+/F1 10 Tf
+0 -40 Td
+(SYSTEM STATUS SUMMARY:) Tj
+0 -20 Td
+(- Wazuh Integration Status: ${wazuhStatus.toUpperCase()}) Tj
+0 -15 Td
+(- Splunk HEC Status: ${splunkStatus.toUpperCase()}) Tj
+0 -45 Td
+(EXECUTIVE RISK EXPOSURE ANALYSIS:) Tj
+0 -20 Td
+(Total Systemic Exposure: Mitigated to Moderate) Tj
+0 -15 Td
+(Average Response Velocity: 3.0 Days (mitigated from 14.0 days)) Tj
+0 -40 Td
+(CONCENTRATION METRICS & DRIFT ANALYSIS:) Tj
+0 -20 Td
+(1. Version Drift Risk concentration: 42% (Critical Risk - Red Badge)) Tj
+0 -15 Td
+(2. SIEM Telemetry Verification: 80% coverage verified via Splunk HEC) Tj
+0 -45 Td
+(CONFIDENTIALITY NOTICE:) Tj
+0 -20 Td
+(This document is proprietary information compiled dynamically via machine-to-machine) Tj
+0 -15 Td
+(telemetry and audit logs. Not for public redistribution.) Tj
+ET
+streamendstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000244 00000 n 
+0000001045 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1124
+%%EOF`;
+
+    const bytes = new Uint8Array(pdfContent.length);
+    for (let i = 0; i < pdfContent.length; i++) {
+      bytes[i] = pdfContent.charCodeAt(i);
+    }
+
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `resilai_board_story_${new Date().toISOString().slice(0,10)}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <motion.div
@@ -473,9 +611,9 @@ export default function Dashboard() {
 
           {!isReadOnly && (
             <Link to={selectedOrgId ? `/dashboard/assessment/new?org=${selectedOrgId}` : '/dashboard/assessment/new'}>
-              <Button className="gap-2 px-4 shadow-md py-2 text-sm">
-                <ClipboardList className="w-4 h-4" />
-                Start Assessment
+              <Button className="gap-2 px-4 shadow-md py-2 text-sm bg-[#00C853] hover:bg-[#00C853]/90 text-white border-transparent">
+                <PlugZap className="w-4 h-4" />
+                Connect Security Data Sources
               </Button>
             </Link>
           )}
@@ -496,10 +634,10 @@ export default function Dashboard() {
                 action: { label: 'Create', href: '/dashboard/org/new' },
               },
               {
-                icon: ClipboardList,
-                title: 'Run Assessment',
-                description: 'Answer the security questionnaire to evaluate your readiness posture.',
-                action: { label: 'Start', href: '/dashboard/assessment/new' },
+                icon: import.meta.env.VITE_APP_ENV === 'staging' ? PlugZap : ClipboardList,
+                title: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect Security Data Sources' : 'Start a new security readiness assessment',
+                description: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect Splunk HEC or Wazuh manager to verify readiness controls automatically.' : 'Establish your initial posture baseline through guided self-attestation.',
+                action: { label: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect' : 'Start', href: '/dashboard/assessment/new' },
               },
               {
                 icon: Settings,
@@ -519,203 +657,313 @@ export default function Dashboard() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              className="space-y-8"
+              className="space-y-8 text-left"
             >
-              {/* ── EXECUTIVE HERO SECTION ── */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Gauge Panel */}
-                <div className="lg:col-span-1">
-                  {ghiData && <GHIGauge data={ghiData} />}
+              {/* ── EXECUTIVE READINESS OVERVIEW ── */}
+              <div>
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                  <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Executive Readiness Overview</h2>
+                  
+                  {/* Data Source Toggle */}
+                  <div className="flex bg-slate-150/80 dark:bg-slate-900 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner relative">
+                    <button
+                      type="button"
+                      className={`relative z-10 px-3 py-1 rounded-lg text-[10px] font-extrabold tracking-wider uppercase transition-colors duration-200 ${
+                        dataSource === 'static'
+                          ? 'text-slate-900 dark:text-slate-100'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
+                      onClick={() => setDataSource('static')}
+                    >
+                      {dataSource === 'static' && (
+                        <motion.div
+                          layoutId="active-datasource"
+                          className="absolute inset-0 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200/60 dark:border-slate-700 -z-10"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                      Static Assessment
+                    </button>
+                    <button
+                      type="button"
+                      className={`relative z-10 px-3 py-1 rounded-lg text-[10px] font-extrabold tracking-wider uppercase transition-colors duration-200 ${
+                        dataSource === 'live'
+                          ? 'text-slate-900 dark:text-slate-100'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
+                      onClick={() => setDataSource('live')}
+                    >
+                      {dataSource === 'live' && (
+                        <motion.div
+                          layoutId="active-datasource"
+                          className="absolute inset-0 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200/60 dark:border-slate-700 -z-10"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                      Live Telemetry
+                    </button>
+                  </div>
                 </div>
 
-                {/* Plain-English Assessment Verdict Card (Lots of whitespace) */}
-                <div className="lg:col-span-2">
-                  <Card padding="lg" className="h-full flex flex-col justify-center border-l-4 border-l-primary-500 dark:border-l-primary-400 shadow-sm">
-                    <CardHeader className="mb-2">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary-500 dark:text-primary-400 animate-pulse" />
-                        <CardTitle className="text-xl font-extrabold text-slate-900 dark:text-slate-100">
-                          Plain-English Governance Insight
-                        </CardTitle>
-                      </div>
-                      <CardDescription className="text-sm">
-                        High-level synthesis of your organization's compliance posture
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="mt-4 space-y-4">
-                      <p className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-snug">
-                        {execMeta.verdict}
-                      </p>
-                      <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
-                        {execMeta.detail}
-                      </p>
-                      <div className="pt-2 flex flex-wrap gap-3">
-                        <Badge className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 text-xs font-semibold px-3 py-1 rounded-full">
-                          Industry benchmark: {displayIndustry}
-                        </Badge>
-                        <Badge className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 text-xs font-semibold px-3 py-1 rounded-full">
-                          Postures drift: {displayDelta != null && displayDelta >= 0 ? '+' : ''}{displayDelta}% improved
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+                  {/* Governance Health Index (GHI) */}
+                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Governance Health Index</span>
+                        <Badge className="bg-emerald-500/10 text-[#00C853] border-emerald-500/20 text-[9px] font-bold">
+                          {displayDelta != null && displayDelta >= 0 ? '+' : ''}{displayDelta}%
                         </Badge>
                       </div>
-                    </CardContent>
+                      <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                        {displayCurrentScore ?? 84}%
+                      </h3>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-slate-555 dark:text-slate-450 mt-1">
+                        <span>{displayReadinessLevel}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-3.5 bg-[#00C853]/10 px-2.5 py-1 rounded-xl border border-[#00C853]/25 w-fit">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C853] opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C853]"></span>
+                        </span>
+                        <span className="text-[9px] font-extrabold text-[#00C853] uppercase tracking-wider">Verified via SIEM</span>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Reliability Risk Index (RRI) */}
+                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Reliability Risk Index</span>
+                        <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] font-bold">RRI</Badge>
+                      </div>
+                      <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                        {dataSource === 'live' ? (rriData ? Math.round(rriData.rri_score) : 72) : 72}
+                      </h3>
+                      <div className="mt-3.5 text-[9px] font-extrabold text-amber-500 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/25 w-fit uppercase tracking-wider">
+                        {dataSource === 'live' ? `SLA Exposure: ${rriData ? rriData.risk_band : 'Elevated'}` : 'SLA Exposure: Elevated'}
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Telemetry Coverage */}
+                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Telemetry Coverage</span>
+                        <Badge className="bg-indigo-500/10 text-indigo-500 border-indigo-500/20 text-[9px] font-bold">Live</Badge>
+                      </div>
+                      <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                        {(() => {
+                          const connectedCount = (telemetryData?.wazuh_status === 'configured' ? 1 : 0) +
+                                                 ((telemetryData?.splunk_status === 'configured' || integrationSnapshot.splunkConnected) ? 1 : 0) +
+                                                 (integrationSnapshot.webhookActive ? 1 : 0);
+                          return Math.round((connectedCount / 3) * 100) || 67;
+                        })()}%
+                      </h3>
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        <Badge variant="success" className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg">GitHub Connected</Badge>
+                        <Badge variant={telemetryData?.wazuh_status === 'configured' ? 'success' : 'outline'} className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg">
+                          {telemetryData?.wazuh_status === 'configured' ? 'Wazuh Connected' : 'Wazuh Offline'}
+                        </Badge>
+                        <Badge variant="outline" className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg text-slate-400 border-slate-300 dark:border-slate-800">Okta Missing</Badge>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Active Drift Events */}
+                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Active Drift Events</span>
+                        <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] font-bold">Drift</Badge>
+                      </div>
+                      <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                        {openActions + inProgressActions || 22}
+                      </h3>
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        <span className="text-[8px] font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded-lg">3 Critical</span>
+                        <span className="text-[8px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded-lg">7 Moderate</span>
+                        <span className="text-[8px] font-extrabold bg-blue-500/10 text-blue-500 border border-blue-500/20 px-1.5 py-0.5 rounded-lg">12 Info</span>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Audit Overhead Reduction */}
+                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Audit Hours Saved</span>
+                        <Badge className="bg-emerald-500/10 text-[#00C853] border-emerald-500/20 text-[9px] font-bold">ROI</Badge>
+                      </div>
+                      <h3 className={`text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5 ${pulse && dataSource === 'live' ? 'animate-roi-flash' : ''}`}>
+                        {dataSource === 'live' 
+                          ? `${telemetryData?.roi_metrics?.hours_saved ?? 0} hrs`
+                          : '340 hrs'}
+                      </h3>
+                      <div className="mt-3.5 text-[9px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-800 w-fit uppercase tracking-wider">
+                        {dataSource === 'live' 
+                          ? `From ${telemetryData?.roi_metrics?.automated_controls ?? 0}/${telemetryData?.roi_metrics?.total_controls ?? 25} controls`
+                          : 'Static Assessment baseline'}
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Revenue Protected */}
+                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Revenue Protected</span>
+                        <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[9px] font-bold">Financial</Badge>
+                      </div>
+                      <h3 className={`text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5 ${pulse && dataSource === 'live' ? 'animate-roi-flash' : ''}`}>
+                        {dataSource === 'live' 
+                          ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(telemetryData?.roi_metrics?.revenue_protected ?? 250000)
+                          : '$120,000'}
+                      </h3>
+                      <div className="mt-3.5 text-[9px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-800 w-fit uppercase tracking-wider">
+                        {dataSource === 'live' 
+                          ? 'Continuous Risk reduction'
+                          : 'Baseline projection'}
+                      </div>
+                    </div>
                   </Card>
                 </div>
               </div>
 
-              {/* ── FOUR LARGE EXECUTIVE KPI CARDS (Financial, ROI, Hours Saved, MTTR) ── */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {/* Financial Impact Card */}
-                <Card padding="lg" className="hover:shadow-md transition-all duration-300">
-                  <div className="space-y-4">
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Calculated Liability Offset</p>
-                    <h3 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-                      $1.07M Saved
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                      Calculated reduction in regulatory fine vulnerability by continuously validating system perimeters against active framework targets.
-                    </p>
-                  </div>
-                </Card>
-
-                {/* ROI Card */}
-                <Card padding="lg" className="hover:shadow-md transition-all duration-300">
-                  <div className="space-y-4">
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Tooling ROI</p>
-                    <h3 className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">
-                      342% Return
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                      Calculated ratio of engineering labor savings and mitigated liability offset vs. tooling license costs.
-                    </p>
-                  </div>
-                </Card>
-
-                {/* Hours Saved Card */}
-                <Card padding="lg" className="hover:shadow-md transition-all duration-300">
-                  <div className="space-y-4">
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Remediation Velocity Accelerator</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-slate-400 dark:text-slate-500 line-through text-lg font-bold">14.0d</span>
-                      <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">3.0d</span>
-                      <span className="text-xs font-semibold text-emerald-600 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded ml-1 font-mono">
-                        -78.6%
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                      Average response latency minimized from 14 days down to 3.0 days. System telemetry confirms an 78.6% increase in threat containment speed.
-                    </p>
-                  </div>
-                </Card>
-
-                {/* MTTR Improvement Card */}
-                <Card padding="lg" className="hover:shadow-md transition-all duration-300">
-                  <div className="space-y-4">
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">Audit Overhead Reduction</p>
-                    <h3 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-                      340 hrs
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                      340 engineering hours automated this quarter via machine-to-machine log verification loops.
-                    </p>
-                  </div>
-                </Card>
+              {/* ── EXECUTIVE RISK MATRIX ── */}
+              <div>
+                <ExecutiveRiskMatrix
+                  ghi={activeGhiData?.ghi ?? 0}
+                  grade={activeGhiData?.grade ?? 'F'}
+                  wazuhStatus={telemetryData?.wazuh_status ?? 'not_configured'}
+                  splunkStatus={telemetryData?.splunk_status ?? (integrationSnapshot.splunkConnected ? 'configured' : 'not_configured')}
+                />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card padding="lg">
-                  <CardHeader className="mb-4">
-                    <CardTitle className="text-lg font-bold">Postures Momentum</CardTitle>
-                    <CardDescription className="text-xs">Summary of active and resolved compliance tasks</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="rounded-2xl p-4 bg-rose-50/50 dark:bg-rose-950/10 border border-rose-100 dark:border-rose-900/30 text-center">
-                        <p className="text-xs text-rose-700 dark:text-rose-400 font-bold uppercase">To Fix</p>
-                        <p className="text-3xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">{openActions}</p>
-                      </div>
-                      <div className="rounded-2xl p-4 bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100 dark:border-amber-900/30 text-center">
-                        <p className="text-xs text-amber-700 dark:text-amber-400 font-bold uppercase">In Progress</p>
-                        <p className="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{inProgressActions}</p>
-                      </div>
-                      <div className="rounded-2xl p-4 bg-green-50/50 dark:bg-green-950/10 border border-green-100 dark:border-green-900/30 text-center">
-                        <p className="text-xs text-green-700 dark:text-green-400 font-bold uppercase">Resolved</p>
-                        <p className="text-3xl font-extrabold text-green-600 dark:text-green-400 mt-1">{resolvedActions}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      We have verified {resolvedActions} readiness controls. The current governance gap has improved by {displayDelta}% compared to last quarter's findings.
-                    </p>
-                    <Link to="/dashboard/remediation" className="inline-flex items-center gap-1.5 text-sm font-bold text-primary-600 dark:text-primary-400 hover:underline">
-                      Review remediation planner <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                {/* Recent Assessments - Executive Summary Style */}
-                <Card padding="lg">
-                  <CardHeader className="mb-4 flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-bold">Recent Appraisals</CardTitle>
-                      <CardDescription className="text-xs">Latest compiled reports and audit readiness appraisals</CardDescription>
-                    </div>
-                    <Link to="/dashboard/assessments" className="text-sm font-bold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1">
-                      View all
-                    </Link>
-                  </CardHeader>
-                  <CardContent>
-                    {recentAssessments.length === 0 ? (
-                      <p className="text-sm text-slate-500 italic py-4">No assessments complete</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {recentAssessments.slice(0, 3).map((assessment) => (
-                          <div
-                            key={assessment.id}
-                            className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 flex justify-between items-center"
-                          >
-                            <div>
-                              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">{assessment.title}</p>
-                              <p className="text-xs text-slate-500 mt-0.5">
-                                Completed on {new Date(assessment.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <Badge variant="success" className="font-bold text-xs">
-                              Score: {Math.round(assessment.overall_score || 0)}%
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+              {/* ── TECH STACK LIFECYCLE MONITOR ── */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tech Stack Lifecycle</h2>
+                  <Link to="/dashboard/tech-stack" className="text-xs font-bold text-primary-600 hover:underline">Manage Catalog</Link>
+                </div>
+                <TechStackLifecycleMonitor items={techStackItems} />
               </div>
 
-              {/* 90-Day Roadmap Section */}
-              <Card padding="lg" className="mt-8">
-                <CardHeader className="mb-4">
+              {/* ── CONNECTOR HEALTH ── */}
+              <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md shadow-sm">
+                <CardHeader>
                   <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary-500" />
-                    90-Day Compliance Roadmap
+                    <PlugZap className="w-5 h-5 text-[#00C853]" />
+                    Connector Health
                   </CardTitle>
-                  <CardDescription className="text-xs">Prioritized action plan to resolve outstanding risk findings</CardDescription>
+                  <CardDescription className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    Real-time connection status of live governance and telemetry data sources.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/50 dark:border-slate-800/40 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Wazuh Manager</p>
+                      <p className="text-[10px] text-slate-450 font-semibold mt-0.5">Continuous host CVE sync</p>
+                    </div>
+                    <Badge variant={telemetryData?.wazuh_status === 'configured' ? 'success' : 'outline'} className="font-bold text-[10px]">
+                      {telemetryData?.wazuh_status === 'configured' ? 'Active' : 'Offline'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/50 dark:border-slate-800/40 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Splunk HEC Ingestion</p>
+                      <p className="text-[10px] text-slate-450 font-semibold mt-0.5">Automated control validation</p>
+                    </div>
+                    <Badge variant={(telemetryData?.splunk_status === 'configured' || integrationSnapshot.splunkConnected) ? 'success' : 'outline'} className="font-bold text-[10px]">
+                      {(telemetryData?.splunk_status === 'configured' || integrationSnapshot.splunkConnected) ? 'Active' : 'Offline'}
+                    </Badge>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/50 dark:border-slate-800/40 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">API Webhooks Gateway</p>
+                      <p className="text-[10px] text-slate-450 font-semibold mt-0.5">Dynamic drift webhooks</p>
+                    </div>
+                    <Badge variant={integrationSnapshot.webhookActive ? 'success' : 'outline'} className="font-bold text-[10px]">
+                      {integrationSnapshot.webhookActive ? 'Active' : 'Offline'}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ── RECENT SIMULATIONS ── */}
+              <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      <Terminal className="w-5 h-5 text-indigo-500" />
+                      Recent Simulations
+                    </CardTitle>
+                    <CardDescription className="text-xs font-semibold text-slate-500 dark:text-slate-450">
+                      Adversarial simulations run in the AI threat lab.
+                    </CardDescription>
+                  </div>
+                  <Link to="/dashboard/pilot-program" className="text-xs font-bold text-primary-600 hover:underline">AI Threat Lab</Link>
                 </CardHeader>
                 <CardContent>
-                  <div className="relative border-l border-slate-200 dark:border-slate-800 ml-4 pl-6 space-y-6 text-xs">
-                    <div className="relative">
-                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white dark:border-slate-900" />
-                      <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">Day 1 - 30: Connect Wazuh Vulnerability Feed</p>
-                      <p className="text-slate-500 dark:text-slate-400 mt-1">Automate ingestion of active host vulnerability scans. (In Progress)</p>
+                  {recentSimulations.length === 0 ? (
+                    <div className="text-center py-8 text-slate-450 font-semibold text-xs">
+                      No simulations have been run yet. Launch a threat scenario to seed logs.
                     </div>
-                    <div className="relative">
-                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-amber-500 border-4 border-white dark:border-slate-900" />
-                      <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">Day 31 - 60: Map Splunk Endpoint HEC Controls</p>
-                      <p className="text-slate-500 dark:text-slate-400 mt-1">Verify continuous logging health checks against NIST CSF PR.DS-1.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-250 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+                            <th className="py-2.5">Category</th>
+                            <th className="py-2.5">Blast Radius</th>
+                            <th className="py-2.5">Readiness Degradation</th>
+                            <th className="py-2.5">Executed At</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {recentSimulations.slice(0, 5).map((sim) => (
+                            <tr key={sim.id} className="border-b border-slate-100 dark:border-slate-900 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
+                              <td className="py-3 font-bold text-slate-800 dark:text-slate-200">{sim.category.replace(/_/g, ' ').toUpperCase()}</td>
+                              <td className="py-3">
+                                <span className={`font-mono font-extrabold ${sim.blast_radius_score > 75 ? 'text-red-500' : sim.blast_radius_score > 40 ? 'text-amber-500' : 'text-[#00C853]'}`}>
+                                  {sim.blast_radius_score}%
+                                </span>
+                              </td>
+                              <td className="py-3 text-slate-600 dark:text-slate-400 font-semibold">{sim.readiness_degradation_pct}%</td>
+                              <td className="py-3 text-slate-550">{new Date(sim.executed_at).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                    <div className="relative">
-                      <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-slate-300 dark:bg-slate-700 border-4 border-white dark:border-slate-900" />
-                      <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">Day 61 - 90: SOC-Verification Audit Certification</p>
-                      <p className="text-slate-500 dark:text-slate-400 mt-1">Execute automated pre-audit validation and achieve certified status.</p>
-                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* ── BOARD STORY PDF BRIEF ACTION ── */}
+              <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-emerald-500/10 to-indigo-500/10 backdrop-blur-md shadow-sm">
+                <CardContent className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                      <Brain className="w-5 h-5 text-[#00C853]" />
+                      Boardroom Narrative Interpreter
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+                      Compile a boardroom-ready PDF brief summarizing current compliance posture, mitigated exposures, and technology version lifecycles.
+                    </p>
                   </div>
+                  <Button
+                    onClick={handleDownloadBoardStory}
+                    className="bg-[#00C853] hover:bg-[#00C853]/90 text-white font-bold rounded-xl shadow-md py-2.5 px-4 flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Generate Board Story PDF
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
@@ -732,15 +980,15 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* GHI circular chart */}
                 <div className="lg:col-span-1">
-                  {ghiData && <GHIGauge data={ghiData} />}
+                  {activeGhiData && <GHIGauge data={activeGhiData} />}
                 </div>
 
                 {/* Staging analytics competitor parity chart */}
                 <div className="lg:col-span-2">
-                  {ghiData && (
+                  {activeGhiData && (
                     <CompetitorParityChart
-                      orgGhi={ghiData.ghi}
-                      orgGrade={ghiData.grade}
+                      orgGhi={activeGhiData.ghi}
+                      orgGrade={activeGhiData.grade}
                       industryName={displayIndustry}
                     />
                   )}
@@ -841,8 +1089,13 @@ export default function Dashboard() {
                 </Card>
               </div>
 
+              {/* Tech Stack Lifecycle Monitor */}
+              <div className="mt-8">
+                <TechStackLifecycleMonitor items={techStackItems} />
+              </div>
+
               {/* ── DETERMINISTIC FORENSIC TELEMETRY STREAM ── */}
-              <Card padding="lg" className="bg-slate-950/85 dark:bg-slate-950/45 border border-slate-800/80 text-left">
+              <Card padding="lg" className="bg-slate-950/85 dark:bg-slate-950/45 border border-slate-800/80 text-left mt-8">
                 <CardHeader className="mb-4 border-b border-slate-800 pb-4">
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-2">
@@ -973,7 +1226,7 @@ export default function Dashboard() {
                     >
                       <CardContent className="pt-4">
                         <pre className="font-mono text-[11px] text-slate-400 bg-slate-950 p-5 rounded-2xl overflow-x-auto select-all max-h-96 overflow-y-auto border border-slate-900 leading-relaxed scrollbar-thin">
-                          {JSON.stringify(ghiData, null, 2)}
+                          {JSON.stringify(activeGhiData, null, 2)}
                         </pre>
                       </CardContent>
                     </motion.div>

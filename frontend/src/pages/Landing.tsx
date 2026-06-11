@@ -147,7 +147,10 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-blue-500/20 transition-colors duration-300">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
+      <nav 
+        className="fixed left-0 right-0 z-50 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300"
+        style={{ top: 'var(--banner-height, 0px)' }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
@@ -193,7 +196,7 @@ export default function Landing() {
               <ThemeToggle />
 
               <Link
-                to="/assessment/new"
+                to="/assessment/quick"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 text-sm font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-sm"
               >
                 Get Started
@@ -552,7 +555,7 @@ export default function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link
-              to="/assessment/new"
+              to="/assessment/quick"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-base font-semibold rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-100 shadow-lg transition-all active:scale-[0.98]"
             >
               Start Free Assessment

@@ -162,6 +162,13 @@ async def ingest_siem_event(
                     })
                 )
 
+                # Broadcast GHI update dynamically via WebSockets
+                from app.core.websocket_manager import telemetry_ws_manager
+                from app.models.assessment import Assessment as AssessmentModel
+                assessment = db.query(AssessmentModel).filter(AssessmentModel.id == finding.assessment_id).first()
+                if assessment and assessment.organization_id:
+                    await telemetry_ws_manager.broadcast_org_update(assessment.organization_id, db_session=db)
+
     return result
 
 

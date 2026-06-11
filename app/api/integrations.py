@@ -6,7 +6,7 @@ In demo mode (ENV=demo), write operations are blocked with 403 Forbidden.
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.core.auth import User, require_auth
@@ -179,7 +179,11 @@ async def seed_mock_splunk_findings(
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     try:
-        return service.seed_mock_splunk_findings(org_id=data.org_id)
+        res = service.seed_mock_splunk_findings(org_id=data.org_id)
+        # Broadcast real-time GHI update over WebSockets
+        from app.core.websocket_manager import telemetry_ws_manager
+        await telemetry_ws_manager.broadcast_org_update(res["org_id"], db_session=db)
+        return res
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
@@ -233,10 +237,7 @@ async def test_webhook_url(
 # ── Splunk Evidence-Based Verification ──────────────────────────────
 
 
-# In-memory store for Splunk HEC configs per org (staging-only feature).
-# In production, these would be stored encrypted in Firestore/Secret Manager.
-_splunk_configs: dict[str, dict[str, str]] = {}
-_wazuh_configs: dict[str, dict[str, str | int | bool]] = {}
+# In-memory store replaced with Connector table backed by AES-256-GCM.
 
 
 @router.post("/orgs/{org_id}/splunk-config", status_code=status.HTTP_200_OK)
@@ -254,41 +255,72 @@ async def configure_splunk_hec(
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    _splunk_configs[org_id] = {
-        "base_url": data.base_url,
-        "hec_token": data.hec_token,
-    }
+    from app.models.connector import Connector, ConnectorType, ConnectorAuthMethod, ConnectorStatus
+    import json
+    
+    conn = db.query(Connector).filter(
+        Connector.org_id == org_id,
+        Connector.connector_type == ConnectorType.splunk
+    ).first()
+    
+    if not conn:
+        conn = Connector(
+            org_id=org_id,
+            connector_type=ConnectorType.splunk,
+            display_name="Splunk SIEM",
+            auth_method=ConnectorAuthMethod.api_key,
+            status=ConnectorStatus.active
+        )
+        db.add(conn)
+        
+    conn.encrypted_credentials = data.hec_token
+    conn.config = {"base_url": data.base_url}
+    db.commit()
+    
+    # Broadcast real-time GHI update over WebSockets
+    from app.core.websocket_manager import telemetry_ws_manager
+    await telemetry_ws_manager.broadcast_org_update(org_id, db_session=db)
+    
     return {"org_id": org_id, "status": "configured", "base_url": data.base_url}
 
 
 @router.post("/integrations/wazuh/configure", status_code=status.HTTP_200_OK)
 async def configure_wazuh(
     data: WazuhConfigRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
 ):
     """Save Wazuh manager credentials for the current user/org context."""
+    import logging
+    logger = logging.getLogger("airs.api.integrations")
+    logger.info("Wazuh Request Received", extra={"payload": data.model_dump()})
     from app.services.organization import OrganizationService
+    from app.services.wazuh_client import WazuhClientFactory, run_wazuh_connect_sync
+    from app.services.audit import record_connector_audit
+
     svc = OrganizationService(db, owner_uid=user.uid)
-    org = svc.get(data.org_id)
+    
+    # Resolve org_id from user if not provided in request
+    org_id = data.org_id
+    if not org_id:
+        orgs = svc.get_all()
+        if not orgs:
+            raise HTTPException(status_code=404, detail="No organization found for the current user.")
+        org_id = orgs[0].id
+
+    org = svc.get(org_id)
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    client = WazuhClient(
-        host=data.wazuh_host,
-        api_key=data.wazuh_api_key,
-        port=data.wazuh_port,
-        verify_ssl=data.verify_ssl,
-    )
-    # Best-effort validation: if the lab is reachable, cache the config.
-    try:
-        await client._get_jwt_token()
-    except Exception:
-        # Keep the config even if the lab is temporarily unreachable.
-        pass
+    logger.info("Resolved organization for Wazuh config", extra={"org_id": org_id, "user_uid": user.uid})
 
-    config = db.query(WazuhConfig).filter(WazuhConfig.org_id == data.org_id).first()
+    is_update = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first() is not None
+    action_type = "updated" if is_update else "configured"
+
+    # Save to database
+    config = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if config:
         config.wazuh_host = data.wazuh_host
         config.wazuh_port = data.wazuh_port
@@ -296,7 +328,7 @@ async def configure_wazuh(
         config.verify_ssl = data.verify_ssl
     else:
         config = WazuhConfig(
-            org_id=data.org_id,
+            org_id=org_id,
             wazuh_host=data.wazuh_host,
             wazuh_port=data.wazuh_port,
             wazuh_api_key=data.wazuh_api_key,
@@ -305,11 +337,41 @@ async def configure_wazuh(
         db.add(config)
     db.commit()
 
+    # Invalidate client factory cache
+    WazuhClientFactory.invalidate_client(org_id)
+
+    # Dual-write to Firestore
+    try:
+        from app.db.firestore import firestore_save_wazuh_config
+        firestore_save_wazuh_config(config)
+    except Exception as exc:
+        record_connector_audit(
+            db=db,
+            org_id=org_id,
+            action=action_type,
+            actor=user.uid,
+            connector_type="wazuh",
+            status="partial_success",
+            extra_details={"warning": f"Firestore write failed: {exc}"}
+        )
+
+    # Spawn background task to connect, sync, verify, and emit progress
+    background_tasks.add_task(
+        run_wazuh_connect_sync,
+        org_id=org_id,
+        client_params={
+            "wazuh_host": data.wazuh_host,
+            "wazuh_port": data.wazuh_port,
+            "wazuh_api_key": data.wazuh_api_key,
+        },
+        user_uid=user.uid
+    )
+
     return {
-        "status": "configured",
+        "status": "initiating",
         "host": data.wazuh_host,
         "port": data.wazuh_port,
-        "message": "Wazuh connection saved successfully",
+        "message": "Wazuh configuration connection sync initiated in background",
     }
 
 
@@ -321,18 +383,29 @@ async def get_integration_status(
 ):
     """Return a unified integration health snapshot for the dashboard."""
     wazuh_status = "not_configured"
+    wazuh_host = None
+    wazuh_port = None
     splunk_status = "not_configured"
     
     if org_id:
         cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
         if cfg:
             wazuh_status = "configured"
-        if _splunk_configs.get(org_id):
+            wazuh_host = cfg.wazuh_host
+            wazuh_port = cfg.wazuh_port
+        from app.models.connector import Connector, ConnectorType
+        conn = db.query(Connector).filter(
+            Connector.org_id == org_id,
+            Connector.connector_type == ConnectorType.splunk
+        ).first()
+        if conn and conn.status == "active":
             splunk_status = "configured"
             
     return {
         "wazuh_status": wazuh_status,
         "wazuh_message": "Wazuh manager connected" if wazuh_status == "configured" else "Not configured",
+        "wazuh_host": wazuh_host,
+        "wazuh_port": wazuh_port,
         "splunk_status": splunk_status,
         "splunk_message": "Splunk instance connected" if splunk_status == "configured" else "Not configured",
         "siem_verified_controls": 0,
@@ -346,7 +419,12 @@ async def get_wazuh_agent_status(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
 ):
-    """Fetch live Wazuh agent status for the signed-in user."""
+    """Fetch cached Wazuh agent status for the signed-in user."""
+    from app.models.wazuh_telemetry_cache import WazuhTelemetryCache
+    from app.services.wazuh_client import refresh_wazuh_cache
+    from app.services.audit import record_connector_audit
+    import json
+
     cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if not cfg:
         raise HTTPException(
@@ -357,17 +435,42 @@ async def get_wazuh_agent_status(
             }
         )
 
-    client = WazuhClient(
-        host=str(cfg.wazuh_host),
-        api_key=str(cfg.wazuh_api_key),
-        port=int(cfg.wazuh_port),
-        verify_ssl=bool(cfg.verify_ssl),
+    cache = db.query(WazuhTelemetryCache).filter(WazuhTelemetryCache.org_id == org_id).first()
+    if not cache or not cache.agent_status:
+        # Fallback to refresh cache synchronously on demand
+        refreshed = await refresh_wazuh_cache(org_id, db)
+        if refreshed:
+            cache = db.query(WazuhTelemetryCache).filter(WazuhTelemetryCache.org_id == org_id).first()
+
+    if not cache or not cache.agent_status:
+        record_connector_audit(
+            db=db,
+            org_id=org_id,
+            action="poll_failed",
+            actor=user.uid,
+            connector_type="wazuh",
+            status="failed",
+            extra_details={"error": "Telemetry cache is empty and refresh failed"}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Wazuh telemetry not available",
+                "action_required": "/api/integrations/wazuh/configure"
+            }
+        )
+
+    # Log structured success poll
+    record_connector_audit(
+        db=db,
+        org_id=org_id,
+        action="poll_success",
+        actor=user.uid,
+        connector_type="wazuh",
+        status="success"
     )
 
-    # Reuse the saved host/port to pull live status. If authentication fails,
-    # the client still returns a best-effort lab snapshot rather than 404.
-    result = await client.get_agent_status()
-    return result.to_dict()
+    return json.loads(cache.agent_status)
 
 
 @router.get("/integrations/wazuh/vulnerabilities")
@@ -378,7 +481,12 @@ async def get_wazuh_vulnerabilities(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
 ):
-    """Fetch live Wazuh vulnerabilities for the signed-in user."""
+    """Fetch cached Wazuh vulnerabilities for the signed-in user."""
+    from app.models.wazuh_telemetry_cache import WazuhTelemetryCache
+    from app.services.wazuh_client import refresh_wazuh_cache
+    from app.services.audit import record_connector_audit
+    import json
+
     cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if not cfg:
         raise HTTPException(
@@ -389,14 +497,49 @@ async def get_wazuh_vulnerabilities(
             }
         )
 
-    client = WazuhClient(
-        host=str(cfg.wazuh_host),
-        api_key=str(cfg.wazuh_api_key),
-        port=int(cfg.wazuh_port),
-        verify_ssl=bool(cfg.verify_ssl),
+    cache = db.query(WazuhTelemetryCache).filter(WazuhTelemetryCache.org_id == org_id).first()
+    if not cache or not cache.vulnerabilities:
+        # Fallback to refresh cache synchronously on demand
+        refreshed = await refresh_wazuh_cache(org_id, db)
+        if refreshed:
+            cache = db.query(WazuhTelemetryCache).filter(WazuhTelemetryCache.org_id == org_id).first()
+
+    if not cache or not cache.vulnerabilities:
+        record_connector_audit(
+            db=db,
+            org_id=org_id,
+            action="poll_failed",
+            actor=user.uid,
+            connector_type="wazuh",
+            status="failed",
+            extra_details={"error": "Vulnerabilities cache is empty and refresh failed"}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "Wazuh telemetry not available",
+                "action_required": "/api/integrations/wazuh/configure"
+            }
+        )
+
+    # Log structured success poll
+    record_connector_audit(
+        db=db,
+        org_id=org_id,
+        action="poll_success",
+        actor=user.uid,
+        connector_type="wazuh",
+        status="success"
     )
-    result = await client.get_vulnerabilities(severity=severity, limit=limit)
-    return result.to_dict()
+
+    data = json.loads(cache.vulnerabilities)
+    # Apply filtering post-cache retrieval
+    if severity:
+        data["vulnerabilities"] = [v for v in data.get("vulnerabilities", []) if v.get("severity") == severity.lower()]
+    if limit:
+        data["vulnerabilities"] = data.get("vulnerabilities", [])[:limit]
+        
+    return data
 
 
 @router.get("/orgs/{org_id}/splunk-config")
@@ -406,13 +549,19 @@ async def get_splunk_config(
     user: User = Depends(require_auth),
 ):
     """Check if Splunk HEC is configured for an organization."""
-    cfg = _splunk_configs.get(org_id)
-    if not cfg:
+    from app.models.connector import Connector, ConnectorType
+    conn = db.query(Connector).filter(
+        Connector.org_id == org_id,
+        Connector.connector_type == ConnectorType.splunk
+    ).first()
+    if not conn or conn.status != "active":
         return {"org_id": org_id, "configured": False}
+        
+    config_dict = conn.config or {}
     return {
         "org_id": org_id,
         "configured": True,
-        "base_url": cfg["base_url"],
+        "base_url": config_dict.get("base_url", ""),
         # Never return the token
     }
 
@@ -424,8 +573,16 @@ async def remove_splunk_config(
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
 ):
-    """Remove Splunk HEC credentials for an organization."""
-    _splunk_configs.pop(org_id, None)
+    from app.models.connector import Connector, ConnectorType
+    db.query(Connector).filter(
+        Connector.org_id == org_id,
+        Connector.connector_type == ConnectorType.splunk
+    ).delete()
+    db.commit()
+
+    # Broadcast real-time GHI update over WebSockets
+    from app.core.websocket_manager import telemetry_ws_manager
+    await telemetry_ws_manager.broadcast_org_update(org_id, db_session=db)
 
 
 @router.post("/orgs/{org_id}/splunk-evidence", response_model=SplunkEvidenceResponse)
@@ -445,8 +602,13 @@ async def pull_splunk_evidence(
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    cfg = _splunk_configs.get(org_id)
-    if not cfg:
+    from app.models.connector import Connector, ConnectorType
+    conn = db.query(Connector).filter(
+        Connector.org_id == org_id,
+        Connector.connector_type == ConnectorType.splunk
+    ).first()
+    
+    if not conn or conn.status != "active":
         # Return not-configured result instead of error
         return SplunkEvidenceResponse(
             org_id=org_id,
@@ -468,7 +630,9 @@ async def pull_splunk_evidence(
         )
 
     from app.services.splunk import SplunkService
-    splunk = SplunkService(base_url=cfg["base_url"], hec_token=cfg["hec_token"])
+    config_dict = conn.config or {}
+    base_url = config_dict.get("base_url", "")
+    splunk = SplunkService(base_url=base_url, hec_token=conn.encrypted_credentials)
     raw_results = await splunk.pull_all_evidence()
 
     results = [SplunkEvidenceResult(**r) for r in raw_results]

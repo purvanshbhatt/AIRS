@@ -94,7 +94,9 @@ class FirebaseAuthInterceptor : Interceptor {
             if (isInitialized) {
                 val user = FirebaseAuth.getInstance().currentUser
                 if (user != null) {
-                    val tokenResult = Tasks.await(user.getIdToken(false))
+                    val tokenResult = kotlinx.coroutines.runBlocking {
+                        Tasks.await(user.getIdToken(false))
+                    }
                     val token = tokenResult.token
                     if (!token.isNullOrEmpty()) {
                         requestBuilder.addHeader("Authorization", "Bearer $token")

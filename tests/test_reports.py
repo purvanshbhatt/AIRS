@@ -317,8 +317,9 @@ class TestReportDownload:
             # Download
             resp = client.get(f"/api/reports/{report_id}/download")
             assert resp.status_code == 200
-            assert resp.headers["content-type"] == "application/pdf"
-            assert "attachment" in resp.headers.get("content-disposition", "")
+            assert resp.headers["content-type"] == "application/json"
+            assert "url" in resp.json()
+            assert "signed=mock" in resp.json()["url"]
         
         app.dependency_overrides.clear()
 

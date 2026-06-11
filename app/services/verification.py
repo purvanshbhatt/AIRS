@@ -59,12 +59,141 @@ class VerificationService:
         self,
         wazuh_client: Optional[Any] = None,
         splunk_service: Optional[Any] = None,
+        db: Optional[Any] = None,
     ):
         self._wazuh = wazuh_client
         self._splunk = splunk_service
+        self._db = db
         # Cache SIEM results within a single verification run to avoid duplicate queries
         self._splunk_cache: Dict[str, Any] = {}
         self._wazuh_cache: Dict[str, Any] = {}
+        self._microsoft_cache: Optional[Dict[str, Any]] = None
+
+    def _get_latest_microsoft_telemetry(self) -> Optional[Dict[str, Any]]:
+        """Fetch the latest Microsoft telemetry payload from database."""
+        if self._microsoft_cache is not None:
+            return self._microsoft_cache
+
+        if not self._db:
+            return None
+
+        from app.models.telemetry_event import TelemetryEvent
+        import json
+
+        event = (
+            self._db.query(TelemetryEvent)
+            .filter(TelemetryEvent.source_system == "microsoft")
+            .order_by(TelemetryEvent.created_at.desc())
+            .first()
+        )
+        if event and event.payload:
+            try:
+                if isinstance(event.payload, str):
+                    self._microsoft_cache = json.loads(event.payload)
+                else:
+                    self._microsoft_cache = event.payload
+            except Exception:
+                self._microsoft_cache = {}
+        else:
+            self._microsoft_cache = {}
+
+        return self._microsoft_cache
+
+    def _evaluate_microsoft_evidence(self, finding: Any, payload: Dict[str, Any]) -> Optional[VerificationResultSchema]:
+        """Evaluate a finding against Microsoft telemetry payload."""
+        rule_id = finding.rule_id
+        summary = payload.get("summary", {})
+        now = datetime.now(timezone.utc).isoformat()
+
+        if rule_id in ("DC-001", "DC-002"):
+            edr_cov = summary.get("edr_coverage_pct", 100.0)
+            threshold = 80.0 if rule_id == "DC-001" else 50.0
+            if edr_cov < threshold:
+                return VerificationResultSchema(
+                    finding_id=getattr(finding, "rule_id", None),
+                    rule_id=finding.rule_id,
+                    title=finding.title,
+                    status=VerificationStatusEnum.SOC_VERIFIED,
+                    evidence_summary=f"SIEM-Verified (Microsoft Defender/Intune): EDR coverage is {edr_cov:.1f}%, which is below the threshold of {threshold}%.",
+                    siem_source="microsoft",
+                    siem_query_used="GET /deviceManagement/managedDevices",
+                    event_count=summary.get("total_devices", 0),
+                    log_event_ids=[d.get("device_id") for d in payload.get("intune_devices", [])[:5] if d.get("device_id")],
+                    verified_at=now,
+                )
+            else:
+                return VerificationResultSchema(
+                    finding_id=getattr(finding, "rule_id", None),
+                    rule_id=finding.rule_id,
+                    title=finding.title,
+                    status=VerificationStatusEnum.CONTRADICTED,
+                    evidence_summary=f"SIEM contradiction (Microsoft Defender/Intune): EDR coverage is {edr_cov:.1f}%, which is adequate (>=90%).",
+                    siem_source="microsoft",
+                    siem_query_used="GET /deviceManagement/managedDevices",
+                    event_count=summary.get("total_devices", 0),
+                    log_event_ids=[],
+                    verified_at=now,
+                )
+
+        elif rule_id in ("IV-001", "IV-002"):
+            mfa_rate = summary.get("mfa_enforced_rate_pct", 100.0)
+            if mfa_rate < 100.0:
+                return VerificationResultSchema(
+                    finding_id=getattr(finding, "rule_id", None),
+                    rule_id=finding.rule_id,
+                    title=finding.title,
+                    status=VerificationStatusEnum.SOC_VERIFIED,
+                    evidence_summary=f"SIEM-Verified (Microsoft Entra ID): MFA enforcement rate is {mfa_rate:.1f}%. Identity security is incomplete.",
+                    siem_source="microsoft",
+                    siem_query_used="GET /identity/conditionalAccess/policies",
+                    event_count=summary.get("total_users", 0),
+                    log_event_ids=[u.get("user_id") for u in payload.get("entra_users", [])[:5] if u.get("user_id")],
+                    verified_at=now,
+                )
+            else:
+                return VerificationResultSchema(
+                    finding_id=getattr(finding, "rule_id", None),
+                    rule_id=finding.rule_id,
+                    title=finding.title,
+                    status=VerificationStatusEnum.CONTRADICTED,
+                    evidence_summary=f"SIEM contradiction (Microsoft Entra ID): MFA is 100% enforced via Conditional Access policies.",
+                    siem_source="microsoft",
+                    siem_query_used="GET /identity/conditionalAccess/policies",
+                    event_count=summary.get("total_users", 0),
+                    log_event_ids=[],
+                    verified_at=now,
+                )
+
+        elif rule_id == "TL-001":
+            high_alerts = summary.get("active_high_severity_alerts", 0)
+            if high_alerts > 0:
+                return VerificationResultSchema(
+                    finding_id=getattr(finding, "rule_id", None),
+                    rule_id=finding.rule_id,
+                    title=finding.title,
+                    status=VerificationStatusEnum.SOC_VERIFIED,
+                    evidence_summary=f"SIEM-Verified (Microsoft Defender): Found {high_alerts} active high-severity security alerts.",
+                    siem_source="microsoft",
+                    siem_query_used="GET /security/alerts_v2",
+                    event_count=high_alerts,
+                    log_event_ids=[a.get("alert_id") for a in payload.get("defender_alerts", [])[:5] if a.get("alert_id")],
+                    verified_at=now,
+                )
+            else:
+                return VerificationResultSchema(
+                    finding_id=getattr(finding, "rule_id", None),
+                    rule_id=finding.rule_id,
+                    title=finding.title,
+                    status=VerificationStatusEnum.CONTRADICTED,
+                    evidence_summary="SIEM contradiction (Microsoft Defender): 0 active high-severity alerts detected.",
+                    siem_source="microsoft",
+                    siem_query_used="GET /security/alerts_v2",
+                    event_count=0,
+                    log_event_ids=[],
+                    verified_at=now,
+                )
+
+        return None
 
     # ------------------------------------------------------------------
     # Public API
@@ -81,6 +210,14 @@ class VerificationService:
             VerificationResultSchema with the badge status.
         """
         rule_id = finding.rule_id
+
+        # First, check if Microsoft telemetry is available in database
+        ms_payload = self._get_latest_microsoft_telemetry()
+        if ms_payload:
+            ms_result = self._evaluate_microsoft_evidence(finding, ms_payload)
+            if ms_result:
+                return ms_result
+
         mapping = _RULE_SIEM_MAP.get(rule_id)
 
         if not mapping:

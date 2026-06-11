@@ -66,6 +66,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
             } else {
                 root.classList.remove('dark');
             }
+            
+            // Dynamically update legacy SVG favicon based on the application's active theme
+            const svgFavicon = document.querySelector('#favicon-svg');
+            if (svgFavicon) {
+                svgFavicon.setAttribute('href', resolved === 'dark' ? '/Favicon Dark.svg' : '/Favicon Light.svg');
+            }
         };
 
         if (FORCE_LIGHT_THEME) {

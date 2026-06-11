@@ -119,6 +119,7 @@ class Settings(BaseSettings):
     # Database
     # ===========================================
     DATABASE_URL: str = "sqlite:///./airs.db"
+    DATABASE_REPLICA_URL: Optional[str] = None
     
     # ===========================================
     # CORS Configuration
@@ -126,7 +127,7 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins
     # Example: "http://localhost:3000,https://myapp.com"
     # Use "*" to allow all origins (not recommended for production)
-    CORS_ALLOW_ORIGINS: str = "http://localhost:5173,https://staging.resilai.org,https://demo.resilai.org,https://resilai.org,https://www.resilai.org"
+    CORS_ALLOW_ORIGINS: str = "*"
     
     # ===========================================
     # GCP Settings (Optional)

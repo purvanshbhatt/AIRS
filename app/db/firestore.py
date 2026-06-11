@@ -305,6 +305,9 @@ def sync_orgs_from_firestore(db_session) -> int:
     SQLAlchemy queries work seamlessly.
 
     Returns the number of orgs synced.
+
+    Uses per-row savepoints so that a single corrupt / un-decryptable
+    organization document does not roll back the entire batch.
     """
     if not is_firestore_available():
         return 0
@@ -312,50 +315,68 @@ def sync_orgs_from_firestore(db_session) -> int:
     from app.models.organization import Organization
     from datetime import datetime
 
-    try:
-        docs = firestore_get_all_orgs()
-        count = 0
-        for doc in docs:
-            org_id = doc.get("id")
-            if not org_id:
-                continue
+    docs = firestore_get_all_orgs()
+    count = 0
+    skipped = 0
 
-            existing = db_session.query(Organization).filter(Organization.id == org_id).first()
-            if existing:
-                # Update in-place
-                for key, value in doc.items():
-                    if key in ("created_at", "updated_at"):
-                        if value:
-                            try:
-                                value = datetime.fromisoformat(value)
-                            except (ValueError, TypeError):
+    for doc in docs:
+        org_id = doc.get("id")
+        if not org_id:
+            continue
+
+        try:
+            with db_session.begin_nested():
+                existing = db_session.query(Organization).filter(Organization.id == org_id).first()
+                if existing:
+                    # Update in-place
+                    for key, value in doc.items():
+                        if key in ("created_at", "updated_at"):
+                            if value:
+                                try:
+                                    value = datetime.fromisoformat(value)
+                                except (ValueError, TypeError):
+                                    continue
+                        if hasattr(existing, key):
+                            setattr(existing, key, value)
+                    # Ensure name is never NULL after update (decryption may strip it)
+                    if not existing.name:
+                        existing.name = f"Organization ({org_id[:8]})"
+                else:
+                    # Insert new
+                    org = Organization(id=org_id)
+                    for key, value in doc.items():
+                        if key in ("created_at", "updated_at"):
+                            if value:
+                                try:
+                                    value = datetime.fromisoformat(value)
+                                except (ValueError, TypeError):
+                                    continue
+                            else:
                                 continue
-                    if hasattr(existing, key):
-                        setattr(existing, key, value)
-            else:
-                # Insert new
-                org = Organization(id=org_id)
-                for key, value in doc.items():
-                    if key in ("created_at", "updated_at"):
-                        if value:
-                            try:
-                                value = datetime.fromisoformat(value)
-                            except (ValueError, TypeError):
-                                continue
-                        else:
-                            continue
-                    if hasattr(org, key) and key != "id":
-                        setattr(org, key, value)
-                db_session.add(org)
+                        if hasattr(org, key) and key != "id":
+                            setattr(org, key, value)
+                    # Fallback name when decryption failed and name is missing
+                    if not org.name:
+                        org.name = f"Organization ({org_id[:8]})"
+                    db_session.add(org)
+                db_session.flush()
             count += 1
+        except Exception as row_exc:
+            skipped += 1
+            logger.warning("Skipping org %s during sync: %s", org_id, row_exc)
 
+    try:
         db_session.commit()
-        logger.info("Firestore sync: %d organizations loaded into SQLite", count)
-        return count
     except Exception as exc:
         db_session.rollback()
-        logger.warning("Firestore sync failed: %s", exc)
+        logger.error("Firestore org sync commit failed: %s", exc)
         return 0
+
+    if skipped:
+        logger.warning("Firestore sync: %d orgs loaded, %d skipped due to errors", count, skipped)
+    else:
+        logger.info("Firestore sync: %d organizations loaded into SQLite", count)
+    return count
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -522,6 +543,9 @@ def sync_assessments_from_firestore(db_session) -> int:
 
     This prevents assessment loss after Cloud Run cold starts where SQLite
     is recreated from scratch.
+
+    Uses per-assessment savepoints so that a single corrupt document
+    does not roll back the entire batch.
     """
     if not is_firestore_available():
         return 0
@@ -534,129 +558,141 @@ def sync_assessments_from_firestore(db_session) -> int:
 
     docs = firestore_get_all_assessments()
     restored = 0
+    skipped = 0
+
+    for doc in docs:
+        assessment_id = doc.get("id")
+        org_id = doc.get("organization_id")
+        if not assessment_id or not org_id:
+            continue
+
+        org_exists = db_session.query(Organization).filter(Organization.id == org_id).first()
+        if not org_exists:
+            logger.warning(
+                "Skipping Firestore assessment %s because org %s is missing in SQLite",
+                assessment_id,
+                org_id,
+            )
+            skipped += 1
+            continue
+
+        try:
+            with db_session.begin_nested():
+                existing = db_session.query(Assessment).filter(Assessment.id == assessment_id).first()
+                if existing:
+                    assessment = existing
+                else:
+                    assessment = Assessment(id=assessment_id, organization_id=org_id)
+                    db_session.add(assessment)
+
+                status_raw = doc.get("status") or AssessmentStatus.DRAFT.value
+                try:
+                    assessment.status = AssessmentStatus(status_raw)
+                except Exception:
+                    assessment.status = AssessmentStatus.DRAFT
+
+                assessment.organization_id = org_id
+                assessment.owner_uid = doc.get("owner_uid")
+                assessment.version = doc.get("version") or "1.0.0"
+                assessment.title = doc.get("title")
+                assessment.schema_version = int(doc.get("schema_version") or 1)
+                assessment.overall_score = doc.get("overall_score")
+                assessment.maturity_level = doc.get("maturity_level")
+                assessment.maturity_name = doc.get("maturity_name")
+                assessment.created_at = _iso_to_dt(doc.get("created_at"))
+                assessment.updated_at = _iso_to_dt(doc.get("updated_at"))
+                assessment.completed_at = _iso_to_dt(doc.get("completed_at"))
+
+                db_session.query(Answer).filter(Answer.assessment_id == assessment_id).delete()
+                db_session.query(Score).filter(Score.assessment_id == assessment_id).delete()
+                db_session.query(Finding).filter(Finding.assessment_id == assessment_id).delete()
+
+                for a in doc.get("answers", []):
+                    value_raw = a.get("value")
+                    answer = Answer(
+                        assessment_id=assessment_id,
+                        question_id=a.get("question_id") or "",
+                        value="" if value_raw is None else str(value_raw),
+                        notes=a.get("notes"),
+                    )
+                    if a.get("id"):
+                        answer.id = a.get("id")
+                    answer.created_at = _iso_to_dt(a.get("created_at"))
+                    answer.updated_at = _iso_to_dt(a.get("updated_at"))
+                    db_session.add(answer)
+
+                for s in doc.get("scores", []):
+                    score = Score(
+                        assessment_id=assessment_id,
+                        domain_id=s.get("domain_id") or "",
+                        domain_name=s.get("domain_name") or "",
+                        score=float(s.get("score") or 0),
+                        max_score=float(s.get("max_score") or 5.0),
+                        weight=float(s.get("weight") or 0),
+                        weighted_score=float(s.get("weighted_score") or 0),
+                        raw_points=s.get("raw_points"),
+                        max_raw_points=s.get("max_raw_points"),
+                    )
+                    if s.get("id"):
+                        score.id = s.get("id")
+                    score.created_at = _iso_to_dt(s.get("created_at"))
+                    db_session.add(score)
+
+                for f in doc.get("findings", []):
+                    severity_raw = (f.get("severity") or "medium").lower()
+                    status_raw = (f.get("status") or "open").lower()
+
+                    try:
+                        severity = Severity(severity_raw)
+                    except Exception:
+                        severity = Severity.MEDIUM
+
+                    try:
+                        finding_status = FindingStatus(status_raw)
+                    except Exception:
+                        finding_status = FindingStatus.OPEN
+
+                    finding = Finding(
+                        assessment_id=assessment_id,
+                        title=f.get("title") or "Untitled finding",
+                        description=f.get("description"),
+                        severity=severity,
+                        status=finding_status,
+                        domain_id=f.get("domain_id"),
+                        domain_name=f.get("domain_name"),
+                        question_id=f.get("question_id"),
+                        evidence=f.get("evidence"),
+                        recommendation=f.get("recommendation"),
+                        priority=f.get("priority"),
+                        nist_function=f.get("nist_function"),
+                        nist_category=f.get("nist_category"),
+                        nist_subcategory=f.get("nist_subcategory"),
+                        soc2_controls=f.get("soc2_controls"),
+                    )
+                    if f.get("id"):
+                        finding.id = f.get("id")
+                    finding.created_at = _iso_to_dt(f.get("created_at"))
+                    finding.updated_at = _iso_to_dt(f.get("updated_at"))
+                    db_session.add(finding)
+
+                db_session.flush()
+            restored += 1
+        except Exception as row_exc:
+            skipped += 1
+            logger.warning("Skipping assessment %s during sync: %s", assessment_id, row_exc)
 
     try:
-        for doc in docs:
-            assessment_id = doc.get("id")
-            org_id = doc.get("organization_id")
-            if not assessment_id or not org_id:
-                continue
-
-            org_exists = db_session.query(Organization).filter(Organization.id == org_id).first()
-            if not org_exists:
-                logger.warning(
-                    "Skipping Firestore assessment %s because org %s is missing in SQLite",
-                    assessment_id,
-                    org_id,
-                )
-                continue
-
-            existing = db_session.query(Assessment).filter(Assessment.id == assessment_id).first()
-            if existing:
-                assessment = existing
-            else:
-                assessment = Assessment(id=assessment_id, organization_id=org_id)
-                db_session.add(assessment)
-
-            status_raw = doc.get("status") or AssessmentStatus.DRAFT.value
-            try:
-                assessment.status = AssessmentStatus(status_raw)
-            except Exception:
-                assessment.status = AssessmentStatus.DRAFT
-
-            assessment.organization_id = org_id
-            assessment.owner_uid = doc.get("owner_uid")
-            assessment.version = doc.get("version") or "1.0.0"
-            assessment.title = doc.get("title")
-            assessment.schema_version = int(doc.get("schema_version") or 1)
-            assessment.overall_score = doc.get("overall_score")
-            assessment.maturity_level = doc.get("maturity_level")
-            assessment.maturity_name = doc.get("maturity_name")
-            assessment.created_at = _iso_to_dt(doc.get("created_at"))
-            assessment.updated_at = _iso_to_dt(doc.get("updated_at"))
-            assessment.completed_at = _iso_to_dt(doc.get("completed_at"))
-
-            db_session.query(Answer).filter(Answer.assessment_id == assessment_id).delete()
-            db_session.query(Score).filter(Score.assessment_id == assessment_id).delete()
-            db_session.query(Finding).filter(Finding.assessment_id == assessment_id).delete()
-
-            for a in doc.get("answers", []):
-                value_raw = a.get("value")
-                answer = Answer(
-                    assessment_id=assessment_id,
-                    question_id=a.get("question_id") or "",
-                    value="" if value_raw is None else str(value_raw),
-                    notes=a.get("notes"),
-                )
-                if a.get("id"):
-                    answer.id = a.get("id")
-                answer.created_at = _iso_to_dt(a.get("created_at"))
-                answer.updated_at = _iso_to_dt(a.get("updated_at"))
-                db_session.add(answer)
-
-            for s in doc.get("scores", []):
-                score = Score(
-                    assessment_id=assessment_id,
-                    domain_id=s.get("domain_id") or "",
-                    domain_name=s.get("domain_name") or "",
-                    score=float(s.get("score") or 0),
-                    max_score=float(s.get("max_score") or 5.0),
-                    weight=float(s.get("weight") or 0),
-                    weighted_score=float(s.get("weighted_score") or 0),
-                    raw_points=s.get("raw_points"),
-                    max_raw_points=s.get("max_raw_points"),
-                )
-                if s.get("id"):
-                    score.id = s.get("id")
-                score.created_at = _iso_to_dt(s.get("created_at"))
-                db_session.add(score)
-
-            for f in doc.get("findings", []):
-                severity_raw = (f.get("severity") or "medium").lower()
-                status_raw = (f.get("status") or "open").lower()
-
-                try:
-                    severity = Severity(severity_raw)
-                except Exception:
-                    severity = Severity.MEDIUM
-
-                try:
-                    finding_status = FindingStatus(status_raw)
-                except Exception:
-                    finding_status = FindingStatus.OPEN
-
-                finding = Finding(
-                    assessment_id=assessment_id,
-                    title=f.get("title") or "Untitled finding",
-                    description=f.get("description"),
-                    severity=severity,
-                    status=finding_status,
-                    domain_id=f.get("domain_id"),
-                    domain_name=f.get("domain_name"),
-                    question_id=f.get("question_id"),
-                    evidence=f.get("evidence"),
-                    recommendation=f.get("recommendation"),
-                    priority=f.get("priority"),
-                    nist_function=f.get("nist_function"),
-                    nist_category=f.get("nist_category"),
-                    nist_subcategory=f.get("nist_subcategory"),
-                    soc2_controls=f.get("soc2_controls"),
-                )
-                if f.get("id"):
-                    finding.id = f.get("id")
-                finding.created_at = _iso_to_dt(f.get("created_at"))
-                finding.updated_at = _iso_to_dt(f.get("updated_at"))
-                db_session.add(finding)
-
-            restored += 1
-
         db_session.commit()
-        logger.info("Firestore sync: %d assessments loaded into SQLite", restored)
-        return restored
     except Exception as exc:
         db_session.rollback()
-        logger.warning("Firestore assessment sync failed: %s", exc)
+        logger.error("Firestore assessment sync commit failed: %s", exc)
         return 0
+
+    if skipped:
+        logger.warning("Firestore sync: %d assessments loaded, %d skipped", restored, skipped)
+    else:
+        logger.info("Firestore sync: %d assessments loaded into SQLite", restored)
+    return restored
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -868,3 +904,117 @@ def firestore_get_finding_tracking_map(assessment_id: str) -> Dict[str, Dict[str
     except Exception as exc:
         logger.warning("Firestore get_finding_tracking_map failed for %s: %s", assessment_id, exc)
         return {}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Wazuh Configuration Persistence
+# ═══════════════════════════════════════════════════════════════════════
+
+WAZUH_CONFIG_SENSITIVE_FIELDS = {"wazuh_api_key"}
+
+def _wazuh_config_to_doc(config) -> Dict[str, Any]:
+    """Convert a SQLAlchemy WazuhConfig to a Firestore document dict."""
+    doc = {
+        "id": config.id,
+        "org_id": config.org_id,
+        "wazuh_host": config.wazuh_host,
+        "wazuh_port": config.wazuh_port,
+        "wazuh_api_key": config.wazuh_api_key,
+        "verify_ssl": bool(config.verify_ssl),
+        "created_at": config.created_at.isoformat() if config.created_at else datetime.now(timezone.utc).isoformat(),
+        "updated_at": config.updated_at.isoformat() if config.updated_at else None,
+    }
+    from app.core.security.encryption import SENSITIVE_INTEGRATION_FIELDS
+    return _encrypt_doc_fields(doc, SENSITIVE_INTEGRATION_FIELDS)
+
+def firestore_save_wazuh_config(config) -> bool:
+    """Save/update a WazuhConfig to Firestore."""
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        payload = _wazuh_config_to_doc(config)
+        client.collection("wazuh_configs").document(config.org_id).set(payload)
+        logger.info("Firestore: saved wazuh config for org %s", config.org_id)
+        return True
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error("CRITICAL: Firestore save_wazuh_config failed for org %s: %s", config.org_id, exc)
+        raise FirestoreUnavailableError(f"Failed to save wazuh config to Firestore: {exc}")
+
+def firestore_delete_wazuh_config(org_id: str) -> bool:
+    """Delete a WazuhConfig from Firestore."""
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        client.collection("wazuh_configs").document(org_id).delete()
+        logger.info("Firestore: deleted wazuh config for org %s", org_id)
+        return True
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error("CRITICAL: Firestore delete_wazuh_config failed for org %s: %s", org_id, exc)
+        raise FirestoreUnavailableError(f"Failed to delete wazuh config from Firestore: {exc}")
+
+def firestore_get_all_wazuh_configs() -> List[Dict[str, Any]]:
+    """Fetch all wazuh configs from Firestore."""
+    if not is_firestore_available():
+        logger.warning("Firestore not available for get_all_wazuh_configs — returning empty list")
+        return []
+    try:
+        client = get_firestore_client()
+        docs = client.collection("wazuh_configs").stream()
+        return [_decrypt_doc_fields(doc.to_dict() or {}) for doc in docs]
+    except Exception as exc:
+        logger.error("Firestore get_all_wazuh_configs failed: %s", exc)
+        return []
+
+def sync_wazuh_configs_from_firestore(db_session) -> int:
+    """Sync all Wazuh configs from Firestore to local SQLite database on startup."""
+    if not is_firestore_available():
+        return 0
+    from app.models.wazuh_config import WazuhConfig
+    from datetime import datetime
+
+    try:
+        docs = firestore_get_all_wazuh_configs()
+        count = 0
+        for doc in docs:
+            org_id = doc.get("org_id")
+            if not org_id:
+                continue
+
+            existing = db_session.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
+            if existing:
+                for key, value in doc.items():
+                    if key in ("created_at", "updated_at"):
+                        if value:
+                            try:
+                                value = datetime.fromisoformat(value)
+                            except (ValueError, TypeError):
+                                continue
+                    if hasattr(existing, key):
+                        setattr(existing, key, value)
+            else:
+                config = WazuhConfig(org_id=org_id)
+                for key, value in doc.items():
+                    if key in ("created_at", "updated_at"):
+                        if value:
+                            try:
+                                value = datetime.fromisoformat(value)
+                            except (ValueError, TypeError):
+                                continue
+                        else:
+                            continue
+                    if hasattr(config, key) and key != "org_id":
+                        setattr(config, key, value)
+                db_session.add(config)
+            count += 1
+        db_session.commit()
+        logger.info("Firestore sync: %d wazuh configs loaded into SQLite", count)
+        return count
+    except Exception as exc:
+        db_session.rollback()
+        logger.warning("Firestore wazuh configs sync failed: %s", exc)
+        return 0
+

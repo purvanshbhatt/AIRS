@@ -1,57 +1,66 @@
 package com.example.data.repository
 
+import android.util.Log
+import com.example.api.MobileAPIClient
 import com.example.data.local.ResilAIDao
-import com.example.data.model.*
-import com.example.data.remote.ResilAIService
+import com.resilai.app.data.models.AssessmentSummary
+import com.resilai.app.data.models.Finding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import com.example.data.model.AssessmentSummaryEntity
+import com.example.data.model.FindingEntity
 
 class ResilAIRepository(
-    private val service: ResilAIService,
+    private val apiClient: MobileAPIClient,
     private val dao: ResilAIDao
 ) {
-    fun getAssessmentSummary(id: String): Flow<AssessmentSummaryEntity?> = flow {
-        // Emit cached data first
-        val cached = dao.getAssessmentSummary(id)
-        emit(cached)
 
+    /**
+     * Attempts to fetch from network. If it fails, falls back to the "Last Known Good" cache.
+     */
+    fun getAssessmentSummary(assessmentId: String): Flow<Result<AssessmentSummary>> = flow {
         try {
-            val remote = service.getAssessmentSummary(id)
+            // Attempt network fetch
+            val networkResult = apiClient.getAssessmentSummary(assessmentId)
+            
+            // Map to entity and cache
             val entity = AssessmentSummaryEntity(
-                id = remote.id,
-                overallScore = remote.overall_score,
-                tier = remote.tier,
-                telemetryActive = remote.telemetry_active
+                id = networkResult.id,
+                organizationId = networkResult.organization_id,
+                overallScore = networkResult.overall_score,
+                tier = networkResult.tier,
+                // Simplified mapping for demonstration
+                findingsJson = "[]",
+                frameworkMappingJson = "[]",
+                roadmapJson = "[]",
+                analyticsJson = "{}"
             )
             dao.insertAssessmentSummary(entity)
-            emit(entity)
+            
+            emit(Result.success(networkResult))
         } catch (e: Exception) {
-            // Serve Last Known Good (already emitted or fallback)
-            if (cached == null) throw e
-        }
-    }
-
-    fun getFindings(id: String): Flow<List<FindingEntity>> = flow {
-        val cached = dao.getAllFindings()
-        emit(cached)
-
-        try {
-            val remoteList = service.getFindings(id)
-            val entities = remoteList.map {
-                FindingEntity(
-                    id = it.id,
-                    title = it.title,
-                    description = it.description,
-                    severity = it.severity,
-                    status = it.status,
-                    telemetryVerified = it.telemetry_verified
+            Log.e("ResilAIRepository", "Network fetch failed, falling back to cache", e)
+            
+            // Fallback to cache
+            val cachedResult = dao.getAssessmentSummary(assessmentId)
+            if (cachedResult != null) {
+                // Map back to Domain Model
+                val fallbackSummary = AssessmentSummary(
+                    id = cachedResult.id,
+                    organization_id = cachedResult.organizationId,
+                    overall_score = cachedResult.overallScore,
+                    tier = cachedResult.tier,
+                    findings = emptyList(),
+                    framework_mapping = emptyList(),
+                    roadmap = emptyList(),
+                    detailed_roadmap = emptyList(),
+                    analytics = emptyMap(),
+                    executive_summary = "OFFLINE CACHE"
                 )
+                emit(Result.success(fallbackSummary))
+            } else {
+                emit(Result.failure(e))
             }
-            dao.deleteAllFindings()
-            dao.insertFindings(entities)
-            emit(entities)
-        } catch (e: Exception) {
-            if (cached.isEmpty()) throw e
         }
     }
 }

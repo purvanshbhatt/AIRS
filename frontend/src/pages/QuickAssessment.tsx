@@ -1,0 +1,614 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useIsReadOnly } from '../contexts';
+import {
+  getOrganizations,
+  getRubric,
+  createAssessmentForOrg,
+  submitAnswers,
+  computeScore,
+  ApiRequestError,
+} from '../api';
+import type { Rubric, Domain } from '../types';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+  Button,
+  Input,
+  Select,
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+  Badge,
+  Tooltip,
+  useToast,
+} from '../components/ui';
+import {
+  ClipboardList,
+  ArrowRight,
+  ArrowLeft,
+  AlertCircle,
+  Save,
+  CheckCircle,
+  Database,
+  Search,
+  Users,
+  FileCheck,
+  Shield,
+  Loader2,
+  RotateCcw,
+  Info,
+} from 'lucide-react';
+
+// Domain icons mapping
+const domainIcons: Record<string, typeof Database> = {
+  telemetry_logging: Database,
+  detection_coverage: Search,
+  identity_visibility: Users,
+  ir_process: FileCheck,
+  resilience: Shield,
+};
+
+const domainColors: Record<string, string> = {
+  telemetry_logging: 'bg-blue-500',
+  detection_coverage: 'bg-purple-500',
+  identity_visibility: 'bg-green-500',
+  ir_process: 'bg-orange-500',
+  resilience: 'bg-red-500',
+};
+
+// LocalStorage key
+const DRAFT_KEY = 'ResilAI_quick_assessment_draft';
+
+interface DraftData {
+  orgId: string;
+  title: string;
+  answers: Record<string, boolean | number>;
+  savedAt: string;
+}
+
+function questionTypeLabel(type: 'boolean' | 'percentage' | 'numeric'): string {
+  if (type === 'boolean') return 'yes/no';
+  if (type === 'percentage') return 'percentage';
+  return 'number';
+}
+
+export default function QuickAssessment() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { addToast } = useToast();
+  const isReadOnly = useIsReadOnly();
+
+  // Redirect to assessments list when in read-only mode
+  useEffect(() => {
+    if (isReadOnly) {
+      navigate('/dashboard/assessments', { replace: true });
+    }
+  }, [isReadOnly, navigate]);
+
+  // Setup state
+  const [step, setStep] = useState<'setup' | 'questions'>('setup');
+  const [orgs, setOrgs] = useState<Array<{ id: string; name: string }>>([]);
+  const [rubric, setRubric] = useState<Rubric | null>(null);
+  const [orgId, setOrgId] = useState('');
+  const [title, setTitle] = useState('Quick Onboarding Assessment');
+  const [answers, setAnswers] = useState<Record<string, boolean | number>>({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [hasDraft, setHasDraft] = useState(false);
+
+  // Load organizations and rubric
+  useEffect(() => {
+    Promise.all([getOrganizations(), getRubric()])
+      .then(([orgsData, rubricData]) => {
+        setOrgs(orgsData);
+        setRubric(rubricData);
+        const orgFromQuery = searchParams.get('org');
+        if (orgFromQuery && orgsData.some((o: { id: string }) => o.id === orgFromQuery)) {
+          setOrgId(orgFromQuery);
+        }
+
+        // Check for saved draft
+        const saved = localStorage.getItem(DRAFT_KEY);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            const orgStillExists = orgsData.some((o: { id: string }) => o.id === parsed.orgId);
+            if (orgStillExists) {
+              setHasDraft(true);
+            } else {
+              localStorage.removeItem(DRAFT_KEY);
+            }
+          } catch {
+            localStorage.removeItem(DRAFT_KEY);
+          }
+        }
+      })
+      .catch((err) => {
+        if (err instanceof ApiRequestError) {
+          setError(err.toDisplayMessage());
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to load data');
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [searchParams]);
+
+  // Restore draft
+  const restoreDraft = useCallback(() => {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (saved) {
+      try {
+        const draft: DraftData = JSON.parse(saved);
+        setOrgId(draft.orgId);
+        setTitle(draft.title);
+        setAnswers(draft.answers);
+        setStep('questions');
+        addToast({
+          type: 'success',
+          title: 'Draft restored',
+          message: `Loaded draft from ${new Date(draft.savedAt).toLocaleString()}`,
+        });
+      } catch {
+        addToast({ type: 'error', title: 'Failed to restore draft' });
+      }
+    }
+  }, [addToast]);
+
+  // Save draft
+  const saveDraft = useCallback(() => {
+    const draft: DraftData = {
+      orgId,
+      title,
+      answers,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    addToast({
+      type: 'success',
+      title: 'Draft saved',
+      message: 'Your progress has been saved locally',
+    });
+  }, [orgId, title, answers, addToast]);
+
+  // Clear draft
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(DRAFT_KEY);
+    setHasDraft(false);
+    setAnswers({});
+    addToast({ type: 'info', title: 'Draft cleared' });
+  }, [addToast]);
+
+  // Calculate progress
+  const progress = useMemo(() => {
+    if (!rubric) return { answered: 0, total: 0, percentage: 0 };
+    const total = Object.values(rubric.domains).reduce(
+      (sum, domain) => sum + domain.questions.length,
+      0
+    );
+    const answered = Object.keys(answers).length;
+    return {
+      answered,
+      total,
+      percentage: total > 0 ? Math.round((answered / total) * 100) : 0,
+    };
+  }, [rubric, answers]);
+
+  // Domain progress
+  const getDomainProgress = useCallback(
+    (domain: Domain) => {
+      const answered = domain.questions.filter((q) => answers[q.id] !== undefined).length;
+      return { answered, total: domain.questions.length };
+    },
+    [answers]
+  );
+
+  // Handle answer change
+  const handleAnswer = useCallback((questionId: string, value: boolean | number) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  }, []);
+
+  // Submit assessment
+  const handleSubmit = async () => {
+    if (!orgId || !rubric) return;
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      // 1. Create assessment
+      const assessment = await createAssessmentForOrg(orgId, { title });
+
+      // 2. Submit answers
+      const formattedAnswers: Record<string, string | number | boolean> = {};
+      for (const [qId, value] of Object.entries(answers)) {
+        formattedAnswers[qId] = value;
+      }
+      await submitAnswers(assessment.id, formattedAnswers);
+
+      // 3. Compute score
+      await computeScore(assessment.id);
+
+      // 4. Clear draft
+      localStorage.removeItem(DRAFT_KEY);
+
+      // 5. Navigate to results with onboarding parameters to prompt telemetry activation
+      addToast({
+        type: 'success',
+        title: 'Assessment complete!',
+        message: 'Establishing initial score and posture profile...',
+      });
+
+      navigate(`/dashboard/results/${assessment.id}?onboarding=true`);
+    } catch (err) {
+      const isOrgNotFound =
+        err instanceof ApiRequestError &&
+        err.message?.toLowerCase().includes('organization not found');
+
+      if (isOrgNotFound) {
+        localStorage.removeItem(DRAFT_KEY);
+        setHasDraft(false);
+        setOrgId('');
+        setStep('setup');
+        setError(
+          'The selected organization no longer exists on the server. Please select your organization again.'
+        );
+      } else if (err instanceof ApiRequestError) {
+        setError(err.toDisplayMessage());
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to submit assessment');
+      }
+      setSubmitting(false);
+    }
+  };
+
+  // Render setup step
+  const renderSetup = () => (
+    <div className="max-w-xl mx-auto">
+      <Card variant="elevated" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-md transition-all duration-300">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-primary-50 dark:bg-primary-950/40 border border-primary-100/50 dark:border-primary-900/30 rounded-xl flex items-center justify-center">
+              <ClipboardList className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <CardTitle className="text-xl text-slate-900 dark:text-slate-100">Quick Onboarding Assessment</CardTitle>
+              <CardDescription className="text-slate-500 dark:text-slate-400">Establish your initial security readiness baseline</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="mb-6 p-4 rounded-2xl bg-blue-50/40 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 text-xs text-blue-800 dark:text-blue-300 font-semibold leading-relaxed">
+            Many prospects won't have security telemetry feeds fully configured. Complete this self-attested baseline assessment to generate your initial score immediately. You will activate continuous telemetry in the next step.
+          </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 rounded-2xl text-red-700 dark:text-red-300 text-sm flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          )}
+
+          {hasDraft && (
+            <div className="mb-6 p-4 bg-primary-50 dark:bg-primary-950/20 border border-primary-200/50 dark:border-primary-900/30 rounded-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-primary-900 dark:text-primary-100">Draft available</p>
+                  <p className="text-sm text-primary-700 dark:text-primary-300">You have an unsaved assessment</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={clearDraft} className="rounded-lg">
+                    Discard
+                  </Button>
+                  <Button size="sm" onClick={restoreDraft} className="rounded-lg shadow-sm">
+                    Restore
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-5">
+            <Select
+              label="Organization"
+              value={orgId}
+              onChange={(e) => setOrgId(e.target.value)}
+              options={orgs.map((org) => ({ value: org.id, label: org.name }))}
+              placeholder={loading ? 'Loading...' : 'Select organization...'}
+              disabled={loading}
+            />
+
+            {!loading && orgs.length === 0 && (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                No organizations found.{' '}
+                <Link to="/org/new" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
+                  Create one first
+                </Link>
+                .
+              </p>
+            )}
+
+            <Input
+              label="Assessment Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter assessment title"
+            />
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex justify-end">
+          <Button
+            onClick={() => setStep('questions')}
+            disabled={!orgId || !rubric}
+            className="gap-2 rounded-xl px-5 py-2.5 shadow-sm hover:shadow-md transition-all duration-200"
+          >
+            Continue to Questions
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+
+  // Render questions step
+  const renderQuestions = () => {
+    if (!rubric) return null;
+
+    const domains = Object.entries(rubric.domains);
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Progress Header */}
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300">
+          <CardContent className="py-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{title}</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {orgs.find((o) => o.id === orgId)?.name || 'Organization'}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">{progress.percentage}%</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    {progress.answered} of {progress.total} answered
+                  </p>
+                </div>
+                <div className="w-24 h-24 relative">
+                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      className="stroke-slate-200 dark:stroke-slate-850"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      className="stroke-primary-600 dark:stroke-primary-500"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 40}
+                      strokeDashoffset={2 * Math.PI * 40 * (1 - progress.percentage / 100)}
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-4 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary-600 dark:bg-primary-500 transition-all duration-300"
+                style={{ width: `${progress.percentage}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Error message */}
+        {error && (
+          <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 rounded-2xl text-red-700 dark:text-red-300 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+
+        {/* Domain Accordions */}
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+          <CardContent className="p-0">
+            <Accordion defaultOpen={[domains[0]?.[0]]}>
+              {domains.map(([domainId, domain]) => {
+                const Icon = domainIcons[domainId] || Shield;
+                const color = domainColors[domainId] || 'bg-slate-50 dark:bg-slate-900';
+                const domainProgress = getDomainProgress(domain);
+                const isComplete = domainProgress.answered === domainProgress.total;
+
+                return (
+                  <AccordionItem key={domainId} id={domainId}>
+                    <AccordionTrigger>
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-8 h-8 ${color} rounded-xl flex items-center justify-center shadow-sm`}
+                          >
+                            <Icon className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-semibold text-slate-900 dark:text-slate-100">{domain.name}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{domain.description}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={isComplete ? 'success' : 'default'}
+                            className="text-xs"
+                          >
+                            {domainProgress.answered}/{domainProgress.total}
+                          </Badge>
+                          {isComplete && <CheckCircle className="w-4 h-4 text-[#00C853]" />}
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4 pt-2 px-4 pb-4">
+                        {domain.questions.map((question, idx) => (
+                          <div
+                            key={question.id}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-100/50 dark:border-slate-800/40 rounded-2xl transition-all duration-200 hover:bg-slate-100/45 dark:hover:bg-slate-950/65"
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-start gap-2">
+                                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                  {idx + 1}. {question.text}
+                                </p>
+                                {question.help_text && (
+                                  <Tooltip content={question.help_text} placement="top">
+                                    <button
+                                      type="button"
+                                      className="mt-0.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
+                                      aria-label={`Question help for ${question.id}`}
+                                    >
+                                      <Info className="w-4 h-4" />
+                                    </button>
+                                  </Tooltip>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                {question.points} point{question.points !== 1 ? 's' : ''} -{' '}
+                                {questionTypeLabel(question.type)}
+                              </p>
+                            </div>
+
+                            {question.type === 'boolean' ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleAnswer(question.id, false)}
+                                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-250 ${
+                                    answers[question.id] === false
+                                      ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 ring-2 ring-red-500 dark:ring-red-400 shadow-sm font-semibold'
+                                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
+                                  }`}
+                                >
+                                  No
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleAnswer(question.id, true)}
+                                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-250 ${
+                                    answers[question.id] === true
+                                      ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-350 ring-2 ring-[#00C853] shadow-sm font-semibold'
+                                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
+                                  }`}
+                                >
+                                  Yes
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={question.type === 'percentage' ? 100 : undefined}
+                                  value={typeof answers[question.id] === 'number' ? (answers[question.id] as number) : ''}
+                                  onChange={(e) =>
+                                    handleAnswer(question.id, parseFloat(e.target.value) || 0)
+                                  }
+                                  placeholder={question.type === 'percentage' ? '0-100' : 'Enter value'}
+                                  className="w-28 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/45 focus:border-transparent transition-all duration-200"
+                                />
+                                {question.type === 'percentage' && (
+                                  <span className="text-slate-500 dark:text-slate-400 text-sm">%</span>
+                                )}
+                                {question.type === 'numeric' && question.id.includes('retention') && (
+                                  <span className="text-slate-500 dark:text-slate-400 text-sm">days</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          </CardContent>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => setStep('setup')} className="gap-2 rounded-xl">
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            <Button variant="outline" onClick={clearDraft} className="gap-2 rounded-xl">
+              <RotateCcw className="w-4 h-4" />
+              Reset
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" onClick={saveDraft} className="gap-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+              <Save className="w-4 h-4" />
+              Save Draft
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={progress.percentage < 100 || submitting}
+              loading={submitting}
+              className="gap-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Assessment
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {progress.percentage < 100 && (
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400 font-medium">
+            Complete all {progress.total - progress.answered} remaining questions to submit
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-primary-600 dark:text-primary-500 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-350 font-medium">Loading onboarding survey...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return step === 'setup' ? renderSetup() : renderQuestions();
+}

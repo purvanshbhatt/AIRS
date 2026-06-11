@@ -55,7 +55,11 @@ export default function DocsLayout() {
                             animate={{ x: 0 }}
                             exit={{ x: '-100%' }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            className="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl lg:hidden"
+                            className="fixed left-0 z-50 w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl lg:hidden"
+                            style={{
+                                top: 'var(--banner-height, 0px)',
+                                height: 'calc(100vh - var(--banner-height, 0px))',
+                            }}
                         >
                             {/* Logo */}
                              <div className="flex items-center justify-between h-16 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
@@ -132,7 +136,13 @@ export default function DocsLayout() {
             </AnimatePresence>
 
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex-col shadow-sm">
+            <aside 
+                className="hidden lg:flex fixed left-0 z-40 w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex-col shadow-sm"
+                style={{
+                    top: 'var(--banner-height, 0px)',
+                    height: 'calc(100vh - var(--banner-height, 0px))',
+                }}
+            >
                 {/* Logo */}
                  <div className="flex items-center h-16 px-6 border-b border-slate-200 dark:border-slate-800 shrink-0">
                      <Link to="/" className="flex items-center">

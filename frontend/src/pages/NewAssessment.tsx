@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useIsReadOnly } from '../contexts';
 import {
   getOrganizations,
-  getRubric,
-createAssessmentForOrg,
-  submitAnswers,
-  computeScore,
+  configureSplunkHec,
+  getSplunkConfig,
+  removeSplunkConfig,
+  pullSplunkEvidence,
+  configureWazuh,
+  getWazuhAgentStatus,
+  getIntegrationStatus,
+  seedMockSplunkFindings,
   ApiRequestError,
 } from '../api';
-import type { Rubric, Domain } from '../types';
 import {
   Card,
   CardHeader,
@@ -20,63 +23,22 @@ import {
   Button,
   Input,
   Select,
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
   Badge,
-  Tooltip,
   useToast,
 } from '../components/ui';
 import {
-  ClipboardList,
-  ArrowRight,
-  ArrowLeft,
-  AlertCircle,
-  Save,
-  CheckCircle,
   Database,
-  Search,
-  Users,
-  FileCheck,
-  Shield,
   Loader2,
-  RotateCcw,
-  Info,
+  PlugZap,
+  Activity,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  Play,
+  KeyRound,
+  Webhook,
+  Zap,
 } from 'lucide-react';
-
-// Domain icons mapping
-const domainIcons: Record<string, typeof Database> = {
-  telemetry_logging: Database,
-  detection_coverage: Search,
-  identity_visibility: Users,
-  ir_process: FileCheck,
-  resilience: Shield,
-};
-
-const domainColors: Record<string, string> = {
-  telemetry_logging: 'bg-blue-500',
-  detection_coverage: 'bg-purple-500',
-  identity_visibility: 'bg-green-500',
-  ir_process: 'bg-orange-500',
-  resilience: 'bg-red-500',
-};
-
-// LocalStorage key
-const DRAFT_KEY = 'ResilAI_assessment_draft';
-
-interface DraftData {
-  orgId: string;
-  title: string;
-  answers: Record<string, boolean | number>;
-  savedAt: string;
-}
-
-function questionTypeLabel(type: 'boolean' | 'percentage' | 'numeric'): string {
-  if (type === 'boolean') return 'yes/no';
-  if (type === 'percentage') return 'percentage';
-  return 'number';
-}
 
 export default function NewAssessment() {
   const navigate = useNavigate();
@@ -84,534 +46,430 @@ export default function NewAssessment() {
   const { addToast } = useToast();
   const isReadOnly = useIsReadOnly();
 
-  // Redirect to assessments list when in read-only mode
-  useEffect(() => {
-    if (isReadOnly) {
-      navigate('/dashboard/assessments', { replace: true });
-    }
-  }, [isReadOnly, navigate]);
-
-  // Setup state
-  const [step, setStep] = useState<'setup' | 'questions'>('setup');
-  const [orgs, setOrgs] = useState<Array<{ id: string; name: string }>>([]);
-  const [rubric, setRubric] = useState<Rubric | null>(null);
-  const [orgId, setOrgId] = useState('');
-  const [title, setTitle] = useState('Security Readiness Assessment');
-  const [answers, setAnswers] = useState<Record<string, boolean | number>>({});
+  // Redirect if read-only (optional, but let's allow viewing telemetry config even in read-only, just disable actions)
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState('');
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [hasDraft, setHasDraft] = useState(false);
+  const [notice, setNotice] = useState('');
 
-  // Load organizations and rubric
+  // Wazuh connection state
+  const [wazuhHost, setWazuhHost] = useState('');
+  const [wazuhPort, setWazuhPort] = useState(55000);
+  const [wazuhApiKey, setWazuhApiKey] = useState('');
+  const [wazuhConfigured, setWazuhConfigured] = useState(false);
+  const [wazuhConnected, setWazuhConnected] = useState(false);
+  const [wazuhAgents, setWazuhAgents] = useState<{ active: number; total: number } | null>(null);
+
+  // Splunk config state
+  const [splunkBaseUrl, setSplunkBaseUrl] = useState('');
+  const [splunkHecToken, setSplunkHecToken] = useState('');
+  const [splunkConfigured, setSplunkConfigured] = useState(false);
+  const [splunkConfigUrl, setSplunkConfigUrl] = useState('');
+  const [splunkEvidenceCount, setSplunkEvidenceCount] = useState<number | null>(null);
+
   useEffect(() => {
-    Promise.all([getOrganizations(), getRubric()])
-      .then(([orgsData, rubricData]) => {
-        setOrgs(orgsData);
-        setRubric(rubricData);
+    async function loadOrgs() {
+      setLoading(true);
+      setError('');
+      try {
+        const orgs = await getOrganizations();
+        setOrganizations(orgs);
         const orgFromQuery = searchParams.get('org');
-        if (orgFromQuery && orgsData.some((o: { id: string }) => o.id === orgFromQuery)) {
-          setOrgId(orgFromQuery);
+        if (orgFromQuery && orgs.some((o) => o.id === orgFromQuery)) {
+          setSelectedOrgId(orgFromQuery);
+        } else if (orgs.length > 0) {
+          setSelectedOrgId(orgs[0].id);
         }
-
-        // Check for saved draft
-        const saved = localStorage.getItem(DRAFT_KEY);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            // Validate that the draft's org still exists in the current org list
-            const orgStillExists = orgsData.some((o: { id: string }) => o.id === parsed.orgId);
-            if (orgStillExists) {
-              setHasDraft(true);
-            } else {
-              // Stale draft — the org was deleted or the DB was reset (e.g. container restart).
-              // Remove the draft silently so the user gets a clean start.
-              localStorage.removeItem(DRAFT_KEY);
-            }
-          } catch {
-            localStorage.removeItem(DRAFT_KEY);
-          }
-        }
-      })
-      .catch((err) => {
-        if (err instanceof ApiRequestError) {
-          setError(err.toDisplayMessage());
-        } else {
-          setError(err instanceof Error ? err.message : 'Failed to load data');
-        }
-      })
-      .finally(() => setLoading(false));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load organizations');
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadOrgs();
   }, [searchParams]);
 
-  // Restore draft
-  const restoreDraft = useCallback(() => {
-    const saved = localStorage.getItem(DRAFT_KEY);
-    if (saved) {
-      try {
-        const draft: DraftData = JSON.parse(saved);
-        setOrgId(draft.orgId);
-        setTitle(draft.title);
-        setAnswers(draft.answers);
-        setStep('questions');
-        addToast({
-          type: 'success',
-          title: 'Draft restored',
-          message: `Loaded draft from ${new Date(draft.savedAt).toLocaleString()}`,
-        });
-      } catch {
-        addToast({ type: 'error', title: 'Failed to restore draft' });
+  const loadIntegrationStatus = useCallback(async (orgId: string) => {
+    if (!orgId) return;
+    setError('');
+    setNotice('');
+    try {
+      const [integrationStatus, splunkConfig] = await Promise.all([
+        getIntegrationStatus(orgId),
+        getSplunkConfig(orgId),
+      ]);
+
+      const isWazuhConfigured = integrationStatus.wazuh_status === 'configured';
+      setWazuhConfigured(isWazuhConfigured);
+      if (isWazuhConfigured) {
+        setWazuhHost(integrationStatus.wazuh_host || '');
+        setWazuhPort(integrationStatus.wazuh_port || 55000);
+        // Try fetching active agent count
+        try {
+          const agents = await getWazuhAgentStatus(orgId);
+          setWazuhConnected(agents.disconnection_rate <= 10);
+          setWazuhAgents({ active: agents.active_agents, total: agents.total_agents });
+        } catch {
+          setWazuhConnected(false);
+        }
+      } else {
+        setWazuhHost('');
+        setWazuhPort(55000);
+        setWazuhConnected(false);
+        setWazuhAgents(null);
       }
+
+      setSplunkConfigured(splunkConfig.configured);
+      setSplunkConfigUrl(splunkConfig.base_url || '');
+      if (splunkConfig.configured) {
+        try {
+          const evidence = await pullSplunkEvidence(orgId);
+          setSplunkEvidenceCount(evidence.verified_controls);
+        } catch {
+          setSplunkEvidenceCount(null);
+        }
+      } else {
+        setSplunkBaseUrl('');
+        setSplunkEvidenceCount(null);
+      }
+    } catch (err) {
+      setError('Failed to query active integration settings.');
     }
-  }, [addToast]);
-
-  // Save draft
-  const saveDraft = useCallback(() => {
-    const draft: DraftData = {
-      orgId,
-      title,
-      answers,
-      savedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    addToast({
-      type: 'success',
-      title: 'Draft saved',
-      message: 'Your progress has been saved locally',
-    });
-  }, [orgId, title, answers, addToast]);
-
-  // Clear draft
-  const clearDraft = useCallback(() => {
-    localStorage.removeItem(DRAFT_KEY);
-    setHasDraft(false);
-    setAnswers({});
-    addToast({ type: 'info', title: 'Draft cleared' });
-  }, [addToast]);
-
-  // Calculate progress
-  const progress = useMemo(() => {
-    if (!rubric) return { answered: 0, total: 0, percentage: 0 };
-    const total = Object.values(rubric.domains).reduce(
-      (sum, domain) => sum + domain.questions.length,
-      0
-    );
-    const answered = Object.keys(answers).length;
-    return {
-      answered,
-      total,
-      percentage: total > 0 ? Math.round((answered / total) * 100) : 0,
-    };
-  }, [rubric, answers]);
-
-  // Domain progress
-  const getDomainProgress = useCallback(
-    (domain: Domain) => {
-      const answered = domain.questions.filter((q) => answers[q.id] !== undefined).length;
-      return { answered, total: domain.questions.length };
-    },
-    [answers]
-  );
-
-  // Handle answer change
-  const handleAnswer = useCallback((questionId: string, value: boolean | number) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
   }, []);
 
-  // Submit assessment
-  const handleSubmit = async () => {
-    if (!orgId || !rubric) return;
+  useEffect(() => {
+    if (selectedOrgId) {
+      loadIntegrationStatus(selectedOrgId);
+    }
+  }, [selectedOrgId, loadIntegrationStatus]);
 
-    setSubmitting(true);
+  const handleConfigureWazuh = async () => {
+    console.log("selectedOrgId", selectedOrgId);
+    if (!selectedOrgId || !wazuhHost.trim()) return;
+    setBusy(true);
     setError('');
-
+    setNotice('');
     try {
-      // 1. Create assessment
-      // 1. Create a fresh append-only assessment scoped to the selected org.
-      const assessment = await createAssessmentForOrg(orgId, { title });
-
-      // 2. Submit answers
-      const formattedAnswers: Record<string, string | number | boolean> = {};
-      for (const [qId, value] of Object.entries(answers)) {
-        formattedAnswers[qId] = value;
-      }
-      await submitAnswers(assessment.id, formattedAnswers);
-
-      // 3. Compute score
-      await computeScore(assessment.id);
-
-      // 4. Clear draft
-      localStorage.removeItem(DRAFT_KEY);
-
-      // 5. Navigate to results
+      await configureWazuh({
+        org_id: selectedOrgId,
+        wazuh_host: wazuhHost.trim(),
+        wazuh_port: Number(wazuhPort),
+        wazuh_api_key: wazuhApiKey.trim()
+      });
       addToast({
         type: 'success',
-        title: 'Assessment complete!',
-        message: 'Redirecting to results...',
+        title: 'Wazuh connected',
+        message: 'Successfully updated Wazuh manager settings',
       });
-
-      navigate(`/results/${assessment.id}`);
+      await loadIntegrationStatus(selectedOrgId);
     } catch (err) {
-      const isOrgNotFound =
-        err instanceof ApiRequestError &&
-        err.message?.toLowerCase().includes('organization not found');
-
-      if (isOrgNotFound) {
-        // The selected org is stale (e.g. server restarted and wiped in-memory DB).
-        // Clear the bad org selection and draft so the user can pick a fresh one.
-        localStorage.removeItem(DRAFT_KEY);
-        setHasDraft(false);
-        setOrgId('');
-        setStep('setup');
-        setError(
-          'The selected organization no longer exists on the server. ' +
-          'This can happen after a server restart. Please select your organization again.'
-        );
-      } else if (err instanceof ApiRequestError) {
-        setError(err.toDisplayMessage());
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to submit assessment');
-      }
-      setSubmitting(false);
+      setError(err instanceof Error ? err.message : 'Failed to save Wazuh manager connection');
+    } finally {
+      setBusy(false);
     }
   };
 
-  // Render setup step
-  const renderSetup = () => (
-    <div className="max-w-xl mx-auto">
-      <Card variant="elevated" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-md transition-all duration-300">
-        <CardHeader className="pb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-primary-50 dark:bg-primary-950/40 border border-primary-100/50 dark:border-primary-900/30 rounded-xl flex items-center justify-center">
-              <ClipboardList className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-            </div>
-            <div>
-              <CardTitle className="text-xl text-slate-900 dark:text-slate-100">New Assessment</CardTitle>
-              <CardDescription className="text-slate-500 dark:text-slate-400">Start a new security readiness assessment</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent>
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 rounded-2xl text-red-700 dark:text-red-300 text-sm flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {error}
-            </div>
-          )}
-
-          {hasDraft && (
-            <div className="mb-6 p-4 bg-primary-50 dark:bg-primary-950/20 border border-primary-200/50 dark:border-primary-900/30 rounded-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-primary-900 dark:text-primary-100">Draft available</p>
-                  <p className="text-sm text-primary-700 dark:text-primary-300">You have an unsaved assessment</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={clearDraft} className="rounded-lg">
-                    Discard
-                  </Button>
-                  <Button size="sm" onClick={restoreDraft} className="rounded-lg shadow-sm">
-                    Restore
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-5">
-            <Select
-              label="Organization"
-              value={orgId}
-              onChange={(e) => setOrgId(e.target.value)}
-              options={orgs.map((org) => ({ value: org.id, label: org.name }))}
-              placeholder={loading ? 'Loading...' : 'Select organization...'}
-              disabled={loading}
-            />
-
-            {!loading && orgs.length === 0 && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                No organizations found.{' '}
-                <Link to="/org/new" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
-                  Create one first
-                </Link>
-                .
-              </p>
-            )}
-
-            <Input
-              label="Assessment Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter assessment title"
-            />
-          </div>
-        </CardContent>
-
-        <CardFooter className="flex justify-end">
-          <Button
-            onClick={() => setStep('questions')}
-            disabled={!orgId || !rubric}
-            className="gap-2 rounded-xl px-5 py-2.5 shadow-sm hover:shadow-md transition-all duration-200"
-          >
-            Continue to Questions
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
-  );
-  // Render questions step
-  const renderQuestions = () => {
-    if (!rubric) return null;
-
-    const domains = Object.entries(rubric.domains);
-
-    return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Progress Header */}
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300">
-          <CardContent className="py-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{title}</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {orgs.find((o) => o.id === orgId)?.name || 'Organization'}
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">{progress.percentage}%</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    {progress.answered} of {progress.total} answered
-                  </p>
-                </div>
-                <div className="w-24 h-24 relative">
-                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      className="stroke-slate-200 dark:stroke-slate-800"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="none"
-                      className="stroke-primary-600 dark:stroke-primary-500"
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={2 * Math.PI * 40}
-                      strokeDashoffset={2 * Math.PI * 40 * (1 - progress.percentage / 100)}
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress bar */}
-            <div className="mt-4 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary-600 dark:bg-primary-500 transition-all duration-300"
-                style={{ width: `${progress.percentage}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Error message */}
-        {error && (
-          <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 rounded-2xl text-red-700 dark:text-red-300 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            {error}
-          </div>
-        )}
-
-        {/* Domain Accordions */}
-        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
-          <CardContent className="p-0">
-            <Accordion defaultOpen={[domains[0]?.[0]]}>
-              {domains.map(([domainId, domain]) => {
-                const Icon = domainIcons[domainId] || Shield;
-                const color = domainColors[domainId] || 'bg-slate-50 dark:bg-slate-900';
-                const domainProgress = getDomainProgress(domain);
-                const isComplete = domainProgress.answered === domainProgress.total;
-
-                return (
-                  <AccordionItem key={domainId} id={domainId}>
-                    <AccordionTrigger>
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-8 h-8 ${color} rounded-xl flex items-center justify-center shadow-sm`}
-                          >
-                            <Icon className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-semibold text-slate-900 dark:text-slate-100">{domain.name}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{domain.description}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={isComplete ? 'success' : 'default'}
-                            className="text-xs"
-                          >
-                            {domainProgress.answered}/{domainProgress.total}
-                          </Badge>
-                          {isComplete && <CheckCircle className="w-4 h-4 text-success-500" />}
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-4 pt-2 px-4 pb-4">
-                        {domain.questions.map((question, idx) => (
-                          <div
-                            key={question.id}
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-100/50 dark:border-slate-800/40 rounded-2xl transition-all duration-200 hover:bg-slate-100/45 dark:hover:bg-slate-950/65"
-                          >
-                            <div className="flex-1">
-                              <div className="flex items-start gap-2">
-                                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                  {idx + 1}. {question.text}
-                                </p>
-                                {question.help_text && (
-                                  <Tooltip content={question.help_text} placement="top">
-                                    <button
-                                      type="button"
-                                      className="mt-0.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
-                                      aria-label={`Question help for ${question.id}`}
-                                    >
-                                      <Info className="w-4 h-4" />
-                                    </button>
-                                  </Tooltip>
-                                )}
-                              </div>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                {question.points} point{question.points !== 1 ? 's' : ''} -{' '}
-                                {questionTypeLabel(question.type)}
-                              </p>
-                            </div>
-
-                            {question.type === 'boolean' ? (
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => handleAnswer(question.id, false)}
-                                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-250 ${
-                                    answers[question.id] === false
-                                      ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 ring-2 ring-red-500 dark:ring-red-400 shadow-sm font-semibold'
-                                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-                                  }`}
-                                >
-                                  No
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleAnswer(question.id, true)}
-                                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-250 ${
-                                    answers[question.id] === true
-                                      ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 ring-2 ring-green-500 dark:ring-green-400 shadow-sm font-semibold'
-                                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-                                  }`}
-                                >
-                                  Yes
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max={question.type === 'percentage' ? 100 : undefined}
-                                  value={typeof answers[question.id] === 'number' ? (answers[question.id] as number) : ''}
-                                  onChange={(e) =>
-                                    handleAnswer(question.id, parseFloat(e.target.value) || 0)
-                                  }
-                                  placeholder={question.type === 'percentage' ? '0-100' : 'Enter value'}
-                                  className="w-28 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
-                                />
-                                {question.type === 'percentage' && (
-                                  <span className="text-slate-500 dark:text-slate-400 text-sm">%</span>
-                                )}
-                                {question.type === 'numeric' && question.id.includes('retention') && (
-                                  <span className="text-slate-500 dark:text-slate-400 text-sm">days</span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => setStep('setup')} className="gap-2 rounded-xl">
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-            <Button variant="outline" onClick={clearDraft} className="gap-2 rounded-xl">
-              <RotateCcw className="w-4 h-4" />
-              Reset
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={saveDraft} className="gap-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-              <Save className="w-4 h-4" />
-              Save Draft
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={progress.percentage < 100 || submitting}
-              loading={submitting}
-              className="gap-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  Submit Assessment
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {progress.percentage < 100 && (
-          <p className="text-center text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Complete all {progress.total - progress.answered} remaining questions to submit
-          </p>
-        )}
-      </div>
-    );
+  const handleConfigureSplunk = async () => {
+    if (!selectedOrgId || !splunkBaseUrl.trim() || !splunkHecToken.trim()) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await configureSplunkHec(selectedOrgId, splunkBaseUrl.trim(), splunkHecToken.trim());
+      addToast({
+        type: 'success',
+        title: 'Splunk HEC configured',
+        message: 'Successfully updated Splunk HEC credentials',
+      });
+      await loadIntegrationStatus(selectedOrgId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to configure Splunk HEC');
+    } finally {
+      setBusy(false);
+    }
   };
 
-  // Loading state
+  const handleDisconnectSplunk = async () => {
+    if (!selectedOrgId) return;
+    setBusy(true);
+    setError('');
+    try {
+      await removeSplunkConfig(selectedOrgId);
+      addToast({
+        type: 'info',
+        title: 'Splunk disconnected',
+        message: 'Splunk HEC credentials removed successfully',
+      });
+      await loadIntegrationStatus(selectedOrgId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to disconnect Splunk');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleMockTelemetry = async () => {
+    if (!selectedOrgId) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const res = await seedMockSplunkFindings(selectedOrgId);
+      addToast({
+        type: 'success',
+        title: 'Telemetry stream seeded',
+        message: `Successfully ingested ${res.inserted} telemetry verification events. GHI calculation updated.`,
+      });
+      setNotice(`Mock telemetry stream sent successfully. ${res.inserted} controls verified in database.`);
+      await loadIntegrationStatus(selectedOrgId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to seed mock telemetry');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const selectedOrgName = useMemo(() => {
+    return organizations.find((o) => o.id === selectedOrgId)?.name || 'Organization';
+  }, [organizations, selectedOrgId]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-primary-600 dark:text-primary-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-600 dark:text-slate-300 font-medium">Loading assessment...</p>
+          <Loader2 className="w-12 h-12 text-[#00C853] animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-350 font-medium">Resolving data connections...</p>
         </div>
       </div>
     );
   }
 
-  return step === 'setup' ? renderSetup() : renderQuestions();
-}
+  return (
+    <div className="max-w-4xl mx-auto space-y-6 text-left">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-50/10 dark:bg-emerald-950/20 border border-emerald-250 dark:border-emerald-800/40 rounded-2xl flex items-center justify-center">
+            <PlugZap className="w-5 h-5 text-[#00C853]" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              Connect Security Data Sources
+            </h1>
+            <p className="text-slate-500 dark:text-slate-450 text-sm font-semibold">
+              Establish continuous SIEM data connections to enable continuous governance.
+            </p>
+          </div>
+        </div>
+        <div>
+          <Select
+            label="Target Organization"
+            value={selectedOrgId}
+            onChange={(e) => setSelectedOrgId(e.target.value)}
+            options={organizations.map((org) => ({ value: org.id, label: org.name }))}
+            disabled={busy}
+          />
+        </div>
+      </div>
 
+      {error && (
+        <Card className="rounded-2xl border-red-200 bg-red-50/20 dark:bg-red-950/10 dark:border-red-900/40 shadow-sm">
+          <CardContent className="py-3.5 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-400 font-bold">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {notice && (
+        <Card className="rounded-2xl border-green-200 bg-green-50/20 dark:bg-green-950/10 dark:border-green-900/40 shadow-sm">
+          <CardContent className="py-3.5 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#00C853] shrink-0" />
+            <p className="text-sm text-green-700 dark:text-green-400 font-bold">{notice}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Wazuh Card */}
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md hover:border-slate-350 dark:hover:border-slate-750 transition-all duration-300">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Database className="w-5 h-5 text-indigo-500" />
+                Wazuh SOC Manager
+              </CardTitle>
+              <Badge variant={wazuhConnected ? 'success' : 'outline'} className="gap-1.5 rounded-xl px-2.5 py-0.5 font-bold">
+                <span className={`inline-block h-2 w-2 rounded-full ${wazuhConnected ? 'bg-[#00C853] animate-pulse' : 'bg-slate-400'}`} />
+                {wazuhConnected ? 'Connected' : wazuhConfigured ? 'Offline' : 'Not Configured'}
+              </Badge>
+            </div>
+            <CardDescription className="text-xs font-semibold">
+              Connect to Wazuh manager API to sync active agents status & CVEs.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-2">
+            <Input
+              label="Manager Host / IP"
+              value={wazuhHost}
+              onChange={(e) => setWazuhHost(e.target.value)}
+              placeholder="e.g. wazuh.internal.company.com"
+              disabled={busy || isReadOnly}
+            />
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-1">
+                <Input
+                  label="Port"
+                  type="number"
+                  value={String(wazuhPort)}
+                  onChange={(e) => setWazuhPort(Number(e.target.value) || 55000)}
+                  placeholder="55000"
+                  disabled={busy || isReadOnly}
+                />
+              </div>
+              <div className="col-span-2">
+                <Input
+                  label="API Password / Key"
+                  type="password"
+                  value={wazuhApiKey}
+                  onChange={(e) => setWazuhApiKey(e.target.value)}
+                  placeholder="••••••••••••"
+                  disabled={busy || isReadOnly}
+                />
+              </div>
+            </div>
+            {wazuhAgents && (
+              <div className="p-3 bg-slate-100/50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/50 dark:border-slate-800/40 text-xs font-bold text-slate-700 dark:text-slate-300">
+                Live Status: {wazuhAgents.active} / {wazuhAgents.total} Agents Active
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="pt-2">
+            <Button
+              onClick={handleConfigureWazuh}
+              disabled={busy || !wazuhHost.trim() || isReadOnly}
+              className="w-full bg-[#00C853] hover:bg-[#00C853]/90 text-white rounded-xl font-bold gap-1.5"
+            >
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              Save & Test Connection
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* Splunk Card */}
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md hover:border-slate-350 dark:hover:border-slate-750 transition-all duration-300">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-purple-500" />
+                Splunk Endpoint HEC
+              </CardTitle>
+              <Badge variant={splunkConfigured ? 'success' : 'outline'} className="gap-1.5 rounded-xl px-2.5 py-0.5 font-bold">
+                <span className={`inline-block h-2 w-2 rounded-full ${splunkConfigured ? 'bg-[#00C853] animate-pulse' : 'bg-slate-400'}`} />
+                {splunkConfigured ? 'Active' : 'Not Configured'}
+              </Badge>
+            </div>
+            <CardDescription className="text-xs font-semibold">
+              Configure Splunk HTTP Event Collector for real-time control checks.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-2">
+            {splunkConfigured ? (
+              <div className="space-y-2 p-3 bg-slate-100/50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/50 dark:border-slate-800/40 text-xs font-bold text-slate-700 dark:text-slate-300">
+                <p>Endpoint URL: <span className="font-mono text-purple-600 dark:text-purple-400">{splunkConfigUrl}</span></p>
+                {splunkEvidenceCount !== null && (
+                  <p className="mt-1">Verified Controls via Splunk: <span className="text-[#00C853]">{splunkEvidenceCount} Controls</span></p>
+                )}
+              </div>
+            ) : (
+              <>
+                <Input
+                  label="Splunk Base URL"
+                  value={splunkBaseUrl}
+                  onChange={(e) => setSplunkBaseUrl(e.target.value)}
+                  placeholder="https://splunk-hec.company.com:8088"
+                  disabled={busy || isReadOnly}
+                />
+                <Input
+                  label="HEC Token"
+                  type="password"
+                  value={splunkHecToken}
+                  onChange={(e) => setSplunkHecToken(e.target.value)}
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  disabled={busy || isReadOnly}
+                />
+              </>
+            )}
+          </CardContent>
+          <CardFooter className="pt-2 gap-2 flex">
+            {splunkConfigured ? (
+              <Button
+                onClick={handleDisconnectSplunk}
+                variant="outline"
+                disabled={busy || isReadOnly}
+                className="w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/40 rounded-xl font-bold"
+              >
+                Disconnect Splunk
+              </Button>
+            ) : (
+              <Button
+                onClick={handleConfigureSplunk}
+                disabled={busy || !splunkBaseUrl.trim() || !splunkHecToken.trim() || isReadOnly}
+                className="w-full bg-[#00C853] hover:bg-[#00C853]/90 text-white rounded-xl font-bold"
+              >
+                Enable HEC Ingestion
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+
+        {/* Custom Telemetry Card */}
+        <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md hover:border-slate-350 dark:hover:border-slate-750 transition-all duration-300 md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-amber-500" />
+              Custom API & Webhook Ingestion
+            </CardTitle>
+            <CardDescription className="text-xs font-semibold">
+              Push continuous telemetry updates directly to ResilAI using webhook signature verification.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2">
+                <Webhook className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">SIEM Webhook Endpoint</span>
+              </div>
+              <pre className="p-3 bg-slate-950 border border-slate-800 text-green-400 font-mono text-xs rounded-xl overflow-x-auto select-all">
+                {`${window.location.origin}/api/v1/integrations/siem/event`}
+              </pre>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed">
+                Add this URL as a webhook target in Splunk, Elastic, or Wazuh. ResilAI validates the payload integrity using standard HMAC signatures.
+              </p>
+            </div>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-[#00C853]" />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Interactive Simulation</span>
+              </div>
+              <p className="text-xs text-slate-550 dark:text-slate-400 font-semibold leading-relaxed">
+                For staging and investor demos, trigger a simulated flow of live security telemetry signals below.
+              </p>
+              <Button
+                onClick={handleMockTelemetry}
+                disabled={busy}
+                className="w-full bg-violet-600 hover:bg-violet-750 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Play className="w-4 h-4 shrink-0 fill-current" />
+                Trigger Telemetry Event Flow
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

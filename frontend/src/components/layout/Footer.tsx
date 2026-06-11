@@ -78,8 +78,15 @@ export function Footer() {
                     </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-t border-gray-200 dark:border-slate-800 pt-6 mt-6">
+                    <div className="flex items-center gap-3">
+                        <img 
+                            src="/logo_footer_and github.svg" 
+                            alt="ResilAI Brand Logo" 
+                            className="h-12 w-auto dark:brightness-0 dark:invert transition-all duration-300" 
+                        />
+                    </div>
+                    <nav className="flex flex-wrap items-center justify-center md:justify-end gap-x-6 gap-y-3">
                         {footerLinks.map(({ label, href, icon: Icon, external }) =>
                             external ? (
                                 <a
@@ -104,8 +111,10 @@ export function Footer() {
                             )
                         )}
                     </nav>
+                </div>
 
-                    <p className="text-xs text-gray-400 dark:text-gray-500 text-center sm:text-right">
+                <div className="flex items-center justify-center md:justify-end mt-4 pt-2 border-t border-slate-100 dark:border-slate-800/40 w-full">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 text-center md:text-right">
                         {isStaging || isDemo ? 'ResilAI Public Beta' : 'ResilAI'} | Aligned to CIS | NIST | OWASP | GNU AGPL-3.0 | (c) 2026 ResilAI
                         {(isStaging || isDemo) && systemStatus ? ` | v${systemStatus.version || 'dev'} (${systemStatus.environment})` : ''}
                     </p>

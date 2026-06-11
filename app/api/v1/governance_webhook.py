@@ -154,6 +154,10 @@ async def ingest_webhook_event(
         raw_telemetry_dump=payload.raw_telemetry_dump,
     )
 
+    # Broadcast real-time GHI update over WebSockets
+    from app.core.websocket_manager import telemetry_ws_manager
+    await telemetry_ws_manager.broadcast_org_update(payload.organization_id, db_session=db)
+
     return WebhookIngestionResponse(
         status=result["status"],
         finding_id=result.get("finding_id"),

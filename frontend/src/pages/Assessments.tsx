@@ -16,6 +16,7 @@ import {
   FileCheck,
   Clock,
   ChevronRight,
+  PlugZap,
 } from 'lucide-react';
 import { getAssessments, ApiRequestError } from '../api';
 import { useIsReadOnly } from '../contexts';
@@ -128,9 +129,9 @@ export default function Assessments() {
         </div>
         {!isReadOnly && (
           <Link to="/dashboard/assessment/new">
-            <Button className="gap-2 rounded-xl font-bold hover:scale-[1.01] transition-all">
-              <Plus className="w-4 h-4" />
-              New Assessment
+            <Button className="gap-2 rounded-xl font-bold hover:scale-[1.01] transition-all bg-[#00C853] hover:bg-[#00C853]/90 text-white border-transparent">
+              <PlugZap className="w-4.5 h-4.5" />
+              Connect Security Data Sources
             </Button>
           </Link>
         )}
@@ -146,7 +147,7 @@ export default function Assessments() {
               : "Run your first assessment to generate a readiness score."
             }
             action={isReadOnly ? undefined : {
-              label: 'Start Assessment',
+              label: 'Connect Security Data Sources',
               href: '/dashboard/assessment/new',
             }}
           />

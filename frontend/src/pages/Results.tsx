@@ -34,26 +34,11 @@ import {
   Map,
 } from 'lucide-react'
 import { clsx } from 'clsx'
-import {
-  OverviewTab,
-  FindingsTab,
-  FrameworkTab,
-  RoadmapTab,
-  AnalyticsTab,
-} from '../components/ResultsTabs'
-import { EnterpriseRoadmap } from '../components/EnterpriseRoadmap'
-import { SuggestedQuestionsPanel } from '../components/SuggestedQuestionsPanel'
 import ProgressSteps from '../components/ProgressSteps'
-
-// Tab definitions
-const tabs = [
-  { id: 'overview', label: 'Overview', icon: BarChart3 },
-  { id: 'findings', label: 'Findings', icon: AlertTriangle },
-  { id: 'framework', label: 'Framework Mapping', icon: Shield },
-  { id: 'roadmap', label: 'Roadmap', icon: Route },
-  { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-  { id: 'enterprise', label: 'Enterprise Roadmap', icon: Map },
-]
+import { useMockTrustData } from '../hooks/useMockTrustData'
+import TrustScore from '../components/dashboard/TrustScore'
+import VerificationSummaryGrid from '../components/dashboard/VerificationSummaryGrid'
+import EvidenceTimeline from '../components/dashboard/EvidenceTimeline'
 
 function getReadinessLevel(score: number): { label: string; variant: 'danger' | 'warning' | 'primary' | 'success' } {
   if (score <= 40) return { label: 'Critical', variant: 'danger' }
@@ -74,9 +59,8 @@ export default function Results() {
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
   const [isAccessDenied, setIsAccessDenied] = useState(false)
-  const [selectedBaseline, setSelectedBaseline] = useState<string>('Typical SMB')
-  const [activeTab, setActiveTab] = useState('overview')
-  const [isRefreshingNarrative, setIsRefreshingNarrative] = useState(false)
+
+  const { data: trustData, loading: trustLoading } = useMockTrustData(id)
 
   useEffect(() => {
     getAssessmentSummary(id!)
@@ -200,17 +184,7 @@ export default function Results() {
     }
   }
 
-  const handleRefreshNarrative = async () => {
-    setIsRefreshingNarrative(true)
-    try {
-      const newSummary = await getAssessmentSummary(id!)
-      setSummary(newSummary)
-    } catch (err) {
-      console.error('Failed to refresh narrative:', err)
-    } finally {
-      setIsRefreshingNarrative(false)
-    }
-  }
+
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -222,7 +196,7 @@ export default function Results() {
     })
   }
 
-  if (loading) {
+  if (loading || trustLoading) {
     return <ProgressSteps />
   }
 
@@ -360,59 +334,26 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Suggested Questions — below readiness score, above tabs */}
-      {summary.organization_id && (
-        <SuggestedQuestionsPanel orgId={summary.organization_id} />
-      )}
+      {/* Trust Score Hero breakdown */}
+      <TrustScore
+        score={trustData?.overallScore ?? Math.round(summary.overall_score)}
+        verifiedTelemetryPct={trustData?.verifiedTelemetryPct ?? 65}
+        selfAttestedPct={trustData?.selfAttestedPct ?? 35}
+      />
 
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 dark:border-slate-800">
-        <nav className="flex space-x-1 overflow-x-auto pb-px" aria-label="Results tabs">
-          {tabs.map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={clsx(
-                  'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors',
-                  isActive
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:border-gray-300 dark:hover:border-slate-700'
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {tab.label}
-                {tab.id === 'findings' && summary.findings_count > 0 && (
-                  <Badge variant="default" className="ml-1 text-xs">
-                    {summary.findings_count}
-                  </Badge>
-                )}
-              </button>
-            )
-          })}
-        </nav>
-      </div>
+      {/* Verification summary counts grid */}
+      <VerificationSummaryGrid
+        verified={trustData?.verificationSummary.verified ?? 22}
+        partiallyVerified={trustData?.verificationSummary.partiallyVerified ?? 14}
+        selfAttested={trustData?.verificationSummary.selfAttested ?? 12}
+        notVerified={trustData?.verificationSummary.notVerified ?? 8}
+      />
 
-      {/* Tab Content */}
-      <div className="min-h-[400px]">
-        {activeTab === 'overview' && (
-          <OverviewTab
-            summary={summary}
-            selectedBaseline={selectedBaseline}
-            setSelectedBaseline={setSelectedBaseline}
-            suggestedBaseline={undefined}
-            onRefreshNarrative={handleRefreshNarrative}
-            isRefreshingNarrative={isRefreshingNarrative}
-          />
-        )}
-        {activeTab === 'findings' && <FindingsTab summary={summary} />}
-        {activeTab === 'framework' && <FrameworkTab summary={summary} />}
-        {activeTab === 'roadmap' && <RoadmapTab summary={summary} />}
-        {activeTab === 'analytics' && <AnalyticsTab summary={summary} />}
-        {activeTab === 'enterprise' && <EnterpriseRoadmap summary={summary} />}
-      </div>
+      {/* Historical trend charting and evidence transition activity logs */}
+      <EvidenceTimeline
+        trendData={trustData?.trendData ?? []}
+        events={trustData?.events ?? []}
+      />
 
       {/* Actions Footer */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 py-4">

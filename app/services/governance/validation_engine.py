@@ -527,6 +527,14 @@ def validate_organization(
     result.sla = compute_sla_gap(org, org_id=org.id)
 
     # 4. Lifecycle risk
+    from app.core.config import settings
+    if settings.is_staging or settings.ENV == "staging":
+        from app.services.asset_discovery import AssetDiscoveryService
+        discovery_svc = AssetDiscoveryService(db, org.id)
+        discovery_svc.discover_assets()
+        # Refresh the relationship so list(org.tech_stack_items) retrieves updated db state
+        db.refresh(org)
+
     result.lifecycle = compute_lifecycle(list(org.tech_stack_items))
 
     # 5. GHI
