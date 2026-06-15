@@ -36,8 +36,9 @@ if ($Target) {
 # Determine target environment
 if ($Prod) {
     if ($IsDemo) {
-        Write-Host "ERROR: Demo environment is currently locked. Deployments to demo are disabled by policy." -ForegroundColor Red
-        exit 1
+        $ServiceName = "airs-api-demo"
+        $EnvFile = "gcp/env.demo.yaml"
+        $envLabel = "DEMO"
     } else {
         $ServiceName = "airs-api"
         $EnvFile = "gcp/env.prod.yaml"
