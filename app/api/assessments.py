@@ -347,9 +347,9 @@ async def delete_assessment(
     user: User = Depends(require_auth),
     _: None = Depends(require_writable)
 ):
-    """Delete an assessment (must be owned by current user)."""
+    """Archive an assessment (soft delete - must be owned by current user)."""
     service = get_assessment_service(db, user)
-    if not service.delete(assessment_id):
+    if not service.archive(assessment_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Assessment not found: {assessment_id}"

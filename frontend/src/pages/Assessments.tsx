@@ -17,8 +17,9 @@ import {
   Clock,
   ChevronRight,
   PlugZap,
+  Archive,
 } from 'lucide-react';
-import { getAssessments, ApiRequestError } from '../api';
+import { getAssessments, deleteAssessment, ApiRequestError } from '../api';
 import { useIsReadOnly } from '../contexts';
 import type { Assessment } from '../types';
 
@@ -54,6 +55,18 @@ export default function Assessments() {
 
     loadData();
   }, []);
+
+  // Handle Archive
+  const handleArchive = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await deleteAssessment(id);
+      setAssessments(assessments.filter((a) => a.id !== id));
+    } catch (err) {
+      console.error('Failed to archive assessment:', err);
+    }
+  };
 
   // Filter assessments
   const filteredAssessments = assessments.filter((a) => {
@@ -273,7 +286,15 @@ export default function Assessments() {
                             {assessment.status === 'completed' ? 'Completed' : 'Resume Draft'}
                           </span>
 
-                          <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                          <button
+                            onClick={(e) => handleArchive(e, assessment.id)}
+                            className="p-1.5 ml-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                            title="Archive Assessment"
+                          >
+                            <Archive className="w-5 h-5" />
+                          </button>
+
+                          <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500 ml-2" />
                         </div>
                       </div>
                     </CardContent>

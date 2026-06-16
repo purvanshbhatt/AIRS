@@ -358,6 +358,10 @@ export const computeScore = (assessmentId: string) =>
 export const getFindings = (assessmentId: string) =>
   request<import('./types').Finding[]>(`/api/assessments/${assessmentId}/findings`);
 
+// Archive/Delete an assessment
+export const deleteAssessment = (assessmentId: string) =>
+  request<void>(`/api/assessments/${assessmentId}`, { method: 'DELETE' });
+
 // Rubric
 export const getRubric = () =>
   request<import('./types').Rubric>('/api/scoring/rubric');

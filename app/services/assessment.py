@@ -115,9 +115,11 @@ class AssessmentService:
         return self._base_query().filter(Assessment.id == assessment_id).first()
     
     def get_all(self, organization_id: Optional[str] = None, 
-                skip: int = 0, limit: int = 100) -> List[Assessment]:
+                skip: int = 0, limit: int = 100, include_archived: bool = False) -> List[Assessment]:
         """Get all assessments (scoped to current user), optionally filtered by organization."""
         query = self._base_query()
+        if not include_archived:
+            query = query.filter(Assessment.status != AssessmentStatus.ARCHIVED)
         if organization_id:
             query = query.filter(Assessment.organization_id == organization_id)
         return query.order_by(Assessment.created_at.desc()).offset(skip).limit(limit).all()
@@ -146,6 +148,17 @@ class AssessmentService:
         self.db.delete(assessment)
         self.db.commit()
         firestore_delete_assessment(assessment_id)
+        return True
+
+    def archive(self, assessment_id: str) -> bool:
+        """Archive an assessment (soft delete)."""
+        assessment = self.get(assessment_id)
+        if not assessment:
+            return False
+            
+        assessment.status = AssessmentStatus.ARCHIVED
+        self.db.commit()
+        firestore_save_assessment(assessment)
         return True
     
     # ----- Answer Management -----
