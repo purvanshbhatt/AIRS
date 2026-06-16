@@ -6,7 +6,7 @@ CRUD for tech stack items + summary/risk classification.
 
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_auth, User
@@ -44,6 +44,7 @@ def _verify_org(db: Session, user: User, org_id: str):
 )
 async def list_items(
     org_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
 ):
@@ -52,12 +53,18 @@ async def list_items(
     # Run technology discovery only in production
     from app.core.config import settings
     if settings.ENV == "production" or not settings.is_staging:
-        try:
-            from app.services.discovery.orchestrator import TechnologyDiscoveryOrchestrator
-            orchestrator = TechnologyDiscoveryOrchestrator(db, org_id)
-            orchestrator.run_discovery_cycle()
-        except Exception as e:
-            logger.error(f"Auto-discovery cycle failed during tech stack list: {e}")
+        def run_discovery():
+            try:
+                # Use a new DB session for background task
+                from app.db.database import SessionLocal
+                with SessionLocal() as bg_db:
+                    from app.services.discovery.orchestrator import TechnologyDiscoveryOrchestrator
+                    orchestrator = TechnologyDiscoveryOrchestrator(bg_db, org_id)
+                    orchestrator.run_discovery_cycle()
+            except Exception as e:
+                logger.error(f"Auto-discovery cycle failed during tech stack list: {e}")
+                
+        background_tasks.add_task(run_discovery)
         
     svc = TechStackService(db, org_id)
     items = svc.list_all()
