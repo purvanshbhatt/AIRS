@@ -6,11 +6,11 @@ Current Goal:
 Trust & Verification Release
 
 Core Architecture:
-- Frontend: React + Vite + TypeScript + TailwindCSS
-- Backend: FastAPI (Python 3.11+)
-- Database: Firestore (Primary Persistence) + SQLite (In-Memory Cache)
+- Frontend: React (18.3.1) + Vite (6.4.1) + TypeScript (5.5.3) + TailwindCSS (4.1.18)
+- Backend: FastAPI (0.115+) (Python 3.11+) + SQLAlchemy (2.0+)
+- Database: Firestore (Primary Persistence, via firebase-admin 6.5+) + SQLite (In-Memory Cache)
 - Hosting: Firebase Hosting (Frontend), Google Cloud Run (Backend)
-- LLM: Gemini 1.5 Pro/Flash
+- LLM: Gemini 3 Flash (via google-genai 1.0+). Some subsystems use Gemini 2.5 Flash.
 
 Rules:
 - LLM never calculates scores. Scoring remains deterministic.

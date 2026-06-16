@@ -1,6 +1,6 @@
 # Frontend State
 
-Core Layer: React, Vite, TypeScript, TailwindCSS
+Core Layer: React (18.3.1), Vite (6.4.1), TypeScript (5.5.3), TailwindCSS (4.1.18)
 Client Router: React Router
 API Client: `frontend/src/api.ts`
 
