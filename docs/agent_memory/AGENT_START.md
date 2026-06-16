@@ -19,9 +19,8 @@ Do not scan the entire repository.
 
 Step 6
 After changes:
-Update BACKEND_STATE.md, FRONTEND_STATE.md, or DEVOPS_STATE.md.
-Update CURRENT_SPRINT.md.
-Update PROJECT_STATE.md.
+Update ACTIVE_CONTEXT.md and AGENT_LOG.md. These are the ONLY files you should update every run.
+Only update the larger project state files (PROJECT_STATE.md, BACKEND_STATE.md, FRONTEND_STATE.md, CURRENT_SPRINT.md) when something materially changes.
 
 Commit summary.
 
