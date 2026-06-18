@@ -24,3 +24,8 @@ ADR-005
 Decision: Asynchronous Auto-Discovery
 Reason: External API calls (Wazuh, Splunk) take longer than typical API timeout windows. Auto-discovery must run in the background.
 Status: Active.
+
+ADR-006
+Decision: CORSErrorSafetyMiddleware wraps entire middleware stack.
+Reason: Cloud Run strips CORS headers on 5xx/504 responses. A safety-net middleware must be the outermost layer to catch errors and guarantee CORS headers are always present. It must always be the LAST `add_middleware()` call in `app/main.py`.
+Status: Permanent.

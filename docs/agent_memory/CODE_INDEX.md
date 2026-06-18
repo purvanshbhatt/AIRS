@@ -61,3 +61,34 @@ Purpose:
 Executive view of Audit Confidence and Verification Status.
 Dependencies:
 `frontend/src/api.ts`
+
+---
+
+## CORS Safety Net Middleware
+`app/core/middleware.py` → `CORSErrorSafetyMiddleware`
+Purpose:
+Outermost middleware that guarantees CORS headers survive Cloud Run timeouts, crashes, and unhandled exceptions. Also fast-paths OPTIONS preflight with an instant 204 response.
+Dependencies:
+`app/core/cors.py` (for origin list)
+Do Not Modify:
+This middleware MUST always be added LAST in `app/main.py` (so it runs FIRST in Starlette's reverse-order stack). Moving it will break CORS on error responses.
+
+---
+
+## CORS Configuration
+`app/core/cors.py`
+Purpose:
+Single source of truth for validating and sanitizing allowed CORS origins. Environment-aware: blocks wildcards and localhost in production.
+Dependencies:
+`CORS_ALLOW_ORIGINS` env var from `gcp/env.*.yaml`
+Do Not Modify:
+Origin validation logic without understanding the full CORS middleware chain.
+
+---
+
+## Application Entry Point
+`app/main.py`
+Purpose:
+FastAPI app initialization, middleware registration, route mounting, background task scheduling.
+Important:
+Middleware order matters. CORSErrorSafetyMiddleware must be the LAST `add_middleware` call.
