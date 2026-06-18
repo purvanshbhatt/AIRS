@@ -7,7 +7,7 @@ and error handling.
 
 import time
 import logging
-from typing import Callable
+from typing import Callable, List
 
 from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
@@ -22,6 +22,66 @@ from app.core.logging import (
 )
 
 logger = logging.getLogger("airs.middleware")
+
+
+# ---- CORS Error Safety Net Middleware ----
+
+class CORSErrorSafetyMiddleware(BaseHTTPMiddleware):
+    """
+    Safety-net middleware that guarantees CORS headers are present on EVERY
+    response, including error responses (5xx, timeouts, unhandled exceptions).
+
+    WHY THIS EXISTS:
+    When Cloud Run's reverse proxy returns a 504 (timeout) or the app crashes,
+    CORS headers from FastAPI's CORSMiddleware get stripped because that
+    middleware never ran its response-path. The browser then reports a misleading
+    "CORS error" instead of the real error. This middleware sits OUTSIDE the
+    CORS middleware and catches those cases.
+    """
+
+    def __init__(self, app, allowed_origins: List[str] = None):
+        super().__init__(app)
+        self.allowed_origins = allowed_origins or []
+
+    def _get_cors_origin(self, request: Request) -> str:
+        """Return the request Origin if it's in our allowed list, else empty."""
+        origin = request.headers.get("origin", "")
+        if origin in self.allowed_origins:
+            return origin
+        return ""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        origin = self._get_cors_origin(request)
+
+        # Fast-path: handle preflight OPTIONS explicitly so Cloud Run
+        # never has a chance to timeout or strip headers on them.
+        if request.method == "OPTIONS" and origin:
+            response = Response(status_code=204)
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Authorization,Content-Type,Accept,Origin,X-Requested-With"
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Max-Age"] = "86400"
+            return response
+
+        try:
+            response = await call_next(request)
+        except Exception as exc:
+            logger.error(
+                "Unhandled exception in middleware chain: %s", exc, exc_info=True
+            )
+            response = JSONResponse(
+                status_code=500,
+                content={"error": {"code": "INTERNAL_ERROR", "message": "Internal server error"}},
+            )
+
+        # Ensure CORS headers are always present for valid origins
+        if origin and "access-control-allow-origin" not in response.headers:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Expose-Headers"] = "X-Request-ID"
+
+        return response
 
 
 # ---- Security Headers Middleware ----

@@ -9,6 +9,7 @@ from app.core.config import settings, Environment, validate_deployment, Deployme
 from app.core.logging import setup_logging, event_logger
 from app.core.cors import get_allowed_origins, log_cors_config
 from app.core.middleware import (
+    CORSErrorSafetyMiddleware,
     RequestIdMiddleware,
     SecurityHeadersMiddleware,
     global_exception_handler,
@@ -297,6 +298,11 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
     expose_headers=["X-Request-ID"],
 )
+
+# CORS Error Safety Net — MUST be added LAST so it wraps EVERYTHING.
+# Starlette processes middleware in reverse-add order, so this runs FIRST.
+# Catches errors/timeouts that would otherwise strip CORS headers.
+app.add_middleware(CORSErrorSafetyMiddleware, allowed_origins=cors_origins)
 
 # Register exception handlers for consistent error format
 app.add_exception_handler(Exception, global_exception_handler)
