@@ -30,7 +30,7 @@ The repository is close to public-facing readiness (license, security policy, ch
 ## 2) Broken Links / Link Hygiene
 
 ### Confirmed broken internal links
-Found in `frontend/src/pages/## Chat Customization Diagnostics.md`:
+Found in `frontend/src/pages/## Chat Customization Diagnostics.md` (literal filename in repository):
 - Multiple links point to local Windows filesystem paths such as:
   - `c%3A/Users/purva/.vscode/...`
   - `C%3A/Users/purva/AppData/...`
