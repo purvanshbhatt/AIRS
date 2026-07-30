@@ -24,6 +24,7 @@ import secrets
 from app.db.database import engine, Base
 from app.api.routes.health import router as health_router
 from app.api import router as api_router
+from app.api.clinic.router import router as clinic_router
 from app.services.audit import register_system_auditor
 
 import logging
@@ -65,7 +66,13 @@ def _validate_environment():
 _validate_environment()
 
 # ── Rate Limiter ──
-limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+def extract_real_ip(request: Request) -> str:
+    x_forwarded_for = request.headers.get("X-Forwarded-For")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.client.host if request.client else "127.0.0.1"
+
+limiter = Limiter(key_func=extract_real_ip, default_limits=["200/minute"])
 
 # Initialize Firebase Admin SDK (for token verification)
 def init_firebase():
@@ -263,10 +270,19 @@ async def get_redoc_documentation(username: str = Depends(get_docs_username)):
 async def openapi(username: str = Depends(get_docs_username)):
     return get_openapi(title=app.title, version=app.version, routes=app.routes)
 
+@app.get("/debug/ip", include_in_schema=False)
+async def debug_ip(request: Request):
+    return {
+        "x_forwarded_for": request.headers.get("X-Forwarded-For"),
+        "client_host": request.client.host if request.client else None,
+        "extracted_ip": extract_real_ip(request)
+    }
+
 
 # Attach rate limiter
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# app.state.limiter = limiter
+# app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# app.add_middleware(SlowAPIMiddleware)
 
 # Add request ID middleware (must be first to capture all requests)
 app.add_middleware(RequestIdMiddleware)
@@ -289,14 +305,14 @@ cors_origins = get_allowed_origins(
 log_cors_config(cors_origins, is_production=is_strict_cors)
 
 # Configure CORS middleware
-# Explicitly allow Authorization header for Firebase token auth
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
+    allow_origin_regex=r"^https://([a-zA-Z0-9\-]+\.)*(resilai\.org|web\.app|firebaseapp\.com|run\.app)$",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
-    expose_headers=["X-Request-ID"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # CORS Error Safety Net — MUST be added LAST so it wraps EVERYTHING.
@@ -312,6 +328,7 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 # Include API routes
 app.include_router(health_router)
 app.include_router(api_router, prefix="/api")
+app.include_router(clinic_router, prefix="/api/clinic")
 
 # Internal assurance endpoints (staging-only, gated by ENV check)
 from app.api.internal import router as internal_router
