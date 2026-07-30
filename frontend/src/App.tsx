@@ -48,6 +48,7 @@ import ClinicHome from './pages/clinic/Home';
 import ClinicIssueDetails from './pages/clinic/IssueDetails';
 import ClinicIntegrations from './pages/clinic/Integrations';
 import ClinicSettings from './pages/clinic/Settings';
+import ClinicOnboarding from './pages/clinic/Onboarding';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
@@ -111,6 +112,7 @@ function ClinicRoutes() {
   return (
     <ProtectedRoute>
       <Routes>
+        <Route path="onboarding" element={<ClinicOnboarding />} />
         <Route element={<ClinicLayout />}>
           <Route index element={<ClinicHome />} />
           <Route path="issue/:id" element={<ClinicIssueDetails />} />
