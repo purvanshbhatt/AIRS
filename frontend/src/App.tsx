@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { DashboardLayout } from './components/layout';
@@ -30,15 +30,30 @@ import PilotPage from './pages/Pilot';
 import StatusPage from './pages/Status';
 import GovernanceProfile from './pages/GovernanceProfile';
 import AuditCalendar from './pages/AuditCalendar';
-import TechStack from './pages/TechStack';
-import PilotDashboard from './pages/PilotDashboard';
+import TechnologyIntelligence from './pages/TechnologyIntelligence';
 import AuditorView from './pages/AuditorView';
 import ComplianceDrift from './pages/ComplianceDrift';
 import ReliabilityDashboard from './pages/ReliabilityDashboard';
 import RemediationLedger from './pages/RemediationLedger';
+import ReadinessTimeline from './pages/ReadinessTimeline';
+import BoardStory from './pages/BoardStory';
+import DecisionEngine from './pages/DecisionEngine';
+import BusinessUnits from './pages/BusinessUnits';
+import { EvidenceNetwork } from './pages/EvidenceNetwork';
+import AIAttackSimulationLab from './pages/AIAttackSimulationLab';
+
+// Clinic MVP Pages
+import ClinicLayout from './pages/clinic/Layout';
+import ClinicHome from './pages/clinic/Home';
+import ClinicIssueDetails from './pages/clinic/IssueDetails';
+import ClinicIntegrations from './pages/clinic/Integrations';
+import ClinicSettings from './pages/clinic/Settings';
+import ClinicOnboarding from './pages/clinic/Onboarding';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
+
+const IS_CLINIC_MODE = true; // Feature flag
 
 function ApiConfigBanner() {
   if (isApiConfigured) return null;
@@ -66,16 +81,45 @@ function DashboardRoutes() {
           <Route path="/results/:id" element={<Results />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
+
+          {/* Canonical Sprint 1.8 / Sprint 2 routes */}
+          <Route path="/readiness-timeline" element={<ReadinessTimeline />} />
+          <Route path="/board-story" element={<BoardStory />} />
+          <Route path="/decision-engine" element={<DecisionEngine />} />
+          <Route path="/business-units" element={<BusinessUnits />} />
+
+          {/* Evidence Network — canonical path */}
+          <Route path="/evidence-network" element={<EvidenceNetwork />} />
+
+          {/* Legacy redirect — /integrations -> /evidence-network (F-003 / T-B01) */}
           <Route path="/integrations" element={<Integrations />} />
+
+          {/* Retained pages */}
           <Route path="/governance" element={<GovernanceProfile />} />
           <Route path="/audit-calendar" element={<AuditCalendar />} />
-          <Route path="/tech-stack" element={<TechStack />} />
-          <Route path="/pilot-program" element={<PilotDashboard />} />
+          <Route path="/tech-stack" element={<TechnologyIntelligence />} />
           <Route path="/compliance-drift" element={<ComplianceDrift />} />
           <Route path="/reliability" element={<ReliabilityDashboard />} />
           <Route path="/remediation" element={<RemediationLedger />} />
+          <Route path="/ai-attack-simulation-lab" element={<AIAttackSimulationLab />} />
         </Routes>
       </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function ClinicRoutes() {
+  return (
+    <ProtectedRoute>
+      <Routes>
+        <Route path="onboarding" element={<ClinicOnboarding />} />
+        <Route element={<ClinicLayout />}>
+          <Route index element={<ClinicHome />} />
+          <Route path="issue/:id" element={<ClinicIssueDetails />} />
+          <Route path="integrations" element={<ClinicIntegrations />} />
+          <Route path="settings" element={<ClinicSettings />} />
+        </Route>
+      </Routes>
     </ProtectedRoute>
   );
 }
@@ -119,9 +163,9 @@ export default function App() {
           <ToastProvider>
             <AuthRedirectHandler />
             <ApiConfigBanner />
-            <EnvironmentHeader />
+            {!IS_CLINIC_MODE && <EnvironmentHeader />}
             <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={IS_CLINIC_MODE ? <Navigate to="/clinic" replace /> : <Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
             <Route path="/security" element={<SecurityPage />} />
@@ -130,57 +174,16 @@ export default function App() {
             <Route path="/auditor" element={<AuditorView />} />
 
             <Route path="/dashboard/*" element={<DashboardRoutes />} />
+            <Route path="/clinic/*" element={<ClinicRoutes />} />
 
-            <Route
-              path="/assessment/new"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    {import.meta.env.VITE_APP_ENV === 'staging' ? <NewAssessment /> : <QuickAssessment />}
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessment/quick"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <QuickAssessment />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/org/new"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <NewOrg />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/results/:id"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Results />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings/integrations"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Integrations />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
+            {/* Legacy Backward-Compatible Redirects (S1.8-AUDIT-FIX-D01) */}
+            <Route path="/assessment/new" element={<Navigate to="/dashboard/assessment/new" replace />} />
+            <Route path="/assessment/quick" element={<Navigate to="/dashboard/assessment/quick" replace />} />
+            <Route path="/org/new" element={<Navigate to="/dashboard/org/new" replace />} />
+            <Route path="/results/:id" element={<Navigate to="/dashboard/results/:id" replace />} />
+            <Route path="/settings/integrations" element={<Navigate to="/dashboard/evidence-network" replace />} />
+
+
 
             <Route path="/docs" element={<DocsLayout />}>
               <Route index element={<DocsOverview />} />

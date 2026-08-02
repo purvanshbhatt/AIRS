@@ -319,7 +319,7 @@ export default function Results() {
             className="gap-2"
           >
             <FileText className="h-4 w-4" />
-            {executiveDownloading ? 'Downloading...' : 'Download Executive Summary (1-Page)'}
+            {executiveDownloading ? 'Downloading...' : 'Download Board Briefing (1-Page)'}
           </Button>
           <Button
             size="sm"
@@ -332,6 +332,9 @@ export default function Results() {
             {exportingSiem ? 'Exporting...' : 'Export for SIEM'}
           </Button>
         </div>
+      </div>
+      <div className="text-[10px] text-indigo-600/80 dark:text-indigo-400/80 font-medium mb-6">
+        The Board Briefing is AI-synthesized strictly from deterministic findings and telemetry. AI does not calculate readiness scores or assess compliance.
       </div>
 
       {/* Trust Score Hero breakdown */}

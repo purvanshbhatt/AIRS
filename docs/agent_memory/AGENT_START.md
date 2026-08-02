@@ -1,21 +1,34 @@
-Before making changes:
+BEFORE IMPLEMENTING ANY FEATURE:
 
-Step 1
-Read: PROJECT_STATE.md and PRODUCT_MOAT.md
+1. Read:
+   - AGENT_START.md
+   - PROJECT_STATE.md
+   - PRODUCT_MOAT.md
+   - CURRENT_SPRINT.md
+   - NEXT_TASKS.md
+   - CODE_INDEX.md
+   - OWNERSHIP_MAP.md
+   - DEPENDENCY_MAP.md
 
-Step 2
-Read: ARCHITECTURE_DECISIONS.md
+2. Validate against PRODUCT_MOAT.md.
 
-Step 3
-Read: CURRENT_SPRINT.md and NEXT_TASKS.md
+3. Reject any implementation that turns ResilAI into:
+   - SIEM
+   - Vulnerability Scanner
+   - Generic GRC Platform
+   - Asset Management Platform
 
-Step 4
-Read: DEPENDENCY_MAP.md and OWNERSHIP_MAP.md
+4. Every feature must directly improve:
+   - Incident Readiness
+   - Evidence Verification
+   - Deterministic Scoring
+   - Executive Decision Making
 
-Step 5
-Read: CODE_INDEX.md to find exactly which files to edit.
-ONLY inspect files directly related to your task.
-Do not scan the entire repository.
+5. Do not delete models, tables, APIs, or services without:
+   - migration path
+   - rollback plan
+   - staging validation
+   - explicit approval
 
 Step 6
 After changes:

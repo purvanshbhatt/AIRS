@@ -193,3 +193,84 @@ class TestGetAllowedOrigins:
             )
             assert "http://localhost:3000" in origins
             assert "http://localhost:5173" in origins
+
+
+class TestIsTrustedOrigin:
+    """Tests for is_trusted_origin function."""
+
+    def test_resilai_domain(self):
+        from app.core.cors import is_trusted_origin
+        assert is_trusted_origin("https://resilai.org") is True
+        assert is_trusted_origin("https://www.resilai.org") is True
+        assert is_trusted_origin("https://app.resilai.org") is True
+        assert is_trusted_origin("https://staging.resilai.org") is True
+
+    def test_firebase_web_app_domain(self):
+        from app.core.cors import is_trusted_origin
+        assert is_trusted_origin("https://resilai-marketing.web.app") is True
+        assert is_trusted_origin("https://gen-lang-client-0384513977.web.app") is True
+        assert is_trusted_origin("https://airs-staging-0384513977.web.app") is True
+
+    def test_firebaseapp_domain(self):
+        from app.core.cors import is_trusted_origin
+        assert is_trusted_origin("https://gen-lang-client-0384513977.firebaseapp.com") is True
+
+    def test_cloud_run_domain(self):
+        from app.core.cors import is_trusted_origin
+        assert is_trusted_origin("https://airs-api-227825933697.us-central1.run.app") is True
+
+    def test_untrusted_domain(self):
+        from app.core.cors import is_trusted_origin
+        assert is_trusted_origin("https://malicious-site.com") is False
+        assert is_trusted_origin("http://insecure-resilai.org") is False
+
+
+class TestCORSErrorSafetyMiddleware:
+    """Tests for CORSErrorSafetyMiddleware preflight and headers."""
+
+    def test_options_preflight_custom_headers(self):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from app.core.middleware import CORSErrorSafetyMiddleware
+
+        app = FastAPI()
+        app.add_middleware(CORSErrorSafetyMiddleware, allowed_origins=["https://resilai.org"])
+
+        @app.get("/test")
+        def endpoint():
+            return {"status": "ok"}
+
+        client = TestClient(app)
+        response = client.options(
+            "/test",
+            headers={
+                "Origin": "https://resilai.org",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "authorization, content-type, x-airs-api-key, cache-control",
+            },
+        )
+        assert response.status_code == 204
+        assert response.headers["access-control-allow-origin"] == "https://resilai.org"
+        assert response.headers["access-control-allow-credentials"] == "true"
+        assert "x-airs-api-key" in response.headers["access-control-allow-headers"].lower()
+        assert "cache-control" in response.headers["access-control-allow-headers"].lower()
+
+    def test_options_preflight_trusted_origin_auto_allowed(self):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from app.core.middleware import CORSErrorSafetyMiddleware
+
+        app = FastAPI()
+        app.add_middleware(CORSErrorSafetyMiddleware, allowed_origins=[])
+
+        client = TestClient(app)
+        response = client.options(
+            "/test",
+            headers={
+                "Origin": "https://gen-lang-client-0384513977.web.app",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+        assert response.status_code == 204
+        assert response.headers["access-control-allow-origin"] == "https://gen-lang-client-0384513977.web.app"
+

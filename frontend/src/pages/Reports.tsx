@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Trash2,
   AlertCircle,
+  Brain,
 } from 'lucide-react';
 import { getReports, downloadReportById, deleteReport, ApiRequestError } from '../api';
 import type { Report } from '../types';
@@ -123,8 +124,8 @@ export default function Reports() {
             <FileText className="w-5 h-5 text-gray-600 dark:text-slate-300" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Reports</h1>
-            <p className="text-gray-500 dark:text-slate-400 text-sm">Download and share assessment reports</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Board Reports</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm">What should I present to the board?</p>
           </div>
         </div>
         <ListSkeleton count={4} />
@@ -148,16 +149,22 @@ export default function Reports() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-            <FileText className="w-5 h-5 text-indigo-600" />
+          <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-950/20 rounded-lg flex items-center justify-center border border-indigo-200 dark:border-indigo-900/40">
+            <FileText className="w-5 h-5 text-indigo-650" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Reports</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Board Reports</h1>
             <p className="text-gray-500 dark:text-slate-400 text-sm">
-              {totalReports} saved report{totalReports !== 1 ? 's' : ''}
+              What should I present to the board? {totalReports} saved report{totalReports !== 1 ? 's' : ''}
             </p>
           </div>
         </div>
+        <Link to="/dashboard/board-story">
+          <Button className="gap-2 bg-indigo-650 hover:bg-indigo-750 text-white font-bold rounded-xl shadow-sm">
+            <Brain className="w-4 h-4" />
+            Boardroom Briefing
+          </Button>
+        </Link>
       </div>
 
       {reports.length === 0 ? (

@@ -77,12 +77,15 @@ def _get_assessment_or_404(
 def _build_siem_clients():
     """Attempt to build SIEM clients from environment config.
 
-    Returns (wazuh_client_or_none, splunk_service_or_none).
+    Returns ``wazuh_client_or_none``. The Splunk dimension is no
+    longer driven from this helper — Splunk verification consumes
+    ``NormalizedEvidenceRecord`` rows populated by the canonical
+    SplunkConnector + SplunkMCPClient pipeline (see
+    ``ConnectorManager._ingest_events``).
     """
     from app.core.config import settings
 
     wazuh = None
-    splunk = None
 
     # Wazuh
     wazuh_host = getattr(settings, "WAZUH_HOST", None) or ""
@@ -94,17 +97,7 @@ def _build_siem_clients():
         except Exception as exc:
             logger.warning("Failed to init WazuhClient: %s", exc)
 
-    # Splunk
-    splunk_url = getattr(settings, "SPLUNK_BASE_URL", None) or getattr(settings, "SPLUNK_HOST", None) or ""
-    splunk_token = getattr(settings, "SPLUNK_HEC_TOKEN", None) or ""
-    if splunk_url and splunk_token:
-        try:
-            from app.services.splunk import SplunkService
-            splunk = SplunkService(base_url=splunk_url, hec_token=splunk_token)
-        except Exception as exc:
-            logger.warning("Failed to init SplunkService: %s", exc)
-
-    return wazuh, splunk
+    return wazuh
 
 
 def _reconstruct_answers(assessment: Assessment) -> dict:
@@ -167,8 +160,8 @@ async def verify_assessment(
         )
 
     # Build SIEM clients and verify
-    wazuh, splunk = _build_siem_clients()
-    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk, db=db)
+    wazuh = _build_siem_clients()
+    svc = VerificationService(wazuh_client=wazuh, db=db)
     verification_results = await svc.verify_all_findings(findings, answers)
 
     # Build response
@@ -234,8 +227,8 @@ async def get_audit_trail(
     findings = engine.evaluate(answers, scores)
 
     # Verify
-    wazuh, splunk = _build_siem_clients()
-    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk, db=db)
+    wazuh = _build_siem_clients()
+    svc = VerificationService(wazuh_client=wazuh, db=db)
     verification_results = await svc.verify_all_findings(findings, answers)
 
     # Generate audit trail
@@ -285,8 +278,8 @@ async def get_finding_verification_status(
             detail=f"Finding with rule_id '{finding_rule_id}' not found in this assessment.",
         )
 
-    wazuh, splunk = _build_siem_clients()
-    svc = VerificationService(wazuh_client=wazuh, splunk_service=splunk, db=db)
+    wazuh = _build_siem_clients()
+    svc = VerificationService(wazuh_client=wazuh, db=db)
     result = await svc.verify_finding(target_finding, answers)
     return result
 

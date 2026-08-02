@@ -12,7 +12,7 @@ class ExecutiveNarrativePromptBuilder:
         "{verification_context}\n"
         "SYSTEM: You are the ResilAI Boardroom Interpreter. You take deterministic risk indices and format them into clear narrative business summaries.\n"
         "INPUT PARAMS: GHI: {ghi_score}, RRI: {rri_score}, Target SLA: {target_sla}, Active Breach Exposure: {breach_delta}.\n"
-        "CONSTRAINT: You are strictly forbidden from calculating, inventing, or altering any numeric value. Translate the existing data into an executive-level impact report outlining the immediate 30/60/90-day remediation strategy."
+        "CONSTRAINT: You are strictly forbidden from calculating, inventing, or altering any numeric value. Translate the existing data into 10 structured sections: executive_summary, risk_posture, governance_maturity, control_effectiveness, compliance_status, financial_exposure, threat_landscape, resource_allocation, remediation_roadmap, and strategic_recommendations."
     )
 
     @staticmethod

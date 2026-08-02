@@ -8,25 +8,27 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from app.connectors.base import (
-    BaseConnector,
+    Connector,
     ConnectorHealth,
-    NormalizedEvent,
+    RawEvent,
     PermissionResult,
 )
+from app.services.clinic_engine.v2.schema import ConnectorCapability
 from app.connectors.registry import register_connector
 
 logger = logging.getLogger("airs.connectors.azure_security_center")
 
 
 @register_connector
-class AzureSecurityCenterConnector(BaseConnector):
+class AzureSecurityCenterConnector(Connector):
     """Mock Microsoft Connector for Azure Security Center.
 
     Simulates pulling software inventory and configuration details for drift assessment.
     """
 
     CONNECTOR_TYPE = "azure_security_center"
-    REQUIRED_PERMISSIONS = ["securityContacts:read", "assessments:read"]
+    REQUIRED_PERMISSIONS = ["Subscription.Read", "Security.Read"]
+    CAPABILITIES = [ConnectorCapability.DEVICES, ConnectorCapability.CLOUD_ASSETS]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,11 +40,11 @@ class AzureSecurityCenterConnector(BaseConnector):
         self.logger.info("Azure Security Center authentication successful")
         return True
 
-    async def sync(self) -> List[NormalizedEvent]:
+    async def sync(self) -> List[RawEvent]:
         """Return simulated client software inventory events."""
         self.logger.info("Azure Security Center sync triggered")
         return [
-            NormalizedEvent(
+            RawEvent(
                 event_type="azure_security_center.software_inventory",
                 source_system="azure_security_center",
                 source_event_id="software-inv-python",
@@ -53,7 +55,7 @@ class AzureSecurityCenterConnector(BaseConnector):
                     "version": "3.8.0",
                 },
             ),
-            NormalizedEvent(
+            RawEvent(
                 event_type="azure_security_center.software_inventory",
                 source_system="azure_security_center",
                 source_event_id="software-inv-kubernetes",
@@ -64,7 +66,7 @@ class AzureSecurityCenterConnector(BaseConnector):
                     "version": "1.22.0",
                 },
             ),
-            NormalizedEvent(
+            RawEvent(
                 event_type="azure_security_center.software_inventory",
                 source_system="azure_security_center",
                 source_event_id="software-inv-postgresql",

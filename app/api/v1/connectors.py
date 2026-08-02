@@ -97,6 +97,64 @@ async def list_connectors(
 
 
 # =============================================================================
+# Confidence
+# =============================================================================
+
+from app.schemas.evidence import OrgConfidenceResponse
+
+@router.get(
+    "/confidence",
+    response_model=OrgConfidenceResponse,
+    summary="Get evidence confidence scores",
+    description="Returns confidence scores for all connectors and an organization aggregate.",
+)
+async def get_confidence(
+    user: User = Depends(require_auth),
+    db: Session = Depends(get_db),
+):
+    org_id = getattr(user, "org_id", None)
+    # The instructions require 422 for missing org_id
+    if not org_id or org_id == "default-org":
+        raise HTTPException(status_code=422, detail="Missing org_id")
+
+    from app.services.evidence.registry import get_instance
+    from app.services.evidence_confidence import calculate_evidence_confidence
+    from app.schemas.evidence import ConnectorConfidenceDetail
+    
+    registry = get_instance()
+    adapters = registry.adapters()
+    
+    details = []
+    total_score = 0.0
+    
+    for adapter in adapters:
+        try:
+            health = await adapter.health()
+        except Exception:
+            from app.services.evidence.base_adapter import AdapterHealth
+            from datetime import datetime, timezone
+            health = AdapterHealth(healthy=False, last_failure_at=datetime.now(timezone.utc), failure_count=1)
+            
+        conf = calculate_evidence_confidence(health)
+        details.append(
+            ConnectorConfidenceDetail(
+                connector_name=adapter.connector_name,
+                confidence_score=conf["confidence_score"],
+                factors=conf["factors"]
+            )
+        )
+        total_score += conf["confidence_score"]
+        
+    aggregate_score = round(total_score / len(details), 2) if details else 0.0
+    
+    return OrgConfidenceResponse(
+        org_id=org_id,
+        aggregate_score=aggregate_score,
+        connectors=details,
+    )
+
+
+# =============================================================================
 # Wazuh Integration Endpoints
 # =============================================================================
 

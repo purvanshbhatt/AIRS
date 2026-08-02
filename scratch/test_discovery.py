@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from app.db.database import SessionLocal
 from app.models.organization import Organization
 from app.services.discovery.orchestrator import TechnologyDiscoveryOrchestrator
-from app.models.discovery import TechnologyInventory, DiscoveredAsset, InstalledProduct
+from app.models.discovery import TechnologyInventory, HostAsset, InstalledProduct
 
 def test_discovery():
     db = SessionLocal()
@@ -32,7 +32,7 @@ def test_discovery():
         print(f"\n--- Discovery Complete ---")
         print(f"Inventory ID: {inventory.id}")
         
-        assets = db.query(DiscoveredAsset).filter(DiscoveredAsset.inventory_id == inventory.id).all()
+        assets = db.query(HostAsset).filter(HostAsset.inventory_id == inventory.id).all()
         print(f"\nDiscovered Assets: {len(assets)}")
         for a in assets:
             print(f"  - {a.hostname} [{a.asset_type.value}] IP: {a.ip_address} OS: {a.operating_system}")

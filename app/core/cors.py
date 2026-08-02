@@ -37,6 +37,25 @@ DEV_LOCALHOST_ORIGINS = [
     "http://localhost:5173",
 ]
 
+# Trusted domain patterns for ResilAI, Firebase Hosting, and Cloud Run deployments
+TRUSTED_ORIGIN_PATTERNS = [
+    re.compile(r"^https://([a-zA-Z0-9\-]+\.)*resilai\.org$"),
+    re.compile(r"^https://([a-zA-Z0-9\-]+\.)*web\.app$"),
+    re.compile(r"^https://([a-zA-Z0-9\-]+\.)*firebaseapp\.com$"),
+    re.compile(r"^https://([a-zA-Z0-9\-]+\.)*run\.app$"),
+]
+
+
+def is_trusted_origin(origin: str) -> bool:
+    """Check if an origin matches trusted production/staging domain patterns."""
+    if not origin:
+        return False
+    origin = origin.strip().rstrip("/")
+    for pattern in TRUSTED_ORIGIN_PATTERNS:
+        if pattern.match(origin):
+            return True
+    return False
+
 
 def is_localhost_origin(origin: str) -> bool:
     """Check if an origin is a localhost/loopback origin."""

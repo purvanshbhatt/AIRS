@@ -4,7 +4,7 @@ Organization model.
 
 import uuid
 import sqlalchemy as sa
-from sqlalchemy import Column, String, DateTime, Text, Integer, Float
+from sqlalchemy import Column, String, DateTime, Text, Integer, Float, ForeignKey
 from sqlalchemy.dialects.sqlite import CHAR
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -44,8 +44,23 @@ class Organization(Base):
     application_tier = Column(String(20), nullable=True)    # "tier_1" (99.9%), "tier_2" (98%), "tier_3" (95%)
     sla_target = Column(Float, nullable=True)               # User-specified SLA target percentage
 
+    # ── Clinic Specific (Product Layer) ─────────────────────────────────
+    org_mode = Column(String(20), default="pilot")  # "demo", "pilot", "production"
+    clinic_name = Column(String(255), nullable=True)
+    clinic_type = Column(String(50), nullable=True)  # "dental", "medical", "optometry", etc.
+    patient_volume_daily = Column(Integer, nullable=True)
+    operating_hours_start = Column(String(5), nullable=True)  # "08:00"
+    operating_hours_end = Column(String(5), nullable=True)    # "17:00"
+    primary_contact_name = Column(String(255), nullable=True)
+    primary_contact_role = Column(String(100), nullable=True)  # "Dr. Smith", "Office Manager"
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # ── Sprint 2.5 (Digital Twin / Decision Engine) ─────────────────────
+    is_clone = Column(sa.Boolean, nullable=False, default=False, server_default="0", comment="True if org is a simulation clone.")
+    source_org_id = Column(CHAR(36), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, comment="If is_clone=True, the original org id.")
+
     
     # Relationships
     assessments = relationship("Assessment", back_populates="organization", cascade="all, delete-orphan")
@@ -58,6 +73,15 @@ class Organization(Base):
     tech_stack_items = relationship("TechStackItem", back_populates="organization", cascade="all, delete-orphan")
     software_catalog_items = relationship("SoftwareCatalog", back_populates="organization", cascade="all, delete-orphan")
     discovered_assets = relationship("DiscoveredAsset", back_populates="organization", cascade="all, delete-orphan")
+    host_assets = relationship("HostAsset", back_populates="organization", cascade="all, delete-orphan")
+    technology_inventories = relationship("TechnologyInventory", back_populates="organization", cascade="all, delete-orphan")
+    
+    # ── Clinic Specific Relationships ───────────────────────────────────
+    clinic_staff = relationship("ClinicStaff", cascade="all, delete-orphan")
+    clinic_devices = relationship("ClinicDevice", cascade="all, delete-orphan")
+    critical_systems = relationship("CriticalSystem", cascade="all, delete-orphan")
+    msp_relationship = relationship("MSPRelationship", uselist=False, cascade="all, delete-orphan")
+    value_metrics = relationship("ClinicValueMetric", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Organization(id={self.id}, name={self.name}, owner={self.owner_uid})>"

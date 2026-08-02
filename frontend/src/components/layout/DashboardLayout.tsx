@@ -39,21 +39,11 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
-  { name: 'Results', href: '/dashboard/reports', icon: FileText },
-  { name: 'Integrations', href: '/dashboard/integrations', icon: Settings, stagingOnly: true },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { name: 'Technology', href: '/dashboard/tech-stack', icon: Cpu },
+  { name: 'Evidence', href: '/dashboard/integrations', icon: ShieldCheck },
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
-  { name: 'Governance', href: '/dashboard/governance', icon: ShieldCheck },
-  { name: 'Compliance Drift', href: '/dashboard/compliance-drift', icon: TrendingDown, stagingOnly: true },
-  { name: 'Reliability', href: '/dashboard/reliability', icon: Zap, stagingOnly: true },
-  { name: 'Audit Calendar', href: '/dashboard/audit-calendar', icon: Calendar },
-  { name: 'Tech Stack', href: '/dashboard/tech-stack', icon: Cpu },
-  { name: 'Pilot Program', href: '/dashboard/pilot-program', icon: Rocket },
+  { name: 'Board Reports', href: '/dashboard/reports', icon: FileText },
   { name: 'Settings', href: '/dashboard/settings', icon: SlidersHorizontal },
-  { name: 'Status', href: '/status', icon: Activity },
-  { name: 'About', href: '/about', icon: Info },
-  { name: 'Security', href: '/security', icon: Shield },
-  { name: 'Docs', href: '/docs', icon: BookOpen },
 ];
 
 interface DashboardLayoutProps {
@@ -68,10 +58,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { systemStatus } = useDemoMode();
   const isStaging = systemStatus?.environment === 'staging';
 
-  // Filter out staging-only nav items when not in staging
-  const visibleNavigation = isStaging
-    ? navigation
-    : navigation.filter((item) => !item.stagingOnly);
+  // Navigation is unified for both environments in Sprint 1.7
+  const visibleNavigation = navigation;
 
   const handleSignOut = async () => {
     await signOut();

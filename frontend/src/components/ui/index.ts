@@ -18,6 +18,9 @@ export type { SelectProps, SelectOption } from './Select';
 
 export { default as Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Table';
 export type { TableProps } from './Table';
+export * from './ThemeToggle';
+export * from './Toast';
+export * from './SlideOver';
 
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from './Tabs';

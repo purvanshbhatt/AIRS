@@ -1,0 +1,50 @@
+{
+    "Python Software Foundation|Python|3.8": [
+        {
+            "cve_id": "CVE-2021-3177",
+            "severity": "high",
+            "cvss_score": 7.5,
+            "description": "Buffer overflow in PyCArg_repr",
+            "is_kev": false
+        },
+        {
+            "cve_id": "CVE-2022-0391",
+            "severity": "high",
+            "cvss_score": 7.5,
+            "description": "URL parsing issue",
+            "is_kev": false
+        },
+        {
+            "cve_id": "CVE-2023-24329",
+            "severity": "high",
+            "cvss_score": 7.5,
+            "description": "urllib.parse bypass",
+            "is_kev": false
+        }
+    ],
+    "PostgreSQL Global Development Group|PostgreSQL|11": [
+        {
+            "cve_id": "CVE-2022-1552",
+            "severity": "high",
+            "cvss_score": 8.8,
+            "description": "Autovacuum/ANALYZE arbitrary code execution",
+            "is_kev": true
+        },
+        {
+            "cve_id": "CVE-2021-32027",
+            "severity": "high",
+            "cvss_score": 8.8,
+            "description": "Integer overflow in array subscripting",
+            "is_kev": false
+        }
+    ],
+    "OpenJS Foundation|Node.js|16": [
+        {
+            "cve_id": "CVE-2023-30581",
+            "severity": "high",
+            "cvss_score": 7.5,
+            "description": "Main thread bypass",
+            "is_kev": false
+        }
+    ]
+}

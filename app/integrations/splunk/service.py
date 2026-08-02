@@ -1,77 +1,70 @@
 """
-Splunk telemetry ingestion service for ResilAI Sentinel.
+Splunk MCP telemetry ingestion service.
+
+Provides ``ingest_splunk_telemetry`` — a convenience wrapper that runs
+the canonical ``SplunkConnector`` sync for an organization through
+``ConnectorManager`` and returns the number of newly ingested events.
+
+Single Backend Path invariant (2026-07-15 audit):
+  This module is the only externally callable Splunk ingestion helper.
+  The deleted ``app.integrations.sentinel_splunk`` package had a
+  parallel HEC implementation — that path is gone. All Splunk queries
+  flow through ``SplunkMCPClient`` behind ``SplunkConnector``.
 """
-import uuid
-import json
-from sqlalchemy.orm import Session
-from .client import SplunkMCPClient
-from app.models.telemetry_event import TelemetryEvent
-from app.models.connector import Connector, ConnectorType, ConnectorStatus
-import hashlib
 import logging
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger("airs.splunk_service")
 
+
 async def ingest_splunk_telemetry(db: Session, org_id: str) -> int:
-    """Polls Splunk MCP for recent notable events and ingests them into TelemetryEvent."""
-    connector = db.query(Connector).filter(
-        Connector.org_id == org_id,
-        Connector.connector_type == ConnectorType.splunk,
-        Connector.status == ConnectorStatus.active
-    ).first()
-    
+    """Run the canonical SplunkConnector sync for an org.
+
+    Looks up the active Splunk connector in the org, invokes
+    ``ConnectorManager.sync_connector``, and returns the number of
+    events recorded in the sync result. The legacy
+    ``TelemetryEvent`` rows plus the immutable ``EvidenceLedger`` and
+    ``NormalizedEvidenceRecord`` rows are written by
+    ``ConnectorManager._ingest_events``.
+
+    Returns 0 if no Splunk connector is configured or the sync fails.
+    """
+    from app.models.connector import Connector, ConnectorType, ConnectorStatus
+    from app.services.connector_manager import ConnectorManager
+
+    active_value = (
+        ConnectorStatus.active.value
+        if hasattr(ConnectorStatus, "active")
+        else "active"
+    )
+    connector = (
+        db.query(Connector)
+        .filter(
+            Connector.org_id == org_id,
+            Connector.connector_type == ConnectorType.splunk,
+            Connector.status == active_value,
+        )
+        .first()
+    )
     if not connector:
-        logger.warning(f"No active Splunk connector found for org {org_id}")
+        logger.warning("No active Splunk connector for org %s", org_id)
         return 0
-        
-    mcp_url = connector.config.get("mcp_url")
-    # For demo, using dummy API key instead of decrypted credential
-    client = SplunkMCPClient(mcp_url=mcp_url, api_key="dummy_key")
-    
+
+    mgr = ConnectorManager(db, org_id)
     try:
-        search_resp = await client.search('search index=notable')
-        
-        events_ingested = 0
-        for event in search_resp.events:
-            # Check if event already exists
-            existing = db.query(TelemetryEvent).filter(
-                TelemetryEvent.org_id == org_id,
-                TelemetryEvent.source_system == "splunk",
-                TelemetryEvent.source_event_id == event.id
-            ).first()
-            
-            if not existing:
-                payload_str = event.model_dump_json()
-                payload_hash = hashlib.sha256(payload_str.encode("utf-8")).hexdigest()
-                
-                # Derive event type and severity
-                severity = event.parsed_fields.get("severity", "info")
-                event_type = event.parsed_fields.get("evidence_type", "splunk_alert")
-                
-                tel_event = TelemetryEvent(
-                    id=str(uuid.uuid4()),
-                    org_id=org_id,
-                    connector_id=connector.id,
-                    event_type=event_type,
-                    source_system="splunk",
-                    source_event_id=event.id,
-                    payload_hash=payload_hash,
-                    payload=event.model_dump(mode="json"),
-                    severity=severity,
-                    processed=False
-                )
-                db.add(tel_event)
-                events_ingested += 1
-                
-        if events_ingested > 0:
+        result = await mgr.sync_connector(connector.id)
+        if not result.success:
+            connector.health_status = "error"
+            connector.error_message = result.error_details
             db.commit()
-            logger.info(f"Ingested {events_ingested} new Splunk telemetry events for org {org_id}")
-            
-        return events_ingested
-        
-    except Exception as e:
-        logger.error(f"Failed to ingest Splunk telemetry: {e}")
-        connector.health_status = "error"
-        connector.error_message = str(e)
-        db.commit()
+            return 0
+        return result.events_ingested
+    except Exception as exc:
+        logger.error("Splunk sync failed for org %s: %s", org_id, exc)
+        try:
+            connector.health_status = "error"
+            connector.error_message = str(exc)
+            db.commit()
+        except Exception:
+            pass
         return 0

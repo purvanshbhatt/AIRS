@@ -256,6 +256,17 @@ elif [[ "$SET_SECRETS" != *"ENCRYPTION_SECRET="* ]]; then
 fi
 
 # Build gcloud command (array form to avoid eval/quoting issues)
+MAX_INSTANCES="${MAX_INSTANCES:-}"
+if [ -z "$MAX_INSTANCES" ]; then
+    if [[ "$SERVICE_NAME" == "airs-api-staging" ]]; then
+        MAX_INSTANCES="2"
+    elif [[ "$SERVICE_NAME" == "airs-api" ]]; then
+        MAX_INSTANCES="2"
+    else
+        MAX_INSTANCES="1"
+    fi
+fi
+
 DEPLOY_ARGS=(
     run deploy "$SERVICE_NAME"
     --source .
@@ -263,7 +274,7 @@ DEPLOY_ARGS=(
     --memory 512Mi
     --cpu 1
     --min-instances 0
-    --max-instances 10
+    --max-instances "$MAX_INSTANCES"
     --timeout 120
     --no-cpu-throttling
 )

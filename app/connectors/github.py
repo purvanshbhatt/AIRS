@@ -17,11 +17,12 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from app.connectors.base import (
-    BaseConnector,
+    Connector,
     ConnectorHealth,
-    NormalizedEvent,
+    RawEvent,
     PermissionResult,
 )
+from app.services.clinic_engine.v2.schema import ConnectorCapability
 from app.connectors.registry import register_connector
 
 logger = logging.getLogger("airs.connectors.github")
@@ -30,7 +31,7 @@ _GITHUB_API = "https://api.github.com"
 
 
 @register_connector
-class GitHubConnector(BaseConnector):
+class GitHubConnector(Connector):
     """GitHub security telemetry connector.
 
     Supports:
@@ -41,6 +42,7 @@ class GitHubConnector(BaseConnector):
 
     CONNECTOR_TYPE = "github"
     REQUIRED_PERMISSIONS = ["repo", "security_events"]
+    CAPABILITIES = [ConnectorCapability.CLOUD_ASSETS]
 
     # ------------------------------------------------------------------
     # Authentication
@@ -72,10 +74,10 @@ class GitHubConnector(BaseConnector):
     # Sync
     # ------------------------------------------------------------------
 
-    async def sync(self) -> List[NormalizedEvent]:
+    async def sync(self) -> List[RawEvent]:
         token = self._credentials.get("token", "")
         repos = self._config.get("repositories", [])
-        events: List[NormalizedEvent] = []
+        events: List[RawEvent] = []
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             headers = self._auth_headers(token)
@@ -111,9 +113,9 @@ class GitHubConnector(BaseConnector):
         client: httpx.AsyncClient,
         headers: Dict[str, str],
         repo: str,
-    ) -> List[NormalizedEvent]:
+    ) -> List[RawEvent]:
         """Fetch all security alert types for a single repository."""
-        events: List[NormalizedEvent] = []
+        events: List[RawEvent] = []
 
         # Dependabot alerts
         try:
@@ -124,7 +126,7 @@ class GitHubConnector(BaseConnector):
             )
             if resp.status_code == 200:
                 for alert in resp.json():
-                    events.append(NormalizedEvent(
+                    events.append(RawEvent(
                         event_type="github.dependabot_alert",
                         source_system="github",
                         source_event_id=f"dependabot-{repo}-{alert.get('number', '')}",
@@ -151,7 +153,7 @@ class GitHubConnector(BaseConnector):
             )
             if resp.status_code == 200:
                 for alert in resp.json():
-                    events.append(NormalizedEvent(
+                    events.append(RawEvent(
                         event_type="github.code_scanning_alert",
                         source_system="github",
                         source_event_id=f"codescan-{repo}-{alert.get('number', '')}",
@@ -178,7 +180,7 @@ class GitHubConnector(BaseConnector):
             )
             if resp.status_code == 200:
                 for alert in resp.json():
-                    events.append(NormalizedEvent(
+                    events.append(RawEvent(
                         event_type="github.secret_scanning_alert",
                         source_system="github",
                         source_event_id=f"secret-{repo}-{alert.get('number', '')}",

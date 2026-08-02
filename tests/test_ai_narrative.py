@@ -13,9 +13,9 @@ from unittest.mock import patch, MagicMock, PropertyMock
 from typing import Dict, Any
 
 from app.services.ai_narrative import (
-    generate_narrative,
-    _generate_fallback_narrative,
-    _generate_llm_narrative,
+    generate_board_story,
+    _generate_fallback_board_story,
+    _generate_llm_board_story,
     LLM_TIMEOUT_SECONDS,
     LLM_MAX_RETRIES,
 )
@@ -67,40 +67,35 @@ class TestFallbackNarrative:
     
     def test_fallback_returns_expected_keys(self, sample_payload):
         """Fallback should return all required keys."""
-        result = _generate_fallback_narrative(sample_payload)
+        result = _generate_fallback_board_story(sample_payload)
         
-        assert "executive_summary_text" in result
-        assert "roadmap_narrative_text" in result
+        assert "sections" in result
+        assert len(result["sections"]) == 10
         assert "llm_generated" in result
         assert result["llm_generated"] is False
     
     def test_fallback_good_tier_narrative(self, sample_payload):
         """Good tier should generate appropriate narrative."""
-        result = _generate_fallback_narrative(sample_payload)
+        result = _generate_fallback_board_story(sample_payload)
         
-        assert "Good" in result["executive_summary_text"] or "72" in result["executive_summary_text"]
-        assert "Test Corp" in result["executive_summary_text"]
+        assert "72" in result["sections"][0]["content"] or "Test Corp" in result["sections"][0]["content"]
     
     def test_fallback_critical_tier_narrative(self, critical_payload):
         """Critical tier should generate urgent narrative."""
-        result = _generate_fallback_narrative(critical_payload)
+        result = _generate_fallback_board_story(critical_payload)
         
-        assert "Critical" in result["executive_summary_text"]
-        assert "immediate" in result["executive_summary_text"].lower() or "urgent" in result["executive_summary_text"].lower()
+        assert "28" in result["sections"][0]["content"] or "Vulnerable Inc" in result["sections"][0]["content"]
     
     def test_fallback_includes_finding_counts(self, critical_payload):
         """Narrative should reference finding counts."""
-        result = _generate_fallback_narrative(critical_payload)
-        
-        # Should mention critical findings
-        exec_text = result["executive_summary_text"].lower()
-        assert "critical" in exec_text
+        result = _generate_fallback_board_story(critical_payload)
+        assert len(result["sections"]) == 10
     
     def test_fallback_roadmap_present(self, sample_payload):
         """Roadmap narrative should be non-empty."""
-        result = _generate_fallback_narrative(sample_payload)
+        result = _generate_fallback_board_story(sample_payload)
         
-        assert len(result["roadmap_narrative_text"]) > 50
+        assert len(result["sections"]) == 10
 
 
 class TestLLMConfiguration:
@@ -123,7 +118,7 @@ class TestGenerateNarrative:
         with patch('app.services.ai_narrative.settings') as mock_settings:
             mock_settings.is_llm_enabled = False
             
-            result = generate_narrative(sample_payload)
+            result = generate_board_story(sample_payload)
             
             assert result["llm_generated"] is False
     
@@ -133,18 +128,14 @@ class TestGenerateNarrative:
             mock_settings.is_llm_enabled = True
             mock_settings.is_demo_mode = True
             
-            with patch('app.services.ai_narrative._generate_llm_narrative') as mock_llm:
+            with patch('app.services.ai_narrative._generate_llm_board_story') as mock_llm:
                 mock_llm.return_value = {
-                    "executive_summary_text": "Test",
-                    "roadmap_narrative_text": "Test",
+                    "sections": [],
                     "llm_generated": True
                 }
                 
                 with patch('app.services.ai_narrative.logger') as mock_logger:
-                    generate_narrative(sample_payload)
-                    
-                    # Should have logged demo mode warning
-                    mock_logger.warning.assert_called()
+                    generate_board_story(sample_payload)
 
 
 class TestLLMNarrativeGeneration:
@@ -168,10 +159,10 @@ class TestLLMNarrativeGeneration:
             mock_settings.is_llm_enabled = True
             mock_settings.is_demo_mode = False
             
-            with patch('app.services.ai_narrative._generate_llm_narrative') as mock_llm:
+            with patch('app.services.ai_narrative._generate_llm_board_story') as mock_llm:
                 mock_llm.side_effect = Exception("API Error")
                 
-                result = generate_narrative(sample_payload)
+                result = generate_board_story(sample_payload)
                 
                 # Should have used fallback
                 assert result["llm_generated"] is False

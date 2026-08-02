@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from app.connectors.base import (
-    BaseConnector,
+    Connector,
     ConnectorHealth,
     NormalizedEvent,
     PermissionResult,
@@ -27,7 +27,7 @@ logger = logging.getLogger("airs.connectors.wazuh")
 
 
 @register_connector
-class WazuhConnector(BaseConnector):
+class WazuhConnector(Connector):
     """Wazuh SIEM connector for verified security telemetry.
 
     Connects to the Wazuh Manager REST API to ingest:
@@ -43,6 +43,7 @@ class WazuhConnector(BaseConnector):
     """
 
     CONNECTOR_TYPE = "wazuh"
+    CAPABILITIES = ["devices", "security_alerts", "vulnerabilities"]
     REQUIRED_PERMISSIONS = ["agent:read", "vulnerability:read", "alert:read"]
 
     def __init__(self, *args, **kwargs):

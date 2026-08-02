@@ -6,12 +6,11 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
 from app.services.discovery.discovery import TechnologyDiscoveryService
-from app.services.discovery.splunk_discovery import SplunkDiscoveryService
 from app.services.discovery.wazuh_discovery import WazuhDiscoveryService
 from app.services.discovery.graph_discovery import GraphDiscoveryService
 from app.services.discovery.aws_discovery import AWSDiscoveryService
 
-from app.models.discovery import TechnologyInventory, DiscoveredAsset, InstalledProduct
+from app.models.discovery import TechnologyInventory, HostAsset, InstalledProduct
 from app.models.tech_stack import TechStackItem, LtsStatus
 from app.models.assessment import Assessment, AssessmentStatus
 from app.models.finding import Finding, Severity, FindingStatus
@@ -37,14 +36,7 @@ class TechnologyDiscoveryOrchestrator:
         
         # 2. Run discovery from all sources
         total_assets = 0
-        
-        # Splunk
-        try:
-            splunk_svc = SplunkDiscoveryService(self.db, self.org_id)
-            total_assets += splunk_svc.discover_from_splunk(inventory.id)
-        except Exception as e:
-            logger.error(f"Splunk discovery failed: {e}")
-            
+
         # Wazuh
         try:
             wazuh_svc = WazuhDiscoveryService(self.db, self.org_id)
@@ -79,7 +71,7 @@ class TechnologyDiscoveryOrchestrator:
     def _deduplicate_assets(self, inventory_id: str):
         """Merges duplicate assets within the same inventory based on hostname/ip."""
         # A simple implementation to deduplicate by hostname
-        assets = self.db.query(DiscoveredAsset).filter(DiscoveredAsset.inventory_id == inventory_id).all()
+        assets = self.db.query(HostAsset).filter(HostAsset.inventory_id == inventory_id).all()
         
         seen_hosts = {}
         for asset in assets:
@@ -113,8 +105,8 @@ class TechnologyDiscoveryOrchestrator:
         # Get all installed products in this inventory
         products = (
             self.db.query(InstalledProduct)
-            .join(DiscoveredAsset)
-            .filter(DiscoveredAsset.inventory_id == inventory_id)
+            .join(HostAsset)
+            .filter(HostAsset.inventory_id == inventory_id)
             .all()
         )
         
