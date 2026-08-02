@@ -154,21 +154,7 @@ async def get_clinic_readiness(org_id: str, db: Session = Depends(get_db)):
     return report
 
 from fastapi import HTTPException
-from pydantic import BaseModel
 from app.models.clinic_moment import MomentStatus
-
-class OnboardRequest(BaseModel):
-    clinic_name: str
-    emr: str
-    workspace: str
-
-@router.post("/onboard")
-async def onboard_clinic(req: OnboardRequest, db: Session = Depends(get_db)):
-    """Initializes the clinic."""
-    pilot = PilotService(db)
-    # Using 'default-org' to align with the demo UI
-    pilot.seed_demo_clinic("default-org")
-    return {"status": "success", "org_id": "default-org"}
 
 @router.post("/problems/{problem_id}/fix")
 async def fix_problem(problem_id: str, db: Session = Depends(get_db)):

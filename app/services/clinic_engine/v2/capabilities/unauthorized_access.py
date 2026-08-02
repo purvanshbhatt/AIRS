@@ -31,15 +31,9 @@ class UnauthorizedAccessCapability(BaseCapability):
     def evaluate(cls, evidence: List[Evidence]) -> List[EvaluationResult]:
         results = []
         now = datetime.now(timezone.utc)
-        
-        user_evidence = [e for e in evidence if e.kind == EvidenceKind.USER_ACCOUNT_STATUS]
-        if not user_evidence:
-             return [EvaluationResult(
-                 verdict=Verdict.UNKNOWN,
-                 details={'missing_data': True}
-             )]
-
-        for e in user_evidence:
+        for e in evidence:
+            if e.kind != EvidenceKind.USER_ACCOUNT_STATUS:
+                continue
             payload = e.payload
             account_enabled = payload.get('account_enabled')
             if not account_enabled:
@@ -95,13 +89,6 @@ class UnauthorizedAccessCapability(BaseCapability):
     @classmethod
     def translate(cls, result: EvaluationResult) -> MomentTranslation:
         details = result.details
-        if details.get('missing_data'):
-            return MomentTranslation(
-                what_happened="Cannot verify if inactive accounts have been disabled.",
-                why_care="Without monitoring, former employees or inactive users could still have access to your clinic's patient records.",
-                ignore_impact="Your clinic faces a significant HIPAA violation and potential data breach if a dormant account is compromised."
-            )
-            
         display_name = details.get('display_name')
         days_inactive = details.get('days_inactive')
         return MomentTranslation(
