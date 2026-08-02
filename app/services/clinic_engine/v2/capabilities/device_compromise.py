@@ -71,6 +71,12 @@ class DeviceCompromiseCapability(BaseCapability):
                     d['compliance_state'] = state
                     d['issues'].append('non_compliant')
                     
+        if not devices:
+            return [EvaluationResult(
+                verdict=Verdict.UNKNOWN,
+                details={'missing_data': True}
+            )]
+
         results = []
         for device_id, d in devices.items():
             verdict = Verdict.SAFE
@@ -98,6 +104,13 @@ class DeviceCompromiseCapability(BaseCapability):
     @classmethod
     def translate(cls, result: EvaluationResult) -> MomentTranslation:
         details = result.details
+        if details.get('missing_data'):
+            return MomentTranslation(
+                what_happened="Cannot verify if your devices are secure.",
+                why_care="Without monitoring, compromised devices can go unnoticed, giving attackers silent access to patient data.",
+                ignore_impact="You may suffer a ransomware attack or HIPAA breach without any warning."
+            )
+            
         device_name = details.get('device_name')
         alert_count = details.get('alert_count', 0)
         vulnerability_count = details.get('vulnerability_count', 0)
