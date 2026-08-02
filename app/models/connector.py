@@ -38,6 +38,7 @@ class ConnectorType(str, enum.Enum):
     aws_bedrock = "aws_bedrock"
     azure_openai = "azure_openai"
     microsoft = "microsoft"
+    veeam = "veeam"
 
 
 class ConnectorAuthMethod(str, enum.Enum):

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useIsReadOnly } from '../contexts';
 import {
   getOrganizations,
-  configureSplunkHec,
+  configureSplunkMcp,
   getSplunkConfig,
   removeSplunkConfig,
   pullSplunkEvidence,
@@ -177,15 +177,15 @@ export default function NewAssessment() {
     setError('');
     setNotice('');
     try {
-      await configureSplunkHec(selectedOrgId, splunkBaseUrl.trim(), splunkHecToken.trim());
+      await configureSplunkMcp(selectedOrgId, splunkBaseUrl.trim(), splunkHecToken.trim());
       addToast({
         type: 'success',
-        title: 'Splunk HEC configured',
-        message: 'Successfully updated Splunk HEC credentials',
+        title: 'Splunk MCP configured',
+        message: 'Successfully updated Splunk MCP credentials',
       });
       await loadIntegrationStatus(selectedOrgId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to configure Splunk HEC');
+      setError(err instanceof Error ? err.message : 'Failed to configure Splunk MCP');
     } finally {
       setBusy(false);
     }
@@ -200,7 +200,7 @@ export default function NewAssessment() {
       addToast({
         type: 'info',
         title: 'Splunk disconnected',
-        message: 'Splunk HEC credentials removed successfully',
+        message: 'Splunk MCP credentials removed successfully',
       });
       await loadIntegrationStatus(selectedOrgId);
     } catch (err) {

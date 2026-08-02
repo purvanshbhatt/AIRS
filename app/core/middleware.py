@@ -20,6 +20,7 @@ from app.core.logging import (
     get_request_id,
     get_safe_error_response,
 )
+from app.core.cors import is_trusted_origin
 
 logger = logging.getLogger("airs.middleware")
 
@@ -44,22 +45,31 @@ class CORSErrorSafetyMiddleware(BaseHTTPMiddleware):
         self.allowed_origins = allowed_origins or []
 
     def _get_cors_origin(self, request: Request) -> str:
-        """Return the request Origin if it's in our allowed list, else empty."""
+        """Return the request Origin if it's in our allowed list or matches trusted pattern, else empty."""
         origin = request.headers.get("origin", "")
-        if origin in self.allowed_origins:
+        if not origin:
+            return ""
+        origin = origin.strip().rstrip("/")
+        if origin in self.allowed_origins or is_trusted_origin(origin):
             return origin
         return ""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         origin = self._get_cors_origin(request)
+        raw_origin = request.headers.get("origin", "")
 
         # Fast-path: handle preflight OPTIONS explicitly so Cloud Run
         # never has a chance to timeout or strip headers on them.
-        if request.method == "OPTIONS" and origin:
+        if request.method == "OPTIONS":
+            req_headers = request.headers.get("access-control-request-headers")
+            req_method = request.headers.get("access-control-request-method")
+            
             response = Response(status_code=204)
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "Authorization,Content-Type,Accept,Origin,X-Requested-With"
+            # Use matching origin or default to raw_origin if present, else "*"
+            allow_origin = origin if origin else (raw_origin.strip().rstrip("/") if raw_origin else "*")
+            response.headers["Access-Control-Allow-Origin"] = allow_origin
+            response.headers["Access-Control-Allow-Methods"] = req_method if req_method else "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
+            response.headers["Access-Control-Allow-Headers"] = req_headers if req_headers else "*"
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Max-Age"] = "86400"
             return response
@@ -76,10 +86,12 @@ class CORSErrorSafetyMiddleware(BaseHTTPMiddleware):
             )
 
         # Ensure CORS headers are always present for valid origins
-        if origin and "access-control-allow-origin" not in response.headers:
-            response.headers["Access-Control-Allow-Origin"] = origin
+        allow_origin = origin if origin else (raw_origin.strip().rstrip("/") if raw_origin else "")
+        if allow_origin:
+            if "access-control-allow-origin" not in response.headers:
+                response.headers["Access-Control-Allow-Origin"] = allow_origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Expose-Headers"] = "X-Request-ID"
+            response.headers["Access-Control-Expose-Headers"] = "*"
 
         return response
 

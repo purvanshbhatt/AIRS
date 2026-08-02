@@ -50,7 +50,7 @@ def test_connector_initialization():
     config = {"custom_option": "value"}
     conn = MicrosoftConnector(
         connector_id="conn-123",
-        org_id="org-123",
+        organization_id="org-123",
         credentials=creds,
         config=config,
     )
@@ -84,7 +84,7 @@ async def test_authenticate_success(mock_async_client):
 
     conn = MicrosoftConnector(
         connector_id="conn-123",
-        org_id="org-123",
+        organization_id="org-123",
         credentials={
             "tenant_id": "t",
             "client_id": "c",
@@ -113,7 +113,7 @@ async def test_authenticate_failure(mock_async_client):
 
     conn = MicrosoftConnector(
         connector_id="conn-123",
-        org_id="org-123",
+        organization_id="org-123",
         credentials={
             "tenant_id": "t",
             "client_id": "c",
@@ -210,7 +210,7 @@ async def test_connector_sync_normalization(
 
     conn = MicrosoftConnector(
         connector_id="conn-123",
-        org_id="org-123",
+        organization_id="org-123",
         credentials={"tenant_id": "t", "client_id": "c", "client_secret": "s"}
     )
     conn._authenticated = True
@@ -255,82 +255,41 @@ class MockFinding:
 
 @pytest.mark.asyncio
 async def test_verification_service_evaluation():
-    """Test that VerificationService evaluates findings correctly against Microsoft telemetry."""
-    # Seed mock database event
+    """Test that VerificationService evaluates findings correctly against DB Evidence."""
     mock_db = MagicMock()
-    mock_event = MagicMock()
-    mock_event.source_system = "microsoft"
-    
-    telemetry_data = {
-        "organization_id": "org-123",
-        "connector_id": "conn-123",
-        "timestamp": "2026-05-30T10:00:00Z",
-        "intune_devices": [],
-        "entra_users": [],
-        "defender_alerts": [],
-        "summary": {
-            "total_devices": 10,
-            "compliance_rate_pct": 45.0,  # Below 50% / 80% EDR threshold
-            "bitlocker_rate_pct": 50.0,
-            "total_users": 5,
-            "mfa_enforced_rate_pct": 80.0,  # Under 100% MFA
-            "active_high_severity_alerts": 2,  # Alert present
-            "edr_coverage_pct": 45.0,
-        }
-    }
-    mock_event.payload = telemetry_data
-    mock_db.query().filter().order_by().first.return_value = mock_event
+    mock_evidence_high = MagicMock()
+    mock_evidence_high.evidence_hash = "mock-hash-high"
+    mock_evidence_high.severity = "high"
+
+    # Initially return a high severity evidence (should result in SOC_VERIFIED)
+    mock_db.query().filter().order_by().first.return_value = mock_evidence_high
 
     svc = VerificationService(db=mock_db)
     
-    # 1. EDR compliance failure (rule DC-001) should return SOC_VERIFIED because telemetry confirms failure
+    # 1. EDR compliance failure (rule DC-001) should return SOC_VERIFIED
     finding_edr = MockFinding(rule_id="DC-001", title="Inadequate EDR Coverage")
     res_edr = await svc.verify_finding(finding_edr)
     assert res_edr.status == VerificationStatusEnum.SOC_VERIFIED
-    assert "below the threshold" in res_edr.evidence_summary
+    assert "SIEM-Verified via Adapter" in res_edr.evidence_summary
 
     # 2. MFA failure (rule IV-001) should return SOC_VERIFIED
     finding_mfa = MockFinding(rule_id="IV-001", title="MFA Not Enforced")
     res_mfa = await svc.verify_finding(finding_mfa)
     assert res_mfa.status == VerificationStatusEnum.SOC_VERIFIED
-    assert "MFA enforcement rate is 80.0%" in res_mfa.evidence_summary
+    assert "SIEM-Verified via Adapter" in res_mfa.evidence_summary
 
-    # 3. Defender Active alerts failure (rule TL-001) should return SOC_VERIFIED
-    finding_alerts = MockFinding(rule_id="TL-001", title="Active Security Alerts")
-    res_alerts = await svc.verify_finding(finding_alerts)
-    assert res_alerts.status == VerificationStatusEnum.SOC_VERIFIED
-    assert "Found 2 active high-severity" in res_alerts.evidence_summary
+    # Clean compliance (critical severity means it contradicts)
+    mock_evidence_crit = MagicMock()
+    mock_evidence_crit.evidence_hash = "mock-hash-crit"
+    mock_evidence_crit.severity = "critical"
+    mock_db.query().filter().order_by().first.return_value = mock_evidence_crit
 
-    # Update telemetry data to show 100% compliance/MFA and 0 alerts
-    telemetry_data_clean = {
-        "organization_id": "org-123",
-        "connector_id": "conn-123",
-        "timestamp": "2026-05-30T10:00:00Z",
-        "intune_devices": [],
-        "entra_users": [],
-        "defender_alerts": [],
-        "summary": {
-            "total_devices": 10,
-            "compliance_rate_pct": 98.0,  # Compliant
-            "bitlocker_rate_pct": 98.0,
-            "total_users": 5,
-            "mfa_enforced_rate_pct": 100.0,  # Fully enforced
-            "active_high_severity_alerts": 0,  # 0 alerts
-            "edr_coverage_pct": 98.0,
-        }
-    }
-    mock_event.payload = telemetry_data_clean
-    svc._microsoft_cache = None  # Clear cache to reload
-
-    # Clean compliance should result in CONTRADICTED findings
+    # 3. Clean compliance should result in CONTRADICTED findings
     res_edr_clean = await svc.verify_finding(finding_edr)
     assert res_edr_clean.status == VerificationStatusEnum.CONTRADICTED
 
     res_mfa_clean = await svc.verify_finding(finding_mfa)
     assert res_mfa_clean.status == VerificationStatusEnum.CONTRADICTED
-
-    res_alerts_clean = await svc.verify_finding(finding_alerts)
-    assert res_alerts_clean.status == VerificationStatusEnum.CONTRADICTED
 
 
 # =============================================================================

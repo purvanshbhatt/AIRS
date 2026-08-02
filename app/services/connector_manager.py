@@ -85,7 +85,7 @@ class ConnectorManager:
             display_name=display_name,
             auth_method=auth_method,
             encrypted_credentials=encrypted_creds,
-            config=json.dumps(config) if config else None,
+            config=config if config else None,
             sync_interval_minutes=sync_interval_minutes,
             status=ConnectorStatus.pending_auth.value,
             health_status="unknown",
@@ -125,7 +125,7 @@ class ConnectorManager:
         connector = self._get_connector(connector_id)
 
         # Update status to syncing
-        connector.status = ConnectorStatus.SYNCING.value
+        connector.status = ConnectorStatus.syncing.value
         self.db.commit()
 
         # Create sync log entry
@@ -141,7 +141,13 @@ class ConnectorManager:
             # Instantiate connector implementation
             ConnectorClass = get_connector_class(connector.connector_type)
             credentials = self._decrypt_credentials(connector.encrypted_credentials)
-            config = json.loads(connector.config) if connector.config else {}
+            cfg_raw = connector.config
+            if isinstance(cfg_raw, str):
+                config = json.loads(cfg_raw) if cfg_raw else {}
+            elif isinstance(cfg_raw, dict):
+                config = cfg_raw
+            else:
+                config = {}
 
             impl = ConnectorClass(
                 connector_id=connector_id,
@@ -156,15 +162,14 @@ class ConnectorManager:
             # If sync returned events, ingest them
             if result.success and result.events_ingested > 0:
                 try:
-                    events = await impl.sync()
-                    await self._ingest_events(connector_id, events)
+                    await self._ingest_events(connector_id, result.events)
                 except Exception as ingest_err:
                     logger.warning("Event ingestion failed: %s", ingest_err)
 
             # Update connector state
             connector.status = (
-                ConnectorStatus.ACTIVE.value if result.success
-                else ConnectorStatus.ERROR.value
+                ConnectorStatus.active.value if result.success
+                else ConnectorStatus.error.value
             )
             connector.last_sync_at = datetime.now(timezone.utc)
             connector.error_message = result.error_details
@@ -190,7 +195,7 @@ class ConnectorManager:
             return result
 
         except Exception as exc:
-            connector.status = ConnectorStatus.ERROR.value
+            connector.status = ConnectorStatus.error.value
             connector.error_message = str(exc)
             sync_log.sync_completed_at = datetime.now(timezone.utc)
             sync_log.status = "failed"
@@ -218,7 +223,7 @@ class ConnectorManager:
         connector = self._get_connector(connector_id)
         ConnectorClass = get_connector_class(connector.connector_type)
         credentials = self._decrypt_credentials(connector.encrypted_credentials)
-        config = json.loads(connector.config) if connector.config else {}
+        config = connector.config if connector.config else {}
 
         impl = ConnectorClass(
             connector_id=connector_id,
@@ -307,7 +312,7 @@ class ConnectorManager:
         if display_name is not None:
             connector.display_name = display_name
         if config is not None:
-            connector.config = json.dumps(config)
+            connector.config = config
         if sync_interval_minutes is not None:
             connector.sync_interval_minutes = sync_interval_minutes
         if status is not None:
@@ -325,7 +330,7 @@ class ConnectorManager:
         from app.models.connector import ConnectorStatus
 
         connector = self._get_connector(connector_id)
-        connector.status = ConnectorStatus.INACTIVE.value
+        connector.status = ConnectorStatus.inactive.value
         self.db.commit()
 
         logger.info("Connector deactivated: %s (org=%s)", connector_id, self.org_id)
@@ -345,7 +350,7 @@ class ConnectorManager:
         connector = self._get_connector(connector_id)
         ConnectorClass = get_connector_class(connector.connector_type)
         credentials = self._decrypt_credentials(connector.encrypted_credentials)
-        config = json.loads(connector.config) if connector.config else {}
+        config = connector.config if connector.config else {}
 
         impl = ConnectorClass(
             connector_id=connector_id,
@@ -411,20 +416,34 @@ class ConnectorManager:
         return json.loads(encrypted)
 
     async def _ingest_events(self, connector_id: str, events) -> int:
-        """Ingest normalized events into the TelemetryEvent table.
+        """Ingest normalized events into the telemetry + evidence pipelines.
+
+        Each event follows the canonical Connector → Adapter → Registry →
+        Verification chain defined in ADR-009:
+
+          1. Persist the raw NormalizedEvent into ``TelemetryEvent``
+             (legacy audit/cache table — keeps existing dashboard
+             integrations working).
+          2. Convert the NormalizedEvent into a ``NormalizedEvidence``
+             pydantic model and pass it to ``EvidenceOrchestrator``
+             which writes the immutable ``EvidenceLedger`` row plus
+             a ``NormalizedEvidenceRecord`` consumed by the
+             Verification Engine.
 
         Args:
             connector_id: Source connector UUID.
             events: List of NormalizedEvent dataclasses.
 
         Returns:
-            Number of events successfully ingested.
+            Number of events successfully ingested into
+            ``TelemetryEvent`` (legacy table count). Evidence ledger
+            counts are logged separately.
         """
         from app.models.telemetry_event import TelemetryEvent
 
         ingested = 0
         for event in events:
-            # Idempotency check
+            # Idempotency check (legacy telemetry table)
             existing = (
                 self.db.query(TelemetryEvent)
                 .filter(
@@ -457,4 +476,147 @@ class ConnectorManager:
                 ingested, connector_id, self.org_id,
             )
 
+        # ── Evidence Registry ingestion (ADR-009) ──────────────────
+        # Always run, even if every legacy row was a duplicate, because
+        # the evidence ledger may not yet have hashed rows for these
+        # events. The orchestrator performs its own idempotency on
+        # ``evidence_hash``.
+        try:
+            self._ingest_into_evidence_registry(connector_id, events)
+        except Exception as exc:
+            logger.warning(
+                "Evidence registry ingestion failed for connector %s: %s",
+                connector_id, exc,
+            )
+
+        # ── Adapter registration (ADR-009) ─────────────────────────
+        # Whenever a connector syncs successfully, make sure its vendor
+        # adapter is registered in the EvidenceRegistry so the
+        # /connectors/confidence endpoint can compute a score for it.
+        try:
+            self._ensure_adapter_registered(events)
+        except Exception as exc:
+            logger.debug("Adapter registration skipped: %s", exc)
+
         return ingested
+
+    # ------------------------------------------------------------------
+    # Evidence Registry integration
+    # ------------------------------------------------------------------
+
+    def _ingest_into_evidence_registry(self, connector_id: str, events) -> None:
+        """Run the connector's batch through ``EvidenceOrchestrator``.
+
+        Translates ``NormalizedEvent`` dataclasses (connector-layer)
+        into ``NormalizedEvidence`` pydantic models (registry-layer)
+        and writes:
+          - immutable ``EvidenceLedger`` rows (one per unique event)
+          - ``NormalizedEvidenceRecord`` rows consumed by the
+            Verification Engine.
+        """
+        from app.schemas.evidence import (
+            NormalizedEvidence,
+            EvidenceCollectionResult,
+            EvidenceConfidence,
+            EvidenceSeverity,
+            ProviderTransport,
+        )
+        from app.services.evidence.orchestrator import EvidenceOrchestrator
+
+        if not events:
+            return
+
+        provider_name = events[0].source_system
+        normalized: List[NormalizedEvidence] = []
+        for event in events:
+            control_id = None
+            if isinstance(event.payload, dict):
+                control_id = event.payload.get("control_id")
+
+            severity_str = (event.severity or "info").lower()
+            try:
+                severity = EvidenceSeverity(severity_str)
+            except ValueError:
+                severity = EvidenceSeverity.INFO
+
+            # Parse the event timestamp; fall back to "now" if missing.
+            from datetime import datetime, timezone as _tz
+            ts: datetime
+            if event.timestamp:
+                try:
+                    ts = datetime.fromisoformat(event.timestamp.replace("Z", "+00:00"))
+                except (ValueError, TypeError):
+                    ts = datetime.now(_tz.utc)
+            else:
+                ts = datetime.now(_tz.utc)
+
+            evidence = NormalizedEvidence(
+                source_connector=event.source_system,
+                asset_id=None,
+                control_id=control_id,
+                event_type=event.event_type,
+                severity=severity,
+                timestamp=ts,
+                raw_payload=event.payload if isinstance(event.payload, dict) else {"raw": event.payload},
+                confidence=EvidenceConfidence(),
+            )
+            evidence.compute_hash()
+            normalized.append(evidence)
+
+        result = EvidenceCollectionResult(
+            provider_name=provider_name,
+            transport=ProviderTransport.MCP,
+            evidence_count=len(normalized),
+            errors=[],
+            duration_ms=0.0,
+            evidence=normalized,
+        )
+
+        orchestrator = EvidenceOrchestrator(self.db)
+        summary = orchestrator.ingest_collection_result(
+            org_id=self.org_id,
+            connector_id=connector_id,
+            result=result,
+        )
+        logger.info(
+            "Evidence registry ingestion: %d new, %d duplicates (connector=%s, org=%s)",
+            summary.get("new", 0), summary.get("duplicates", 0),
+            connector_id, self.org_id,
+        )
+
+    def _ensure_adapter_registered(self, events) -> None:
+        """Register the appropriate ``EvidenceAdapter`` for the connector.
+
+        The registry is what powers ``GET /api/v1/connectors/confidence``.
+        Without an adapter, every connector scores confidence 0.
+
+        The SplunkAdapter and WazuhAdapter are constructed lazily;
+        they remain unbounded (``_client = None``) until the
+        corresponding Connector row's credentials are known. A
+        subsequent ``bind_connector(connector)`` call attaches the
+        live ``SplunkConnector`` / ``WazuhClient`` once the Connector
+        has been resolved — see
+        ``_attach_adapter_for_connector()`` invoked from the public
+        ``register_connector`` flow.
+        """
+        from app.services.evidence.registry import get_instance
+
+        if not events:
+            return
+
+        source = events[0].source_system
+        registry = get_instance()
+        if registry.is_registered(source):
+            return
+
+        if source == "splunk":
+            from app.services.evidence.adapters.splunk import SplunkAdapter
+            registry.register(SplunkAdapter())
+        elif source == "wazuh":
+            from app.services.evidence.adapters.wazuh import WazuhAdapter
+            from app.services.wazuh_client import WazuhClient
+            registry.register(WazuhAdapter(WazuhClient(host="", api_key="")))
+        # New connector sources (github, aws_security_hub, microsoft, etc.)
+        # register lazily via a generic adapter once implemented; for
+        # now the confidence endpoint will report them as 0, which is
+        # the documented acceptable behaviour.

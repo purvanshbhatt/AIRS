@@ -124,7 +124,7 @@ export default function Organizations() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Organizations</h1>
             <p className="text-gray-500 dark:text-slate-400 text-sm">
-              {organizations.length} organization{organizations.length !== 1 ? 's' : ''}
+              Which business units need attention?
             </p>
           </div>
         </div>

@@ -7,7 +7,6 @@ from app.models.telemetry_event import TelemetryEvent
 from app.models.connector import Connector, ConnectorType, ConnectorStatus
 from app.sentinel.evidence.models import TelemetryEvidence
 from app.sentinel.twin.models import SentinelSimulation
-from app.integrations.splunk.service import ingest_splunk_telemetry
 from app.sentinel.evidence.engine import generate_evidence_from_telemetry
 from app.sentinel.twin.engine import execute_simulation
 from app.sentinel.board_intelligence.generator import generate_board_report
@@ -77,15 +76,35 @@ def get_board_report(simulation_id: str, db: Session = Depends(get_db), org_id: 
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/integrations/splunk")
-async def trigger_splunk_sync(background_tasks: BackgroundTasks, db: Session = Depends(get_db), org_id: str = Depends(get_current_org)):
-    # Run the full pipeline sync
-    # 1. Ingest Splunk
-    events_ingested = await ingest_splunk_telemetry(db, org_id)
-    # 2. Generate Evidence
+async def trigger_splunk_sync(payload: dict, background_tasks: BackgroundTasks, db: Session = Depends(get_db), org_id: str = Depends(get_current_org)):
+    from app.connectors.splunk import SplunkConnector
+    from app.connectors.base import NormalizedEvent
+    from app.services.connector_manager import ConnectorManager
+
+    query = payload.get("query", 'search index=notable | head 50')
+    _ = query  # the canonical SplunkConnector executes its own canonical searches
+
+    conn = db.query(Connector).filter(
+        Connector.org_id == org_id,
+        Connector.connector_type == ConnectorType.splunk
+    ).first()
+    if not conn:
+        raise HTTPException(
+            status_code=400,
+            detail="Splunk connector not configured for this organization.",
+        )
+
+    mgr = ConnectorManager(db, org_id)
+    sync_result = await mgr.sync_connector(conn.id)
+
+    # 2. Generate Evidence (Sentinel internal pipeline, kept for the
+    # hackathon demo / Sentinel board-intelligence flow).
     evidence_generated = generate_evidence_from_telemetry(db, org_id)
-    
+
     return {
-        "status": "sync_started", 
-        "events_ingested": events_ingested,
-        "evidence_generated": evidence_generated
+        "events_ingested": sync_result.events_ingested,
+        "query_executed": query,
+        "connector_id": conn.id,
+        "org_id": org_id,
+        "evidence_generated": evidence_generated,
     }

@@ -784,7 +784,7 @@ export interface SplunkEvidenceResponse {
   total_controls: number;
 }
 
-export const configureSplunkHec = (orgId: string, baseUrl: string, hecToken: string) =>
+export const configureSplunkMcp = (orgId: string, baseUrl: string, hecToken: string) =>
   request<{ org_id: string; status: string; base_url: string }>(
     `/api/orgs/${orgId}/splunk-config`,
     {
@@ -1270,3 +1270,259 @@ export const getLogicFirewallTrace = (requestId: string) =>
 
 export const getSimulationHistory = (orgId: string) =>
   request<{ results: any[]; total: number }>(`/api/v1/simulations/results/${orgId}`);
+
+// =============================================================================
+// SPRINT 1.8 & SPRINT 2 TYPES
+// =============================================================================
+
+export interface ReadinessDriver {
+  driver_type: string;
+  driver_item: string | null;
+  impact: number;
+  evidence_source: string;
+}
+
+export interface ReadinessDriversResponse {
+  org_id: string;
+  positive_drivers: ReadinessDriver[];
+  negative_drivers: ReadinessDriver[];
+}
+
+export interface ExecutiveAction {
+  driver_type: string;
+  item: string | null;
+  impact: number;
+  evidence_source: string;
+  rationale: string;
+}
+
+export interface ExecutiveActionsResponse {
+  org_id: string;
+  actions: ExecutiveAction[];
+}
+
+export interface ReadinessLedgerEntryResponse {
+  id: string;
+  org_id: string;
+  timestamp: string;
+  previous_score: number;
+  new_score: number;
+  delta: number;
+  driver_type: string | null;
+  driver_item: string | null;
+  impact: number | null;
+  evidence_source: string | null;
+  created_by: string | null;
+}
+
+export interface ReadinessLedgerResponse {
+  org_id: string;
+  entries: ReadinessLedgerEntryResponse[];
+  count: number;
+}
+
+export interface ReadinessTimelinePoint {
+  timestamp: string;
+  new_score: number;
+  delta: number;
+  driver_type: string | null;
+}
+
+export interface ReadinessTimelineResponse {
+  org_id: string;
+  points: ReadinessTimelinePoint[];
+  count: number;
+}
+
+export interface VulnerabilitySchema {
+  cve_id: string;
+  severity: string;
+  cvss_score: number;
+  is_kev: boolean;
+}
+
+export interface TechInventoryItem {
+  id: string;
+  component_name: string;
+  version: string | null;
+  category: string | null;
+  lts_status: string;
+  major_versions_behind: number;
+  notes: string | null;
+  critical_cves: number;
+  high_cves: number;
+  kev_count: number;
+  readiness_impact: string;
+  vulnerabilities: VulnerabilitySchema[];
+}
+
+export interface TechLifecycleAnalysis {
+  component_name: string;
+  version: string;
+  status: string;
+  latest_supported: string | null;
+  eol_date: string | null;
+  message: string;
+}
+
+export interface TechExposureItem {
+  cve_id: string;
+  component_name: string;
+  version: string;
+  severity: string;
+  is_kev: boolean;
+}
+
+export interface FrameworkCoverageItem {
+  framework: string;
+  covered_controls: number;
+  total_controls: number;
+  coverage_percent: number;
+}
+
+export interface ConnectorConfidenceDetail {
+  connector_name: string;
+  confidence_score: number;
+  factors: Record<string, number>;
+}
+
+export interface OrgConfidenceResponse {
+  org_id: string;
+  aggregate_score: number;
+  connectors: ConnectorConfidenceDetail[];
+}
+
+export interface BoardStorySection {
+  section_id: string;
+  title: string;
+  content: string;
+}
+
+export interface BoardStory {
+  sections: BoardStorySection[];
+}
+
+/** Valid action types for the Decision Engine — mirrors backend Literal union */
+export type DecisionActionType =
+  | 'verify_control'
+  | 'remediate_exposure'
+  | 'remediate_lifecycle'
+  | 'upgrade_software'
+  | 'patch_cve'
+  | 'enable_mfa'
+  | 'enable_logging';
+
+/** Minimal shape of a control object returned by the Decision Engine */
+export interface DecisionActionControl {
+  control_id?: string;
+  name?: string;
+  domain?: string;
+  weight?: number;
+}
+
+/** Minimal shape of a coverage object returned by the Decision Engine */
+export interface DecisionActionCoverage {
+  coverage_pct?: number;
+  verified?: boolean;
+  source?: string;
+}
+
+/** Modifiers map from project endpoint — keys are domain IDs, values are score deltas */
+export type DecisionModifiers = Record<string, number>;
+
+export interface DecisionAction {
+  type: DecisionActionType;
+  control?: DecisionActionControl | null;
+  coverage?: DecisionActionCoverage | null;
+  software_name?: string | null;
+  score_increase?: number | null;
+}
+
+export interface ProjectReadinessRequest {
+  actions: DecisionAction[];
+}
+
+/** Reason entry emitted by the project endpoint */
+export interface ProjectReadinessReason {
+  action_type: string;
+  description: string;
+  delta?: number;
+}
+
+export interface ProjectReadinessResponse {
+  assessment_score: number;
+  modifiers: DecisionModifiers;
+  final_readiness: number;
+  previous_readiness: number | null;
+  readiness_delta: number | null;
+  reasons: ProjectReadinessReason[];
+}
+
+export interface RecommendedAction {
+  action: DecisionAction;
+  projected_delta: number;
+  description: string;
+}
+
+// =============================================================================
+// SPRINT 1.8 & SPRINT 2 API ENDPOINTS
+// =============================================================================
+
+export const getReadinessDrivers = (orgId: string) =>
+  request<ReadinessDriversResponse>(`/api/v1/readiness/drivers?org_id=${orgId}`);
+
+export const getReadinessActions = (orgId: string, topN = 5) =>
+  request<ExecutiveActionsResponse>(`/api/v1/readiness/actions?org_id=${orgId}&top_n=${topN}`);
+
+export const getReadinessLedger = (orgId: string, limit = 50) =>
+  request<ReadinessLedgerResponse>(`/api/v1/readiness/ledger?org_id=${orgId}&limit=${limit}`);
+
+export const getReadinessTimeline = (orgId: string, limit = 100) =>
+  request<ReadinessTimelineResponse>(`/api/v1/readiness/timeline?org_id=${orgId}&limit=${limit}`);
+
+export const getTechInventory = (orgId: string) =>
+  request<TechInventoryItem[]>(`/api/v1/technology/inventory/${orgId}`);
+
+export const getTechLifecycle = (orgId: string) =>
+  request<TechLifecycleAnalysis[]>(`/api/v1/technology/lifecycle/${orgId}`);
+
+export const getTechExposure = (orgId: string) =>
+  request<TechExposureItem[]>(`/api/v1/technology/exposure/${orgId}`);
+
+export const getFrameworkCoverage = (orgId: string) =>
+  request<FrameworkCoverageItem[]>(`/api/v1/frameworks/coverage/${orgId}`);
+
+/**
+ * S1.8-AUDIT-FIX-F01: orgId is now REQUIRED — ensures tenant isolation and satisfies
+ * the 422 contract documented in TASK_QUEUE S1.8-C4 acceptance.
+ */
+export const getEvidenceConfidence = (orgId: string) =>
+  request<OrgConfidenceResponse>(`/api/v1/connectors/confidence?org_id=${orgId}`);
+
+export const getBoardStory = (orgId: string) =>
+  request<BoardStory>(`/api/v1/reports/board-story?org_id=${orgId}`);
+
+/**
+ * S1.8-AUDIT-FIX-A01: Returns the backend PDF URL for the Board Story.
+ * The caller should use this as an <a href> with `download` attribute.
+ * PDF is generated server-side by reportlab — all numbers source from the scoring snapshot.
+ */
+export const getBoardStoryPdfUrl = (orgId: string): string => {
+  const base = getApiBaseUrl();
+  return `${base}/api/v1/reports/board-story.pdf?org_id=${encodeURIComponent(orgId)}`;
+};
+
+export const getRecommendedActions = (orgId: string) =>
+  request<RecommendedAction[]>(`/api/v1/decisions/recommended-actions/${orgId}`);
+
+export const projectDecisions = (orgId: string, requestData: ProjectReadinessRequest) =>
+  request<ProjectReadinessResponse>(`/api/v1/decisions/project/${orgId}`, {
+    method: 'POST',
+    body: JSON.stringify(requestData),
+  });
+
+export const getMondayMorning = () =>
+  request<any>('/api/v1/evidence/monday-morning');
+
+export const getEvidenceLineage = (hash: string) =>
+  request<any>(`/api/v1/evidence/lineage/${hash}`);

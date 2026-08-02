@@ -13,18 +13,19 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 from app.connectors.base import (
-    BaseConnector,
+    Connector,
     ConnectorHealth,
-    NormalizedEvent,
+    RawEvent,
     PermissionResult,
 )
+from app.services.clinic_engine.v2.schema import ConnectorCapability
 from app.connectors.registry import register_connector
 
 logger = logging.getLogger("airs.connectors.aws_security_hub")
 
 
 @register_connector
-class AWSSecurityHubConnector(BaseConnector):
+class AWSSecurityHubConnector(Connector):
     """AWS Security Hub connector for cloud security posture telemetry.
 
     Credentials:
@@ -42,6 +43,7 @@ class AWSSecurityHubConnector(BaseConnector):
         "securityhub:DescribeHub",
         "securityhub:GetEnabledStandards",
     ]
+    CAPABILITIES = [ConnectorCapability.CLOUD_ASSETS]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -107,12 +109,12 @@ class AWSSecurityHubConnector(BaseConnector):
     # Sync
     # ------------------------------------------------------------------
 
-    async def sync(self) -> List[NormalizedEvent]:
+    async def sync(self) -> List[RawEvent]:
         if not self._hub_client:
-            self.logger.error("Hub client not initialized — authenticate first")
+            self.logger.error("Hub client not initialized - authenticate first")
             return []
 
-        events: List[NormalizedEvent] = []
+        events: List[RawEvent] = []
 
         try:
             filters = {
@@ -133,8 +135,8 @@ class AWSSecurityHubConnector(BaseConnector):
         self.logger.info("AWS Security Hub sync: %d events", len(events))
         return events
 
-    def _normalize_finding(self, finding: Dict[str, Any]) -> NormalizedEvent:
-        """Convert an AWS Security Hub finding to a NormalizedEvent."""
+    def _normalize_finding(self, finding: Dict[str, Any]) -> RawEvent:
+        """Convert an AWS Security Hub finding to a RawEvent."""
         finding_id = finding.get("Id", str(uuid.uuid4()))
         severity = finding.get("Severity", {})
         severity_label = severity.get("Label", "MEDIUM").lower()
@@ -143,7 +145,7 @@ class AWSSecurityHubConnector(BaseConnector):
         resources = finding.get("Resources", [])
         resource_ids = [r.get("Id", "") for r in resources]
 
-        return NormalizedEvent(
+        return RawEvent(
             event_type="aws.securityhub.finding",
             source_system="aws_security_hub",
             source_event_id=finding_id,

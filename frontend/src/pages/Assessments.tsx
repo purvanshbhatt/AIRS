@@ -78,8 +78,8 @@ export default function Assessments() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
-        a.title.toLowerCase().includes(query) ||
-        a.organization_name?.toLowerCase().includes(query)
+        (a.title?.toLowerCase().includes(query) ?? false) ||
+        (a.organization_name?.toLowerCase().includes(query) ?? false)
       );
     }
     return true;
@@ -136,7 +136,7 @@ export default function Assessments() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Assessments</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-              {assessments.length} assessment{assessments.length !== 1 ? 's' : ''}
+              How is our compliance posture trending? ({assessments.length} assessment{assessments.length !== 1 ? 's' : ''})
             </p>
           </div>
         </div>

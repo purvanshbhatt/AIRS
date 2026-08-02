@@ -170,3 +170,48 @@ class BaseConnector(abc.ABC):
             return ConnectorSyncResult(
                 success=False, error_details=str(exc), duration_ms=duration
             )
+
+# ---------------------------------------------------------------------------
+# Backwards Compatible Aliases / New Classes for V2 Clinic Engine
+# ---------------------------------------------------------------------------
+
+@dataclass
+class RawEvent(NormalizedEvent):
+    """V2 alias for NormalizedEvent."""
+    
+    @property
+    def organization_id(self) -> str:
+        """For backwards compatibility, infer org_id from payload or leave empty."""
+        return self.payload.get("organization_id", "")
+        
+    @organization_id.setter
+    def organization_id(self, value: str):
+        self.payload["organization_id"] = value
+
+
+class Connector(BaseConnector):
+    """V2 Connector interface which extends BaseConnector with capabilities."""
+    
+    CAPABILITIES: List[str] = []
+    
+    def __init__(self, connector_id: str, organization_id: str, credentials: Dict[str, Any] = None, config: Optional[Dict[str, Any]] = None):
+        super().__init__(connector_id=connector_id, org_id=organization_id, credentials=credentials or {}, config=config)
+        self.organization_id = organization_id
+
+    async def collect_evidence(self) -> List[RawEvent]:
+        """Wrapper for V2 Clinic Engine over V1 sync()."""
+        normalized_events = await self.sync()
+        raw_events = []
+        for ev in normalized_events:
+            raw = RawEvent(
+                event_type=ev.event_type,
+                source_system=ev.source_system,
+                source_event_id=ev.source_event_id,
+                severity=ev.severity,
+                payload=ev.payload,
+                timestamp=ev.timestamp
+            )
+            raw.organization_id = self.organization_id
+            raw_events.append(raw)
+        return raw_events
+

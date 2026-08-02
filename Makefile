@@ -13,7 +13,7 @@ endif
 VENV := venv
 PROJECT_ID := gen-lang-client-0384513977
 REGION := us-central1
-SERVICE_NAME := airs-api-staging-0384513977
+SERVICE_NAME := airs-api-staging
 PROD_SERVICE_NAME := airs-api
 STAGING_ENV_FILE := gcp/env.staging.yaml
 PROD_ENV_FILE := gcp/env.prod.yaml

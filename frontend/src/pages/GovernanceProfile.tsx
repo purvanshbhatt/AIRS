@@ -507,10 +507,10 @@ export default function GovernanceProfile() {
                 <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
               </Link>
               <Link
-                to={`/dashboard/pilot-program?org=${selectedOrgId}`}
+                to={`/dashboard/ai-attack-simulation-lab?org=${selectedOrgId}`}
                 className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200"
               >
-                <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">Pilot Program</span>
+                <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">AI Threat Lab</span>
                 <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
               </Link>
 

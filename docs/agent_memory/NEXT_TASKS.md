@@ -1,36 +1,12 @@
 # Next Tasks
 
 Priority 1
-**Audit Confidence Visualizations**
-Status:
-Waiting
-Owner:
-Frontend Agent
+**Post-Sprint Validation & Hardening**
+Status: Ready
+Owner: QA / Security Team
 Dependencies:
-- Validated scoring API
-Blocks:
-- Final Executive Review
+- Frontend Sprint 1.8 & 2 completion
 
----
-
-Priority 2
-**Splunk Telemetry Coverage Expansion**
-Status:
-In Progress
-Owner:
-Backend Agent
-Dependencies:
-- Splunk test environment
-Blocks:
-- Complete Verification Engine
-
----
-
-Priority 3
-**Agent Memory Optimization (Done)**
-Status:
-Completed
-Owner:
-Antigravity
-Dependencies:
-- None
+Next Actions:
+- E2E testing of the telemetry-driven decision projection engine and confidence gauges.
+- Production deployment of the ResilAI Sentinel Platform.

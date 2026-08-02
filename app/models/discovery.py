@@ -33,12 +33,12 @@ class TechnologyInventory(Base):
     
     # Relationships
     organization = relationship("Organization", back_populates="technology_inventories")
-    discovered_assets = relationship("DiscoveredAsset", back_populates="inventory", cascade="all, delete-orphan")
+    host_assets = relationship("HostAsset", back_populates="inventory", cascade="all, delete-orphan")
 
 
-class DiscoveredAsset(Base):
+class HostAsset(Base):
     """An individual host, device, or cloud service."""
-    __tablename__ = "discovered_assets"
+    __tablename__ = "host_assets"
 
     id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     org_id = Column(CHAR(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
@@ -53,8 +53,8 @@ class DiscoveredAsset(Base):
     last_seen = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    organization = relationship("Organization", back_populates="discovered_assets")
-    inventory = relationship("TechnologyInventory", back_populates="discovered_assets")
+    organization = relationship("Organization", back_populates="host_assets")
+    inventory = relationship("TechnologyInventory", back_populates="host_assets")
     installed_products = relationship("InstalledProduct", back_populates="asset", cascade="all, delete-orphan")
 
 
@@ -63,7 +63,7 @@ class InstalledProduct(Base):
     __tablename__ = "installed_products"
 
     id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    asset_id = Column(CHAR(36), ForeignKey("discovered_assets.id", ondelete="CASCADE"), nullable=False, index=True)
+    asset_id = Column(CHAR(36), ForeignKey("host_assets.id", ondelete="CASCADE"), nullable=False, index=True)
     
     product_name = Column(String(255), nullable=False)
     vendor = Column(String(255), nullable=True)
@@ -74,7 +74,7 @@ class InstalledProduct(Base):
     last_seen = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    asset = relationship("DiscoveredAsset", back_populates="installed_products")
+    asset = relationship("HostAsset", back_populates="installed_products")
     evidence_sources = relationship("EvidenceSource", back_populates="product", cascade="all, delete-orphan")
 
 

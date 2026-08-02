@@ -869,3 +869,346 @@ def get_findings_summary(findings: List[Finding]) -> Dict[str, Any]:
     """
     engine = FindingsEngine()
     return engine.get_summary(findings)
+
+
+# =============================================================================
+# AI GOVERNANCE RULES (Sprint 1.8, Task S1.8-B3)
+# =============================================================================
+# Deterministic rules AI-001..AI-010 that classify AI Asset inventory rows
+# into consultant-grade AI-Governance findings. None of these rules invoke
+# any LLM; classification is rule-based on:
+#   - asset_type            (AIAssetType enum)
+#   - lifecycle_stage       (LifecycleStage enum)
+#   - exposure_level        (ExposureLevel enum)
+#   - business_criticality  (BusinessCriticality enum)
+#   - has_inventory_record  (presence/absence check)
+
+
+def _entry_matches_type(entry: Dict[str, Any], type_token: str) -> bool:
+    """Return True when entry's asset_type contains a substring token."""
+    at = str(entry.get("asset_type") or "").lower()
+    token = type_token.lower()
+    return token in at
+
+
+def _rule_ai_inventory_missing(a_first: Dict[str, Any], entries: List[Dict[str, Any]]) -> bool:
+    return not entries
+
+
+def _rule_ai_unclassified_type(entry: Dict[str, Any], _e=None) -> bool:
+    at = str(entry.get("asset_type") or "")
+    if not at:
+        return True
+    return at.lower() in {"", "unknown", "none", "unspecified"}
+
+
+def _rule_ai_prompt_library_exposure(entry: Dict[str, Any], _e=None) -> bool:
+    # Prompt Library / LLM prompt store with non-low exposure
+    if not _entry_matches_type(entry, "prompt_library"):
+        return False
+    exposure = str(entry.get("exposure_level") or "").lower()
+    return exposure in {"exposed", "public", "critical", "high"}
+
+
+def _rule_ai_vector_db_no_retention_policy(entry: Dict[str, Any], _e=None) -> bool:
+    if not _entry_matches_type(entry, "vector_db"):
+        return False
+    # If ``retention_policy`` is missing/empty/none → fail.
+    policy = entry.get("retention_policy")
+    if policy is None:
+        return True
+    if isinstance(policy, str):
+        return policy.strip().lower() in ("", "none", "undefined", "unknown")
+    return False
+
+
+def _rule_ai_mcp_server_internet_facing(entry: Dict[str, Any], _e=None) -> bool:
+    if not _entry_matches_type(entry, "mcp_server"):
+        return False
+    exposure = str(entry.get("exposure_level") or "").lower()
+    return exposure in {"exposed", "public"}
+
+
+def _rule_ai_agent_framework_attack_surface(entry: Dict[str, Any], _e=None) -> bool:
+    if not _entry_matches_type(entry, "agent_framework"):
+        return False
+    return (
+        str(entry.get("lifecycle_stage") or "").lower() == "production"
+        and str(entry.get("business_criticality") or "").lower() == "critical"
+    )
+
+
+def _rule_ai_unversioned_prompt(entry: Dict[str, Any], _e=None) -> bool:
+    # Findings on prompt assets that have no version recorded.
+    if not _entry_matches_type(entry, "prompt"):
+        return False
+    return entry.get("current_version") in (None, "", "unknown")
+
+
+def _rule_ai_eol_model_dependencies(entry: Dict[str, Any], _e=None) -> bool:
+    if str(entry.get("lifecycle_stage") or "").lower() not in {"end_of_life", "deprecated"}:
+        return False
+    return _entry_matches_type(entry, "model")
+
+
+def _rule_ai_air_gapped_disabled(entry: Dict[str, Any], _e=None) -> bool:
+    if not entry.get("handles_pii") and not entry.get("handles_phi"):
+        return False
+    return entry.get("network_isolation") is False
+
+
+def _rule_ai_no_governance_owner(entry: Dict[str, Any], _e=None) -> bool:
+    owner = entry.get("ownership") or entry.get("owner") or entry.get("owner_uid")
+    if owner is None:
+        return True
+    if isinstance(owner, str):
+        return owner.strip() in ("", "unknown", "n/a")
+    return False
+
+
+# Inline FindingRule objects for AI/Governance — these are added to the
+# FINDING_RULES list at module-load so the engine picks them up.
+AI_GOVERNANCE_RULES: List[FindingRule] = [
+    FindingRule(
+        rule_id="AI-001",
+        title="AI Asset Inventory Incomplete",
+        domain_id="ai_governance",
+        severity=Severity.CRITICAL,
+        condition=lambda a, s: bool(globals().get("_ai_inv_empty")) ,
+        evidence_fn=lambda a, s: (
+            "No AI assets have been catalogued in the AI Estate inventory. "
+            "Without an inventory, AI governance cannot be reliably enforced."
+        ),
+        recommendation="Run auto-discovery across Microsoft Purview, AWS Bedrock, "
+                       "Azure OpenAI, GCP Vertex AI, and connected code repositories "
+                       "to populate the AI Estate inventory.",
+    ),
+    FindingRule(
+        rule_id="AI-002",
+        title="Unclassified AI Asset Type",
+        domain_id="ai_governance",
+        severity=Severity.HIGH,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: "One or more AI assets have an unclassified asset_type.",
+        recommendation="Map each AI asset to a canonical AIAssetType (model, vector_db, "
+                       "mcp_server, agent_framework, prompt_library, embedding_pipeline, "
+                       "training_dataset, RAG_corpus, evaluation_pipeline).",
+    ),
+    FindingRule(
+        rule_id="AI-003",
+        title="Prompt Library Publicly Exposed",
+        domain_id="ai_governance",
+        severity=Severity.CRITICAL,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: (
+            "A prompt library is exposed publicly or to broad audiences."
+        ),
+        recommendation="Restrict prompt library access to authorized operators only. "
+                       "Apply RBAC + IP allow-listing. Enable version control and audit "
+                       "logging for every prompt mutation.",
+    ),
+    FindingRule(
+        rule_id="AI-004",
+        title="Vector DB Missing Retention Policy",
+        domain_id="ai_governance",
+        severity=Severity.HIGH,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: "Vector DB has no retention policy configured.",
+        recommendation="Document and enforce a retention policy on every vector DB. "
+                       "Pair with right-to-deletion flows for GDPR/CCPA cohorts.",
+    ),
+    FindingRule(
+        rule_id="AI-005",
+        title="MCP Server Internet-Facing",
+        domain_id="ai_governance",
+        severity=Severity.CRITICAL,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: (
+            "MCP server is exposed publicly. Exposed MCP servers are a primary "
+            "exploitation surface for prompt-injection attacks."
+        ),
+        recommendation="Place MCP servers behind authentication and authorization. "
+                       "Use zero-trust networking (mTLS + token-bound sessions). Add "
+                       "rate-limits and per-action audit logging.",
+        risk_impact="high",
+        nist_function="PR",
+    ),
+    FindingRule(
+        rule_id="AI-006",
+        title="Agent Framework in Production Touching Critical Assets",
+        domain_id="ai_governance",
+        severity=Severity.HIGH,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: (
+            "An agent framework operating in production has been catalogued as "
+            "Critical business criticality."
+        ),
+        recommendation="Enforce human-in-the-loop for any agent framework that can "
+                       "mutate critical assets. Mandate action-level RBAC, capability "
+                       "token expiry, and complete action tracing.",
+    ),
+    FindingRule(
+        rule_id="AI-007",
+        title="Unversioned Prompt Asset",
+        domain_id="ai_governance",
+        severity=Severity.MEDIUM,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: "A prompt asset has no recorded version.",
+        recommendation="Version every prompt asset. Maintain an immutable history "
+                       "in the AI Asset ledger with rollback capability.",
+    ),
+    FindingRule(
+        rule_id="AI-008",
+        title="EOL Model Dependencies",
+        domain_id="ai_governance",
+        severity=Severity.HIGH,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: "Model is recorded as End-of-Life or Deprecated.",
+        recommendation="Plan and execute migration to a supported successor. Add a "
+                       "compensating control (enhanced monitoring, input filtering) "
+                       "during the transition window.",
+    ),
+    FindingRule(
+        rule_id="AI-009",
+        title="AI Asset Touches PII/PHI Without Network Isolation",
+        domain_id="ai_governance",
+        severity=Severity.CRITICAL,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: (
+            "AI asset handles PII/PHI but network isolation is disabled."
+        ),
+        recommendation="Air-gap the AI asset from the corporate network via dedicated "
+                       "VPCs and offline evaluation runners. Enforce field-level "
+                       "encryption and key-rotaion every 90 days.",
+        risk_impact="high",
+    ),
+    FindingRule(
+        rule_id="AI-010",
+        title="AI Asset Has No Governance Owner",
+        domain_id="ai_governance",
+        severity=Severity.HIGH,
+        condition=lambda a, s: True,
+        evidence_fn=lambda a, s: "AI asset has no governance owner assigned.",
+        recommendation="Assign a named governance owner for every AI asset. "
+                       "Owners are accountable for compliance, change control, and "
+                       "remediation actions.",
+    ),
+]
+
+
+# Append AI rules to FINDING_RULES so the engine evaluates them.
+FINDING_RULES.extend(AI_GOVERNANCE_RULES)
+
+
+def evaluate_ai_governance_findings(
+    ai_entries: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Map AI Estate inventory rows to consultant-grade findings.
+
+    Pure rule-based classification. No LLM.
+
+    Args:
+        ai_entries: List of normalized AI-asset records. Each record is
+            a dict with optional keys:
+              - asset_type (str)
+              - lifecycle_stage (str)
+              - exposure_level (str)
+              - business_criticality (str)
+              - current_version (str | None)
+              - retention_policy (str | None)
+              - handles_pii (bool)
+              - handles_phi (bool)
+              - network_isolation (bool)
+              - ownership / owner / owner_uid (str | None)
+
+    Returns:
+        A list of finding dicts:
+          { rule_id, title, severity, remediation, evidence, matched }
+        where ``matched`` is True when the entry (or inventory state)
+        triggered the rule.
+    """
+    findings: List[Dict[str, Any]] = []
+
+    def _emit(rule_id: str, title: str, severity: str, evidence: str,
+              remediation: str) -> None:
+        findings.append({
+            "rule_id": rule_id,
+            "title": title,
+            "severity": severity,
+            "evidence": evidence,
+            "remediation": remediation,
+            "matched": True,
+        })
+
+    inv_empty = not ai_entries
+    if inv_empty:
+        _emit(
+            "AI-001", "AI Asset Inventory Incomplete",
+            "critical",
+            "No AI assets catalogued.",
+            "Run auto-discovery to populate the AI Estate inventory.",
+        )
+
+    for entry in ai_entries:
+        if _rule_ai_unclassified_type(entry):
+            _emit(
+                "AI-002", "Unclassified AI Asset Type",
+                "high", f"asset_type is unset for entry with current_version={entry.get('current_version')!r}.",
+                "Map to a canonical AIAssetType.",
+            )
+        if _rule_ai_prompt_library_exposure(entry):
+            _emit(
+                "AI-003", "Prompt Library Publicly Exposed",
+                "critical",
+                f"prompt_library asset {entry.get('asset_name') or ''!r} has exposure_level={entry.get('exposure_level')!r}",
+                "Apply RBAC + audit logging for prompt mutations.",
+            )
+        if _rule_ai_vector_db_no_retention_policy(entry):
+            _emit(
+                "AI-004", "Vector DB Missing Retention Policy",
+                "high", "vector_db has no retention_policy set.",
+                "Document a retention policy; pair with right-to-deletion flows.",
+            )
+        if _rule_ai_mcp_server_internet_facing(entry):
+            _emit(
+                "AI-005", "MCP Server Internet-Facing",
+                "critical",
+                f"mcp_server asset {entry.get('asset_name') or ''!r} has exposure_level={entry.get('exposure_level')!r}.",
+                "Place behind authentication; use zero-trust networking + audit logs.",
+            )
+        if _rule_ai_agent_framework_attack_surface(entry):
+            _emit(
+                "AI-006", "Agent Framework in Production Touching Critical Assets",
+                "high",
+                f"agent_framework asset {entry.get('asset_name') or ''!r} is production + critical.",
+                "Enforce human-in-the-loop, action RBAC, action tracing.",
+            )
+        if _rule_ai_unversioned_prompt(entry):
+            _emit(
+                "AI-007", "Unversioned Prompt Asset",
+                "medium", "prompt asset has no current_version.",
+                "Version every prompt asset.",
+            )
+        if _rule_ai_eol_model_dependencies(entry):
+            _emit(
+                "AI-008", "EOL Model Dependencies",
+                "high",
+                f"model asset {entry.get('asset_name') or ''!r} is recorded as {entry.get('lifecycle_stage')!r}.",
+                "Migrate to a supported successor; add compensating controls.",
+            )
+        if _rule_ai_air_gapped_disabled(entry):
+            _emit(
+                "AI-009", "AI Asset Touches PII/PHI Without Network Isolation",
+                "critical",
+                "AI asset handles PII/PHI but network_isolation=False.",
+                "Air-gap the asset; enforce field-level encryption.",
+            )
+        if _rule_ai_no_governance_owner(entry):
+            _emit(
+                "AI-010", "AI Asset Has No Governance Owner",
+                "high", "AI asset has no ownership value.",
+                "Assign a named governance owner.",
+            )
+
+    return findings
+

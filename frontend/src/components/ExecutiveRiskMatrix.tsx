@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Badge } from './ui';
 import { ShieldCheck, TrendingUp, AlertTriangle, AlertCircle, FileText, Download, Shield, Brain } from 'lucide-react';
+import { getBoardStoryPdfUrl } from '../api';
 
 interface ExecutiveRiskMatrixProps {
   ghi: number;
   grade: string;
   wazuhStatus: string;
   splunkStatus: string;
+  /** org_id used to construct the server-side PDF download URL (required for PRODUCT_MOAT compliance) */
+  orgId?: string;
 }
 
 interface RiskCell {
@@ -53,8 +56,14 @@ const RISK_MATRIX_DATA: Record<string, Record<string, RiskCell[]>> = {
   },
 };
 
-export default function ExecutiveRiskMatrix({ ghi, grade, wazuhStatus, splunkStatus }: ExecutiveRiskMatrixProps) {
+export default function ExecutiveRiskMatrix({ ghi, grade, wazuhStatus, splunkStatus, orgId }: ExecutiveRiskMatrixProps) {
   const [selectedCell, setSelectedCell] = useState<{ impact: string; likelihood: string } | null>(null);
+
+  /**
+   * S1.8-AUDIT-FIX-A01 (CRITICAL): PDF is generated server-side.
+   * All numbers in the PDF body trace to the scoring snapshot — never fabricated in the browser.
+   */
+  const pdfDownloadUrl = orgId ? getBoardStoryPdfUrl(orgId) : null;
 
   const getCellColor = (impact: string, likelihood: string) => {
     if (impact === 'High' && likelihood === 'High') {
@@ -83,94 +92,6 @@ export default function ExecutiveRiskMatrix({ ghi, grade, wazuhStatus, splunkSta
     ? RISK_MATRIX_DATA[selectedCell.impact]?.[selectedCell.likelihood] || []
     : [];
 
-  const handleDownloadBoardStory = () => {
-    const dateStr = new Date().toLocaleDateString();
-    
-    // Construct a beautifully formatted minimal PDF binary dynamically
-    const pdfContent = `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
-endobj
-4 0 obj
-<< /Length 750 >>
-stream
-BT
-/F1 20 Tf
-50 780 Td
-(ResilAI Boardroom Interpreter - Executive Narrative) Tj
-/F1 10 Tf
-0 -30 Td
-(Generated on: ${dateStr} | Environment: STAGING) Tj
-0 -40 Td
-(Governance Health Index [GHI] Posture Snapshot:) Tj
-/F1 14 Tf
-0 -25 Td
-(GHI Score: ${ghi.toFixed(1)}% | Grade Rating: ${grade}) Tj
-/F1 10 Tf
-0 -40 Td
-(SYSTEM STATUS SUMMARY:) Tj
-0 -20 Td
-(- Wazuh Integration Status: ${wazuhStatus.toUpperCase()}) Tj
-0 -15 Td
-(- Splunk HEC Status: ${splunkStatus.toUpperCase()}) Tj
-0 -45 Td
-(EXECUTIVE RISK EXPOSURE ANALYSIS:) Tj
-0 -20 Td
-(Total Systemic Exposure: Mitigated to Moderate) Tj
-0 -15 Td
-(Average Response Velocity: 3.0 Days (mitigated from 14.0 days)) Tj
-0 -40 Td
-(CONCENTRATION METRICS & DRIFT ANALYSIS:) Tj
-0 -20 Td
-(1. Version Drift Risk concentration: 42% (Critical Risk - Red Badge)) Tj
-0 -15 Td
-(2. SIEM Telemetry Verification: 80% coverage verified via Splunk HEC) Tj
-0 -45 Td
-(CONFIDENTIALITY NOTICE:) Tj
-0 -20 Td
-(This document is proprietary information compiled dynamically via machine-to-machine) Tj
-0 -15 Td
-(telemetry and audit logs. Not for public redistribution.) Tj
-ET
-streamendstream
-endobj
-5 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
-endobj
-xref
-0 6
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000244 00000 n 
-0000001045 00000 n 
-trailer
-<< /Size 6 /Root 1 0 R >>
-startxref
-1124
-%%EOF`;
-
-    // Convert PDF string to binary array
-    const bytes = new Uint8Array(pdfContent.length);
-    for (let i = 0; i < pdfContent.length; i++) {
-      bytes[i] = pdfContent.charCodeAt(i);
-    }
-
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `resilai_board_story_${new Date().toISOString().slice(0,10)}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const getSeverityBadgeColor = (severity: string) => {
     switch (severity) {
@@ -194,13 +115,24 @@ startxref
             Dynamic risk matrix mapping likelihood and impact of compliance posture drift and vulnerabilities.
           </CardDescription>
         </div>
-        <Button
-          onClick={handleDownloadBoardStory}
-          className="bg-[#00C853] hover:bg-[#00C853]/90 text-white rounded-xl font-bold shadow-md hover:scale-[1.01] transition-all flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Board Story
-        </Button>
+        {pdfDownloadUrl ? (
+          <a
+            href={pdfDownloadUrl}
+            download
+            className="bg-[#00C853] hover:bg-[#00C853]/90 text-white rounded-xl font-bold shadow-md hover:scale-[1.01] transition-all flex items-center gap-2 px-4 py-2 text-sm"
+          >
+            <Download className="w-4 h-4" />
+            Board Story PDF
+          </a>
+        ) : (
+          <button
+            disabled
+            className="bg-slate-200 dark:bg-slate-800 text-slate-400 rounded-xl font-bold flex items-center gap-2 px-4 py-2 text-sm cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            Board Story PDF
+          </button>
+        )}
       </CardHeader>
       
       <CardContent className="space-y-6 pt-4">

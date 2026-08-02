@@ -38,6 +38,16 @@ class AIAssetType(str, enum.Enum):
     fine_tuned_model = "fine_tuned_model"
     external_vendor = "external_vendor"
 
+    # Added in Sprint 1.8 (Task S1.8-B5): non-traditional AI assets.
+    mcp_server = "mcp_server"
+    mcp_client = "mcp_client"
+    agent_framework = "agent_framework"
+    embedding_pipeline = "embedding_pipeline"
+    rag_corpus = "rag_corpus"
+    training_dataset = "training_dataset"
+    evaluation_pipeline = "evaluation_pipeline"
+    prompt_library = "prompt_library"
+
 
 class BusinessCriticality(str, enum.Enum):
     """Business impact tier of an AI asset."""

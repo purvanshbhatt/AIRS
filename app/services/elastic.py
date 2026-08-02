@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 from enum import Enum
 import httpx
 
-from app.services.splunk import EvidenceStatus, EvidenceResult, LoggingHealthResult
+from app.services.evidence_result_types import EvidenceStatus, EvidenceResult, LoggingHealthResult
 
 logger = logging.getLogger("airs.elastic")
 

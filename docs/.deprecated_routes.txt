@@ -1,0 +1,9 @@
+# ResilAI Deprecated Routes Registry
+# Format: ROUTE | DESTINATION | STATUS | REMOVED_IN | REASON
+# Updated: 2026-07-13 (S1.8-AUDIT-FIX-C01 / T-Q01)
+
+/dashboard/pilot-program            | /dashboard/ai-attack-simulation-lab | REMOVED | Sprint 1.8 | Renamed to AI Attack Simulation Lab; no component ever mounted
+/dashboard/sentinel                  | /dashboard/governance               | REMOVED | Sprint 1.8 | SentinelDashboard component deleted, redirect to Governance
+/integrations                        | /dashboard/evidence-network         | REDIRECT | Sprint 1.8 | Legacy entry-point; Navigate replace redirect added in Integrations.tsx
+/dashboard/integrations              | /dashboard/evidence-network         | REDIRECT | Sprint 1.8 | Same as above via DashboardRoutes
+/api/v1/reports/board-story (GET)    | /api/v1/reports/board-story.pdf (GET) | SUPERSEDED | Sprint 1.8 | JSON endpoint retained; PDF endpoint added for PRODUCT_MOAT A01 compliance

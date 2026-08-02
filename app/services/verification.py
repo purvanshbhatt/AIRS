@@ -22,7 +22,6 @@ from app.schemas.verification import (
     AuditTrailFindingSchema,
     AuditTrailSchema,
 )
-from app.services.splunk import EvidenceStatus
 
 logger = logging.getLogger("airs.verification")
 
@@ -51,21 +50,27 @@ _RULE_SIEM_MAP: Dict[str, Dict[str, Any]] = {
 class VerificationService:
     """Deterministic SIEM-corroborated finding verification.
 
-    Cross-references internal findings against raw Wazuh/Splunk evidence
-    and assigns a verification badge: SOC-Verified, Provisional, or Contradicted.
+    Cross-references internal findings against canonical normalized
+    evidence persisted by the EvidenceOrchestrator
+    (Priority-1 invariant — see ADR-009). The Verification Engine
+    does not issue live SIEM queries per request; all SIEM intent
+    flows through `ConnectorManager.sync_connector` (which drives
+    `SplunkConnector` / `WazuhConnector`), and the resulting
+    `NormalizedEvidenceRecord` rows are read here.
+
+    Only Wazuh retains a legacy direct-client fallback because the
+    WazuhClient is already a stable live API driver; Splunk relies
+    exclusively on the canonical SplunkConnector → SplunkMCPClient
+    pipeline and is never invoked live by this class.
     """
 
     def __init__(
         self,
         wazuh_client: Optional[Any] = None,
-        splunk_service: Optional[Any] = None,
         db: Optional[Any] = None,
     ):
         self._wazuh = wazuh_client
-        self._splunk = splunk_service
         self._db = db
-        # Cache SIEM results within a single verification run to avoid duplicate queries
-        self._splunk_cache: Dict[str, Any] = {}
         self._wazuh_cache: Dict[str, Any] = {}
         self._microsoft_cache: Optional[Dict[str, Any]] = None
 
@@ -211,6 +216,31 @@ class VerificationService:
         """
         rule_id = finding.rule_id
 
+        # --- NEW PIPELINE: Check NormalizedEvidenceRecord ---
+        if self._db:
+            from app.models.evidence import NormalizedEvidenceRecord
+            from sqlalchemy import desc
+            # Find any processed evidence for this control/rule
+            evidence = self._db.query(NormalizedEvidenceRecord).filter(
+                NormalizedEvidenceRecord.control_id == rule_id
+            ).order_by(desc(NormalizedEvidenceRecord.created_at)).first()
+
+            if evidence:
+                now = datetime.now(timezone.utc).isoformat()
+                return VerificationResultSchema(
+                    finding_id=getattr(finding, "rule_id", None),
+                    rule_id=finding.rule_id,
+                    title=finding.title,
+                    status=VerificationStatusEnum.SOC_VERIFIED if evidence.severity != "critical" else VerificationStatusEnum.CONTRADICTED,
+                    evidence_summary=f"SIEM-Verified via Adapter: Found normalized evidence hash {evidence.evidence_hash}.",
+                    siem_source="evidence_adapter",
+                    siem_query_used="NormalizedEvidenceRecord",
+                    event_count=1,
+                    log_event_ids=[evidence.evidence_hash],
+                    verified_at=now,
+                )
+
+        # --- LEGACY PIPELINE: Fallback to direct integrations if no adapter evidence ---
         # First, check if Microsoft telemetry is available in database
         ms_payload = self._get_latest_microsoft_telemetry()
         if ms_payload:
@@ -228,23 +258,31 @@ class VerificationService:
         check = mapping["check"]
 
         try:
-            if siem == "splunk" and self._splunk:
-                result = await self._run_splunk_check(check)
-                verification = self._evaluate_splunk_evidence(finding, result, check)
-                # If Splunk returned nothing, try Wazuh fallback
-                if verification.status == VerificationStatusEnum.PROVISIONAL and mapping.get("fallback_siem") == "wazuh" and self._wazuh:
+            if siem == "splunk":
+                # Canonical Splunk verification flows through
+                # ``ConnectorManager.sync_connector`` →
+                # ``SplunkConnector.sync`` → ``SplunkMCPClient.search``
+                # → ``EvidenceOrchestrator.ingest_collection_result``
+                # → ``NormalizedEvidenceRecord``.
+                #
+                # The only path that promotes a finding to SOC_VERIFIED
+                # is the NormalizedEvidenceRecord branch above. If no
+                # such record exists, the candidate SIEM has not been
+                # corroborated and the result is provisional. No
+                # live-Splunk-query fallback is permitted here.
+                if mapping.get("fallback_siem") == "wazuh" and self._wazuh:
                     wazuh_result = await self._run_wazuh_check(mapping["fallback_check"])
-                    verification = self._evaluate_wazuh_evidence(finding, wazuh_result, mapping["fallback_check"])
-                return verification
+                    return self._evaluate_wazuh_evidence(finding, wazuh_result, mapping["fallback_check"])
+                return self._provisional_result(
+                    finding,
+                    "Splunk evidence normalized record absent. The Splunk "
+                    "Connector has not yet corroborated this control via the "
+                    "MCP-backed SplunkConnector sync.",
+                )
 
             elif siem == "wazuh" and self._wazuh:
                 result = await self._run_wazuh_check(check)
                 return self._evaluate_wazuh_evidence(finding, result, check)
-
-            elif siem == "splunk" and not self._splunk and self._wazuh and mapping.get("fallback_siem") == "wazuh":
-                # Primary SIEM not configured, try fallback
-                result = await self._run_wazuh_check(mapping.get("fallback_check", check))
-                return self._evaluate_wazuh_evidence(finding, result, mapping.get("fallback_check", check))
 
             else:
                 return self._provisional_result(finding, f"SIEM '{siem}' is not configured. Finding remains self-attested.")
@@ -255,8 +293,9 @@ class VerificationService:
 
     async def verify_all_findings(self, findings: List[Any], answers: Optional[Dict[str, Any]] = None) -> List[VerificationResultSchema]:
         """Batch-verify all findings against SIEM evidence."""
-        # Clear caches for a fresh run
-        self._splunk_cache.clear()
+        # Clear caches for a fresh run. Splunk no longer caches — it
+        # reads ``NormalizedEvidenceRecord`` rows directly which the
+        # database caches transparently.
         self._wazuh_cache.clear()
 
         results = []
@@ -347,23 +386,6 @@ class VerificationService:
     # SIEM query runners (with caching)
     # ------------------------------------------------------------------
 
-    async def _run_splunk_check(self, check: str) -> Any:
-        """Run a Splunk evidence check, caching results."""
-        if check in self._splunk_cache:
-            return self._splunk_cache[check]
-
-        if check == "mfa":
-            result = await self._splunk.verify_mfa_enforcement()
-        elif check == "edr":
-            result = await self._splunk.verify_edr_coverage()
-        elif check == "logging":
-            result = await self._splunk.verify_logging_health()
-        else:
-            result = None
-
-        self._splunk_cache[check] = result
-        return result
-
     async def _run_wazuh_check(self, check: str) -> Any:
         """Run a Wazuh evidence check, caching results."""
         if check in self._wazuh_cache:
@@ -382,70 +404,6 @@ class VerificationService:
     # ------------------------------------------------------------------
     # Evidence evaluation — deterministic threshold comparison
     # ------------------------------------------------------------------
-
-    def _evaluate_splunk_evidence(self, finding: Any, evidence_result: Any, check: str) -> VerificationResultSchema:
-        """Evaluate Splunk evidence and assign verification status."""
-        now = datetime.now(timezone.utc).isoformat()
-
-        if evidence_result is None:
-            return self._provisional_result(finding, "Splunk check returned no data.")
-
-        status_value = getattr(evidence_result, "status", None)
-        event_count = getattr(evidence_result, "event_count", 0)
-        query_used = getattr(evidence_result, "query_used", "")
-        message = getattr(evidence_result, "message", "")
-        sample_events = getattr(evidence_result, "sample_events", []) or []
-
-        # Extract log event IDs from sample events
-        log_event_ids = []
-        for evt in sample_events[:10]:
-            if isinstance(evt, dict):
-                eid = evt.get("_cd") or evt.get("_serial") or evt.get("_raw", "")[:64]
-                if eid:
-                    log_event_ids.append(str(eid))
-
-        if status_value == EvidenceStatus.VERIFIED:
-            return VerificationResultSchema(
-                finding_id=getattr(finding, "rule_id", None),
-                rule_id=finding.rule_id,
-                title=finding.title,
-                status=VerificationStatusEnum.SOC_VERIFIED,
-                evidence_summary=f"SIEM-Verified: {message} ({event_count} corroborating events found via Splunk {check} check.)",
-                siem_source="splunk",
-                siem_query_used=query_used,
-                event_count=event_count,
-                log_event_ids=log_event_ids,
-                verified_at=now,
-            )
-        elif status_value == EvidenceStatus.PARTIAL:
-            return VerificationResultSchema(
-                finding_id=getattr(finding, "rule_id", None),
-                rule_id=finding.rule_id,
-                title=finding.title,
-                status=VerificationStatusEnum.SOC_VERIFIED,
-                evidence_summary=f"Partially verified: {message} ({event_count} events, some gaps detected.)",
-                siem_source="splunk",
-                siem_query_used=query_used,
-                event_count=event_count,
-                log_event_ids=log_event_ids,
-                verified_at=now,
-            )
-        elif status_value == EvidenceStatus.NOT_VERIFIED:
-            # SIEM explicitly found no evidence — this could contradict the self-report
-            return VerificationResultSchema(
-                finding_id=getattr(finding, "rule_id", None),
-                rule_id=finding.rule_id,
-                title=finding.title,
-                status=VerificationStatusEnum.CONTRADICTED,
-                evidence_summary=f"SIEM contradiction: {message} No corroborating events found for this control in Splunk.",
-                siem_source="splunk",
-                siem_query_used=query_used,
-                event_count=0,
-                log_event_ids=[],
-                verified_at=now,
-            )
-        else:
-            return self._provisional_result(finding, f"Splunk returned status '{status_value}': {message}")
 
     def _evaluate_wazuh_evidence(self, finding: Any, wazuh_result: Any, check: str) -> VerificationResultSchema:
         """Evaluate Wazuh evidence and assign verification status."""

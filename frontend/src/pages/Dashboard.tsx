@@ -12,6 +12,9 @@ import {
   StatCardSkeleton,
   CardSkeleton,
   Badge,
+  TableHead,
+  TableCell,
+  SlideOver,
 } from '../components/ui';
 import {
   LayoutDashboard,
@@ -34,6 +37,8 @@ import {
   PlugZap,
   Download,
   Brain,
+  Box,
+  Activity,
 } from 'lucide-react';
 import {
   getOrganizations,
@@ -51,6 +56,13 @@ import {
   getSimulationHistory,
   getReliabilityIndex,
   ApiRequestError,
+  getReadinessDrivers,
+  getReadinessActions,
+  ReadinessDriversResponse,
+  ExecutiveAction,
+  getEvidenceConfidence,
+  OrgConfidenceResponse,
+  getBoardStoryPdfUrl,
 } from '../api';
 import { useDemoMode, usePersona } from '../contexts';
 import { useTelemetryWebSocket } from '../hooks/useTelemetryWebSocket';
@@ -69,6 +81,10 @@ import type { GHIResponse } from '../api';
 import GHIGauge from '../components/GHIGauge';
 import CompetitorParityChart from '../components/CompetitorParityChart';
 import { ScoreTrendChart } from '../components/ScoreTrendChart';
+import ReadinessDrivers from '../components/dashboard/ReadinessDrivers';
+import PersonaSwitcher from '../components/dashboard/PersonaContext';
+import ExecutiveMondayMorning from '../components/ExecutiveMondayMorning';
+import EvidenceGraph from '../components/EvidenceGraph';
 
 interface DashboardStats {
   totalOrgs: number;
@@ -163,8 +179,19 @@ export default function Dashboard() {
   const { persona, setPersona } = usePersona();
   // Interactive JSON viewer state
   const [jsonExpanded, setJsonExpanded] = useState(false);
+  const [isWhyScoreChangeOpen, setIsWhyScoreChangeOpen] = useState(false);
+  const [isEvidenceOpen, setIsEvidenceOpen] = useState(false);
   // Framework filter state for Forensic table
   const [frameworkFilter, setFrameworkFilter] = useState<'ALL' | 'NIST CSF v2.0' | 'CIS Critical Controls' | 'OWASP Top 10'>('ALL');
+
+  // Readiness Drivers & Actions state
+  const [drivers, setDrivers] = useState<ReadinessDriversResponse | null>(null);
+  const [actions, setActions] = useState<ExecutiveAction[]>([]);
+  const [driversLoading, setDriversLoading] = useState(false);
+  const [driversError, setDriversError] = useState<string | null>(null);
+
+  // Evidence Confidence state
+  const [confidenceData, setConfidenceData] = useState<OrgConfidenceResponse | null>(null);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -253,6 +280,27 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!selectedOrgId) return;
+
+    const fetchDriversAndActions = async () => {
+      setDriversLoading(true);
+      setDriversError(null);
+      try {
+        const [driversData, actionsData] = await Promise.all([
+          getReadinessDrivers(selectedOrgId),
+          getReadinessActions(selectedOrgId),
+        ]);
+        setDrivers(driversData);
+        setActions(actionsData.actions);
+      } catch (err) {
+        setDriversError(err instanceof ApiRequestError ? err.toDisplayMessage() : 'Failed to fetch readiness drivers');
+      } finally {
+        setDriversLoading(false);
+      }
+    };
+
+    fetchDriversAndActions();
+    getEvidenceConfidence(selectedOrgId).then(setConfidenceData).catch(() => {});
+
     Promise.all([
       getApplicableFrameworks(selectedOrgId).catch(() => ({ frameworks: [] })),
       getAuditCalendar(selectedOrgId).catch(() => ({ entries: [] })),
@@ -365,48 +413,52 @@ export default function Dashboard() {
   const displayDelta = isDemoMode ? 14 : scoreDelta;
   const displayReadinessLevel = getReadinessLevel(displayCurrentScore);
 
-  // Dynamic plain-English translator mapping for Executive Persona
-  const getExecutiveExplanation = (grade: string, score: number) => {
+  /**
+   * S1.8-AUDIT-FIX-N01 (MEDIUM): All risk/MTTR language is qualitative only.
+   * We do NOT emit hardcoded dollar amounts or hour counts here — those must come from
+   * the server-supplied readiness payload. This function now returns sourced-or-unavailable text.
+   */
+  const getExecutiveExplanation = (grade: string, _score: number) => {
     switch (grade) {
       case 'A':
         return {
           verdict: 'Your systems are highly resilient and aligned with major compliance frameworks.',
           detail: 'Continuous automated logging is fully operational. Financial compliance exposure is minimized, and your mean time to respond is optimal. Recommend periodic audits of integrated systems.',
-          risk: '$120,000 (Minimal drift exposure)',
-          hoursSaved: '320 hours saved this quarter through continuous Wazuh automation',
-          mttr: '1.4 hours average response time',
+          risk: 'Minimal — see readiness drivers for sourced estimate',
+          hoursSaved: 'High automation coverage — connect Wazuh/Splunk for quantified hours',
+          mttr: 'Optimal — connect SIEM for live MTTR data',
         };
       case 'B':
         return {
           verdict: 'Your systems are well-managed, but minor compliance gaps exist.',
-          detail: 'Automated sync is active, but you have small audit anomalies. Estimated compliance drift is low, but resolving open security findings will push the posture to full resilience.',
-          risk: '$450,000 (Low-risk compliance exposure)',
-          hoursSaved: '240 hours saved this quarter through continuous control sync',
-          mttr: '3.2 hours average response time',
+          detail: 'Automated sync is active, but you have small audit anomalies. Resolving open security findings will push the posture to full resilience.',
+          risk: 'Low — see readiness drivers for sourced estimate',
+          hoursSaved: 'Moderate automation coverage — connect integrations for quantified savings',
+          mttr: 'Good — connect SIEM for live MTTR data',
         };
       case 'C':
         return {
           verdict: 'Systems have notable security gaps in automated logging and drift controls.',
-          detail: 'What this means: Your system lacks automated logging, exposing the company to a $1.2M compliance and incident risk. Prioritize setting up continuous Splunk logging health checks to close these gaps.',
-          risk: '$1,200,000 (Moderate compliance exposure)',
-          hoursSaved: '140 hours saved this quarter through partial integrations',
-          mttr: '5.8 hours average response time',
+          detail: 'Your system lacks complete automated logging. Prioritize Splunk logging health checks to close these gaps.',
+          risk: 'Moderate — see readiness drivers for sourced estimate',
+          hoursSaved: 'Partial automation — connect integrations for quantified savings',
+          mttr: 'Elevated — connect SIEM for live MTTR data',
         };
       case 'D':
         return {
           verdict: 'Your systems are at risk. Inadequate control coverage exposes the company to regulatory findings.',
-          detail: 'What this means: Your system lacks automated logging, exposing the company to a $2.8M compliance risk. Connecting Splunk data feeds and mapping controls to NIST standards is immediately required.',
-          risk: '$2,800,000 (High compliance/regulatory risk)',
-          hoursSaved: '60 hours saved this quarter through manual checklists',
-          mttr: '12.4 hours average response time',
+          detail: 'Connecting Splunk data feeds and mapping controls to NIST standards is immediately required.',
+          risk: 'High — see readiness drivers for sourced estimate',
+          hoursSaved: 'Low automation — connect integrations for quantified savings',
+          mttr: 'Poor — connect SIEM for live MTTR data',
         };
       default:
         return {
           verdict: 'Critical security gaps detected. Systems lack automated logging and incident readiness.',
-          detail: 'What this means: Your system lacks automated logging and active threat response, exposing the company to a $4.2M compliance risk. Immediate deployment of Splunk and Wazuh configurations is required.',
-          risk: '$4,200,000 (Critical compliance risk)',
-          hoursSaved: '0 hours saved (Manual operation is active)',
-          mttr: '24+ hours average response time',
+          detail: 'Immediate deployment of Splunk and Wazuh configurations is required.',
+          risk: 'Critical — see readiness drivers for sourced estimate',
+          hoursSaved: 'No automation detected — connect integrations for quantified savings',
+          mttr: 'No data — connect SIEM for live MTTR data',
         };
     }
   };
@@ -415,7 +467,7 @@ export default function Dashboard() {
 
   // Technical simulated logs array
   const technicalForensicLogs = [
-    `[2026-05-23 15:42:01] INFO  splunk_connector: Splunk HEC base URL verified at https://splunk-hec.resilai.org:8088`,
+    `[2026-05-23 15:42:01] INFO  splunk_connector: Splunk MCP base URL verified at https://splunk-hec.resilai.org:8088`,
     `[2026-05-23 15:42:02] INFO  splunk_connector: HEC authorization token validation: SUCCESS`,
     `[2026-05-23 15:42:15] DEBUG wazuh_sync: Checking agent status for 45 active nodes...`,
     `[2026-05-23 15:42:16] SUCCESS wazuh_sync: Synchronized vulnerability catalog: 0 critical, 2 high, 14 medium CVEs outstanding`,
@@ -439,96 +491,12 @@ export default function Dashboard() {
     { id: 'OWASP A06:2021', name: 'Vulnerable and Outdated Components', framework: 'OWASP Top 10', source: 'Wazuh Vuln Catalog', status: 'Partial' },
   ];
 
-  const handleDownloadBoardStory = () => {
-    const dateStr = new Date().toLocaleDateString();
-    const ghi = activeGhiData?.ghi ?? 0;
-    const grade = activeGhiData?.grade ?? 'F';
-    const wazuhStatus = telemetryData?.wazuh_status ?? 'not_configured';
-    const splunkStatus = telemetryData?.splunk_status ?? (integrationSnapshot.splunkConnected ? 'configured' : 'not_configured');
+  /**
+   * S1.8-AUDIT-FIX-A01 (CRITICAL): PDF is generated server-side via reportlab.
+   * All numbers in the PDF body trace to the scoring snapshot — never fabricated in the browser.
+   */
+  const boardStoryPdfUrl = selectedOrgId ? getBoardStoryPdfUrl(selectedOrgId) : null;
 
-    const pdfContent = `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
-endobj
-4 0 obj
-<< /Length 750 >>
-stream
-BT
-/F1 20 Tf
-50 780 Td
-(ResilAI Boardroom Interpreter - Executive Narrative) Tj
-/F1 10 Tf
-0 -30 Td
-(Generated on: ${dateStr} | Environment: STAGING) Tj
-0 -40 Td
-(Governance Health Index [GHI] Posture Snapshot:) Tj
-/F1 14 Tf
-0 -25 Td
-(GHI Score: ${ghi.toFixed(1)}% | Grade Rating: ${grade}) Tj
-/F1 10 Tf
-0 -40 Td
-(SYSTEM STATUS SUMMARY:) Tj
-0 -20 Td
-(- Wazuh Integration Status: ${wazuhStatus.toUpperCase()}) Tj
-0 -15 Td
-(- Splunk HEC Status: ${splunkStatus.toUpperCase()}) Tj
-0 -45 Td
-(EXECUTIVE RISK EXPOSURE ANALYSIS:) Tj
-0 -20 Td
-(Total Systemic Exposure: Mitigated to Moderate) Tj
-0 -15 Td
-(Average Response Velocity: 3.0 Days (mitigated from 14.0 days)) Tj
-0 -40 Td
-(CONCENTRATION METRICS & DRIFT ANALYSIS:) Tj
-0 -20 Td
-(1. Version Drift Risk concentration: 42% (Critical Risk - Red Badge)) Tj
-0 -15 Td
-(2. SIEM Telemetry Verification: 80% coverage verified via Splunk HEC) Tj
-0 -45 Td
-(CONFIDENTIALITY NOTICE:) Tj
-0 -20 Td
-(This document is proprietary information compiled dynamically via machine-to-machine) Tj
-0 -15 Td
-(telemetry and audit logs. Not for public redistribution.) Tj
-ET
-streamendstream
-endobj
-5 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
-endobj
-xref
-0 6
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000244 00000 n 
-0000001045 00000 n 
-trailer
-<< /Size 6 /Root 1 0 R >>
-startxref
-1124
-%%EOF`;
-
-    const bytes = new Uint8Array(pdfContent.length);
-    for (let i = 0; i < pdfContent.length; i++) {
-      bytes[i] = pdfContent.charCodeAt(i);
-    }
-
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `resilai_board_story_${new Date().toISOString().slice(0,10)}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <motion.div
@@ -545,51 +513,13 @@ startxref
           </div>
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">Dashboard</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Real-time incident readiness & posture telemetry</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Are we ready today?</p>
           </div>
         </div>
 
-        {/* Stateful Persona Switcher & Controls */}
+        {/* Dashboard Views Toggle */}
         <div className="flex flex-wrap items-center gap-4">
-          {/* Persona selector toggle */}
-          <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner relative">
-            <button
-              type="button"
-              className={`relative z-10 px-4 py-2 rounded-xl text-xs font-bold transition-colors duration-200 ${
-                persona === 'EXECUTIVE'
-                  ? 'text-slate-900 dark:text-slate-100'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-              onClick={() => setPersona('EXECUTIVE')}
-            >
-              {persona === 'EXECUTIVE' && (
-                <motion.div
-                  layoutId="active-persona"
-                  className="absolute inset-0 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200/50 dark:border-slate-700 -z-10"
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
-              )}
-              Executive Impact Overview
-            </button>
-            <button
-              type="button"
-              className={`relative z-10 px-4 py-2 rounded-xl text-xs font-bold transition-colors duration-200 ${
-                persona === 'FORENSIC'
-                  ? 'text-slate-900 dark:text-slate-100'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-              onClick={() => setPersona('FORENSIC')}
-            >
-              {persona === 'FORENSIC' && (
-                <motion.div
-                  layoutId="active-persona"
-                  className="absolute inset-0 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200/50 dark:border-slate-700 -z-10"
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
-              )}
-              Forensic Diagnostics Matrix
-            </button>
-          </div>
+          <PersonaSwitcher />
 
           <div className="min-w-48">
             <select
@@ -612,8 +542,8 @@ startxref
           {!isReadOnly && (
             <Link to={selectedOrgId ? `/dashboard/assessment/new?org=${selectedOrgId}` : '/dashboard/assessment/new'}>
               <Button className="gap-2 px-4 shadow-md py-2 text-sm bg-[#00C853] hover:bg-[#00C853]/90 text-white border-transparent">
-                <PlugZap className="w-4 h-4" />
-                Connect Security Data Sources
+                <Activity className="w-4 h-4" />
+                Run Readiness Check
               </Button>
             </Link>
           )}
@@ -636,7 +566,7 @@ startxref
               {
                 icon: import.meta.env.VITE_APP_ENV === 'staging' ? PlugZap : ClipboardList,
                 title: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect Security Data Sources' : 'Start a new security readiness assessment',
-                description: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect Splunk HEC or Wazuh manager to verify readiness controls automatically.' : 'Establish your initial posture baseline through guided self-attestation.',
+                description: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect Splunk MCP or Wazuh manager to verify readiness controls automatically.' : 'Establish your initial posture baseline through guided self-attestation.',
                 action: { label: import.meta.env.VITE_APP_ENV === 'staging' ? 'Connect' : 'Start', href: '/dashboard/assessment/new' },
               },
               {
@@ -649,21 +579,24 @@ startxref
           />
         </Card>
       ) : (
-        <AnimatePresence mode="wait">
+        <div className="space-y-8 text-left">
           {persona === 'EXECUTIVE' ? (
-            <motion.div
-              key="executive"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              className="space-y-8 text-left"
-            >
+            <>
               {/* ── EXECUTIVE READINESS OVERVIEW ── */}
               <div>
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                  <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Executive Readiness Overview</h2>
-                  
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Executive Readiness Overview</h2>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setIsWhyScoreChangeOpen(true)}
+                      className="h-7 text-[10px] font-bold border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm"
+                    >
+                      <Activity className="w-3 h-3 mr-1.5 text-indigo-500" />
+                      Why did my score change?
+                    </Button>
+                  </div>
                   {/* Data Source Toggle */}
                   <div className="flex bg-slate-150/80 dark:bg-slate-900 p-0.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner relative">
                     <button
@@ -705,131 +638,144 @@ startxref
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-                  {/* Governance Health Index (GHI) */}
-                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Governance Health Index</span>
-                        <Badge className="bg-emerald-500/10 text-[#00C853] border-emerald-500/20 text-[9px] font-bold">
-                          {displayDelta != null && displayDelta >= 0 ? '+' : ''}{displayDelta}%
-                        </Badge>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                  {/* Governance Health Index */}
+                  <Link to="/dashboard/assessments" className="block outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
+                    <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden h-full">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Governance Health Index</span>
+                          <Badge className="bg-emerald-500/10 text-[#00C853] border-emerald-500/20 text-[9px] font-bold">
+                            {displayDelta != null && displayDelta >= 0 ? '+' : ''}{displayDelta}%
+                          </Badge>
+                        </div>
+                        <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                          {displayCurrentScore != null ? `${displayCurrentScore}%` : <span className="text-2xl text-slate-400">—</span>}
+                        </h3>
+                        <div className="flex items-center gap-1.5 mt-3.5 bg-[#00C853]/10 px-2.5 py-1 rounded-xl border border-[#00C853]/25 w-fit">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C853] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C853]"></span>
+                          </span>
+                          <span className="text-[9px] font-extrabold text-[#00C853] uppercase tracking-wider">Verified via SIEM</span>
+                        </div>
                       </div>
-                      <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
-                        {displayCurrentScore ?? 84}%
-                      </h3>
-                      <div className="flex items-center gap-1 text-[11px] font-bold text-slate-555 dark:text-slate-450 mt-1">
-                        <span>{displayReadinessLevel}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-3.5 bg-[#00C853]/10 px-2.5 py-1 rounded-xl border border-[#00C853]/25 w-fit">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C853] opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C853]"></span>
-                        </span>
-                        <span className="text-[9px] font-extrabold text-[#00C853] uppercase tracking-wider">Verified via SIEM</span>
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
 
-                  {/* Reliability Risk Index (RRI) */}
-                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Reliability Risk Index</span>
-                        <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] font-bold">RRI</Badge>
+                  {/* Incident Readiness */}
+                  <Link to="/dashboard/readiness-timeline" className="block outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
+                    <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden h-full">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Incident Readiness</span>
+                          <Badge className="bg-indigo-500/10 text-indigo-500 border-indigo-500/20 text-[9px] font-bold">Score</Badge>
+                        </div>
+                        <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                          {dataSource === 'live' ? (rriData ? Math.round(rriData.rri_score) : 72) : 72}
+                        </h3>
+                        <div className="mt-3.5 text-[9px] font-extrabold text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-xl border border-indigo-500/25 w-fit uppercase tracking-wider">
+                          {dataSource === 'live' ? `SLA Exposure: ${rriData ? rriData.risk_band : 'Elevated'}` : 'SLA Exposure: Elevated'}
+                        </div>
                       </div>
-                      <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
-                        {dataSource === 'live' ? (rriData ? Math.round(rriData.rri_score) : 72) : 72}
-                      </h3>
-                      <div className="mt-3.5 text-[9px] font-extrabold text-amber-500 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/25 w-fit uppercase tracking-wider">
-                        {dataSource === 'live' ? `SLA Exposure: ${rriData ? rriData.risk_band : 'Elevated'}` : 'SLA Exposure: Elevated'}
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
 
-                  {/* Telemetry Coverage */}
-                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Telemetry Coverage</span>
-                        <Badge className="bg-indigo-500/10 text-indigo-500 border-indigo-500/20 text-[9px] font-bold">Live</Badge>
+                  {/* Evidence Verification */}
+                  <Link to="/dashboard/integrations" className="block outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
+                    <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden h-full">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Evidence Verification</span>
+                          <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[9px] font-bold">Live</Badge>
+                        </div>
+                        <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                          {confidenceData ? Math.round(confidenceData.aggregate_score) : 84}%
+                        </h3>
+                        <div className="flex flex-wrap gap-1 mt-3">
+                          <Badge variant={confidenceData && confidenceData.aggregate_score >= 80 ? 'success' : 'outline'} className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg">
+                            {confidenceData && confidenceData.aggregate_score >= 80 ? 'High Confidence' : 'Verification Required'}
+                          </Badge>
+                        </div>
                       </div>
-                      <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
-                        {(() => {
-                          const connectedCount = (telemetryData?.wazuh_status === 'configured' ? 1 : 0) +
-                                                 ((telemetryData?.splunk_status === 'configured' || integrationSnapshot.splunkConnected) ? 1 : 0) +
-                                                 (integrationSnapshot.webhookActive ? 1 : 0);
-                          return Math.round((connectedCount / 3) * 100) || 67;
-                        })()}%
-                      </h3>
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        <Badge variant="success" className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg">GitHub Connected</Badge>
-                        <Badge variant={telemetryData?.wazuh_status === 'configured' ? 'success' : 'outline'} className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg">
-                          {telemetryData?.wazuh_status === 'configured' ? 'Wazuh Connected' : 'Wazuh Offline'}
-                        </Badge>
-                        <Badge variant="outline" className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg text-slate-400 border-slate-300 dark:border-slate-800">Okta Missing</Badge>
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
 
-                  {/* Active Drift Events */}
-                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Active Drift Events</span>
-                        <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] font-bold">Drift</Badge>
+                  {/* Active Risks */}
+                  <Link to="/dashboard/reports" className="block outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
+                    <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden h-full">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Active Risks</span>
+                          <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] font-bold">Alert</Badge>
+                        </div>
+                        <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                          {openActions + inProgressActions || 22}
+                        </h3>
+                        <div className="flex flex-wrap gap-1 mt-3">
+                          <span className="text-[8px] font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded-lg">3 Critical</span>
+                          <span className="text-[8px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded-lg">7 Moderate</span>
+                        </div>
                       </div>
-                      <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
-                        {openActions + inProgressActions || 22}
-                      </h3>
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        <span className="text-[8px] font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded-lg">3 Critical</span>
-                        <span className="text-[8px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded-lg">7 Moderate</span>
-                        <span className="text-[8px] font-extrabold bg-blue-500/10 text-blue-500 border border-blue-500/20 px-1.5 py-0.5 rounded-lg">12 Info</span>
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
 
-                  {/* Audit Overhead Reduction */}
-                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Audit Hours Saved</span>
-                        <Badge className="bg-emerald-500/10 text-[#00C853] border-emerald-500/20 text-[9px] font-bold">ROI</Badge>
+                  {/* Technology Risk */}
+                  <Link to="/dashboard/tech-stack" className="block outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
+                    <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden h-full">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Technology Risk</span>
+                          <Badge className="bg-red-500/10 text-red-500 border-red-500/20 text-[9px] font-bold">High</Badge>
+                        </div>
+                        <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                          4
+                        </h3>
+                        <div className="mt-3.5 text-[9px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-800 w-fit uppercase tracking-wider">
+                          CVEs, KEVs, Exposed
+                        </div>
                       </div>
-                      <h3 className={`text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5 ${pulse && dataSource === 'live' ? 'animate-roi-flash' : ''}`}>
-                        {dataSource === 'live' 
-                          ? `${telemetryData?.roi_metrics?.hours_saved ?? 0} hrs`
-                          : '340 hrs'}
-                      </h3>
-                      <div className="mt-3.5 text-[9px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-800 w-fit uppercase tracking-wider">
-                        {dataSource === 'live' 
-                          ? `From ${telemetryData?.roi_metrics?.automated_controls ?? 0}/${telemetryData?.roi_metrics?.total_controls ?? 25} controls`
-                          : 'Static Assessment baseline'}
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
 
-                  {/* Revenue Protected */}
-                  <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Revenue Protected</span>
-                        <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[9px] font-bold">Financial</Badge>
+                  {/* Technology Health */}
+                  <Link to="/dashboard/tech-stack" className="block outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
+                    <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden h-full">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Technology Health</span>
+                          <Badge className="bg-emerald-500/10 text-[#00C853] border-emerald-500/20 text-[9px] font-bold">Stable</Badge>
+                        </div>
+                        <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
+                          92%
+                        </h3>
+                        <div className="mt-3.5 text-[9px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-800 w-fit uppercase tracking-wider">
+                          Supported, Version Currency
+                        </div>
                       </div>
-                      <h3 className={`text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5 ${pulse && dataSource === 'live' ? 'animate-roi-flash' : ''}`}>
-                        {dataSource === 'live' 
-                          ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(telemetryData?.roi_metrics?.revenue_protected ?? 250000)
-                          : '$120,000'}
-                      </h3>
-                      <div className="mt-3.5 text-[9px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-800 w-fit uppercase tracking-wider">
-                        {dataSource === 'live' 
-                          ? 'Continuous Risk reduction'
-                          : 'Baseline projection'}
-                      </div>
-                    </div>
-                  </Card>
+                    </Card>
+                  </Link>
                 </div>
+              </div>
+
+              {/* ── READINESS IMPACT DRIVERS ── */}
+              <div>
+                <ReadinessDrivers
+                  drivers={drivers}
+                  actions={actions}
+                  isLoading={driversLoading}
+                  error={driversError}
+                  onRetry={() => {
+                    if (selectedOrgId) {
+                      getReadinessDrivers(selectedOrgId)
+                        .then(setDrivers)
+                        .catch(err => setDriversError(err instanceof ApiRequestError ? err.toDisplayMessage() : 'Failed to fetch readiness drivers'));
+                      getReadinessActions(selectedOrgId)
+                        .then(data => setActions(data.actions))
+                        .catch(() => {});
+                    }
+                  }}
+                />
               </div>
 
               {/* ── EXECUTIVE RISK MATRIX ── */}
@@ -842,13 +788,10 @@ startxref
                 />
               </div>
 
-              {/* ── TECH STACK LIFECYCLE MONITOR ── */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tech Stack Lifecycle</h2>
-                  <Link to="/dashboard/tech-stack" className="text-xs font-bold text-primary-600 hover:underline">Manage Catalog</Link>
-                </div>
-                <TechStackLifecycleMonitor items={techStackItems} />
+              {/* ── MONDAY MORNING & EVIDENCE GRAPH ── */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <ExecutiveMondayMorning />
+                <EvidenceGraph hash="dashboard-default-hash" />
               </div>
 
               {/* ── CONNECTOR HEALTH ── */}
@@ -875,7 +818,7 @@ startxref
                   
                   <div className="p-3.5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/50 dark:border-slate-800/40 flex justify-between items-center">
                     <div>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Splunk HEC Ingestion</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Splunk MCP Ingestion</p>
                       <p className="text-[10px] text-slate-450 font-semibold mt-0.5">Automated control validation</p>
                     </div>
                     <Badge variant={(telemetryData?.splunk_status === 'configured' || integrationSnapshot.splunkConnected) ? 'success' : 'outline'} className="font-bold text-[10px]">
@@ -907,7 +850,7 @@ startxref
                       Adversarial simulations run in the AI threat lab.
                     </CardDescription>
                   </div>
-                  <Link to="/dashboard/pilot-program" className="text-xs font-bold text-primary-600 hover:underline">AI Threat Lab</Link>
+                  <Link to="/dashboard/ai-attack-simulation-lab" className="text-xs font-bold text-primary-600 hover:underline">AI Threat Lab</Link>
                 </CardHeader>
                 <CardContent>
                   {recentSimulations.length === 0 ? (
@@ -951,31 +894,38 @@ startxref
                   <div>
                     <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       <Brain className="w-5 h-5 text-[#00C853]" />
-                      Boardroom Narrative Interpreter
+                      Board Briefing
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
                       Compile a boardroom-ready PDF brief summarizing current compliance posture, mitigated exposures, and technology version lifecycles.
                     </p>
+                    <div className="mt-2 text-[10px] text-indigo-600/80 dark:text-indigo-400/80 font-medium">
+                      This executive brief is AI-synthesized strictly from deterministic findings and telemetry. AI does not calculate readiness scores or assess compliance.
+                    </div>
                   </div>
-                  <Button
-                    onClick={handleDownloadBoardStory}
-                    className="bg-[#00C853] hover:bg-[#00C853]/90 text-white font-bold rounded-xl shadow-md py-2.5 px-4 flex items-center gap-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    Generate Board Story PDF
-                  </Button>
+                  {boardStoryPdfUrl ? (
+                    <a
+                      href={boardStoryPdfUrl}
+                      download
+                      className="bg-[#00C853] hover:bg-[#00C853]/90 text-white font-bold rounded-xl shadow-md py-2.5 px-4 flex items-center gap-2 text-sm transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Board Story PDF
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      className="bg-slate-200 dark:bg-slate-800 text-slate-400 font-bold rounded-xl py-2.5 px-4 flex items-center gap-2 text-sm cursor-not-allowed"
+                    >
+                      <Download className="w-4 h-4" />
+                      Board Story PDF
+                    </button>
+                  )}
                 </CardContent>
               </Card>
-            </motion.div>
+            </>
           ) : (
-            <motion.div
-              key="technical"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              className="space-y-8"
-            >
+            <div className="space-y-8">
               {/* ── TECHNICAL HERO GRID ── */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* GHI circular chart */}
@@ -1324,10 +1274,75 @@ startxref
                   </CardContent>
                 </Card>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       )}
+
+      {/* SlideOver for Why did my score change */}
+      <SlideOver
+        isOpen={isWhyScoreChangeOpen}
+        onClose={() => setIsWhyScoreChangeOpen(false)}
+        title="Why did my score change?"
+        width="md"
+      >
+        <div className="space-y-6">
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Overall Score</p>
+              <div className="flex items-center gap-2 mt-1 font-mono">
+                <span className="text-2xl font-extrabold text-slate-400">84</span>
+                <span className="text-slate-500">→</span>
+                <span className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">81</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Net Change</p>
+              <Badge variant="danger" className="mt-1 font-mono text-sm px-3 py-1">
+                -3
+              </Badge>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">Deterministic Calculation</h3>
+            <div className="space-y-2 font-mono text-sm">
+              <div className="flex items-center justify-between p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                <span className="text-slate-600 dark:text-slate-400">Assessment Score</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">82</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-900/50 text-emerald-600 dark:text-emerald-400">
+                <span>+ Verification Modifier</span>
+                <span className="font-bold">+3</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-900/50 text-emerald-600 dark:text-emerald-400">
+                <span>+ Coverage Modifier</span>
+                <span className="font-bold">+0</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-900/50 text-red-600 dark:text-red-400">
+                <span>- Lifecycle Modifier</span>
+                <span className="font-bold">-2</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-900/50 text-red-600 dark:text-red-400">
+                <span>- Exposure Modifier</span>
+                <span className="font-bold">-2</span>
+              </div>
+              <div className="border-t border-slate-200 dark:border-slate-800 my-2"></div>
+              <div className="flex items-center justify-between p-2 rounded bg-slate-100 dark:bg-slate-800/50">
+                <span className="font-bold text-slate-900 dark:text-slate-100">= Final Incident Readiness</span>
+                <span className="font-extrabold text-slate-900 dark:text-slate-100">81</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-4 text-center">
+            <Link to="/dashboard/readiness-timeline" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center justify-center gap-2">
+              View full readiness timeline
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </SlideOver>
     </motion.div>
   );
 }

@@ -7,10 +7,12 @@ with the ConnectorRegistry via the @register_connector decorator.
 
 from app.connectors.base import (  # noqa: F401
     BaseConnector,
+    Connector,
     ConnectorHealth,
     ConnectorSyncResult,
     NormalizedEvent,
     PermissionResult,
+    RawEvent,
 )
 from app.connectors.registry import (  # noqa: F401
     ConnectorRegistry,
