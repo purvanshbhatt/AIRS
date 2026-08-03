@@ -8,6 +8,7 @@ Engine → Deterministic Scoring.
 Tasks:
 
 [Done]
+- 2026-08-03 DevOps: Emergency SCA Remediation — force-patched frontend dependency graph resolving 48 Dependabot vulnerabilities (`websocket-driver`, `vite`, `react-router`, `tmp`, `braces`, `micromatch`, `cross-spawn`); verified production build; commit `f071157` pushed to `main`.
 - S1.8-C5: Implemented EvidenceNetwork.tsx, updated Dashboard.tsx header confidence gauge, and aliased Integrations.tsx.
 - S2-A4: Implemented BoardStory.tsx boardroom narration client interface with 10 sections and robust fallback modes.
 - S2-B5: Implemented DecisionEngine.tsx investment projection tool with direct actions toggle.

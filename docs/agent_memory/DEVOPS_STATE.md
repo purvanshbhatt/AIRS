@@ -10,5 +10,6 @@ Deployment Scripts:
 - `scripts/deploy_frontend.ps1`
 
 Recent Changes:
+- 2026-08-03: Force-patched frontend dependency graph (resolved 48 Dependabot vulnerabilities across websocket-driver, vite, react-router, tmp, braces, micromatch, cross-spawn via package.json overrides; commit f071157).
 - Corrected Gemini API key in all backends
 - Unlocked Demo deployment in scripts
