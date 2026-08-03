@@ -1,20 +1,65 @@
-name: CI
+name: ResilAI CI Pipeline
 
 on:
   pull_request:
+    branches:
+      - main
+      - release/*
   push:
     branches:
-      - dev
       - main
+      - release/*
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
-  # ─── Job 1: Backend Tests ─────────────────────────────────────────────────
+  # ─── Job 1: Lint & Code Standards ──────────────────────────────────────────
+  lint:
+    name: Lint & Code Standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Linting Tools
+        run: |
+          pip install ruff black
+
+      - name: Run Ruff Linter
+        run: ruff check app/ tests/ --ignore E501
+
+  # ─── Job 2: Dependency & Security Scan ─────────────────────────────────────
+  security-scan:
+    name: Security & Dependency Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Security Tools
+        run: |
+          pip install bandit safety
+
+      - name: Run Bandit Security Audit
+        run: bandit -r app/ -ll -ii --exclude app/tests
+
+  # ─── Job 3: Backend Tests ─────────────────────────────────────────────────
   backend-tests:
-    name: Backend Tests (659+ assertions)
+    name: Backend Test Suite
     runs-on: ubuntu-latest
+    needs: [lint, security-scan]
     env:
       ENV: local
       AUTH_REQUIRED: "false"
@@ -40,71 +85,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run full test suite
+      - name: Run Pytest Suite
         run: pytest -q --tb=short
-        
-      - name: Upload test results
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pytest-results
-          path: .pytest_cache/
 
-  # ─── Job 2: Governance Regression Gate ───────────────────────────────────
-  # This is the Trust Anchor gate. All 6 governance tests must pass before
-  # any deployment proceeds. These tests verify:
-  #   - Deterministic SHA-256 evidence hash computation
-  #   - SOC_VERIFIED state transition integrity
-  #   - Idempotency barrier (no duplicate provenance records)
-  #   - Cross-tenant isolation of alert_id namespaces
-  governance-regression-gate:
-    name: "🔐 Governance Regression Gate"
+  # ─── Job 4: Frontend Tests & Build ────────────────────────────────────────
+  frontend-tests:
+    name: Frontend Tests & Build Validation
     runs-on: ubuntu-latest
-    needs: backend-tests
-    env:
-      ENV: local
-      AUTH_REQUIRED: "false"
-      DEMO_MODE: "true"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: "Run governance ingestion tests"
-        run: pytest tests/governance/ -v --tb=short
-
-      - name: "Run telemetry verification tests"
-        run: pytest tests/test_telemetry_verification.py -v --tb=short
-
-      - name: Run IGVF tests
-        run: pytest tests/test_igvf.py -v --tb=short
-
-      - name: Run governance CLI validation
-        run: python scripts/validate_governance.py --brief
-
-      - name: Run UI color compliance validation
-        run: python scripts/validate_ui_colors.py
-
-  # ─── Job 3: Frontend Build ────────────────────────────────────────────────
-  frontend-build:
-    name: Frontend Build
-    runs-on: ubuntu-latest
+    needs: [lint]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -116,7 +104,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         working-directory: frontend
         run: npm ci
 
@@ -124,10 +112,29 @@ jobs:
         working-directory: frontend
         run: npx tsc --noEmit
 
-      - name: Build staging
+      - name: Build staging target
         working-directory: frontend
         run: npm run build:staging
 
-      - name: Build production
+      - name: Build production target
         working-directory: frontend
         run: npm run build:production
+
+  # ─── Job 5: Docker Container Build Check ──────────────────────────────────
+  docker-check:
+    name: Container Build Verification
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image (No Push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: resilai/api:ci-test

@@ -1526,3 +1526,17 @@ export const getMondayMorning = () =>
 
 export const getEvidenceLineage = (hash: string) =>
   request<any>(`/api/v1/evidence/lineage/${hash}`);
+
+// =============================================================================
+// READINESS PRODUCT API
+// =============================================================================
+
+import type { DailyReadinessReport } from './types/readiness';
+
+export const getDailyReadinessReport = (orgId: string) =>
+  request<DailyReadinessReport>(`/api/clinic/readiness/${orgId}`);
+
+export const triggerProblemFix = (problemId: string) =>
+  request<{ status: string; message: string }>(`/api/clinic/problems/${problemId}/fix`, {
+    method: 'POST',
+  });

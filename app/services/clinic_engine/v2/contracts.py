@@ -67,24 +67,24 @@ class CoverageReport(BaseModel):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Trust — why we're confident (or not)
+# Verification — why we're confident (or not)
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TrustReason(BaseModel):
-    """One reason contributing to trust or distrust."""
+class VerificationReason(BaseModel):
+    """One reason contributing to verification or distrust."""
     icon: str                   # "check", "warning", "error"
     text: str                   # "Microsoft synchronized 2 minutes ago"
 
 
-class TrustExplanation(BaseModel):
+class VerificationExplanation(BaseModel):
     """Why we believe our assessment. Doctors trust explanations, not numbers."""
     confidence_pct: int
-    reasons: List[TrustReason] = Field(default_factory=list)
+    reasons: List[VerificationReason] = Field(default_factory=list)
 
 
-class TrustContext(BaseModel):
-    """Per-item trust metadata. Answers 'Why are you telling me this?'"""
-    evidence_source: str        # "Microsoft 365" (never internal IDs)
+class VerificationContext(BaseModel):
+    """Per-item verification metadata. Answers 'Why are you telling me this?'"""
+    verification_source: str    # "Microsoft 365" (never internal IDs)
     last_verified_at: Optional[datetime] = None
     connector_health: str       # "healthy", "degraded", "unreachable"
     confidence_pct: int
@@ -94,6 +94,7 @@ class TrustContext(BaseModel):
     verification_method: str    # "Live API check", "Cached from last sync"
 
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Action Cards — what the customer can do
 # ─────────────────────────────────────────────────────────────────────────────
@@ -101,23 +102,20 @@ class TrustContext(BaseModel):
 class ActionCard(BaseModel):
     """Customer-facing action. Replaces raw ActionIntent at the product boundary."""
     action_id: str
-    title: str                  # "Disable Former Receptionist Account"
-    description: str            # "This will immediately lock jane@clinic.com..."
-    expected_result: str        # "Jane will no longer be able to sign in..."
-    rollback_description: str   # "The account can be re-enabled within 30 days"
-    estimated_minutes: int
+    problem: str                # "Former Receptionist Account is active"
+    why_it_matters: str         # "They could access patient records"
+    recommended_action: str     # "This will immediately lock jane@clinic.com..."
+    can_be_undone: bool         # True
+    estimated_time_minutes: int # 5
+    fix_now_available: bool     # True
+    
+    verification: Optional[VerificationContext] = None
+    
+    category: str               # "access_control", "device_security", "backup"
     approval_needed: bool
     required_permissions: List[str]  # ["Microsoft 365 Admin"]
     success_message: str        # "Account disabled. Access to patient records revoked."
-    reversible: bool
-    can_automate: bool
-    category: str               # "access_control", "device_security", "backup"
-
-    # Auto-fix decision context (point #9)
-    recommendation: str         # "Disable immediately"
-    safe_because: List[str] = Field(default_factory=list)  # ["User terminated", "No active sessions"]
-    estimated_downtime_minutes: int = 0
-
+    
     # Internal automation routing — excluded from serialization
     automation_type: Optional[str] = Field(default=None, exclude=True)
     automation_params: Dict[str, Any] = Field(default_factory=dict, exclude=True)
@@ -128,11 +126,11 @@ class ActionCard(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 
 class ReadinessCheck(BaseModel):
-    """One item in the readiness report. Includes trust and optional action."""
+    """One item in the readiness report. Includes verification and optional action."""
     status: str                 # "pass", "fail", "warning", "unknown"
     label: str                  # "No active former employees" or "Backup Appliance not reporting"
     detail: Optional[str] = None
-    trust: Optional[TrustContext] = None
+    verification: Optional[VerificationContext] = None
     action: Optional[ActionCard] = None
 
 
@@ -155,12 +153,13 @@ class UnknownItem(BaseModel):
 
 class ConnectorReadiness(BaseModel):
     """Health and coverage of one integration."""
-    connector_name: str         # "Microsoft 365"
+    name: str                   # "Microsoft 365"
+    status: str                 # "healthy", "degraded", "unreachable"
     connected: bool
-    last_sync_description: str  # "2 minutes ago"
-    health: str                 # "healthy", "degraded", "unreachable"
+    last_verified_at: Optional[datetime] = None
     coverage: List[str] = Field(default_factory=list)  # ["Users", "Email", "MFA"]
-    missing: List[str] = Field(default_factory=list)   # ["Conditional Access"]
+    missing_visibility: List[str] = Field(default_factory=list)   # ["Conditional Access"]
+    confidence_pct: int = 100
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -178,6 +177,24 @@ class ReadinessTrend(BaseModel):
     """Are we improving? Historical daily snapshots with explanations."""
     points: List[ReadinessTrendPoint] = Field(default_factory=list)
     improving: bool = True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Business Continuity
+# ─────────────────────────────────────────────────────────────────────────────
+
+class OperationalReadiness(BaseModel):
+    """Answers core business continuity questions."""
+    can_operate_today: bool
+    can_recover: bool
+    current_blockers: List[str] = Field(default_factory=list)
+    estimated_downtime_minutes: int = 0
+    critical_systems_verified: List[str] = Field(default_factory=list)
+    critical_systems_assumed: List[str] = Field(default_factory=list)
+
+class BusinessContinuity(BaseModel):
+    """Top-level container for continuity and operational metrics."""
+    operational_readiness: OperationalReadiness
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -327,6 +344,9 @@ class DailyReadinessReport(BaseModel):
     # ── Executive Timeline (what changed overnight) ───────────────────────
     timeline: List[TimelineEvent] = Field(default_factory=list)
 
+    # ── Business Continuity ───────────────────────────────────────────────
+    business_continuity: BusinessContinuity
+
     # ── Readiness Checks ──────────────────────────────────────────────────
     passed_checks: List[ReadinessCheck] = Field(default_factory=list)   # ✔ items
     failed_checks: List[ReadinessCheck] = Field(default_factory=list)   # ✖ items
@@ -346,8 +366,8 @@ class DailyReadinessReport(BaseModel):
     # ── Connector Health ──────────────────────────────────────────────────
     connectors: List[ConnectorReadiness] = Field(default_factory=list)
 
-    # ── Trust Explanation ─────────────────────────────────────────────────
-    trust: TrustExplanation = Field(default_factory=lambda: TrustExplanation(
+    # ── Verification Explanation ──────────────────────────────────────────
+    verification: VerificationExplanation = Field(default_factory=lambda: VerificationExplanation(
         confidence_pct=0, reasons=[]
     ))
 

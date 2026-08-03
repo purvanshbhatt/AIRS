@@ -1,0 +1,11 @@
+# Global Owners
+* @purvanshbhatt
+
+# Infrastructure & Deployment
+/gcp/ @purvanshbhatt
+/.github/workflows/ @purvanshbhatt
+/firebase.json @purvanshbhatt
+
+# Core Engine & Models
+/app/services/clinic_engine/ @purvanshbhatt
+/app/models/ @purvanshbhatt

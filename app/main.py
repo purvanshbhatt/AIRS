@@ -327,7 +327,7 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 # Include API routes
 app.include_router(health_router)
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api", deprecated=True, include_in_schema=False)
 app.include_router(clinic_router, prefix="/api/clinic")
 
 # Internal assurance endpoints (staging-only, gated by ENV check)

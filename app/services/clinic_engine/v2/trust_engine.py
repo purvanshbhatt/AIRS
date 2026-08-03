@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 
 from app.models.connector import Connector, ConnectorStatus
 from app.services.clinic_engine.v2.contracts import (
-    TrustContext,
-    TrustExplanation,
-    TrustReason,
+    VerificationContext,
+    VerificationExplanation,
+    VerificationReason,
 )
 from app.services.clinic_engine.v2.schema import ClinicMoment
 
@@ -37,16 +37,17 @@ class TrustEngine:
             db (Session): SQLAlchemy database session.
         """
         self.db = db
+        self._connector_cache = {}
     
-    def build_trust_context(self, moment: ClinicMoment, org_id: str) -> TrustContext:
-        """Build trust metadata for a single moment.
+    def build_verification_context(self, moment: ClinicMoment, org_id: str) -> VerificationContext:
+        """Build verification metadata for a single moment.
         
         Args:
-            moment (ClinicMoment): The clinic moment to build trust for.
+            moment (ClinicMoment): The clinic moment to build verification for.
             org_id (str): The organization ID.
             
         Returns:
-            TrustContext: The trust metadata for the moment.
+            VerificationContext: The verification metadata for the moment.
         """
         # Infer source connector from capability_id or automation_type
         source_system = "unknown"
@@ -65,11 +66,20 @@ class TrustEngine:
             elif auto_type.startswith("wazuh_"):
                 source_system = "wazuh"
                 
-        # Look up the connector in the DB
-        connector = self.db.query(Connector).filter(
-            Connector.org_id == org_id,
-            Connector.connector_type == source_system
-        ).first()
+        # Look up the connector in the DB (using cache to prevent N+1)
+        if org_id not in self._connector_cache:
+            try:
+                connectors = self.db.query(Connector).filter(
+                    Connector.org_id == org_id
+                ).all()
+                self._connector_cache[org_id] = {
+                    (c.connector_type.value if hasattr(c.connector_type, 'value') else str(c.connector_type)): c 
+                    for c in connectors
+                }
+            except Exception:
+                self._connector_cache[org_id] = {}
+                
+        connector = self._connector_cache[org_id].get(source_system)
         
         confidence = 100
         verification_status = "unverified"
@@ -101,8 +111,8 @@ class TrustEngine:
         
         data_age = self._humanize_data_age(last_sync) if last_sync else "Unknown"
         
-        return TrustContext(
-            evidence_source=self._humanize_source(source_system),
+        return VerificationContext(
+            verification_source=self._humanize_source(source_system),
             last_verified_at=last_sync,
             connector_health=connector_health,
             confidence_pct=confidence,
@@ -112,27 +122,30 @@ class TrustEngine:
             verification_method="Cached from last sync" if last_sync else "Unknown"
         )
     
-    def build_overall_trust(self, org_id: str) -> TrustExplanation:
-        """Build the overall trust explanation for the report.
+    def build_overall_verification(self, org_id: str) -> VerificationExplanation:
+        """Build the overall verification explanation for the report.
         
         Args:
             org_id (str): The organization ID.
             
         Returns:
-            TrustExplanation: The overall trust explanation.
+            VerificationExplanation: The overall verification explanation.
         """
-        connectors = self.db.query(Connector).filter(
-            Connector.org_id == org_id,
-            Connector.status == ConnectorStatus.active
-        ).all()
+        try:
+            connectors = self.db.query(Connector).filter(
+                Connector.org_id == org_id,
+                Connector.status == ConnectorStatus.active
+            ).order_by(Connector.display_name).all()
+        except Exception:
+            connectors = []
         
         reasons = []
         total_confidence = 0
         
         if not connectors:
-            return TrustExplanation(
+            return VerificationExplanation(
                 confidence_pct=0,
-                reasons=[TrustReason(icon="warning", text="No active security monitoring connected.")]
+                reasons=[VerificationReason(icon="warning", text="No active security monitoring connected.")]
             )
             
         has_failures = False
@@ -144,19 +157,19 @@ class TrustEngine:
             
             if health == "healthy" and conn.last_sync_at:
                 age = self._humanize_data_age(conn.last_sync_at)
-                reasons.append(TrustReason(icon="check", text=f"{conn_name} synchronized {age}."))
+                reasons.append(VerificationReason(icon="check", text=f"{conn_name} synchronized {age}."))
                 total_confidence += 100
             else:
                 has_failures = True
-                reasons.append(TrustReason(icon="error", text=f"{conn_name} is currently {health or 'unavailable'}."))
+                reasons.append(VerificationReason(icon="error", text=f"{conn_name} is currently {health or 'unavailable'}."))
                 total_confidence += 50
                 
         if not has_failures:
-            reasons.append(TrustReason(icon="check", text="No connector failures detected."))
+            reasons.append(VerificationReason(icon="check", text="No connector failures detected."))
             
         avg_confidence = int(total_confidence / len(connectors))
         
-        return TrustExplanation(
+        return VerificationExplanation(
             confidence_pct=avg_confidence,
             reasons=reasons
         )

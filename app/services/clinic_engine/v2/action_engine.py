@@ -92,19 +92,16 @@ class ActionEngine:
                 
             return ActionCard(
                 action_id=intent.action_id,
-                title=f"Disable {staff_name}'s Account" if staff else "Disable Inactive Account",
-                description=f"This will immediately lock {email} and prevent access to {systems_list}.",
-                expected_result=f"{staff_name} will no longer be able to sign in or access any clinic systems including patient records.",
-                rollback_description="If needed, the account can be re-enabled from the Microsoft 365 admin portal within 30 days.",
-                success_message="Account disabled successfully. Access to patient records has been revoked.",
-                recommendation=recommendation,
-                safe_because=safe_because,
-                reversible=True,
-                approval_needed=False,
+                problem=f"The account for {staff_name} is inactive but still enabled." if staff else "An inactive account is still enabled.",
+                why_it_matters="It could be used to improperly access patient records.",
+                recommended_action=f"This will immediately lock {email} and prevent access to {systems_list}. {staff_name} will no longer be able to sign in.",
+                can_be_undone=True,
+                estimated_time_minutes=intent.estimated_minutes,
+                fix_now_available=intent.can_automate,
                 category="access_control",
+                approval_needed=False,
                 required_permissions=["Microsoft 365 Admin"],
-                estimated_minutes=intent.estimated_minutes,
-                can_automate=intent.can_automate
+                success_message="Account disabled successfully. Access to patient records has been revoked."
             )
             
         elif "device_compromise" in action_type or "remediate_device" in action_type:
@@ -112,19 +109,16 @@ class ActionEngine:
             
             return ActionCard(
                 action_id=intent.action_id,
-                title=f"Update {device_name}" if device_name != "Unknown Device" else f"Secure {location} Computer",
-                description=f"The {device_type} at {location} needs {specific_issue}.",
-                expected_result="Device will be compliant and protected.",
-                rollback_description="Updates can be rolled back through Windows Update settings.",
-                success_message="Device secured. Compliance restored.",
-                recommendation=recommendation,
-                safe_because=[],
-                reversible=True,
-                approval_needed=True,
+                problem=f"The {device_type} at {location} needs {specific_issue}.",
+                why_it_matters="A compromised or outdated device can be a gateway to the clinic network.",
+                recommended_action="The device will be updated to become compliant and protected.",
+                can_be_undone=True,
+                estimated_time_minutes=intent.estimated_minutes,
+                fix_now_available=intent.can_automate,
                 category="device_security",
+                approval_needed=True,
                 required_permissions=["Endpoint Admin"],
-                estimated_minutes=intent.estimated_minutes,
-                can_automate=intent.can_automate
+                success_message="Device secured. Compliance restored."
             )
             
         elif "recovery_readiness" in action_type or "verify_backup" in action_type:
@@ -142,35 +136,29 @@ class ActionEngine:
             
             return ActionCard(
                 action_id=intent.action_id,
-                title=f"Verify {system_name} Backup",
-                description=f"The last successful backup was {hours} hours ago. Verify the backup system.",
-                expected_result="Backup status will be confirmed and any issues identified.",
-                rollback_description="N/A",
-                success_message="Backup verified. Recovery is available.",
-                recommendation=recommendation,
-                safe_because=[],
-                reversible=False,
-                approval_needed=False,
+                problem=f"The last successful backup for {system_name} was {hours} hours ago.",
+                why_it_matters="If the system fails, recent clinic data cannot be recovered.",
+                recommended_action="The backup system will be verified and any issues identified will be highlighted.",
+                can_be_undone=False,
+                estimated_time_minutes=intent.estimated_minutes,
+                fix_now_available=intent.can_automate,
                 category="backup",
+                approval_needed=False,
                 required_permissions=["Backup Admin"],
-                estimated_minutes=intent.estimated_minutes,
-                can_automate=intent.can_automate
+                success_message="Backup verified. Recovery is available."
             )
             
         # Fallback card
         return ActionCard(
             action_id=intent.action_id,
-            title=intent.label,
-            description="Action required based on security findings.",
-            expected_result="Issue will be addressed.",
-            rollback_description="Reversibility varies by action.",
-            success_message="Action completed.",
-            recommendation="Review and execute",
-            safe_because=[],
-            reversible=False,
-            approval_needed=True,
+            problem=intent.label,
+            why_it_matters="Security findings indicate action is required.",
+            recommended_action="The issue will be addressed.",
+            can_be_undone=False,
+            estimated_time_minutes=intent.estimated_minutes,
+            fix_now_available=intent.can_automate,
             category="general",
+            approval_needed=True,
             required_permissions=[],
-            estimated_minutes=intent.estimated_minutes,
-            can_automate=intent.can_automate
+            success_message="Action completed."
         )

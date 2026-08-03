@@ -1,4 +1,0 @@
-C:\Users\purva\AppData\Roaming\Python\Python313\site-packages\pydantic\_internal\_config.py:373: UserWarning: Valid config keys have changed in V2:
-* 'orm_mode' has been renamed to 'from_attributes'
-  warnings.warn(message, UserWarning)
-INFO: Local environment — deployment validation skipped.

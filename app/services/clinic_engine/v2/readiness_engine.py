@@ -11,8 +11,12 @@ from app.services.clinic_engine.v2.contracts import (
     ReadinessCheck,
     UnknownItem,
     ActionCard,
-    TrustContext,
+    VerificationContext,
     ClinicContext,
+    OperationalReadiness,
+    BusinessContinuity,
+    ConnectorReadiness,
+    VerificationExplanation,
 )
 from app.services.clinic_engine.v2.schema import ClinicMoment, Verdict
 from app.services.clinic_engine.v2.risk_engine import BusinessRiskEngine
@@ -49,10 +53,10 @@ class ReadinessEngine:
         for m in moments:
             actions[m.id] = self.action_engine.build_action_cards(m, assessments[m.id], context)
             
-        # 4. Build trust contexts (Layer 4)
-        trusts = {}
+        # 4. Build verification contexts (Layer 4)
+        verifications = {}
         for m in moments:
-            trusts[m.id] = self.trust_engine.build_trust_context(m, org_id)
+            verifications[m.id] = self.trust_engine.build_verification_context(m, org_id)
             
         # 5. Coverage and Connectors
         coverage = self.coverage_engine.assess_coverage(org_id)
@@ -79,7 +83,7 @@ class ReadinessEngine:
                 status=status,
                 label=m.translation.what_happened,
                 detail=m.translation.why_care,
-                trust=trusts.get(m.id),
+                verification=verifications.get(m.id),
                 action=actions.get(m.id)[0] if actions.get(m.id) else None
             )
             
@@ -95,18 +99,18 @@ class ReadinessEngine:
                     UnknownItem(
                         label=m.translation.what_happened,
                         impact="Confidence reduced due to missing data.",
-                        source=trusts.get(m.id).evidence_source if trusts.get(m.id) else "Unknown",
+                        source=verifications.get(m.id).verification_source if verifications.get(m.id) else "Unknown",
                     )
                 )
 
-        overall_trust = self.trust_engine.build_overall_trust(org_id)
+        overall_verification = self.trust_engine.build_overall_verification(org_id)
 
         # 7. Determine Overall Status
         if failed_checks:
             overall_status = ReadinessStatus.critical_risk
         elif warnings:
             overall_status = ReadinessStatus.action_needed
-        elif unknowns or overall_trust.confidence_pct < 100:
+        elif unknowns or overall_verification.confidence_pct < 100:
             overall_status = ReadinessStatus.unknown
         else:
             overall_status = ReadinessStatus.safe_to_open
@@ -130,6 +134,97 @@ class ReadinessEngine:
         else:
             summary = "We cannot fully determine your clinic's readiness due to missing data or offline systems."
 
+        # 9a. Business Continuity Logic
+        max_downtime = 0
+        critical_systems_affected = []
+        for check in failed_checks:
+            # Re-map check back to moment for assessment
+            for m in moments:
+                if m.translation.what_happened == check.label:
+                    if assessments[m.id].downtime_hours > max_downtime:
+                        max_downtime = assessments[m.id].downtime_hours
+                    
+                    # Try to extract system from moment context or assume from capability
+                    if "backup" in m.capability_id.lower() and "Backup Server" not in critical_systems_affected:
+                        critical_systems_affected.append("Backup Server")
+                    if "network" in m.capability_id.lower() and "Network Firewall" not in critical_systems_affected:
+                        critical_systems_affected.append("Network Firewall")
+                    break
+
+        can_operate = overall_status == ReadinessStatus.safe_to_open
+        can_recover = not any(c.label.lower().find("backup") != -1 for c in failed_checks)
+
+        # Ensure deterministic ordering for frontend arrays
+        failed_checks.sort(key=lambda x: x.label)
+        passed_checks.sort(key=lambda x: x.label)
+        warnings.sort(key=lambda x: x.label)
+        unknowns.sort(key=lambda x: x.label)
+        immediate_actions.sort(key=lambda x: x.action_id)
+        critical_systems_affected.sort()
+        
+        # Determine operational readiness
+        current_blockers = [c.label for c in failed_checks]
+        
+        operational_readiness = OperationalReadiness(
+            can_operate_today=can_operate,
+            can_recover=can_recover,
+            current_blockers=current_blockers,
+            estimated_downtime_minutes=int(max_downtime * 60),
+            critical_systems_verified=["Electronic Health Records (EHR)", "Office Network"], # Mocked
+            critical_systems_assumed=sorted(["Medical Devices", "HVAC"]) # Mocked
+        )
+        business_continuity = BusinessContinuity(operational_readiness=operational_readiness)
+        
+        # 9b. Connectors Readiness dynamically
+        # Let's load the connectors for the org_id to build the connector readiness
+        from app.models.connector import Connector, ConnectorStatus
+        try:
+            connector_models = self.db.query(Connector).filter(
+                Connector.org_id == org_id,
+                Connector.status == ConnectorStatus.active
+            ).order_by(Connector.display_name).all()
+        except Exception:
+            connector_models = []
+        
+        connectors_readiness = []
+        for c in connector_models:
+            from app.services.clinic_engine.v2.trust_engine import SOURCE_DISPLAY_NAMES
+            conn_name = SOURCE_DISPLAY_NAMES.get(c.connector_type.value if hasattr(c.connector_type, 'value') else c.connector_type, str(c.connector_type))
+            
+            # Simple humanize for last sync
+            last_sync_desc = "Unknown"
+            if c.last_sync_at:
+                seconds = (datetime.now(timezone.utc) - c.last_sync_at.replace(tzinfo=timezone.utc)).total_seconds()
+                if seconds < 3600:
+                    last_sync_desc = f"{int(seconds/60)} minutes ago"
+                else:
+                    last_sync_desc = f"{int(seconds/3600)} hours ago"
+
+            # Mock coverage depending on connector
+            coverage = []
+            missing = []
+            if c.connector_type == "microsoft":
+                coverage = ["Users", "Devices", "Email"]
+                missing = ["Conditional Access"]
+            elif c.connector_type == "veeam":
+                coverage = ["Server Backups"]
+                missing = ["Cloud Backups"]
+            elif c.connector_type == "wazuh":
+                coverage = ["Endpoints", "Network Logs"]
+                missing = ["Firewall Rules"]
+
+            connectors_readiness.append(ConnectorReadiness(
+                name=conn_name,
+                connected=True,
+                last_verified_at=c.last_sync_at,
+                status=c.health_status or "unknown",
+                coverage=coverage,
+                missing_visibility=missing,
+                confidence_pct=100
+            ))
+
+        connector_health_pct = 100 if all(c.status == "healthy" for c in connectors_readiness) else 60 if connectors_readiness else 0
+
         # 10. Assemble Product Contract
         report = DailyReadinessReport(
             report_id=str(uuid.uuid4()),
@@ -142,14 +237,15 @@ class ReadinessEngine:
             greeting=greeting,
             summary=summary,
             timeline=[], # Can be populated from ledger
+            business_continuity=business_continuity,
             passed_checks=passed_checks,
             failed_checks=failed_checks,
             warnings=warnings,
             unknowns=unknowns,
             immediate_actions=immediate_actions,
-            coverage=coverage,
-            connectors=[],
-            trust=overall_trust,
+            coverage=self.coverage_engine.assess_coverage(org_id),
+            connectors=connectors_readiness,
+            verification=overall_verification,
             audit_snapshot_id=str(uuid.uuid4()),
             checks_performed=len(moments),
             devices_checked=len(context.devices),

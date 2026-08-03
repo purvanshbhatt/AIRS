@@ -80,10 +80,63 @@ class CORSErrorSafetyMiddleware(BaseHTTPMiddleware):
             logger.error(
                 "Unhandled exception in middleware chain: %s", exc, exc_info=True
             )
-            response = JSONResponse(
-                status_code=500,
-                content={"error": {"code": "INTERNAL_ERROR", "message": "Internal server error"}},
-            )
+            if "/readiness/" in request.url.path:
+                import uuid
+                from datetime import datetime, timezone
+                org_id = request.url.path.split("/")[-1]
+                fallback = {
+                    "report_id": str(uuid.uuid4()),
+                    "org_id": org_id,
+                    "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                    "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                    "status": "unknown",
+                    "clinic_health_pct": 0,
+                    "connector_health_pct": 0,
+                    "greeting": "System Degraded",
+                    "summary": "We are unable to load your clinic's data at this time. Please check back later.",
+                    "business_continuity": {
+                        "operational_readiness": {
+                            "can_operate_today": False,
+                            "can_recover": False,
+                            "current_blockers": ["System unavailable"],
+                            "estimated_downtime_minutes": 0,
+                            "critical_systems_verified": [],
+                            "critical_systems_assumed": []
+                        }
+                    },
+                    "passed_checks": [],
+                    "failed_checks": [],
+                    "warnings": [],
+                    "unknowns": [],
+                    "immediate_actions": [],
+                    "coverage": {
+                        "coverage_pct": 0,
+                        "monitored": [],
+                        "not_monitored": []
+                    },
+                    "connectors": [],
+                    "verification": {
+                        "verification_source": "System",
+                        "last_verified_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                        "connector_health": "unreachable",
+                        "confidence_pct": 0,
+                        "verification_status": "unverified",
+                        "data_age_description": "Data unavailable",
+                        "can_reverify": False,
+                        "verification_method": "System check"
+                    },
+                    "audit_snapshot_id": str(uuid.uuid4()),
+                    "checks_performed": 0,
+                    "devices_checked": 0,
+                    "accounts_checked": 0,
+                    "backups_verified": 0
+                }
+                response = JSONResponse(status_code=200, content=fallback)
+            else:
+                response = JSONResponse(
+                    status_code=500,
+                    content={"error": {"code": "INTERNAL_ERROR", "message": "Internal server error"}},
+                )
 
         # Ensure CORS headers are always present for valid origins
         allow_origin = origin if origin else (raw_origin.strip().rstrip("/") if raw_origin else "")
@@ -235,6 +288,63 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     - Returns safe error response to client (no internal details)
     - Includes request ID for support correlation
     """
+    # 1. Product Feature: Return Graceful Unknowns for Readiness endpoint
+    if "/readiness/" in request.url.path:
+        import uuid
+        from datetime import datetime, timezone
+        org_id = request.url.path.split("/")[-1]
+        
+        fallback = {
+            "report_id": str(uuid.uuid4()),
+            "org_id": org_id,
+            "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "status": "unknown",
+            "clinic_health_pct": 0,
+            "connector_health_pct": 0,
+            "greeting": "System Degraded",
+            "summary": "We are unable to load your clinic's data at this time. Please check back later.",
+            "business_continuity": {
+                "operational_readiness": {
+                    "can_operate_today": False,
+                    "can_recover": False,
+                    "current_blockers": ["System unavailable"],
+                    "estimated_downtime_minutes": 0,
+                    "critical_systems_verified": [],
+                    "critical_systems_assumed": []
+                }
+            },
+            "passed_checks": [],
+            "failed_checks": [],
+            "warnings": [],
+            "unknowns": [],
+            "immediate_actions": [],
+            "coverage": {
+                "coverage_pct": 0,
+                "monitored": [],
+                "not_monitored": []
+            },
+            "connectors": [],
+            "verification": {
+                "verification_source": "System",
+                "last_verified_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "connector_health": "unreachable",
+                "confidence_pct": 0,
+                "verification_status": "unverified",
+                "data_age_description": "Data unavailable",
+                "can_reverify": False,
+                "verification_method": "System check"
+            },
+            "audit_snapshot_id": str(uuid.uuid4()),
+            "checks_performed": 0,
+            "devices_checked": 0,
+            "accounts_checked": 0,
+            "backups_verified": 0
+        }
+        response = JSONResponse(status_code=200, content=fallback)
+        response.headers["X-Request-ID"] = get_request_id() or "-"
+        return response
+
     # Get safe error response (logs internally)
     error_response = get_safe_error_response(exc)
     

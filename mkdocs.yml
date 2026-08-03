@@ -1,0 +1,49 @@
+site_name: ResilAI Documentation
+site_url: https://resilai.org/docs
+site_description: AI Incident Readiness & Clinic Operations Platform
+site_author: ResilAI Team
+
+repo_name: purvanshbhatt/AIRS
+repo_url: https://github.com/purvanshbhatt/AIRS
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: emerald
+    accent: cyan
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - search.suggest
+
+nav:
+  - Overview:
+    - Welcome: README.md
+    - Executive Overview: EXECUTIVE_OVERVIEW.md
+    - Business Model: BUSINESS_MODEL.md
+  - Platform Architecture:
+    - Deterministic Readiness Engine: READINESS_ENGINE.md
+    - Connector Architecture: CONNECTORS.md
+    - API Reference: API_OVERVIEW.md
+  - Operational Guides:
+    - Clinic Pilot Guide: PILOT_GUIDE.md
+    - Design Partner Guide: DESIGN_PARTNER_GUIDE.md
+    - Live Demo Walkthrough: DEMO_GUIDE.md
+  - Security & Operations:
+    - Security & Data Governance: SECURITY.md
+    - Deployment Guide: DEPLOYMENT.md
+  - Archives:
+    - Legacy v1 Documentation: docs/v1/README.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.def_list_validator

@@ -85,9 +85,9 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.services.clinic_engine.v2.moment_repository import MomentRepository
 
-@router.get("/morning-summary", response_model=MorningCheckV2)
+@router.get("/morning-summary", response_model=MorningCheckV2, deprecated=True)
 async def get_morning_summary(db: Session = Depends(get_db)):
-    """Returns the Morning Safety Check for the clinic owner."""
+    """Returns the Morning Safety Check for the clinic owner. DEPRECATED. Use /readiness/{org_id}."""
     
     # 1. For Morning Check V2 (Internal Demo logic)
     events = get_demo_telemetry()
@@ -135,12 +135,17 @@ async def get_clinic_readiness(org_id: str, db: Session = Depends(get_db)):
     
     # 3. Extract Evidence
     evidence = []
-    for provider_cls in ProviderRegistry.list_all().values():
-        evidence.extend(provider_cls.extract(events))
-        
-    # 4. Evaluate Capabilities -> Moments
-    engine = ClinicEvaluationEngine()
-    moments = engine.evaluate(evidence)
+    try:
+        for provider_cls in ProviderRegistry.list_all().values():
+            evidence.extend(provider_cls.extract(events))
+            
+        # 4. Evaluate Capabilities -> Moments
+        engine = ClinicEvaluationEngine()
+        moments = engine.evaluate(evidence)
+    except Exception as e:
+        # Unknown philosophy: degradation is handled naturally by having 0 moments
+        # ReadinessEngine will map missing data to Unknown state
+        moments = []
     
     # 5. Build Readiness Report (The Product Layer)
     readiness_engine = ReadinessEngine(db)
@@ -163,7 +168,7 @@ async def fix_problem(problem_id: str, db: Session = Depends(get_db)):
     record = repo.get_moment(problem_id)
     
     if not record:
-        raise HTTPException(status_code=404, detail="Moment not found.")
+        raise HTTPException(status_code=404, detail="Issue not found.")
         
     if record.status != MomentStatus.ACTIVE:
         return {"status": "error", "message": "This issue has already been resolved."}
@@ -172,11 +177,14 @@ async def fix_problem(problem_id: str, db: Session = Depends(get_db)):
     # For MVP validation, we use demo telemetry
     events = get_demo_telemetry()
     evidence = []
-    for provider_cls in ProviderRegistry.list_all().values():
-        evidence.extend(provider_cls.extract(events))
-        
-    engine = ClinicEvaluationEngine()
-    current_moments = engine.evaluate(evidence)
+    try:
+        for provider_cls in ProviderRegistry.list_all().values():
+            evidence.extend(provider_cls.extract(events))
+            
+        engine = ClinicEvaluationEngine()
+        current_moments = engine.evaluate(evidence)
+    except Exception:
+        current_moments = []
     
     is_still_valid = any(m.id == problem_id for m in current_moments)
     if not is_still_valid:
@@ -207,4 +215,4 @@ async def fix_problem(problem_id: str, db: Session = Depends(get_db)):
         success=True
     )
     
-    return {"status": "success", "message": f"Fix triggered for {problem_id}"}
+    return {"status": "success", "message": "Issue resolved and systems secured."}

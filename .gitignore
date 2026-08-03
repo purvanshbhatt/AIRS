@@ -11,6 +11,13 @@ env/
 .env.local
 .env.*.local
 
+# Security & Keys
+*.pem
+*.p12
+*.key
+*service-account*.json
+*service_account*.json
+
 # Database
 *.db
 *.sqlite3
@@ -53,23 +60,14 @@ frontend/.env.*
 !frontend/.env.staging
 !frontend/.env.production
 
-# GCP secrets (keep .example files)
+# GCP secrets
 gcp/env.prod
 gcp/env.staging
 
-# Logs
+# Logs & Archive logs
 *.log
-
-# Local generated submission artifacts
-.tmp_submission_md/
-ResilAI_submission_docs/
-ResilAI_submission_docs.zip
-submission_docs/
+archive/logs/
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Backups
-frontend/dist_backup/
-

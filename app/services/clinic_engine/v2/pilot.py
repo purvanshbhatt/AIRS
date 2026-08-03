@@ -70,6 +70,10 @@ class PilotService:
             logger.warning("Cannot seed demo clinic: org %s not found", org_id)
             return
 
+        # Idempotency check
+        if self.db.query(MSPRelationship).filter_by(org_id=org_id).first():
+            return
+
         # Update org with clinic metadata
         org.clinic_name = "Sunshine Dental Clinic"
         org.clinic_type = "dental"
