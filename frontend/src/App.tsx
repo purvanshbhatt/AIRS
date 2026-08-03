@@ -42,18 +42,18 @@ import BusinessUnits from './pages/BusinessUnits';
 import { EvidenceNetwork } from './pages/EvidenceNetwork';
 import AIAttackSimulationLab from './pages/AIAttackSimulationLab';
 
-// Clinic MVP Pages
-import ClinicLayout from './pages/clinic/Layout';
-import ClinicHome from './pages/clinic/Home';
-import ClinicIssueDetails from './pages/clinic/IssueDetails';
-import ClinicIntegrations from './pages/clinic/Integrations';
-import ClinicSettings from './pages/clinic/Settings';
-import ClinicOnboarding from './pages/clinic/Onboarding';
+// Readiness Product Pages
+import ReadinessLayout from './features/readiness/Layout';
+import TodayPage from './features/readiness/TodayPage';
+import NeedsAttentionPage from './features/readiness/NeedsAttentionPage';
+import RecoveryReadinessPage from './features/readiness/RecoveryReadinessPage';
+import ActivityPage from './features/readiness/ActivityPage';
+import ReadinessSettingsPage from './features/readiness/SettingsPage';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
 
-const IS_CLINIC_MODE = true; // Feature flag
+const IS_READINESS_PRODUCT = true; // Feature flag
 
 function ApiConfigBanner() {
   if (isApiConfigured) return null;
@@ -108,16 +108,16 @@ function DashboardRoutes() {
   );
 }
 
-function ClinicRoutes() {
+function ReadinessRoutes() {
   return (
     <ProtectedRoute>
       <Routes>
-        <Route path="onboarding" element={<ClinicOnboarding />} />
-        <Route element={<ClinicLayout />}>
-          <Route index element={<ClinicHome />} />
-          <Route path="issue/:id" element={<ClinicIssueDetails />} />
-          <Route path="integrations" element={<ClinicIntegrations />} />
-          <Route path="settings" element={<ClinicSettings />} />
+        <Route element={<ReadinessLayout />}>
+          <Route index element={<TodayPage />} />
+          <Route path="actions" element={<NeedsAttentionPage />} />
+          <Route path="continuity" element={<RecoveryReadinessPage />} />
+          <Route path="activity" element={<ActivityPage />} />
+          <Route path="settings" element={<ReadinessSettingsPage />} />
         </Route>
       </Routes>
     </ProtectedRoute>
@@ -163,9 +163,9 @@ export default function App() {
           <ToastProvider>
             <AuthRedirectHandler />
             <ApiConfigBanner />
-            {!IS_CLINIC_MODE && <EnvironmentHeader />}
+            {!IS_READINESS_PRODUCT && <EnvironmentHeader />}
             <Routes>
-            <Route path="/" element={IS_CLINIC_MODE ? <Navigate to="/clinic" replace /> : <Landing />} />
+            <Route path="/" element={IS_READINESS_PRODUCT ? <Navigate to="/readiness" replace /> : <Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
             <Route path="/security" element={<SecurityPage />} />
@@ -174,7 +174,7 @@ export default function App() {
             <Route path="/auditor" element={<AuditorView />} />
 
             <Route path="/dashboard/*" element={<DashboardRoutes />} />
-            <Route path="/clinic/*" element={<ClinicRoutes />} />
+            <Route path="/readiness/*" element={<ReadinessRoutes />} />
 
             {/* Legacy Backward-Compatible Redirects (S1.8-AUDIT-FIX-D01) */}
             <Route path="/assessment/new" element={<Navigate to="/dashboard/assessment/new" replace />} />

@@ -19,7 +19,7 @@
     "lucide-react": "^0.562.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.12.0",
+    "react-router-dom": "^7.18.0",
     "recharts": "^3.8.1"
   },
   "devDependencies": {
@@ -37,9 +37,17 @@
     "tailwindcss": "^4.1.18",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.0",
-    "vite": "^6.4.1"
+    "vite": "^6.4.3"
   },
   "overrides": {
-    "eslint": "$eslint"
+    "eslint": "$eslint",
+    "websocket-driver": "^0.7.5",
+    "vite": "^6.4.3",
+    "react-router": "^7.18.0",
+    "react-router-dom": "^7.18.0",
+    "tmp": "^0.2.6",
+    "braces": "^3.0.3",
+    "micromatch": "^4.0.8",
+    "cross-spawn": "^7.0.5"
   }
 }
