@@ -17,6 +17,7 @@ export interface DailyReadinessReport {
   coverage: CoverageReport;
   connectors: ConnectorReadiness[];
   verification: VerificationContext;
+  health_check?: HealthCheckContext;
   trend: ReadinessTrend;
   value: ValueSummary;
   generated_at: string;
@@ -86,18 +87,22 @@ export interface ConnectorReadiness {
   last_sync: string;
 }
 
-export interface VerificationExplanation {
+export interface HealthCheckExplanation {
   method: string;
   timestamp: string;
   confidence: number;
 }
 
-export interface VerificationContext {
+export type VerificationExplanation = HealthCheckExplanation;
+
+export interface HealthCheckContext {
   overall_confidence_pct: number;
   verified_items_count: number;
   total_items_count: number;
-  explanations?: Record<string, VerificationExplanation>;
+  explanations?: Record<string, HealthCheckExplanation>;
 }
+
+export type VerificationContext = HealthCheckContext;
 
 export interface ReadinessTrend {
   direction: 'up' | 'down' | 'flat';

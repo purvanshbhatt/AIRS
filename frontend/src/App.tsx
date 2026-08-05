@@ -1,7 +1,6 @@
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { AlertTriangle, Lock } from 'lucide-react';
-import { DashboardLayout } from './components/layout';
+import AppLayout from './components/layout/AppLayout';
 import DocsLayout from './components/layout/DocsLayout';
 import { EnvironmentHeader } from './components/layout/EnvironmentHeader';
 import { ToastProvider } from './components/ui';
@@ -10,50 +9,41 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
 import { setUnauthorizedHandler } from './api';
 
-// Pages
+// Public Pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Organizations from './pages/Organizations';
-import Assessments from './pages/Assessments';
-import AnalyticsPage from './pages/Analytics';
-import Reports from './pages/Reports';
-import NewOrg from './pages/NewOrg';
-import NewAssessment from './pages/NewAssessment';
-import QuickAssessment from './pages/QuickAssessment';
-import Results from './pages/Results';
-import Settings from './pages/Settings';
-import Integrations from './pages/Integrations';
 import About from './pages/About';
 import SecurityPage from './pages/Security';
 import PilotPage from './pages/Pilot';
 import StatusPage from './pages/Status';
-import GovernanceProfile from './pages/GovernanceProfile';
-import AuditCalendar from './pages/AuditCalendar';
-import TechnologyIntelligence from './pages/TechnologyIntelligence';
 import AuditorView from './pages/AuditorView';
-import ComplianceDrift from './pages/ComplianceDrift';
-import ReliabilityDashboard from './pages/ReliabilityDashboard';
-import RemediationLedger from './pages/RemediationLedger';
-import ReadinessTimeline from './pages/ReadinessTimeline';
-import BoardStory from './pages/BoardStory';
-import DecisionEngine from './pages/DecisionEngine';
-import BusinessUnits from './pages/BusinessUnits';
-import { EvidenceNetwork } from './pages/EvidenceNetwork';
-import AIAttackSimulationLab from './pages/AIAttackSimulationLab';
 
-// Readiness Product Pages
-import ReadinessLayout from './features/readiness/Layout';
+// MORNING OPERATIONS
 import TodayPage from './features/readiness/TodayPage';
 import NeedsAttentionPage from './features/readiness/NeedsAttentionPage';
 import RecoveryReadinessPage from './features/readiness/RecoveryReadinessPage';
 import ActivityPage from './features/readiness/ActivityPage';
-import ReadinessSettingsPage from './features/readiness/SettingsPage';
+
+// TECHNOLOGY OPERATIONS DOMAIN MINI-PRODUCTS
+import IdentityPage from './pages/technology/IdentityPage';
+import DevicesPage from './pages/technology/DevicesPage';
+import BackupsPage from './pages/technology/BackupsPage';
+import EmailPage from './pages/technology/EmailPage';
+import NetworkPage from './pages/technology/NetworkPage';
+import CloudPage from './pages/technology/CloudPage';
+import AIPage from './pages/technology/AIPage';
+
+// LEGACY & PLATFORM
+import { EvidenceNetwork } from './pages/EvidenceNetwork';
+import ComplianceDrift from './pages/ComplianceDrift';
+import ReliabilityDashboard from './pages/ReliabilityDashboard';
+import TechnologyIntelligence from './pages/TechnologyIntelligence';
+import AuditCalendar from './pages/AuditCalendar';
+import Settings from './pages/Settings';
+import Integrations from './pages/Integrations';
 
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
-
-const IS_READINESS_PRODUCT = true; // Feature flag
 
 function ApiConfigBanner() {
   if (isApiConfigured) return null;
@@ -66,58 +56,56 @@ function ApiConfigBanner() {
   );
 }
 
-function DashboardRoutes() {
-  return (
-    <ProtectedRoute>
-      <DashboardLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/organizations" element={<Organizations />} />
-          <Route path="/org/new" element={<NewOrg />} />
-          <Route path="/assessments" element={<Assessments />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/assessment/new" element={import.meta.env.VITE_APP_ENV === 'staging' ? <NewAssessment /> : <QuickAssessment />} />
-          <Route path="/assessment/quick" element={<QuickAssessment />} />
-          <Route path="/results/:id" element={<Results />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-
-          {/* Canonical Sprint 1.8 / Sprint 2 routes */}
-          <Route path="/readiness-timeline" element={<ReadinessTimeline />} />
-          <Route path="/board-story" element={<BoardStory />} />
-          <Route path="/decision-engine" element={<DecisionEngine />} />
-          <Route path="/business-units" element={<BusinessUnits />} />
-
-          {/* Evidence Network — canonical path */}
-          <Route path="/evidence-network" element={<EvidenceNetwork />} />
-
-          {/* Legacy redirect — /integrations -> /evidence-network (F-003 / T-B01) */}
-          <Route path="/integrations" element={<Integrations />} />
-
-          {/* Retained pages */}
-          <Route path="/governance" element={<GovernanceProfile />} />
-          <Route path="/audit-calendar" element={<AuditCalendar />} />
-          <Route path="/tech-stack" element={<TechnologyIntelligence />} />
-          <Route path="/compliance-drift" element={<ComplianceDrift />} />
-          <Route path="/reliability" element={<ReliabilityDashboard />} />
-          <Route path="/remediation" element={<RemediationLedger />} />
-          <Route path="/ai-attack-simulation-lab" element={<AIAttackSimulationLab />} />
-        </Routes>
-      </DashboardLayout>
-    </ProtectedRoute>
-  );
-}
-
-function ReadinessRoutes() {
+function MainAppRoutes() {
   return (
     <ProtectedRoute>
       <Routes>
-        <Route element={<ReadinessLayout />}>
-          <Route index element={<TodayPage />} />
-          <Route path="actions" element={<NeedsAttentionPage />} />
-          <Route path="continuity" element={<RecoveryReadinessPage />} />
-          <Route path="activity" element={<ActivityPage />} />
-          <Route path="settings" element={<ReadinessSettingsPage />} />
+        <Route element={<AppLayout />}>
+          {/* MORNING OPERATIONS */}
+          <Route path="/morning-brief" element={<TodayPage />} />
+          <Route path="/needs-attention" element={<NeedsAttentionPage />} />
+          <Route path="/recovery" element={<RecoveryReadinessPage />} />
+          <Route path="/yesterday" element={<ActivityPage />} />
+          
+          {/* TECHNOLOGY OPERATIONS DOMAIN MINI-PRODUCTS */}
+          <Route path="/identity" element={<IdentityPage />} />
+          <Route path="/devices" element={<DevicesPage />} />
+          <Route path="/backups" element={<BackupsPage />} />
+          <Route path="/email" element={<EmailPage />} />
+          <Route path="/network" element={<NetworkPage />} />
+          <Route path="/cloud" element={<CloudPage />} />
+          <Route path="/ai" element={<AIPage />} />
+
+          {/* PLATFORM */}
+          <Route path="/connectors" element={<Integrations />} />
+          <Route path="/activity" element={<EvidenceNetwork />} />
+          <Route path="/activity/compliance-drift" element={<ComplianceDrift />} />
+          <Route path="/technology/intelligence" element={<TechnologyIntelligence />} />
+          <Route path="/audit" element={<AuditCalendar />} />
+          <Route path="/settings" element={<Settings />} />
+
+          {/* BACKWARD-COMPATIBLE REDIRECTS FOR LEGACY PATHS */}
+          <Route path="/dashboard/today" element={<Navigate to="/morning-brief" replace />} />
+          <Route path="/dashboard/attention" element={<Navigate to="/needs-attention" replace />} />
+          <Route path="/dashboard/recovery" element={<Navigate to="/recovery" replace />} />
+          <Route path="/dashboard/activity" element={<Navigate to="/yesterday" replace />} />
+          
+          <Route path="/explore/verification" element={<Navigate to="/activity" replace />} />
+          <Route path="/explore/evidence" element={<Navigate to="/activity" replace />} />
+          <Route path="/explore/systems" element={<Navigate to="/identity" replace />} />
+          <Route path="/explore/integrations" element={<Navigate to="/ai" replace />} />
+          <Route path="/explore/history" element={<Navigate to="/yesterday" replace />} />
+
+          <Route path="/admin/integrations" element={<Navigate to="/connectors" replace />} />
+          <Route path="/admin/audit" element={<Navigate to="/audit" replace />} />
+          <Route path="/admin/settings" element={<Navigate to="/settings" replace />} />
+          <Route path="/admin/team" element={<Navigate to="/settings" replace />} />
+
+          {/* INCIDENTS (Placeholder) */}
+          <Route path="/incidents/*" element={<div className="p-8 text-center text-slate-500">Incident workspace coming soon</div>} />
+
+          {/* Fallback to Morning Brief */}
+          <Route path="*" element={<Navigate to="/morning-brief" replace />} />
         </Route>
       </Routes>
     </ProtectedRoute>
@@ -140,22 +128,6 @@ function AuthRedirectHandler() {
 }
 
 export default function App() {
-  useEffect(() => {
-    const hostname = window.location.hostname;
-    const isFirebaseDefaultDomain = hostname.endsWith('.web.app') || hostname.endsWith('.firebaseapp.com');
-    if (isFirebaseDefaultDomain) {
-      let targetDomain = '';
-      if (hostname.includes('staging')) {
-        targetDomain = 'staging.resilai.org';
-      } else if (hostname.includes('demo') || hostname.includes('gen-lang-client-0384513977')) {
-        targetDomain = 'demo.resilai.org';
-      } else {
-        targetDomain = 'resilai.org';
-      }
-      window.location.replace(`https://${targetDomain}${window.location.pathname}${window.location.search}${window.location.hash}`);
-    }
-  }, []);
-
   return (
     <AuthProvider>
       <DemoModeProvider>
@@ -163,37 +135,30 @@ export default function App() {
           <ToastProvider>
             <AuthRedirectHandler />
             <ApiConfigBanner />
-            {!IS_READINESS_PRODUCT && <EnvironmentHeader />}
             <Routes>
-            <Route path="/" element={IS_READINESS_PRODUCT ? <Navigate to="/readiness" replace /> : <Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/security" element={<SecurityPage />} />
-            <Route path="/pilot" element={<PilotPage />} />
-            <Route path="/status" element={<StatusPage />} />
-            <Route path="/auditor" element={<AuditorView />} />
+              {/* Public Routes */}
+              <Route path="/" element={<Navigate to="/morning-brief" replace />} />
+              <Route path="/readiness" element={<Navigate to="/morning-brief" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/security" element={<SecurityPage />} />
+              <Route path="/pilot" element={<PilotPage />} />
+              <Route path="/status" element={<StatusPage />} />
+              <Route path="/auditor" element={<AuditorView />} />
 
-            <Route path="/dashboard/*" element={<DashboardRoutes />} />
-            <Route path="/readiness/*" element={<ReadinessRoutes />} />
+              {/* Main Application Routes */}
+              <Route path="/*" element={<MainAppRoutes />} />
 
-            {/* Legacy Backward-Compatible Redirects (S1.8-AUDIT-FIX-D01) */}
-            <Route path="/assessment/new" element={<Navigate to="/dashboard/assessment/new" replace />} />
-            <Route path="/assessment/quick" element={<Navigate to="/dashboard/assessment/quick" replace />} />
-            <Route path="/org/new" element={<Navigate to="/dashboard/org/new" replace />} />
-            <Route path="/results/:id" element={<Navigate to="/dashboard/results/:id" replace />} />
-            <Route path="/settings/integrations" element={<Navigate to="/dashboard/evidence-network" replace />} />
-
-
-
-            <Route path="/docs" element={<DocsLayout />}>
-              <Route index element={<DocsOverview />} />
-              <Route path="methodology" element={<DocsMethodology />} />
-              <Route path="frameworks" element={<DocsFrameworks />} />
-              <Route path="security" element={<DocsSecurity />} />
-              <Route path="api" element={<DocsApi />} />
-            </Route>
-          </Routes>
-        </ToastProvider>
+              {/* Docs */}
+              <Route path="/docs" element={<DocsLayout />}>
+                <Route index element={<DocsOverview />} />
+                <Route path="methodology" element={<DocsMethodology />} />
+                <Route path="frameworks" element={<DocsFrameworks />} />
+                <Route path="security" element={<DocsSecurity />} />
+                <Route path="api" element={<DocsApi />} />
+              </Route>
+            </Routes>
+          </ToastProvider>
         </PersonaProvider>
       </DemoModeProvider>
     </AuthProvider>

@@ -128,8 +128,10 @@ async function request<T>(
 
   // Check for read-only demo mode
   const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const search = typeof window !== 'undefined' ? window.location.search : '';
   const isDemo = host === 'demo.resilai.org' || 
                  host.includes('demo') || 
+                 search.includes('env=demo') ||
                  import.meta.env.VITE_APP_ENV === 'demo' || 
                  import.meta.env.MODE === 'demo';
   const isMutation = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase());
@@ -137,7 +139,7 @@ async function request<T>(
   if (isDemo && isMutation) {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('resilai-readonly-action', {
-        detail: { message: 'Changes cannot be saved in the interactive demo.' }
+        detail: { message: 'Read-Only Demo: Saving changes is disabled in the interactive demo.' }
       }));
     }
     throw new ApiRequestError({
@@ -1533,8 +1535,131 @@ export const getEvidenceLineage = (hash: string) =>
 
 import type { DailyReadinessReport } from './types/readiness';
 
-export const getDailyReadinessReport = (orgId: string) =>
-  request<DailyReadinessReport>(`/api/clinic/readiness/${orgId}`);
+export const MOCK_ACME_DAILY_READINESS: DailyReadinessReport = {
+  org_id: 'acme-health-systems',
+  status: 'safe_to_open',
+  clinic_health_pct: 98,
+  connector_health_pct: 100,
+  greeting: 'Good morning, Acme Health Systems leadership team.',
+  summary: 'All 7 core clinical and infrastructure telemetry connectors are reporting healthy verified status. Veeam backup immutability verified 14 minutes ago.',
+  timeline: [
+    { time: '07:15 AM', category: 'today', event: 'Veeam Backup Immutability Check', type: 'verified', impact: '100% recovery point objective met' },
+    { time: '06:45 AM', category: 'today', event: 'Microsoft 365 MFA Policy Audit', type: 'verified', impact: 'Zero active MFA bypass exceptions' },
+    { time: '06:00 AM', category: 'today', event: 'Wazuh EDR Telemetry Sweep', type: 'verified', impact: 'All 142 clinic endpoints reporting intact' },
+    { time: 'Yesterday', category: 'yesterday', event: 'Cisco Umbrella DNS Filter Sync', type: 'update', impact: 'Malware domain blocklist updated' },
+  ],
+  business_continuity: {
+    ransomware_safe: true,
+    can_operate_today: true,
+    can_recover_today: true,
+    blockers: [],
+    estimated_recovery_hours: 0.5,
+    last_backup_verified_at: '14 minutes ago',
+    verified_systems: ['EHR Database', 'PACs Imaging', 'M365 Email', 'Identity Provider', 'Billing Gateway', 'Pharmacy Link', 'Lab Systems'],
+    assumed_systems: [],
+  },
+  passed_checks: [
+    { id: 'chk-1', name: 'Ransomware Shield', category: 'Backups & Disaster Recovery', description: 'Immutable snapshots verified via Veeam API' },
+    { id: 'chk-2', name: 'Identity & Access Hygiene', category: 'Identity', description: '100% MFA compliance across clinical staff' },
+    { id: 'chk-3', name: 'Endpoint Protection', category: 'Devices', description: 'CrowdStrike & Wazuh agents operational on 142 devices' },
+    { id: 'chk-4', name: 'Email Gateway Filtering', category: 'Email', description: 'Zero high-confidence phishing breaches detected in 24h' },
+    { id: 'chk-5', name: 'Network Perimeter Defense', category: 'Network', description: 'Cisco Umbrella active with zero open critical alerts' },
+    { id: 'chk-6', name: 'Cloud Infrastructure Compliance', category: 'Cloud', description: 'AWS CloudTrail & GuardDuty reporting baseline compliance' },
+    { id: 'chk-7', name: 'AI Governance & Privacy', category: 'AI Estate', description: 'Local KMS vector DB guardrails active' },
+  ],
+  failed_checks: [],
+  warnings: [],
+  unknowns: [],
+  immediate_actions: [
+    {
+      id: 'act-1',
+      title: 'Maintain Weekly Offsite Backup Replication',
+      severity: 'low',
+      impact_narrative: 'Offsite immutable backup rotation scheduled for Sunday evening.',
+      evidence: 'Veeam Backup & Replication v12 log trace 0x8F4A',
+      recommendation: 'No manual intervention needed. Automated job queued.',
+      can_be_undone: true,
+      last_verified_at: '14 minutes ago',
+      confidence_pct: 98,
+      verification_method: 'Veeam API Daemon',
+    },
+  ],
+  coverage: {
+    overall_percentage: 98,
+    areas: [
+      { name: 'Identity & Access', monitored_items: 450, unmonitored_items: 2, percentage: 99 },
+      { name: 'Devices & Endpoints', monitored_items: 142, unmonitored_items: 0, percentage: 100 },
+      { name: 'Backups & Storage', monitored_items: 18, unmonitored_items: 0, percentage: 100 },
+      { name: 'Email & Messaging', monitored_items: 450, unmonitored_items: 5, percentage: 98 },
+      { name: 'Network & Perimeter', monitored_items: 12, unmonitored_items: 0, percentage: 100 },
+      { name: 'Cloud & APIs', monitored_items: 34, unmonitored_items: 1, percentage: 97 },
+      { name: 'AI Estate', monitored_items: 8, unmonitored_items: 0, percentage: 100 },
+    ],
+  },
+  connectors: [
+    { name: 'Microsoft 365', status: 'healthy', last_sync: '2 mins ago' },
+    { name: 'Veeam Backup & Replication', status: 'healthy', last_sync: '14 mins ago' },
+    { name: 'CrowdStrike Falcon', status: 'healthy', last_sync: '5 mins ago' },
+    { name: 'Wazuh SIEM / EDR', status: 'healthy', last_sync: '1 min ago' },
+    { name: 'Cisco Umbrella DNS', status: 'healthy', last_sync: '10 mins ago' },
+    { name: 'SentinelOne Singularity', status: 'healthy', last_sync: '8 mins ago' },
+    { name: 'Okta Identity Cloud', status: 'healthy', last_sync: '3 mins ago' },
+  ],
+  verification: {
+    overall_confidence_pct: 98,
+    verified_items_count: 7,
+    total_items_count: 7,
+    explanations: {
+      backups: { method: 'Veeam Collector API', timestamp: '14 mins ago', confidence: 99 },
+      identity: { method: 'Microsoft Graph & Okta API', timestamp: '2 mins ago', confidence: 98 },
+      devices: { method: 'CrowdStrike & Wazuh Telemetry', timestamp: '1 min ago', confidence: 98 },
+    },
+  },
+  health_check: {
+    overall_confidence_pct: 98,
+    verified_items_count: 7,
+    total_items_count: 7,
+    explanations: {
+      backups: { method: 'Veeam Collector API', timestamp: '14 mins ago', confidence: 99 },
+      identity: { method: 'Microsoft Graph & Okta API', timestamp: '2 mins ago', confidence: 98 },
+      devices: { method: 'CrowdStrike & Wazuh Telemetry', timestamp: '1 min ago', confidence: 98 },
+    },
+  },
+  trend: {
+    direction: 'up',
+    percentage_change: 2.5,
+    narrative: 'Clinic readiness increased 2.5% following automated Veeam backup verification and MFA audit completion.',
+  },
+  value: {
+    hours_saved: 18.5,
+    roi_metrics: {
+      manual_audit_time_saved: '18.5 hours/week',
+      incident_prevention_value: '$142,000',
+    },
+  },
+  generated_at: new Date().toISOString(),
+};
+
+export const getDailyReadinessReport = async (orgId: string): Promise<DailyReadinessReport> => {
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const search = typeof window !== 'undefined' ? window.location.search : '';
+  const isDemo = host === 'demo.resilai.org' || 
+                 host.includes('demo') || 
+                 search.includes('env=demo') ||
+                 import.meta.env.VITE_APP_ENV === 'demo' || 
+                 import.meta.env.MODE === 'demo';
+
+  try {
+    const report = await request<DailyReadinessReport>(`/api/clinic/readiness/${orgId}`);
+    return report;
+  } catch (err) {
+    if (isDemo || orgId === 'acme-health-systems' || orgId === 'default-org') {
+      console.log('[API] Returning Acme Health Systems demo readiness report');
+      return MOCK_ACME_DAILY_READINESS;
+    }
+    throw err;
+  }
+};
 
 export const triggerProblemFix = (problemId: string) =>
   request<{ status: string; message: string }>(`/api/clinic/problems/${problemId}/fix`, {

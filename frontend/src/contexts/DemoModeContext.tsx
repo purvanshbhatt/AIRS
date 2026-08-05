@@ -7,6 +7,8 @@ interface DemoModeContextValue {
   isDemoMode: boolean;
   /** Whether writes are disabled (demo mode = read-only) */
   isReadOnly: boolean;
+  /** Default organization name */
+  organizationName: string;
   /** Full system status from backend */
   systemStatus: SystemStatus | null;
   /** Whether the context is still loading */
@@ -45,6 +47,7 @@ export function DemoModeProvider({ children }: DemoModeProviderProps) {
   const value = useMemo<DemoModeContextValue>(() => ({
     isDemoMode: systemStatus?.demo_mode ?? false,
     isReadOnly: systemStatus?.is_read_only ?? false,
+    organizationName: 'Acme Health Systems',
     systemStatus,
     isLoading,
     refresh: fetchStatus,

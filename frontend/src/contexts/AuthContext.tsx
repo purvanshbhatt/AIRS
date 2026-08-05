@@ -88,9 +88,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     console.log('[Auth] Setting up auth state listener');
+    let isMounted = true;
+
+    // Await authStateReady to prevent 401 race condition during initial page hydration
+    auth.authStateReady()
+      .then(() => {
+        if (!isMounted) return;
+        if (auth.currentUser) {
+          setUser(toUser(auth.currentUser));
+        }
+      })
+      .catch((err) => {
+        console.error('[Auth] authStateReady error:', err);
+      });
+
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => {
+        if (!isMounted) return;
         if (firebaseUser) {
           console.log('[Auth] User signed in:', firebaseUser.email);
           setUser(toUser(firebaseUser));
@@ -101,21 +116,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setLoading(false);
       },
       (err) => {
+        if (!isMounted) return;
         console.error('[Auth] Auth state error:', err);
         setError(err.message);
         setLoading(false);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   // Get auth token for API requests
   const getToken = useCallback(async (): Promise<string | null> => {
-    if (!auth?.currentUser) {
+    if (!auth) {
       return null;
     }
     try {
+      if (typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+      }
+      if (!auth.currentUser) {
+        return null;
+      }
       const token = await auth.currentUser.getIdToken();
       return token;
     } catch (err) {

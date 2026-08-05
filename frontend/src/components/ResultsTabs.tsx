@@ -1806,5 +1806,13 @@ function GapAnalysisCard({ title, icon, categories }: { title: string, icon: Rea
   )
 }
 
-// Re-export from config file for backward compatibility
-export { RESULT_TABS, type ResultTabId } from './ResultsTabsConfig'
+export const RESULT_TABS = [
+  { id: 'overview', label: 'Overview', icon: Target },
+  { id: 'findings', label: 'Findings', icon: AlertTriangle },
+  { id: 'framework', label: 'Framework Mapping', icon: Shield },
+  { id: 'roadmap', label: 'Roadmap', icon: Calendar },
+  { id: 'analytics', label: 'Analytics', icon: Route },
+] as const
+
+export type ResultTabId = typeof RESULT_TABS[number]['id']
+

@@ -8,14 +8,26 @@ import {
   CardDescription,
   CardContent,
   Button,
-  EmptyState,
   StatCardSkeleton,
   CardSkeleton,
   Badge,
-  TableHead,
-  TableCell,
   SlideOver,
 } from '../components/ui';
+
+function EmptyState({ icon: Icon, title, description, action }: { icon?: any; title: string; description?: string; action?: { label: string; href?: string; onClick?: () => void }; steps?: any[] }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      {Icon && <Icon className="w-12 h-12 text-slate-400 mb-4" />}
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+      {description && <p className="text-sm text-slate-500 max-w-sm mt-1">{description}</p>}
+      {action && (
+        <a href={action.href} className="mt-4 inline-block bg-primary-600 text-white px-4 py-2 rounded-xl text-sm font-medium">
+          {action.label}
+        </a>
+      )}
+    </div>
+  );
+}
 import {
   LayoutDashboard,
   Building2,
@@ -82,7 +94,7 @@ import GHIGauge from '../components/GHIGauge';
 import CompetitorParityChart from '../components/CompetitorParityChart';
 import { ScoreTrendChart } from '../components/ScoreTrendChart';
 import ReadinessDrivers from '../components/dashboard/ReadinessDrivers';
-import PersonaSwitcher from '../components/dashboard/PersonaContext';
+import PersonaSwitcher from '../components/dashboard/PersonaSwitcher';
 import ExecutiveMondayMorning from '../components/ExecutiveMondayMorning';
 import EvidenceGraph from '../components/EvidenceGraph';
 
@@ -681,12 +693,12 @@ export default function Dashboard() {
                     </Card>
                   </Link>
 
-                  {/* Evidence Verification */}
+                  {/* Evidence Health Check */}
                   <Link to="/dashboard/integrations" className="block outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
                     <Card padding="lg" className="bg-white/60 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl hover:shadow-md transition-all duration-300 relative overflow-hidden h-full">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Evidence Verification</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Evidence Health Check</span>
                           <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[9px] font-bold">Live</Badge>
                         </div>
                         <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
@@ -694,7 +706,7 @@ export default function Dashboard() {
                         </h3>
                         <div className="flex flex-wrap gap-1 mt-3">
                           <Badge variant={confidenceData && confidenceData.aggregate_score >= 80 ? 'success' : 'outline'} className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg">
-                            {confidenceData && confidenceData.aggregate_score >= 80 ? 'High Confidence' : 'Verification Required'}
+                            {confidenceData && confidenceData.aggregate_score >= 80 ? 'High Confidence' : 'Health Check Required'}
                           </Badge>
                         </div>
                       </div>
@@ -1312,7 +1324,7 @@ export default function Dashboard() {
                 <span className="font-bold text-slate-900 dark:text-slate-100">82</span>
               </div>
               <div className="flex items-center justify-between p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-900/50 text-emerald-600 dark:text-emerald-400">
-                <span>+ Verification Modifier</span>
+                <span>+ Health Check Modifier</span>
                 <span className="font-bold">+3</span>
               </div>
               <div className="flex items-center justify-between p-2 rounded hover:bg-slate-50 dark:hover:bg-slate-900/50 text-emerald-600 dark:text-emerald-400">

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { NorthStarHero } from '../../components/readiness/NorthStarHero';
 import { ExecutiveQuestionsGrid } from '../../components/readiness/ExecutiveQuestionsGrid';
+import { StatusCard } from '../../components/readiness/StatusCard';
+import { ReadinessJourney } from '../../components/readiness/ReadinessJourney';
 import { RecoveryReadinessBanner } from '../../components/readiness/RecoveryReadinessBanner';
-import { StoryActionCard } from '../../components/readiness/StoryActionCard';
 import { LoadingState, ErrorState, HealthyState } from '../../components/readiness/ReadinessStates';
 import { CoverageModal } from '../../components/readiness/CoverageModal';
 import { getDailyReadinessReport, triggerProblemFix } from '../../api';
 import type { DailyReadinessReport } from '../../types/readiness';
-import { ArrowRight, Activity, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Activity, ShieldCheck, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function TodayPage() {
@@ -60,50 +61,65 @@ export default function TodayPage() {
         />
       </section>
 
-      {/* SECTION 2: Here's Why (Executive Questions) */}
-      <section className="space-y-4">
-        <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase ml-2">Executive Summary</h3>
-        <ExecutiveQuestionsGrid 
-          canOperate={report.business_continuity.can_operate_today}
-          canRecover={report.business_continuity.can_recover_today}
-          itemsNeedingAttention={report.immediate_actions.length + report.failed_checks.length}
-          confidencePct={report.verification.overall_confidence_pct}
-        />
-      </section>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+        <div className="lg:col-span-2 space-y-12">
+          {/* Readiness Journey (Replaces Executive Grid as the Morning Brief story) */}
+          <section>
+            <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-indigo-500" />
+              Morning Brief
+            </h2>
+            <ReadinessJourney />
+          </section>
 
-      {/* SECTION 3: Needs Attention */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between ml-2 mr-2">
-          <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase">
-            Items Requiring Attention
-          </h3>
-          {report.immediate_actions.length > 0 && (
-            <Link to="/readiness/actions" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              View All <ArrowRight className="w-4 h-4" />
-            </Link>
-          )}
+          {/* SECTION 3: Needs Attention */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between ml-2 mr-2">
+              <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase">
+                Items Requiring Attention
+              </h3>
+              {report.immediate_actions.length > 0 && (
+                <Link to="/readiness/actions" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                  View All <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+            
+            {report.immediate_actions.length === 0 ? (
+              <HealthyState />
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {report.immediate_actions.slice(0, 3).map(action => (
+                  <StatusCard key={action.id} variant="story" action={action} onFix={handleFix} />
+                ))}
+              </div>
+            )}
+          </section>
         </div>
-        
-        {report.immediate_actions.length === 0 ? (
-          <HealthyState />
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {report.immediate_actions.slice(0, 3).map(action => (
-              <StoryActionCard key={action.id} action={action} onFix={handleFix} />
-            ))}
-          </div>
-        )}
-      </section>
 
-      {/* SECTION 4: Recovery Readiness */}
-      <section className="space-y-4">
-        <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase ml-2">Recovery Readiness</h3>
-        <RecoveryReadinessBanner 
-          canRecoverToday={report.business_continuity.can_recover_today}
-          estimatedRecoveryHours={report.business_continuity.estimated_recovery_hours}
-          lastBackupVerifiedAt={report.business_continuity.last_backup_verified_at}
-        />
-      </section>
+        <div className="space-y-8">
+          {/* SECTION 2: Here's Why (Executive Questions) */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase ml-2">Executive Summary</h3>
+            <ExecutiveQuestionsGrid 
+              canOperate={report.business_continuity.can_operate_today}
+              canRecover={report.business_continuity.can_recover_today}
+              itemsNeedingAttention={report.immediate_actions.length + report.failed_checks.length}
+              confidencePct={report.verification.overall_confidence_pct}
+            />
+          </section>
+
+          {/* SECTION 4: Recovery Readiness */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-bold tracking-wider text-slate-400 uppercase ml-2">Recovery Readiness</h3>
+            <RecoveryReadinessBanner 
+              canRecoverToday={report.business_continuity.can_recover_today}
+              estimatedRecoveryHours={report.business_continuity.estimated_recovery_hours}
+              lastBackupVerifiedAt={report.business_continuity.last_backup_verified_at}
+            />
+          </section>
+        </div>
+      </div>
 
       {/* SECTION 5: Recent Changes & Coverage */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">

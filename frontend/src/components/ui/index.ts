@@ -16,8 +16,6 @@ export type { InputProps } from './Input';
 export { default as Select } from './Select';
 export type { SelectProps, SelectOption } from './Select';
 
-export { default as Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Table';
-export type { TableProps } from './Table';
 export * from './ThemeToggle';
 export * from './Toast';
 export * from './SlideOver';
@@ -25,13 +23,8 @@ export * from './SlideOver';
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from './Tabs';
 
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './Accordion';
-export type { AccordionProps, AccordionItemProps, AccordionTriggerProps, AccordionContentProps } from './Accordion';
-
 export { default as ToastProvider, useToast } from './Toast';
 export type { Toast } from './Toast';
 
-export { EmptyState } from './EmptyState';
 export { Skeleton, CardSkeleton, TableRowSkeleton, ListSkeleton, StatCardSkeleton } from './Skeleton';
 export { Tooltip } from './Tooltip';
-export { default as EnvironmentBanner } from './EnvironmentBanner';

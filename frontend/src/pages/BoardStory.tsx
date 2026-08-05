@@ -24,7 +24,7 @@ export function BoardStory() {
   const standardSections = [
     { id: 'sec-1', defaultTitle: 'Executive Summary', icon: '1' },
     { id: 'sec-2', defaultTitle: 'Overall Posture Analysis', icon: '2' },
-    { id: 'sec-3', defaultTitle: 'Telemetry Verification Status', icon: '3' },
+    { id: 'sec-3', defaultTitle: 'Telemetry Health Check Status', icon: '3' },
     { id: 'sec-4', defaultTitle: 'Critical Vulnerabilities (KEVs)', icon: '4' },
     { id: 'sec-5', defaultTitle: 'Software Lifecycle & EOL Risks', icon: '5' },
     { id: 'sec-6', defaultTitle: 'Compliance Alignment Details', icon: '6' },

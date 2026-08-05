@@ -418,7 +418,7 @@ export function EvidenceNetwork() {
             <ShieldCheck className="h-5 w-5 text-blue-650 dark:text-blue-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Evidence Network & Verification</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Evidence Network & Health Check</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-semibold">
               Is our security data fresh and mathematically verified?
             </p>
@@ -467,7 +467,7 @@ export function EvidenceNetwork() {
             }`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'network' ? 'Verification Summary' : tab === 'wazuh' ? 'Wazuh Telemetry' : tab === 'splunk' ? 'Splunk MCP Ingestion' : 'API Webhooks Gateway'}
+            {tab === 'network' ? 'Health Check Summary' : tab === 'wazuh' ? 'Wazuh Telemetry' : tab === 'splunk' ? 'Splunk MCP Ingestion' : 'API Webhooks Gateway'}
           </button>
         ))}
       </div>
@@ -706,11 +706,11 @@ export function EvidenceNetwork() {
                   )}
                 </div>
 
-                {/* Evidence Verification Results */}
+                {/* Evidence Health Check Results */}
                 {evidenceResults && (
                   <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Evidence Verification results</h3>
+                      <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Evidence Health Check results</h3>
                       <Badge variant={evidenceResults.overall_status === 'verified' ? 'success' : 'outline'} className="rounded-xl px-2.5 py-1 font-bold">
                         {evidenceResults.verified_controls}/{evidenceResults.total_controls} Controls Verified
                       </Badge>

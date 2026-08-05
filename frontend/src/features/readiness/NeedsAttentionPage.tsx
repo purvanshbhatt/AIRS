@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StoryActionCard } from '../../components/readiness/StoryActionCard';
+import { StatusCard } from '../../components/readiness/StatusCard';
 import { LoadingState, ErrorState, HealthyState } from '../../components/readiness/ReadinessStates';
 import { getDailyReadinessReport, triggerProblemFix } from '../../api';
 import type { DailyReadinessReport } from '../../types/readiness';
@@ -59,7 +59,7 @@ export default function NeedsAttentionPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {report.immediate_actions.map(action => (
-              <StoryActionCard key={action.id} action={action} onFix={handleFix} />
+              <StatusCard key={action.id} variant="story" action={action} onFix={handleFix} />
             ))}
           </div>
         )}

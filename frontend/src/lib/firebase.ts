@@ -6,7 +6,7 @@
  */
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
+import { getAuth, connectAuthEmulator, Auth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -45,6 +45,10 @@ if (isFirebaseConfigured) {
   // Initialize Firebase (avoid duplicate initialization)
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
+
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.error('[Firebase] Failed to set auth persistence:', err);
+  });
 
   // In development mode, keep Auth traffic local by default.
   // Call emulator wiring immediately after getAuth() and only once.
