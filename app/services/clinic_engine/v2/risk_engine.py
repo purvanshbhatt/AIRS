@@ -28,10 +28,26 @@ class BusinessRiskEngine:
         self.db = db
     
     def build_clinic_context(self, org_id: str) -> ClinicContext:
-        """Load all clinic domain data into a ClinicContext object."""
+        """Load all clinic domain data into a ClinicContext object.
+
+        If the organization is not yet seeded in the local DB (e.g. fresh Cloud Run
+        instance before Firestore sync completes), returns a minimal ClinicContext
+        so the ReadinessEngine can continue with graceful degradation instead of
+        raising and triggering the Unknown fallback middleware.
+        """
         org = self.db.query(Organization).filter(Organization.id == org_id).first()
         if not org:
-            raise ValueError(f"Organization {org_id} not found")
+            # Graceful degradation: org may not be seeded yet in ephemeral DB.
+            # Return a minimal context so the engine can still produce a report.
+            return ClinicContext(
+                org_id=org_id,
+                clinic_name=org_id,
+                clinic_type="medical",
+                staff=[],
+                devices=[],
+                critical_systems=[],
+                msp=None
+            )
             
         context = ClinicContext(
             org_id=org_id,
