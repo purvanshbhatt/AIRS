@@ -137,7 +137,7 @@ export default function App() {
             <ApiConfigBanner />
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Navigate to="/morning-brief" replace />} />
+              <Route path="/" element={<Landing />} />
               <Route path="/readiness" element={<Navigate to="/morning-brief" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/about" element={<About />} />
