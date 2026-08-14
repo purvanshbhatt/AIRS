@@ -6,10 +6,11 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ResilAI - AI Security Readiness</title>
-    <meta name="description" content="ResilAI helps security leaders quantify AI incident readiness and prioritize remediation." />
-    <meta property="og:title" content="ResilAI - AI Security Readiness" />
-    <meta property="og:description" content="Board-ready AI incident readiness scoring, findings, and remediation priorities." />
+    <title>ResilAI - Operational Readiness Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <meta name="description" content="ResilAI helps operational leaders quantify readiness and prioritize remediation." />
+    <meta property="og:title" content="ResilAI - Operational Readiness Platform" />
+    <meta property="og:description" content="Board-ready operational readiness scoring, findings, and remediation priorities." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/favicon.png" />
     <script>
@@ -32,8 +33,23 @@
         }
       })();
     </script>
+
+    <!-- Google tag (gtag.js) - Production Only -->
+    <script>
+      if (window.location.hostname === 'resilai.org' || window.location.hostname === 'www.resilai.org') {
+        var s1 = document.createElement('script');
+        s1.async = true;
+        s1.src = "https://www.googletagmanager.com/gtag/js?id=G-FB508WCWTW";
+        document.head.appendChild(s1);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-FB508WCWTW');
+      }
+    </script>
   </head>
-  <body class="bg-slate-50 dark:bg-slate-950">
+  <body class="bg-background text-on-surface font-sans antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
