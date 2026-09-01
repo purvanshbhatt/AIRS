@@ -59,11 +59,12 @@ def upgrade() -> None:
 
 
     with op.batch_alter_table('software_catalog', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_software_catalog_org_id'))
-        batch_op.drop_index(batch_op.f('ix_software_catalog_org_product'))
-        batch_op.drop_index(batch_op.f('ix_software_catalog_product'))
+        pass
+        # batch_op.drop_index(batch_op.f('ix_software_catalog_org_id'))
+        # batch_op.drop_index(batch_op.f('ix_software_catalog_org_product'))
+        # batch_op.drop_index(batch_op.f('ix_software_catalog_product'))
 
-    op.drop_table('software_catalog')
+    # op.drop_table('software_catalog')
     # ### end Alembic commands ###
 
 

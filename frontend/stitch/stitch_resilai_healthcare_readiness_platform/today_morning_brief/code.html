@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Today (Executive Dashboard)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#006c49",
+                        "surface-bright": "#31394d",
+                        "outline": "#86948a",
+                        "on-secondary-fixed": "#2a1700",
+                        "ready-emerald": "#10B981",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#005236",
+                        "surface-container": "#171f33",
+                        "primary-fixed": "#6ffbbe",
+                        "on-secondary-fixed-variant": "#653e00",
+                        "secondary-fixed-dim": "#ffb95f",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "critical-red": "#EF4444",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#4edea3",
+                        "on-secondary": "#472a00",
+                        "inverse-surface": "#dae2fd",
+                        "background": "#0b1326",
+                        "error-container": "#93000a",
+                        "slate-800": "#1E293B",
+                        "surface-container-low": "#131b2e",
+                        "surface-tint": "#4edea3",
+                        "primary-container": "#10b981",
+                        "on-primary-container": "#00422b",
+                        "on-secondary-container": "#5b3800",
+                        "secondary-fixed": "#ffddb8",
+                        "tertiary-container": "#9699ff",
+                        "outline-variant": "#3c4a42",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "slate-900": "#0F172A",
+                        "on-primary-fixed": "#002113",
+                        "on-background": "#dae2fd",
+                        "surface-container-high": "#222a3d",
+                        "inverse-on-surface": "#283044",
+                        "slate-50": "#F8FAFC",
+                        "drift-amber": "#F59E0B",
+                        "on-tertiary-container": "#1d17b2",
+                        "secondary-container": "#ee9800",
+                        "primary": "#4edea3",
+                        "surface-dim": "#0b1326",
+                        "tertiary": "#c0c1ff",
+                        "tertiary-fixed": "#e1e0ff",
+                        "surface-container-lowest": "#060e20",
+                        "secondary": "#ffb95f",
+                        "on-tertiary-fixed": "#07006c",
+                        "on-primary": "#003824",
+                        "error": "#ffb4ab",
+                        "surface": "#0b1326",
+                        "on-surface": "#dae2fd",
+                        "surface-container-highest": "#2d3449",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary": "#1000a9",
+                        "on-surface-variant": "#bbcabf"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "page-margin": "2rem",
+                        "container-max": "1200px",
+                        "gutter": "1.5rem",
+                        "stack-md": "1rem",
+                        "stack-sm": "0.5rem",
+                        "section-gap": "3rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "title-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "mono-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-sm": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "mono-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen antialiased flex">
+<!-- SideNavBar -->
+<nav class="hidden md:flex h-screen w-64 fixed left-0 top-0 flex-col py-6 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant z-50">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="health_and_safety">health_and_safety</span>
+</div>
+<div>
+<h1 class="text-title-md font-title-md font-bold text-primary dark:text-primary">ResilAI</h1>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Executive Health</p>
+</div>
+</div>
+<ul class="flex-1 space-y-2 px-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary-container/10 border-r-4 border-primary rounded-l-lg hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="today">today</span>
+<span class="text-label-sm font-label-sm font-medium">Today</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span class="text-label-sm font-label-sm">Needs Attention</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="restore">restore</span>
+<span class="text-label-sm font-label-sm">Recovery</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="text-label-sm font-label-sm">Documents</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+<span class="text-label-sm font-label-sm">Governance</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="extension">extension</span>
+<span class="text-label-sm font-label-sm">Connectors</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="text-label-sm font-label-sm">Operations Center</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-label-sm font-label-sm">Settings</span>
+</a>
+</li>
+</ul>
+<div class="px-6 mt-auto">
+<div class="flex items-center gap-3 p-3 rounded-lg bg-surface-container">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A professional headshot of an executive medical director in a modern, dark-themed office setting with soft, cool lighting. The aesthetic is sophisticated, trustworthy, and clinical." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQWVkqiWonCCHJPgd963olN6cxE5Nq6r1KJFjfvLoB0nGf8RslCiZ0_xMPJwGtwssRS9gIPn86e3RkoWjBfUlAA6DKL6jZyXaO7OvS7tAgjGvqHzcYrLQ6zn53aAJrCFzZsI6Q3v6I5owsrGtEzaeIeNC-gqexdlR_hZZDXk2iSZC2DOFZ-mSBTqB1rZ9qpyxPrqtRMiBjXbAbN_2P4p3ybJ5YWjoGWK-3ZFwjxF386GL9O2c_7v3h"/>
+<div class="flex-1 min-w-0">
+<p class="text-label-sm font-label-sm text-on-surface truncate">Dr. S. Chen</p>
+<p class="text-mono-sm font-mono-sm text-on-surface-variant truncate">Executive</p>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 min-h-screen pb-24 md:pb-8 flex flex-col relative">
+<!-- TopAppBar (Mobile & Search/Profile context) -->
+<header class="flex justify-between items-center px-page-margin h-20 bg-background/80 dark:bg-background/80 backdrop-blur-md border-b border-outline-variant z-40 sticky top-0 md:fixed md:top-0 md:right-0 md:w-[calc(100%-16rem)] md:border-b md:backdrop-blur-md">
+<div class="flex-1 max-w-xl hidden md:flex items-center relative">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container-high text-body-md font-body-md text-on-surface rounded-full py-2 pl-10 pr-4 border border-outline-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder-on-surface-variant/50" placeholder="Ask ResilAI..." type="text"/>
+</div>
+<div class="md:hidden">
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile text-primary font-bold">ResilAI</h1>
+</div>
+<div class="flex items-center gap-4 ml-auto">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors md:hidden">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="flex-1 max-w-[1200px] w-full mx-auto px-4 md:px-8 pt-8 md:pt-32 space-y-section-gap">
+<!-- Hero Status -->
+<section class="flex flex-col items-center justify-center text-center py-12 px-4 bg-slate-800/30 rounded-2xl border border-slate-800 backdrop-blur-sm relative overflow-hidden group hover:border-ready-emerald/30 transition-all duration-500">
+<div class="absolute inset-0 bg-gradient-to-b from-ready-emerald/5 to-transparent pointer-events-none"></div>
+<div class="relative w-48 h-48 mb-8 flex items-center justify-center">
+<!-- Outer glowing ring -->
+<svg class="absolute inset-0 w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle class="text-surface-container-high" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-width="2"></circle>
+<circle class="text-ready-emerald transition-all duration-1000 ease-out drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-dasharray="283" stroke-dashoffset="5.66" stroke-width="4"></circle>
+</svg>
+<!-- Center Icon -->
+<div class="w-32 h-32 bg-surface-container-highest rounded-full flex items-center justify-center shadow-inner border border-surface-bright relative z-10">
+<span class="material-symbols-outlined text-display-lg font-display-lg text-ready-emerald" data-icon="verified_user">verified_user</span>
+</div>
+</div>
+<h2 class="text-headline-lg font-headline-lg md:text-display-lg md:font-display-lg text-on-surface font-bold tracking-tight mb-4">READY</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
+                    Your systems are verified and secure for operations. All compliance baselines are currently met across infrastructure and endpoints.
+                </p>
+</section>
+<!-- Bento Grid Layout -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Morning Brief (Spans 8 cols on desktop) -->
+<div class="md:col-span-8 bg-surface-container-low rounded-xl border border-surface-bright p-stack-md flex flex-col justify-between hover:bg-surface-container transition-colors duration-300 relative overflow-hidden group">
+<!-- Subtle background decoration -->
+<div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-9xl" data-icon="neurology">neurology</span>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="auto_awesome">auto_awesome</span>
+<h3 class="text-title-md font-title-md text-on-surface">Morning Brief</h3>
+</div>
+<p class="text-body-lg font-body-lg text-on-surface-variant leading-relaxed mb-6">
+                            "All 14 critical systems passed verification at 2:00 AM. No compliance drift detected. Identity providers are secure, and EHR synchronization completed successfully with zero anomalies."
+                        </p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-auto relative z-10 border-t border-surface-bright pt-4">
+<div class="flex flex-col">
+<span class="text-mono-sm font-mono-sm text-on-surface-variant uppercase tracking-wider mb-1">Time</span>
+<span class="text-body-md font-body-md text-on-surface">02:00 AM</span>
+</div>
+<div class="flex flex-col">
+<span class="text-mono-sm font-mono-sm text-on-surface-variant uppercase tracking-wider mb-1">Systems</span>
+<span class="text-body-md font-body-md text-on-surface">14/14</span>
+</div>
+<div class="flex flex-col">
+<span class="text-mono-sm font-mono-sm text-on-surface-variant uppercase tracking-wider mb-1">Drift</span>
+<span class="text-body-md font-body-md text-ready-emerald">None</span>
+</div>
+<div class="flex flex-col">
+<span class="text-mono-sm font-mono-sm text-on-surface-variant uppercase tracking-wider mb-1">Status</span>
+<span class="text-body-md font-body-md text-ready-emerald font-medium flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-ready-emerald animate-pulse"></span> Active
+                            </span>
+</div>
+</div>
+</div>
+<!-- Daily Readiness Score (Spans 4 cols on desktop) -->
+<div class="md:col-span-4 bg-surface-container-low rounded-xl border border-surface-bright p-stack-md flex flex-col items-center justify-center hover:bg-surface-container transition-colors duration-300">
+<h3 class="text-title-md font-title-md text-on-surface w-full text-left mb-6">Readiness Score</h3>
+<div class="relative w-32 h-32 flex items-center justify-center mb-4">
+<!-- Background arc -->
+<svg class="absolute inset-0 w-full h-full" style="transform: rotate(180deg);" viewbox="0 0 100 50">
+<path class="text-surface-container-high" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="8"></path>
+</svg>
+<!-- Foreground arc (98%) -->
+<svg class="absolute inset-0 w-full h-full" style="transform: rotate(180deg);" viewbox="0 0 100 50">
+<path class="text-primary transition-all duration-1000 ease-out" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="2.5" stroke-linecap="round" stroke-width="8"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-end pb-2">
+<span class="text-display-lg font-display-lg text-on-surface font-bold leading-none">98</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant">%</span>
+</div>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant text-center">Top 5% of regional peers</p>
+</div>
+</section>
+<!-- Verification Summary & Quick Actions -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Overnight Verification Summary -->
+<div class="bg-surface-container-low rounded-xl border border-surface-bright p-stack-md">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-title-md font-title-md text-on-surface">Overnight Verification</h3>
+<button class="text-label-sm font-label-sm text-primary hover:text-primary-fixed transition-colors">View Logs</button>
+</div>
+<ul class="space-y-4">
+<!-- Item 1 -->
+<li class="flex items-start gap-4 p-3 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors group">
+<div class="w-10 h-10 rounded-full bg-ready-emerald/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-ready-emerald" data-icon="cloud_done">cloud_done</span>
+</div>
+<div>
+<h4 class="text-body-md font-body-md text-on-surface font-medium">Backup Integrity</h4>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1">Snapshot secured across 3 geographic zones. Immutable storage locked.</p>
+</div>
+</li>
+<!-- Item 2 -->
+<li class="flex items-start gap-4 p-3 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors group">
+<div class="w-10 h-10 rounded-full bg-ready-emerald/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-ready-emerald" data-icon="key">key</span>
+</div>
+<div>
+<h4 class="text-body-md font-body-md text-on-surface font-medium">Identity &amp; Access</h4>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1">MFA enforced for all 142 active clinical accounts. 0 suspicious logins.</p>
+</div>
+</li>
+<!-- Item 3 -->
+<li class="flex items-start gap-4 p-3 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors group">
+<div class="w-10 h-10 rounded-full bg-ready-emerald/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-ready-emerald" data-icon="sync">sync</span>
+</div>
+<div>
+<h4 class="text-body-md font-body-md text-on-surface font-medium">EHR Synchronization</h4>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1">Epic telemetry verified. HL7 streams parsed with 100% fidelity.</p>
+</div>
+</li>
+</ul>
+</div>
+<!-- Quick Actions (Triage) -->
+<div class="bg-surface-container-low rounded-xl border border-surface-bright p-stack-md flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-title-md font-title-md text-on-surface flex items-center gap-2">
+                            Quick Actions
+                            <span class="bg-secondary-container text-on-secondary-container text-mono-sm font-mono-sm px-2 py-0.5 rounded-full">2</span>
+</h3>
+</div>
+<div class="flex-1 flex flex-col gap-3">
+<!-- Action 1 -->
+<div class="flex items-center justify-between p-4 rounded-lg bg-surface-container border border-outline-variant/30 hover:border-drift-amber/50 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-drift-amber" data-icon="policy">policy</span>
+<div>
+<h4 class="text-body-md font-body-md text-on-surface font-medium">Review Q3 Compliance Report</h4>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Due in 3 days</p>
+</div>
+</div>
+<button class="px-4 py-2 rounded-md bg-transparent border border-outline-variant text-on-surface hover:bg-surface-container-high text-label-sm font-label-sm transition-colors">
+                                Review
+                            </button>
+</div>
+<!-- Action 2 -->
+<div class="flex items-center justify-between p-4 rounded-lg bg-surface-container border border-outline-variant/30 hover:border-drift-amber/50 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="badge">badge</span>
+<div>
+<h4 class="text-body-md font-body-md text-on-surface font-medium">Approve Vendor Access</h4>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Siemens Medical (Temporary)</p>
+</div>
+</div>
+<button class="px-4 py-2 rounded-md bg-transparent border border-outline-variant text-on-surface hover:bg-surface-container-high text-label-sm font-label-sm transition-colors">
+                                Approve
+                            </button>
+</div>
+<!-- Empty State Filler -->
+<div class="flex-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-surface-bright rounded-lg mt-auto opacity-50">
+<span class="material-symbols-outlined text-on-surface-variant mb-2" data-icon="done_all">done_all</span>
+<p class="text-label-sm font-label-sm text-on-surface-variant text-center">No immediate critical items pending.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Persistent Ask ResilAI Bar (Mobile focus, decorative on desktop) -->
+<div class="fixed bottom-0 left-0 w-full md:w-[calc(100%-16rem)] md:left-64 p-4 bg-background/90 backdrop-blur-lg border-t border-surface-bright md:border-none z-40 md:sticky md:bottom-8 md:bg-transparent md:px-8 pointer-events-none">
+<div class="max-w-3xl mx-auto relative pointer-events-auto shadow-2xl shadow-primary/5 rounded-full">
+<div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-tertiary rounded-full blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+<div class="relative flex items-center bg-surface-container-high rounded-full p-2 border border-outline-variant/50">
+<span class="material-symbols-outlined text-primary ml-3" data-icon="sparkles">arrow_back_ios_new</span>
+<input class="w-full bg-transparent border-none text-body-md font-body-md text-on-surface focus:ring-0 placeholder-on-surface-variant/60 ml-2" placeholder="Ask ResilAI to analyze drift, generate reports, or query logs..." type="text"/>
+<button class="bg-primary text-on-primary w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_upward">arrow_upward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Navigation Shell (BottomNavBar) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-surface-container-low border-t border-outline-variant pb-safe z-50">
+<ul class="flex justify-around items-center h-16 px-2">
+<li>
+<a class="flex flex-col items-center justify-center w-16 h-full text-primary" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="today" data-weight="fill" style="font-variation-settings: 'FILL' 1;">today</span>
+<span class="text-[10px] font-medium">Today</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant hover:text-on-surface" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="warning">warning</span>
+<span class="text-[10px] font-medium">Triage</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant hover:text-on-surface" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="hub">hub</span>
+<span class="text-[10px] font-medium">Ops</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant hover:text-on-surface" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="menu">menu</span>
+<span class="text-[10px] font-medium">More</span>
+</a>
+</li>
+</ul>
+</nav>
+</body></html>

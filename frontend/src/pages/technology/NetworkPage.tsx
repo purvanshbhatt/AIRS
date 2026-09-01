@@ -30,7 +30,7 @@ const MOCK_EVENTS: TrustEvent[] = [
     details: 'SD-WAN edge firewalls confirmed active zero-trust inspection across 12 clinic subnets.',
     oldState: 'Not Verified',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0xf7102a39d88b401'
   }
 ];
@@ -54,6 +54,8 @@ const MOCK_INVENTORY = [
   { site: 'Outpatient Clinic West', firewalls: 'Meraki MX85', zeroTrust: 'Enforced', vpnMfa: 'Active', status: 'Healthy' },
 ];
 
+import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+
 export function NetworkPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
@@ -64,6 +66,8 @@ export function NetworkPage() {
       transition={{ duration: 0.25 }}
       className="space-y-6 text-left"
     >
+      <SimulatedTelemetryBanner domainName="Network & Perimeter" />
+
       <SummaryCard
         domainName="Network & Zero Trust Infrastructure"
         status="ready"

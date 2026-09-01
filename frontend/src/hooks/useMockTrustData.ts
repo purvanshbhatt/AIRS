@@ -8,7 +8,7 @@ export interface TrustEvent {
   connector: string;
   oldState: 'Self-Attested' | 'Not Verified' | 'Partially Verified';
   newState: 'Verified' | 'Partially Verified' | 'Self-Attested';
-  status: 'success' | 'warning' | 'info';
+  status: 'ready' | 'drift' | 'critical' | 'info';
   details: string;
   evidenceHash: string;
 }
@@ -62,7 +62,7 @@ const mockData: MockTrustData = {
       connector: 'Microsoft Intune',
       oldState: 'Self-Attested',
       newState: 'Verified',
-      status: 'success',
+      status: 'ready',
       details: 'Microsoft Intune API verified BitLocker disk encryption is active on 98.4% of corporate laptop fleet.',
       evidenceHash: 'sha256:7f83b27b9492167c132890ef9892c90f230da1d02c918efca21074e2d30fa982',
     },
@@ -74,7 +74,7 @@ const mockData: MockTrustData = {
       connector: 'Okta Identity Cloud',
       oldState: 'Not Verified',
       newState: 'Verified',
-      status: 'success',
+      status: 'ready',
       details: 'Okta configuration audit verified MFA rules are enforced for 100% of administrative accounts.',
       evidenceHash: 'sha256:3a9d18efca21074e2d30fa9827f83b27b9492167c132890ef9892c90f230da1d0',
     },
@@ -86,7 +86,7 @@ const mockData: MockTrustData = {
       connector: 'Splunk Ingestion HEC',
       oldState: 'Self-Attested',
       newState: 'Partially Verified',
-      status: 'warning',
+      status: 'drift',
       details: 'Splunk HEC endpoint validated active log forwarding for 42/45 staging virtual machines. 3 hosts pending sync.',
       evidenceHash: 'sha256:f230da1d02c918efca21074e2d30fa9827f83b27b9492167c132890ef9892c90',
     },
@@ -98,7 +98,7 @@ const mockData: MockTrustData = {
       connector: 'Wazuh SIEM Manager',
       oldState: 'Self-Attested',
       newState: 'Verified',
-      status: 'success',
+      status: 'ready',
       details: 'Wazuh Agent API vulnerability scan verified zero active CVEs of CRITICAL severity outstanding in staging docker hosts.',
       evidenceHash: 'sha256:d30fa9827f83b27b9492167c132890ef9892c90f230da1d02c918efca21074e2',
     },

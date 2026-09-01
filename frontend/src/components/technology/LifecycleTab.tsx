@@ -56,13 +56,13 @@ export function LifecycleTab({ items, isLoading, error, onRetry }: LifecycleTabP
     switch (status.toLowerCase()) {
       case 'eol':
       case 'end_of_life':
-        return <Badge variant="danger" className="text-[10px] font-bold uppercase">End Of Life</Badge>;
+        return <Badge variant="critical" className="text-[10px] font-bold uppercase">End Of Life</Badge>;
       case 'deprecated':
-        return <Badge variant="warning" className="text-[10px] font-bold uppercase">Deprecated</Badge>;
+        return <Badge variant="drift" className="text-[10px] font-bold uppercase">Deprecated</Badge>;
       case 'supported':
       case 'active':
       case 'lts':
-        return <Badge variant="success" className="text-[10px] font-bold uppercase">Supported</Badge>;
+        return <Badge variant="ready" className="text-[10px] font-bold uppercase">Supported</Badge>;
       default:
         return <Badge variant="outline" className="text-[10px] font-bold uppercase text-slate-500">{status}</Badge>;
     }

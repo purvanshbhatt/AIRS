@@ -239,7 +239,7 @@ export function ConnectorActivityPanel({ orgId, host, port, onClose, onSuccess }
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
                 >
-                  <Badge variant="success" className="gap-1.5 rounded-full px-3 py-1 font-bold text-xs uppercase tracking-wider">
+                  <Badge variant="ready" className="gap-1.5 rounded-full px-3 py-1 font-bold text-xs uppercase tracking-wider">
                     <CheckCircle2 className="w-3.5 h-3.5" />✓ Connected
                   </Badge>
                 </motion.div>
@@ -250,7 +250,7 @@ export function ConnectorActivityPanel({ orgId, host, port, onClose, onSuccess }
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
                 >
-                  <Badge variant="danger" className="gap-1.5 rounded-full px-3 py-1 font-bold text-xs uppercase tracking-wider">
+                  <Badge variant="critical" className="gap-1.5 rounded-full px-3 py-1 font-bold text-xs uppercase tracking-wider">
                     <XCircle className="w-3.5 h-3.5" />Status: FAILED
                   </Badge>
                 </motion.div>

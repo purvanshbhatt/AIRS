@@ -117,6 +117,9 @@ except Exception as e:
 # since there is no persistent migration state to track.
 def _auto_create_sqlite_tables():
     """Create all tables for SQLite databases (ephemeral filesystem on Cloud Run)."""
+    import os
+    if os.environ.get("TESTING") == "true":
+        return
     if settings.DATABASE_URL.startswith("sqlite"):
         import app.models  # noqa: F401 — registers all models with Base
         Base.metadata.create_all(bind=engine)
@@ -150,6 +153,30 @@ _sync_firestore_on_startup()
 # Register the system auditing trace to record all configuration mutations
 register_system_auditor()
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifecycle event handler for background tasks."""
+    import asyncio
+    
+    # --- Startup ---
+    poll_task = asyncio.create_task(poll_wazuh_telemetry())
+    
+    from app.tasks.scheduler import scheduler
+    scheduler.start()
+
+    from app.tasks.intelligence_task import start_intelligence_scheduler
+    start_intelligence_scheduler()
+    
+    yield
+    
+    # --- Shutdown ---
+    scheduler.stop()
+    from app.tasks.intelligence_task import stop_intelligence_scheduler
+    stop_intelligence_scheduler()
+    poll_task.cancel()
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="ResilAI - AI Incident Readiness Score API",
@@ -158,6 +185,7 @@ app = FastAPI(
     docs_url=None,
     redoc_url=None,
     openapi_url=None,
+    lifespan=lifespan,
 )
 
 async def poll_wazuh_telemetry():
@@ -221,29 +249,7 @@ async def poll_wazuh_telemetry():
             
         await asyncio.sleep(60)
 
-@app.on_event("startup")
-async def start_background_tasks():
-    """Start background tasks and schedulers."""
-    import asyncio
-    asyncio.create_task(poll_wazuh_telemetry())
-    
-    # Start the global task scheduler
-    from app.tasks.scheduler import scheduler
-    scheduler.start()
 
-    # Start the intelligence task scheduler
-    from app.tasks.intelligence_task import start_intelligence_scheduler
-    start_intelligence_scheduler()
-
-@app.on_event("shutdown")
-async def stop_background_tasks():
-    """Stop all background tasks."""
-    from app.tasks.scheduler import scheduler
-    scheduler.stop()
-
-    # Stop the intelligence task scheduler
-    from app.tasks.intelligence_task import stop_intelligence_scheduler
-    stop_intelligence_scheduler()
 
 security = HTTPBasic()
 

@@ -57,11 +57,11 @@ export function ExposureTab({ items, isLoading, error, onRetry }: ExposureTabPro
   const getSeverityBadge = (severity: string) => {
     switch (severity.toLowerCase()) {
       case 'critical':
-        return <Badge variant="danger" className="text-[10px] font-bold uppercase bg-red-600">Critical</Badge>;
+        return <Badge variant="critical" className="text-[10px] font-bold uppercase bg-red-600">Critical</Badge>;
       case 'high':
-        return <Badge variant="danger" className="text-[10px] font-bold uppercase">High</Badge>;
+        return <Badge variant="critical" className="text-[10px] font-bold uppercase">High</Badge>;
       case 'medium':
-        return <Badge variant="warning" className="text-[10px] font-bold uppercase">Medium</Badge>;
+        return <Badge variant="drift" className="text-[10px] font-bold uppercase">Medium</Badge>;
       default:
         return <Badge variant="outline" className="text-[10px] font-bold uppercase text-slate-500">{severity}</Badge>;
     }

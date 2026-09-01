@@ -23,8 +23,14 @@ class Organization(Base):
     size = Column(String(50), nullable=True)  # e.g., "1-50", "51-200", "201-1000", "1000+"
     contact_email = Column(String(255), nullable=True)
     contact_name = Column(String(255), nullable=True)
+    country = Column(String(100), nullable=True)
+    region_state = Column(String(100), nullable=True)
+    regulatory_profile = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
     integration_status = Column(Text, nullable=False, default="{}")
+    timezone = Column(String(50), nullable=False, default="UTC")
+    deployment_mode = Column(String(20), nullable=False, default="production") # "sandbox", "production"
+    managed_by_msp_id = Column(CHAR(36), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True)
     # Governance & Analytics Control (Phase 5) — if False, telemetry is suppressed
     analytics_enabled = Column(sa.Boolean, nullable=False, default=True, server_default="1")
 

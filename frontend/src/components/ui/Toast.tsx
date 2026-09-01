@@ -7,7 +7,7 @@ export interface Toast {
   id: string;
   title?: string;
   message?: string;
-  type?: 'success' | 'error' | 'warning' | 'info';
+  type?: "ready" | 'error' | "drift" | 'info' | 'success' | 'warning';
   duration?: number;
 }
 

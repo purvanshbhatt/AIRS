@@ -274,6 +274,25 @@ def firestore_delete_org(org_id: str) -> bool:
         raise FirestoreUnavailableError(f"Failed to delete organization from Firestore: {exc}")
 
 
+def firestore_get_org(org_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Fetch a single organization from Firestore by ID.
+    
+    Returns None if Firestore is unavailable or the document does not exist.
+    """
+    if not is_firestore_available() or not org_id:
+        return None
+    try:
+        client = get_firestore_client()
+        doc = client.collection("organizations").document(org_id).get()
+        if doc.exists:
+            return _decrypt_org_doc(doc.to_dict())
+        return None
+    except Exception as exc:
+        logger.error("Firestore get_org failed for %s: %s", org_id, exc)
+        return None
+
+
 def firestore_get_all_orgs(owner_uid: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Fetch all organizations from Firestore, optionally filtered by owner.

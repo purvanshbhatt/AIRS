@@ -181,7 +181,7 @@ def build_simulated_retrieval_chunks() -> List[str]:
     """Preloaded deterministic scenario for demo mode attack simulation."""
     return [
         (
-            "Acme Health Systems benefits handbook: 401k matching policy is 5% "
+            "ResilAI Sandbox Clinic benefits handbook: 401k matching policy is 5% "
             "for full-time employees after 90 days of employment."
         ),
         (
@@ -215,7 +215,7 @@ def render_safe_answer(chunks: List[str], query: str) -> str:
     combined = " ".join(chunks).lower()
     if "5%" in " ".join(chunks):
         return (
-            "Based on trusted policy context, Acme Health Systems offers a 5% 401k match "
+            "Based on trusted policy context, ResilAI Sandbox Clinic offers a 5% 401k match "
             "for full-time employees after the eligibility window. "
             "Use internal.company.com or your HR portal for confirmation."
         )

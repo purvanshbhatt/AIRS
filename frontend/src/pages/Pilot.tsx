@@ -260,7 +260,7 @@ export default function PilotPage() {
                           required
                           label="Company Name"
                           value={form.company_name}
-                          placeholder="Acme Corp"
+                          placeholder="City General Hospital"
                           onChange={update('company_name')}
                         />
                         <div>

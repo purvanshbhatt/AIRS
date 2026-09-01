@@ -296,8 +296,13 @@ async def test_verification_service_evaluation():
 # API Route Endpoint Tests
 # =============================================================================
 
-def test_api_routes_not_found(client):
+def test_api_routes_not_found(client, db_session):
     """Verify that Microsoft API endpoints return 404 if no connector is registered."""
+    from app.models import Organization
+    org = Organization(id="org-123", name="Test Org", owner_uid="user-123")
+    db_session.add(org)
+    db_session.commit()
+
     mock_user = MagicMock()
     mock_user.org_id = "org-123"
     mock_user.uid = "user-123"

@@ -10,6 +10,8 @@ from app.services.evidence.base_adapter import (
     AdapterHealth,
     EvidenceAdapter,
     EvidenceRecord,
+    WebhookEvidenceAdapter,
+    ManualUploadAdapter,
 )
 from app.services.evidence.registry import (
     EvidenceRegistry,
@@ -22,6 +24,8 @@ __all__ = [
     "EvidenceAdapter",
     "EvidenceRecord",
     "EvidenceRegistry",
+    "WebhookEvidenceAdapter",
+    "ManualUploadAdapter",
     "get_instance",
     "reset_instance",
 ]

@@ -36,7 +36,7 @@ const MOCK_IDENTITY_EVENTS: TrustEvent[] = [
     details: 'Enforced FIDO2 / WebAuthn security key requirement on 45 executive and administrator identities.',
     oldState: 'Not Verified',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0x918f4a2b6d19c02'
   },
   {
@@ -48,7 +48,7 @@ const MOCK_IDENTITY_EVENTS: TrustEvent[] = [
     details: 'Domain Admin emergency credentials successfully rotated; automatic session timeout set to 15m.',
     oldState: 'Self-Attested',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0xc31e782a4d091fb'
   }
 ];
@@ -73,6 +73,8 @@ const MOCK_IDENTITY_INVENTORY = [
   { provider: 'PingFederate', scope: 'Legacy Systems', activeUsers: 140, mfaRate: '94.2%', status: 'Warning' },
 ];
 
+import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+
 export function IdentityPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
@@ -83,6 +85,8 @@ export function IdentityPage() {
       transition={{ duration: 0.25 }}
       className="space-y-6 text-left"
     >
+      <SimulatedTelemetryBanner domainName="Identity & Access" />
+
       {/* Executive Summary Card ("So What?") */}
       <SummaryCard
         domainName="Identity & Access Management"
@@ -95,7 +99,7 @@ export function IdentityPage() {
           { label: 'MFA Coverage', value: '99.4%', status: 'good', subtitle: 'Target 99%+' },
           { label: 'Privileged Access', value: '100% Monitored', status: 'good' },
           { label: 'Suspicious Logins', value: '0 Active', status: 'good' },
-          { label: 'Offboard Delay', value: '3 Pending', status: 'warning' },
+          { label: 'Offboard Delay', value: '3 Pending', status: "drift" },
         ]}
       />
 

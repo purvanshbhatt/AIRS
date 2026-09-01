@@ -110,12 +110,15 @@ def test_asset_discovery_counts(db_session: Session, mock_org: Organization):
     assert critical_count == 1
 
 
-@patch("app.core.config.Settings.is_staging", new_callable=lambda: True)
+from unittest.mock import patch, PropertyMock
+
+@patch("app.core.config.Settings.is_staging", new_callable=PropertyMock, return_value=True)
 @patch("app.core.config.settings.ENV", Environment.STAGING)
 def test_api_list_endpoint_triggers_discovery(mock_is_staging, client: TestClient, db_session: Session, mock_org: Organization, mock_user):
     """Verify that GET /api/governance/{org_id}/tech-stack triggers discovery in staging."""
     from app.core.auth import require_auth
     from app.core.demo_guard import require_writable
+    from app.db.database import get_db
 
     def mock_require_auth():
         return mock_user
@@ -123,8 +126,12 @@ def test_api_list_endpoint_triggers_discovery(mock_is_staging, client: TestClien
     def mock_require_writable():
         return None
 
+    def mock_get_db():
+        yield db_session
+
     client.app.dependency_overrides[require_auth] = mock_require_auth
     client.app.dependency_overrides[require_writable] = mock_require_writable
+    client.app.dependency_overrides[get_db] = mock_get_db
 
     try:
         resp = client.get(f"/api/governance/{mock_org.id}/tech-stack")
@@ -144,7 +151,7 @@ def test_api_list_endpoint_triggers_discovery(mock_is_staging, client: TestClien
         client.app.dependency_overrides.clear()
 
 
-@patch("app.core.config.Settings.is_staging", new_callable=lambda: True)
+@patch("app.core.config.Settings.is_staging", new_callable=PropertyMock, return_value=True)
 @patch("app.core.config.settings.ENV", Environment.STAGING)
 def test_validation_engine_triggers_discovery(mock_is_staging, db_session: Session, mock_org: Organization):
     """Verify that validate_organization triggers discovery in staging and uses discovered assets."""

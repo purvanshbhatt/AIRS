@@ -7,13 +7,13 @@ import { TrustBadge } from '../readiness/TrustBadge';
 export interface MetricItem {
   label: string;
   value: string | number;
-  status?: 'good' | 'warning' | 'error' | 'neutral';
+  status?: 'good' | "drift" | 'error' | 'neutral';
   subtitle?: string;
 }
 
 export interface SummaryCardProps {
   domainName: string;
-  status?: 'ready' | 'warning' | 'error' | 'healthy';
+  status?: 'ready' | "drift" | 'error' | 'healthy';
   readinessScore?: number;
   soWhat: string; // Business answer ("So what?")
   lastVerifiedText?: string;
@@ -26,20 +26,20 @@ export interface SummaryCardProps {
 export function SummaryCard({
   domainName,
   status = 'ready',
-  readinessScore = 98,
+  readinessScore = 0,
   soWhat,
-  lastVerifiedText = 'Verified 5m ago via Telemetry Connectors',
+  lastVerifiedText = 'Unable to Verify',
   keyMetrics = [],
   icon: Icon = ShieldCheck,
   actions,
   className,
 }: SummaryCardProps) {
   const statusToken = status === 'error' ? tokens.status.error :
-                      status === 'warning' ? tokens.status.warning :
+                      status === "drift" ? tokens.status.warning :
                       tokens.status.ready;
 
   const StatusIcon = status === 'error' ? AlertOctagon :
-                     status === 'warning' ? AlertTriangle :
+                     status === "drift" ? AlertTriangle :
                      CheckCircle2;
 
   return (
@@ -100,7 +100,7 @@ export function SummaryCard({
           {keyMetrics.map((metric, index) => {
             const metricStatusClass =
               metric.status === 'error' ? 'text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30' :
-              metric.status === 'warning' ? 'text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30' :
+              metric.status === "drift" ? 'text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30' :
               metric.status === 'good' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30' :
               'text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800';
 

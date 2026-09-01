@@ -40,11 +40,11 @@ import TrustScore from '../components/dashboard/TrustScore'
 import VerificationSummaryGrid from '../components/dashboard/VerificationSummaryGrid'
 import EvidenceTimeline from '../components/dashboard/EvidenceTimeline'
 
-function getReadinessLevel(score: number): { label: string; variant: 'danger' | 'warning' | 'primary' | 'success' } {
-  if (score <= 40) return { label: 'Critical', variant: 'danger' }
-  if (score <= 60) return { label: 'At Risk', variant: 'warning' }
+function getReadinessLevel(score: number): { label: string; variant: "critical" | "drift" | 'primary' | "ready" } {
+  if (score <= 40) return { label: 'Critical', variant: "critical" }
+  if (score <= 60) return { label: 'At Risk', variant: "drift" }
   if (score <= 80) return { label: 'Managed', variant: 'primary' }
-  return { label: 'Resilient', variant: 'success' }
+  return { label: 'Resilient', variant: "ready" }
 }
 
 export default function Results() {
@@ -340,16 +340,16 @@ export default function Results() {
       {/* Trust Score Hero breakdown */}
       <TrustScore
         score={trustData?.overallScore ?? Math.round(summary.overall_score)}
-        verifiedTelemetryPct={trustData?.verifiedTelemetryPct ?? 65}
-        selfAttestedPct={trustData?.selfAttestedPct ?? 35}
+        verifiedTelemetryPct={trustData?.verifiedTelemetryPct ?? 0}
+        selfAttestedPct={trustData?.selfAttestedPct ?? 0}
       />
 
       {/* Verification summary counts grid */}
       <VerificationSummaryGrid
-        verified={trustData?.verificationSummary.verified ?? 22}
-        partiallyVerified={trustData?.verificationSummary.partiallyVerified ?? 14}
-        selfAttested={trustData?.verificationSummary.selfAttested ?? 12}
-        notVerified={trustData?.verificationSummary.notVerified ?? 8}
+        verified={trustData?.verificationSummary.verified ?? 0}
+        partiallyVerified={trustData?.verificationSummary.partiallyVerified ?? 0}
+        selfAttested={trustData?.verificationSummary.selfAttested ?? 0}
+        notVerified={trustData?.verificationSummary.notVerified ?? 0}
       />
 
       {/* Historical trend charting and evidence transition activity logs */}

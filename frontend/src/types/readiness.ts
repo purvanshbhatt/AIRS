@@ -1,4 +1,4 @@
-export type ReadinessStatus = 'safe_to_open' | 'action_needed' | 'critical_risk' | 'unknown';
+export type ReadinessStatus = 'safe_to_open' | 'action_needed' | 'action_required' | 'critical_risk' | 'unknown' | string;
 
 export interface DailyReadinessReport {
   org_id: string;
@@ -31,15 +31,32 @@ export interface TimelineEvent {
   impact?: string; // what changed / why it matters
 }
 
-export interface BusinessContinuity {
-  ransomware_safe: boolean;
+export interface OperationalReadiness {
   can_operate_today: boolean;
-  can_recover_today: boolean;
-  blockers: string[];
-  estimated_recovery_hours: number;
-  last_backup_verified_at: string;
-  verified_systems: string[];
-  assumed_systems: string[];
+  can_recover: boolean;
+  current_blockers: string[];
+  estimated_downtime_minutes: number;
+  critical_systems_verified: string[];
+  critical_systems_assumed: string[];
+}
+
+export interface BusinessContinuity {
+  safe_to_operate?: boolean;
+  executive_verdict?: string;
+  rto_estimate_minutes?: number;
+  rpo_status?: string;
+  operational_readiness: OperationalReadiness;
+}
+
+export interface ExecutiveExplanation {
+  status: string;
+  business_label: string;
+  technical_label: string;
+  what_it_means: string;
+  why_it_matters: string;
+  what_to_do_next: string;
+  evidence_state: string;
+  last_verified_at: string;
 }
 
 export interface ReadinessCheck {
@@ -47,6 +64,7 @@ export interface ReadinessCheck {
   name: string;
   category: string;
   description?: string;
+  explanation?: ExecutiveExplanation;
 }
 
 export interface UnknownItem {
@@ -67,6 +85,7 @@ export interface ActionCard {
   last_verified_at: string;
   confidence_pct: number;
   verification_method: string;
+  explanation?: ExecutiveExplanation;
 }
 
 export interface CoverageArea {

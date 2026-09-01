@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Cpu, Plus, X, AlertTriangle } from 'lucide-react';
+import { useActiveOrg } from '../hooks/useActiveOrg';
+import { Link } from 'react-router-dom';
+import { Cpu, Plus, X, AlertTriangle, Building, ArrowRight } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
+import { LoadingState, ErrorState } from '../components/readiness/ReadinessStates';
 import {
-  getOrganizations,
   getTechInventory,
   getTechLifecycle,
   getTechExposure,
@@ -50,9 +52,15 @@ const LTS_OPTIONS = [
 
 export function TechnologyIntelligence() {
   const [searchParams] = useSearchParams();
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [selectedOrgId, setSelectedOrgId] = useState(searchParams.get('org') || '');
+  const { orgId: activeOrgId, orgs, hasOrg, isDemo, loading: orgLoading, selectOrg } = useActiveOrg();
+  const [selectedOrgId, setSelectedOrgId] = useState(searchParams.get('org') || activeOrgId || '');
   const [activeTab, setActiveTab] = useState<'inventory' | 'lifecycle' | 'exposure' | 'dependencies' | 'timeline' | 'insights'>('inventory');
+
+  useEffect(() => {
+    if (activeOrgId && !searchParams.get('org')) {
+      setSelectedOrgId(activeOrgId);
+    }
+  }, [activeOrgId, searchParams]);
   
   // Data States
   const [inventory, setInventory] = useState<TechInventoryItem[]>([]);
@@ -82,36 +90,25 @@ export function TechnologyIntelligence() {
   
   const isReadOnly = useIsReadOnly();
 
-  // Load organizations on mount
-  useEffect(() => {
-    getOrganizations()
-      .then((orgs) => {
-        setOrganizations(orgs);
-        if (!selectedOrgId && orgs.length > 0) {
-          setSelectedOrgId(orgs[0].id);
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load organizations', err);
-      });
-  }, []);
-
   // Fetch all intelligence data when org changes
   const fetchAllData = async () => {
-    if (!selectedOrgId) return;
+    if (!selectedOrgId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const [invData, lcData, expData, covData] = await Promise.all([
-        getTechInventory(selectedOrgId),
-        getTechLifecycle(selectedOrgId),
-        getTechExposure(selectedOrgId),
-        getFrameworkCoverage(selectedOrgId),
+        getTechInventory(selectedOrgId).catch(() => []),
+        getTechLifecycle(selectedOrgId).catch(() => []),
+        getTechExposure(selectedOrgId).catch(() => []),
+        getFrameworkCoverage(selectedOrgId).catch(() => []),
       ]);
-      setInventory(invData);
-      setLifecycle(lcData);
-      setExposure(expData);
-      setCoverage(covData);
+      setInventory(invData || []);
+      setLifecycle(lcData || []);
+      setExposure(expData || []);
+      setCoverage(covData || []);
     } catch (err) {
       setError(
         err instanceof ApiRequestError 
@@ -124,13 +121,16 @@ export function TechnologyIntelligence() {
   };
 
   useEffect(() => {
-    fetchAllData();
-  }, [selectedOrgId]);
+    if (selectedOrgId) {
+      fetchAllData();
+    } else if (!orgLoading) {
+      setLoading(false);
+    }
+  }, [selectedOrgId, orgLoading]);
 
   const handleAdd = async () => {
     if (!selectedOrgId || !newItem.component_name || !newItem.version) return;
     try {
-      // In Sprint 1.8, creating a tech stack item updates the underlying inventory
       await createTechStackItem(selectedOrgId, {
         component_name: newItem.component_name,
         version: newItem.version,
@@ -153,6 +153,38 @@ export function TechnologyIntelligence() {
       );
     }
   };
+
+  if (orgLoading || loading) return <LoadingState message="Loading technology intelligence & inventory..." />;
+
+  if (!hasOrg && !isDemo) {
+    return (
+      <div className="space-y-8 animate-fade-up max-w-2xl mx-auto py-12">
+        <div className="bg-slate-900/60 dark:bg-slate-900/60 rounded-3xl border border-slate-800 p-8 sm:p-10 text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <Building className="w-8 h-8 text-emerald-500" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
+              Set up your readiness workspace
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+              Create an organization to track your tech stack lifecycle, component support, and vulnerability exposures.
+            </p>
+          </div>
+          <div>
+            <Link
+              to="/onboarding?new=true"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-br from-primary-600 to-emerald-500 text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-primary-500/25 transition-all active:scale-[0.98]"
+            >
+              <Building className="w-4 h-4" />
+              <span>Create Organization</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -177,16 +209,21 @@ export function TechnologyIntelligence() {
           </div>
         </div>
         <div className="flex gap-3 items-center">
-          <select
-            aria-label="Select Organization"
-            className="rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold"
-            value={selectedOrgId}
-            onChange={(e) => setSelectedOrgId(e.target.value)}
-          >
-            {organizations.map((org) => (
-              <option key={org.id} value={org.id}>{org.name}</option>
-            ))}
-          </select>
+          {orgs.length > 1 && (
+            <select
+              aria-label="Select Organization"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2 text-sm bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold"
+              value={selectedOrgId}
+              onChange={(e) => {
+                setSelectedOrgId(e.target.value);
+                selectOrg(e.target.value);
+              }}
+            >
+              {orgs.map((org) => (
+                <option key={org.id} value={org.id}>{org.name}</option>
+              ))}
+            </select>
+          )}
           {!isReadOnly && (
             <Button onClick={() => setShowAddForm(true)} className="gap-1.5 rounded-xl font-extrabold shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white">
               <Plus className="w-4 h-4" /> Add Component

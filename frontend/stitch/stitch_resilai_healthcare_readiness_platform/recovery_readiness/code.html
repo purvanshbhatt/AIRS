@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Recovery Readiness</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            font-feature-settings: 'liga';
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#006c49",
+                        "surface-bright": "#31394d",
+                        "outline": "#86948a",
+                        "on-secondary-fixed": "#2a1700",
+                        "ready-emerald": "#10B981",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#005236",
+                        "surface-container": "#171f33",
+                        "primary-fixed": "#6ffbbe",
+                        "on-secondary-fixed-variant": "#653e00",
+                        "secondary-fixed-dim": "#ffb95f",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "critical-red": "#EF4444",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed-dim": "#4edea3",
+                        "on-secondary": "#472a00",
+                        "inverse-surface": "#dae2fd",
+                        "background": "#0b1326",
+                        "error-container": "#93000a",
+                        "slate-800": "#1E293B",
+                        "surface-container-low": "#131b2e",
+                        "surface-tint": "#4edea3",
+                        "primary-container": "#10b981",
+                        "on-primary-container": "#00422b",
+                        "on-secondary-container": "#5b3800",
+                        "secondary-fixed": "#ffddb8",
+                        "tertiary-container": "#9699ff",
+                        "outline-variant": "#3c4a42",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "slate-900": "#0F172A",
+                        "on-primary-fixed": "#002113",
+                        "on-background": "#dae2fd",
+                        "surface-container-high": "#222a3d",
+                        "inverse-on-surface": "#283044",
+                        "slate-50": "#F8FAFC",
+                        "drift-amber": "#F59E0B",
+                        "on-tertiary-container": "#1d17b2",
+                        "secondary-container": "#ee9800",
+                        "primary": "#4edea3",
+                        "surface-dim": "#0b1326",
+                        "tertiary": "#c0c1ff",
+                        "tertiary-fixed": "#e1e0ff",
+                        "surface-container-lowest": "#060e20",
+                        "secondary": "#ffb95f",
+                        "on-tertiary-fixed": "#07006c",
+                        "on-primary": "#003824",
+                        "error": "#ffb4ab",
+                        "surface": "#0b1326",
+                        "on-surface": "#dae2fd",
+                        "surface-container-highest": "#2d3449",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary": "#1000a9",
+                        "on-surface-variant": "#bbcabf"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "page-margin": "2rem",
+                        "container-max": "1200px",
+                        "gutter": "1.5rem",
+                        "stack-md": "1rem",
+                        "stack-sm": "0.5rem",
+                        "section-gap": "3rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "headline-lg-mobile": ["Inter", "sans-serif"],
+                        "title-md": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"],
+                        "mono-sm": ["JetBrains Mono", "monospace"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-sm": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "mono-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background dark:bg-background text-on-surface font-body-md antialiased min-h-screen">
+<!-- SideNavBar -->
+<nav class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant flex flex-col h-full py-6 z-50">
+<!-- Brand -->
+<div class="px-6 mb-8 flex flex-col gap-1">
+<div class="text-title-md font-title-md font-bold text-primary dark:text-primary">ResilAI</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant">Executive Health</div>
+</div>
+<!-- Navigation Tabs -->
+<div class="flex flex-col flex-1 overflow-y-auto">
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="today">today</span>
+<span class="text-label-sm font-label-sm">Today</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span class="text-label-sm font-label-sm">Needs Attention</span>
+</a>
+<!-- Active: Recovery -->
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary-container/10 border-r-4 border-primary opacity-80 scale-[0.99] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="restore" data-weight="fill" style="font-variation-settings: 'FILL' 1;">restore</span>
+<span class="text-label-sm font-label-sm">Recovery</span>
+</a>
+<!-- Inactive -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="text-label-sm font-label-sm">Documents</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+<span class="text-label-sm font-label-sm">Governance</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="extension">extension</span>
+<span class="text-label-sm font-label-sm">Connectors</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="text-label-sm font-label-sm">Operations Center</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 mt-auto" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-label-sm font-label-sm">Settings</span>
+</a>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-background/80 dark:bg-background/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-page-margin h-20">
+<!-- Search Bar -->
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full bg-surface-container-highest border-none rounded-full pl-10 pr-4 py-2 text-label-sm font-label-sm text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background transition-all" placeholder="Search..." type="text"/>
+</div>
+<!-- Trailing Icons -->
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-high focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-high focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="ml-64 mt-20 p-page-margin max-w-container-max mx-auto">
+<!-- Header -->
+<div class="mb-section-gap">
+<h1 class="text-headline-lg font-headline-lg text-on-surface mb-2">Recovery Readiness</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-2xl">Your organization's resilience telemetry indicates a highly optimized bounce-back posture. All critical databases are within expected recovery time objectives.</p>
+</div>
+<!-- Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- TTR Card (Col span 4) -->
+<div class="col-span-1 md:col-span-4 bg-slate-800 rounded-xl border border-outline-variant p-stack-md flex flex-col justify-between hover:border-surface-tint hover:shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-ready-emerald/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-center justify-between mb-8 relative z-10">
+<h2 class="text-title-md font-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-ready-emerald">timer</span>
+                        Time to Recovery
+                    </h2>
+<span class="px-2 py-1 bg-ready-emerald/10 text-ready-emerald text-mono-sm font-mono-sm rounded border border-ready-emerald/20">Optimal</span>
+</div>
+<div class="relative z-10">
+<div class="text-[56px] leading-[64px] font-bold text-ready-emerald tracking-tight mb-2">14<span class="text-headline-lg font-headline-lg text-on-surface-variant ml-1">Min</span></div>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Estimated restoration time for Tier 1 Patient Databases from the last snapshot.</p>
+</div>
+</div>
+<!-- Backup Health Timeline (Col span 8) -->
+<div class="col-span-1 md:col-span-8 bg-slate-800 rounded-xl border border-outline-variant p-stack-md hover:border-surface-tint hover:shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-title-md font-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">history</span>
+                        Backup Health (7 Days)
+                    </h2>
+<a class="text-label-sm font-label-sm text-primary hover:underline" href="#">View Logs</a>
+</div>
+<div class="h-full flex flex-col justify-center pb-4">
+<div class="flex justify-between items-end gap-2 h-32 mb-4">
+<!-- Bar 1 -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full bg-ready-emerald rounded-t-md h-full opacity-80 group-hover:opacity-100 transition-opacity relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-mono-sm font-mono-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">100%</div>
+</div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant">Mon</span>
+</div>
+<!-- Bar 2 -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full bg-ready-emerald rounded-t-md h-[95%] opacity-80 group-hover:opacity-100 transition-opacity relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-mono-sm font-mono-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">100%</div>
+</div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant">Tue</span>
+</div>
+<!-- Bar 3 -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full bg-ready-emerald rounded-t-md h-[98%] opacity-80 group-hover:opacity-100 transition-opacity relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-mono-sm font-mono-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">100%</div>
+</div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant">Wed</span>
+</div>
+<!-- Bar 4 (Warning) -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full bg-drift-amber rounded-t-md h-[70%] opacity-80 group-hover:opacity-100 transition-opacity relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-drift-amber text-mono-sm font-mono-sm px-2 py-1 rounded border border-drift-amber/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Delayed</div>
+</div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant">Thu</span>
+</div>
+<!-- Bar 5 -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full bg-ready-emerald rounded-t-md h-full opacity-80 group-hover:opacity-100 transition-opacity relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-mono-sm font-mono-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">100%</div>
+</div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant">Fri</span>
+</div>
+<!-- Bar 6 -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full bg-ready-emerald rounded-t-md h-[96%] opacity-80 group-hover:opacity-100 transition-opacity relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-mono-sm font-mono-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">100%</div>
+</div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant">Sat</span>
+</div>
+<!-- Bar 7 -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full bg-ready-emerald rounded-t-md h-full opacity-80 group-hover:opacity-100 transition-opacity relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-mono-sm font-mono-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">100%</div>
+</div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant text-on-surface">Today</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Redundancy Map (Col span 8) -->
+<div class="col-span-1 md:col-span-8 bg-slate-800 rounded-xl border border-outline-variant p-0 overflow-hidden hover:border-surface-tint hover:shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300 relative h-96 flex flex-col">
+<div class="p-stack-md border-b border-outline-variant bg-slate-800/90 backdrop-blur-sm z-10">
+<h2 class="text-title-md font-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">lan</span>
+                        System Redundancy Map
+                    </h2>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1">Real-time failover routing and geographical distribution.</p>
+</div>
+<div class="flex-1 relative bg-surface-container-lowest">
+<!-- High-end map visualization placeholder -->
+<div class="absolute inset-0 bg-cover bg-center opacity-60 mix-blend-screen" data-alt="A highly detailed, futuristic dark-mode geographical map visualization showing glowing data nodes connected by sweeping, luminous lines across continents. The aesthetic is extremely technical and precise, reminiscent of high-end cybersecurity command centers or advanced sci-fi interfaces. The color palette features deep slate and obsidian blacks, illuminated by sharp accents of vibrant emerald green and cyan representing active data streams. The mood is authoritative, secure, and technologically advanced." data-location="Global" style="background-image: url('https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg')"></div>
+<!-- Overlay UI on Map -->
+<div class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md border border-outline-variant rounded-lg p-3">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-ready-emerald shadow-[0_0_8px_#10B981]"></div>
+<span class="text-label-sm font-label-sm text-on-surface">Primary Region Active</span>
+</div>
+<div class="flex items-center gap-3 mt-2">
+<div class="w-3 h-3 rounded-full bg-outline shadow-[0_0_8px_#86948a]"></div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">Failover Ready</span>
+</div>
+</div>
+</div>
+</div>
+<!-- DR Plan Status (Col span 4) -->
+<div class="col-span-1 md:col-span-4 bg-slate-800 rounded-xl border border-outline-variant p-stack-md flex flex-col hover:border-surface-tint hover:shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden group">
+<h2 class="text-title-md font-title-md text-on-surface flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary">fact_check</span>
+                    Disaster Recovery Plan
+                </h2>
+<div class="flex-1 flex flex-col justify-center items-center text-center p-4">
+<div class="w-16 h-16 rounded-full bg-primary-container/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[32px] text-primary">verified</span>
+</div>
+<div class="text-headline-lg font-headline-lg text-on-surface mb-2">Verified</div>
+<p class="text-body-md font-body-md text-on-surface-variant">Your automated DR playbook was successfully simulated and verified <strong>4 days ago</strong>.</p>
+</div>
+<button class="w-full py-3 mt-4 border border-slate-50/20 rounded-lg text-label-sm font-label-sm text-on-surface hover:bg-slate-50/5 transition-colors">
+                    Review Playbook
+                </button>
+</div>
+</div>
+</main>
+</body></html>

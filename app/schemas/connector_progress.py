@@ -32,7 +32,7 @@ class ConnectorProgressEvent(BaseModel):
         "json_schema_extra": {
             "example": {
                 "type": "connector_progress",
-                "org_id": "default-org",
+                "org_id": "org-123",
                 "connector_type": "wazuh",
                 "state": "CONNECTING",
                 "status_message": "Connecting to Wazuh Manager...",

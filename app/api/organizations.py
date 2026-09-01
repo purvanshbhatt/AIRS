@@ -118,7 +118,11 @@ async def list_organizations(
     user: User = Depends(require_auth)
 ):
     """List organizations owned by the current user."""
-    ensure_demo_seed_data(db, user.uid if user else None)
+    # NOTE: ensure_demo_seed_data was removed from this endpoint.
+    # Demo seeding ONLY runs when settings.is_demo_mode is True,
+    # but invoking it on every real customer org list request is
+    # architecturally wrong. Demo seeding belongs in the demo
+    # environment startup, not in production API paths.
     service = get_org_service(db, user)
     return service.get_all(skip=skip, limit=limit)
 
@@ -448,5 +452,238 @@ async def export_audit_trail(
     return Response(
         content=json_bytes,
         media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Organization-Scoped Reports
+# ─────────────────────────────────────────────────────────────────────
+
+class OrgReportCreateRequest(BaseModel):
+    """Request to generate a report for an organization."""
+    assessment_id: str = Field(..., description="Assessment ID to generate report for")
+    title: str | None = Field(None, max_length=255)
+
+
+@router.post(
+    "/{org_id}/reports",
+    status_code=status.HTTP_201_CREATED,
+    summary="Generate Organization Report",
+    description="Generate a new executive report for the organization.",
+    responses={
+        201: {"description": "Report created"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Organization or assessment not found"},
+    },
+)
+async def create_org_report(
+    org_id: str,
+    body: OrgReportCreateRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+    _: None = Depends(require_writable),
+):
+    """Generate a new report for an organization."""
+    from app.services.report import ReportService
+    from app.schemas.report import ReportCreate, ReportType
+
+    # Verify org ownership
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "ORGANIZATION_NOT_FOUND", "message": "Organization not found."}},
+        )
+
+    report_service = ReportService(db, owner_uid=user.uid)
+
+    try:
+        report = report_service.create(
+            assessment_id=body.assessment_id,
+            data=ReportCreate(title=body.title, report_type=ReportType.EXECUTIVE_PDF),
+        )
+        record_audit_event(db, org_id, "report.generated", user.uid)
+        return {
+            "id": report.id,
+            "title": report.title,
+            "report_type": report.report_type,
+            "created_at": report.created_at,
+            "status": getattr(report, "status", "completed"),
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "RESOURCE_NOT_FOUND", "message": str(e)}},
+        )
+
+
+@router.get(
+    "/{org_id}/reports",
+    summary="List Organization Reports",
+    description="List all reports for an organization owned by the current user.",
+    responses={
+        200: {"description": "List of reports"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Organization not found"},
+    },
+)
+async def list_org_reports(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """List reports for an organization."""
+    from app.services.report import ReportService
+
+    # Verify org ownership
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "ORGANIZATION_NOT_FOUND", "message": "Organization not found."}},
+        )
+
+    report_service = ReportService(db, owner_uid=user.uid)
+    reports, total = report_service.list(organization_id=org_id)
+
+    return {
+        "reports": [
+            {
+                "id": r.id,
+                "title": r.title,
+                "report_type": r.report_type,
+                "overall_score": r.overall_score,
+                "findings_count": r.findings_count,
+                "created_at": r.created_at,
+                "status": getattr(r, "status", "completed"),
+            }
+            for r in reports
+        ],
+        "total": total,
+    }
+
+
+@router.get(
+    "/{org_id}/reports/{report_id}",
+    summary="Get Organization Report",
+    description="Get report details for an organization.",
+    responses={
+        200: {"description": "Report details"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Report not found"},
+    },
+)
+async def get_org_report(
+    org_id: str,
+    report_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Get a specific report with snapshot data."""
+    from app.services.report import ReportService
+
+    # Verify org ownership
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "ORGANIZATION_NOT_FOUND", "message": "Organization not found."}},
+        )
+
+    report_service = ReportService(db, owner_uid=user.uid)
+    result = report_service.get_with_snapshot(report_id)
+    if not result or result.get("organization_id") != org_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "REPORT_NOT_FOUND", "message": "Report not found."}},
+        )
+
+    return result
+
+
+@router.get(
+    "/{org_id}/reports/{report_id}/download",
+    summary="Download Organization Report",
+    description="Download the report as a PDF via a signed URL.",
+    responses={
+        200: {"description": "Signed URL for PDF download"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Report not found"},
+    },
+)
+async def download_org_report(
+    org_id: str,
+    report_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Download a report as PDF via signed URL."""
+    from app.services.report import ReportService
+    from app.services.assessment import AssessmentService
+    from app.reports.pdf import ProfessionalPDFGenerator
+
+    # Verify org ownership
+    service = get_org_service(db, user)
+    org = service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "ORGANIZATION_NOT_FOUND", "message": "Organization not found."}},
+        )
+
+    report_service = ReportService(db, owner_uid=user.uid)
+    result = report_service.get_with_snapshot(report_id)
+    if not result or result.get("organization_id") != org_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "REPORT_NOT_FOUND", "message": "Report not found."}},
+        )
+
+    # Get assessment data for PDF generation
+    assessment_service = AssessmentService(db, owner_uid=user.uid)
+    assessment_detail = assessment_service.get_detail(result["assessment_id"])
+
+    if not assessment_detail:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "ASSESSMENT_NOT_FOUND", "message": "Assessment not found for report."}},
+        )
+
+    # Enrich with summary analytics
+    assessment_summary = assessment_service.get_summary(result["assessment_id"])
+    if assessment_summary:
+        for field in ("analytics", "framework_mapping", "detailed_roadmap", "roadmap"):
+            if field in assessment_summary:
+                assessment_detail[field] = assessment_summary[field]
+
+    # Generate PDF
+    generator = ProfessionalPDFGenerator()
+    pdf_content = generator.generate(assessment_detail)
+
+    record_audit_event(db, org_id, "report.downloaded", user.uid)
+
+    # Upload to GCS and return signed URL
+    try:
+        from app.core.gcs import upload_and_sign_pdf
+        org_name = (org.name or "unknown").replace(" ", "_")
+        filename = f"ResilAI_Report_{org_name}_{report_id[:8]}.pdf"
+        signed_url = upload_and_sign_pdf(pdf_content, filename)
+        if signed_url:
+            return {"url": signed_url}
+    except Exception as e:
+        logger.warning(f"GCS upload failed, returning inline PDF: {e}")
+
+    # Fallback: return PDF inline
+    from fastapi.responses import StreamingResponse
+    from io import BytesIO
+    org_name = (org.name or "unknown").replace(" ", "_")
+    filename = f"ResilAI_Report_{org_name}_{report_id[:8]}.pdf"
+    return StreamingResponse(
+        BytesIO(pdf_content),
+        media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

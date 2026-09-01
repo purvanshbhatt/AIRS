@@ -18,7 +18,7 @@ class ClinicMomentRecord(Base):
     __tablename__ = "clinic_moments"
 
     id = Column(String, primary_key=True, index=True)
-    org_id = Column(String, index=True, nullable=False, default="default-org")
+    org_id = Column(String, index=True, nullable=False)
     
     question_id = Column(String, nullable=False, index=True)
     capability_id = Column(String, nullable=False, index=True)

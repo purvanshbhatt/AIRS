@@ -137,7 +137,8 @@ class LifecycleIntelligenceService:
             )
 
         # Determine lifecycle status from dates and support_status
-        now = datetime.utcnow()
+        now_dt = datetime.utcnow()
+        now_date = now_dt.date()
         status = LifecycleStatus.SUPPORTED
         severity = LifecycleSeverity.HEALTHY
         days_until_eol = None
@@ -162,7 +163,8 @@ class LifecycleIntelligenceService:
                     eol_dt = None
 
             if eol_dt:
-                days_until_eol = (eol_dt - now).days
+                eol_d = eol_dt.date() if isinstance(eol_dt, datetime) else eol_dt
+                days_until_eol = (eol_d - now_date).days
                 if days_until_eol <= 0:
                     status = LifecycleStatus.EOL
                     severity = LifecycleSeverity.CRITICAL

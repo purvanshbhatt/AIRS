@@ -33,12 +33,23 @@ class PilotService:
         self.db = db
 
     def get_mode(self, org_id: str) -> str:
-        """Get the operating mode for an organization."""
+        """Get the operating mode for an organization.
+
+        Returns one of OrgMode.DEMO, OrgMode.PILOT, or OrgMode.PRODUCTION.
+
+        INVARIANT: A missing org, null org_mode, or unrecognized org_mode
+        is treated as PILOT (not demo). This prevents demo data from ever
+        contaminating real customer tenants.
+        """
         from app.models.organization import Organization
         org = self.db.query(Organization).filter(Organization.id == org_id).first()
         if not org:
             return OrgMode.PILOT
-        return getattr(org, "org_mode", None) or OrgMode.PILOT
+        mode = getattr(org, "org_mode", None)
+        if mode in (OrgMode.DEMO, OrgMode.PILOT, OrgMode.PRODUCTION):
+            return mode
+        # Unknown or null mode — treat as pilot (real), NEVER as demo
+        return OrgMode.PILOT
 
     def is_demo(self, org_id: str) -> bool:
         return self.get_mode(org_id) == OrgMode.DEMO

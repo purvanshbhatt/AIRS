@@ -1,12 +1,11 @@
 # ResilAI Current State
 
-Version: 0.5.0-telemetry
+Version: 1.0.0-design-partner-ready
 Telemetry Pipeline Consolidation cut over: 2026-07-15
+Design Partner Ready declared: 2026-08-10
 
 Current Goal:
-Telemetry-First Incident Readiness Pipeline — single production path
-from Splunk MCP → Evidence Adapter → Evidence Registry → Verification
-Engine → Deterministic Scoring → Executive Reporting.
+Execute the Design Partner EAP (Early Access Program) with 3-5 real healthcare organizations. The core loop (Connect -> Verify -> Understand -> Act) is now end-to-end operational across the L1/L2/L3 workspaces.
 
 Core Architecture:
 - Frontend: React (18.3.1) + Vite (6.4.1) + TypeScript (5.5.3) + TailwindCSS (4.1.18)
@@ -23,6 +22,11 @@ Rules:
 - Splunk telemetry flows through `SplunkMCPClient` exclusively; no direct HEC REST in production paths.
 - Scoring consumes normalized `EvidenceRecord` shapes; never vendor-specific payloads.
 - Microsoft integrations prioritized for the enterprise market.
+
+Recent Changes (2026-08-14):
+- Real Customer End-to-End & Telemetry Causality Proven: Built `scripts/staging_real_customer_e2e.py` and `tests/test_real_customer_e2e.py` proving real customer lifecycle, real HTTP transport to Splunk MCP Server, SHA-256 evidence hashing, rule-based verification, deterministic score calculation, and telemetry causality (score drops and recovers in response to live telemetry state). Documented in `docs/staging/REAL_CUSTOMER_E2E.md`.
+- Connector Architecture Fix: Updated `app/connectors/base.py` to support `org_id` parameter alias in `Connector.__init__` and pass through `events` in `ConnectorSyncResult`.
+- Splunk Health Check & Auth Fix: Updated `app/connectors/splunk.py` to accept `healthy` and `ok` status codes from Splunk MCP Server.
 
 Recent Changes (2026-07-15):
 - `app/connectors/splunk.py::SplunkConnector` — new canonical production connector (`@register_connector`, `CONNECTOR_TYPE="splunk"`), wraps `SplunkMCPClient`, executes four MCP searches per sync (MFA, EDR, logging heartbeat, notable) and yields `NormalizedEvent` records.

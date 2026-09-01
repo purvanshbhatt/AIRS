@@ -51,6 +51,7 @@ build/
 node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/dist-*/
 frontend/build_output.txt
 frontend/*.tsbuildinfo
 frontend/.env
@@ -60,9 +61,18 @@ frontend/.env.*
 !frontend/.env.staging
 !frontend/.env.production
 
-# GCP secrets
+# GCP / Firebase secrets & caches
 gcp/env.prod
 gcp/env.staging
+.firebase/
+
+# Agent & AI tool directories
+.agents/
+.ai-memory/
+.claude/
+.opencode/
+scratch/
+*.zip
 
 # Logs & Archive logs
 *.log

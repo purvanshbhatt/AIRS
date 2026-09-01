@@ -236,9 +236,9 @@ export function BoardStory() {
                     {matchedSection ? matchedSection.title : sec.defaultTitle}
                   </CardTitle>
                   {isMissing ? (
-                    <Badge variant="warning" className="text-[9px] font-bold uppercase">Fallback Mode</Badge>
+                    <Badge variant="drift" className="text-[9px] font-bold uppercase">Fallback Mode</Badge>
                   ) : (
-                    <Badge variant="success" className="text-[9px] font-bold uppercase">Verified Narrative</Badge>
+                    <Badge variant="ready" className="text-[9px] font-bold uppercase">Verified Narrative</Badge>
                   )}
                 </CardHeader>
                 <CardContent className="pt-4">

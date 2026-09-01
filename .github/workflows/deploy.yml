@@ -276,8 +276,11 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           npm i -g firebase-tools
-          firebase deploy --project "$GCP_PROJECT_ID" --only hosting:staging --token "$FIREBASE_TOKEN"
-
+          # DEPRECATION NOTICE: 'hosting:staging' (airs-staging-0384513977) is deprecated.
+          # We are now deploying exclusively to the canonical target 'hosting:resilai-staging'.
+          firebase deploy --project "$GCP_PROJECT_ID" --only hosting:resilai-staging --token "$FIREBASE_TOKEN"
+          # Run verification script
+          node frontend/scripts/verify-deploy.js
       - name: Skip staging deploy (missing secrets)
         if: steps.staging_secrets.outputs.ready != 'true'
         run: |

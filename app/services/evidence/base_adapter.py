@@ -126,3 +126,38 @@ class EvidenceAdapter(abc.ABC):
     @abc.abstractmethod
     async def health(self) -> AdapterHealth:
         """Report live adapter health for the Evidence Confidence engine."""
+
+
+class WebhookEvidenceAdapter(EvidenceAdapter):
+    """Conceptual interface for ingesting generic JSON webhooks.
+    
+    Allows the pipeline to ingest arbitrary JSON webhooks (e.g., from custom
+    internal tools or unsupported vendors) and normalize them into 
+    EvidenceRecord without requiring a dedicated direct connector.
+    """
+
+    @property
+    @abc.abstractmethod
+    def expected_schema(self) -> Dict[str, Any]:
+        """JSON Schema definition of the expected webhook payload."""
+
+    @abc.abstractmethod
+    async def process_webhook(self, payload: Dict[str, Any], signature: Optional[str] = None) -> List[EvidenceRecord]:
+        """Validate and normalize an incoming webhook payload into EvidenceRecords."""
+
+
+class ManualUploadAdapter(EvidenceAdapter):
+    """Conceptual interface for manual evidence uploads.
+    
+    Supports the ingestion of static evidence files (e.g., PDF audit reports,
+    CSV exports) uploaded by users when automated API telemetry is unavailable.
+    """
+
+    @property
+    @abc.abstractmethod
+    def supported_mime_types(self) -> List[str]:
+        """List of MIME types this adapter can process (e.g. 'application/pdf', 'text/csv')."""
+
+    @abc.abstractmethod
+    async def process_upload(self, file_content: bytes, filename: str, mime_type: str, uploader_id: str) -> List[EvidenceRecord]:
+        """Process an uploaded file and extract canonical EvidenceRecords."""

@@ -20,101 +20,95 @@ export default function DocsOverview() {
                 <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
                     ResilAI Documentation
                 </h1>
-                <p className="text-xl text-slate-605 dark:text-slate-400 max-w-2xl leading-relaxed">
-                    AI Incident Readiness Score — a comprehensive self-assessment tool that evaluates
-                    your organization's security posture across five critical domains.
+                <p className="text-xl text-slate-605 dark:text-slate-400 max-w-3xl leading-relaxed">
+                    ResilAI is a Continuous Readiness Operating System. We connect to your existing security, infrastructure, and IT tools to deterministically verify your resilience against disruptions.
                 </p>
             </div>
 
-            {/* What is ResilAI */}
-            <section>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
-                    What is ResilAI?
-                </h2>
-                <div className="prose dark:prose-invert max-w-none">
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-base">
-                        ResilAI is an open-source security assessment platform designed to help organizations
-                        understand their incident response readiness. By answering 30 targeted questions
-                        across 5 security domains, you receive an actionable readiness score,
-                        prioritized recommendations, and executive-ready reports.
-                    </p>
-                </div>
-            </section>
-
-            {/* Key Features */}
+            {/* The ResilAI Loop */}
             <section>
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6 tracking-tight">
-                    Key Features
+                    The Readiness Loop
                 </h2>
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-4 gap-6">
                     {[
                         {
-                            icon: BarChart3,
-                            title: 'Instant Scoring',
-                            description: 'Get immediate visibility into your readiness level with weighted domain scores and an overall 0-100 rating.',
+                            icon: Zap,
+                            title: '1. Connect',
+                            description: 'Integrate your existing tooling (Wazuh, Sentinel, Azure, AWS) in minutes. No agents to deploy.',
                         },
                         {
-                            icon: Shield,
-                            title: 'Framework Mapping',
-                            description: 'Findings automatically map to MITRE ATT&CK, CIS Controls v8, and OWASP Top 10 for compliance alignment.',
+                            icon: CheckCircle,
+                            title: '2. Verify',
+                            description: 'The Governance Engine continuously pulls telemetry and verifies it against your regional and industry regulations.',
+                        },
+                        {
+                            icon: BarChart3,
+                            title: '3. Understand',
+                            description: 'Get an executive-level view of your actual readiness, backed by hard technical evidence rather than self-assessments.',
                         },
                         {
                             icon: FileText,
-                            title: 'Executive Reports',
-                            description: 'Generate comprehensive PDF reports with AI-powered narratives and actionable remediation steps.',
+                            title: '4. Act',
+                            description: 'Prioritize remediation efforts based on business criticality, exposure level, and automated AI analysis.',
                         },
-                    ].map((feature) => (
+                    ].map((step, idx) => (
                         <div
-                            key={feature.title}
-                            className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md"
+                            key={step.title}
+                            className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm relative overflow-hidden"
                         >
-                            <feature.icon className="w-8 h-8 text-primary-600 dark:text-primary-400 mb-4" />
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50/50 dark:bg-primary-900/10 rounded-bl-full -z-10 transition-transform group-hover:scale-110 duration-500" />
+                            <step.icon className="w-8 h-8 text-primary-600 dark:text-primary-400 mb-4" />
                             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
-                                {feature.title}
+                                {step.title}
                             </h3>
                             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                                {feature.description}
+                                {step.description}
                             </p>
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* Quick Start */}
-            <section className="p-6 bg-gradient-to-br from-primary-50/40 to-primary-100/40 dark:from-primary-950/20 dark:to-primary-900/10 rounded-3xl border border-primary-100/80 dark:border-primary-900/50 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md">
-                <div className="flex flex-col md:flex-row items-start gap-5">
-                    <div className="p-3 bg-primary-600 dark:bg-primary-500 rounded-2xl shadow-md flex-shrink-0">
-                        <Zap className="w-7 h-7 text-white" />
-                    </div>
+            {/* Governance Engine */}
+            <section className="p-8 bg-gradient-to-br from-primary-50/40 to-primary-100/40 dark:from-primary-950/20 dark:to-primary-900/10 rounded-3xl border border-primary-100/80 dark:border-primary-900/50 shadow-sm">
+                <div className="flex flex-col md:flex-row items-start gap-8">
                     <div className="flex-1">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 tracking-tight">
-                            Quick Start
+                        <div className="inline-flex items-center justify-center p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm mb-6 border border-slate-100 dark:border-slate-700">
+                            <Shield className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
+                            The Governance Engine
                         </h2>
-                        <ol className="space-y-2.5 text-slate-700 dark:text-slate-305 font-medium">
-                            <li className="flex items-center gap-3">
-                                <CheckCircle className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-                                <span>Click "Start Assessment" to begin</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-                                <span>Answer 30 questions across 5 domains (~5 minutes)</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-                                <span>Receive your ResilAI score and maturity level</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <CheckCircle className="w-5 h-5 text-primary-600 dark:text-primary-400 flex-shrink-0" />
-                                <span>Download your executive-ready PDF report</span>
-                            </li>
-                        </ol>
-                        <Link
-                            to="/assessment/new"
-                            className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 bg-primary-600 text-white dark:bg-primary-500 rounded-full hover:bg-primary-700 dark:hover:bg-primary-600 transition-all duration-300 font-semibold shadow-sm hover:shadow"
-                        >
-                            <span>Start Assessment</span>
-                            <ArrowRight className="w-4 h-4" />
-                        </Link>
+                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                            Unlike traditional GRC tools that rely on manual self-assessments and point-in-time audits, ResilAI employs a deterministic Governance Engine. It uses a configuration-driven approach to automatically map your organization's unique regional and industry requirements to technical controls.
+                        </p>
+                        
+                        <div className="space-y-4">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-primary-500" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-slate-900 dark:text-slate-100">Deterministic Applicability</h4>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                        Regulations (e.g., GDPR, HIPAA, DORA) are applied automatically based on your organization's physical location, size, and industry.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0 mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-primary-500" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-slate-900 dark:text-slate-100">Evidence Verification</h4>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                        The engine translates high-level frameworks (NIST, CIS) into granular technical checks that are verified against live telemetry from your connected systems.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -122,14 +116,14 @@ export default function DocsOverview() {
             {/* Documentation Sections */}
             <section>
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6 tracking-tight">
-                    Documentation Sections
+                    Explore Documentation
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                     {[
-                        { title: 'Methodology', href: '/docs/methodology', description: 'Scoring domains, weights, and maturity levels' },
-                        { title: 'Frameworks', href: '/docs/frameworks', description: 'MITRE ATT&CK, CIS Controls, OWASP mappings' },
-                        { title: 'Security', href: '/docs/security', description: 'Authentication, data handling, and privacy' },
-                        { title: 'API Reference', href: '/docs/api', description: 'REST API documentation and examples' },
+                        { title: 'Governance Engine', href: '/docs/governance', description: 'Deep dive into deterministic verification' },
+                        { title: 'Frameworks', href: '/docs/frameworks', description: 'Explore supported regulatory and security frameworks' },
+                        { title: 'Methodology', href: '/docs/methodology', description: 'Understand how readiness scores are calculated' },
+                        { title: 'API Reference', href: '/docs/api', description: 'Integrate directly with our REST API' },
                     ].map((section) => (
                         <Link
                             key={section.title}

@@ -19,6 +19,8 @@ from app.api import (
     intelligence,
     remediations,
     verification,
+    explanations,
+    onboarding,
 )
 from app.api.v1 import router as v1_router
 from app.api.routes.sentinel import router as sentinel_router
@@ -64,3 +66,9 @@ router.include_router(verification.router, prefix="/verification", tags=["verifi
 
 # ResilAI Sentinel Module
 router.include_router(sentinel_router, prefix="/sentinel", tags=["sentinel"])
+
+# Organization-scoped: Business Language Explanations
+router.include_router(explanations.router, prefix="/orgs/{org_id}/explanations", tags=["explanations"])
+
+# Organization-scoped: Onboarding Status
+router.include_router(onboarding.router, prefix="/orgs/{org_id}/onboarding", tags=["onboarding"])

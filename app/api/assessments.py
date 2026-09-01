@@ -202,7 +202,8 @@ async def list_assessments(
     user: User = Depends(require_auth)
 ):
     """List assessments owned by the current user, optionally filtered by organization."""
-    ensure_demo_seed_data(db, user.uid if user else None)
+    # NOTE: ensure_demo_seed_data removed — demo seeding belongs in demo
+    # environment startup, not in production API paths.
     service = get_assessment_service(db, user)
     assessments = service.get_all(organization_id=organization_id, skip=skip, limit=limit)
     

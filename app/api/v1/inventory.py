@@ -14,7 +14,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.core.auth import User, require_auth
+from app.core.auth import User, require_auth, get_user_org_id
 from app.db.database import get_db
 from app.models.ai_asset import (
     AIAsset,
@@ -37,8 +37,8 @@ logger = logging.getLogger("airs.api.inventory")
 router = APIRouter(prefix="/inventory", tags=["inventory"])
 
 
-def _get_org_id(user: User) -> str:
-    return getattr(user, "org_id", "default-org")
+def _get_org_id(user: User, db: Session) -> str:
+    return get_user_org_id(user, db)
 
 
 # =============================================================================
@@ -57,7 +57,7 @@ async def create_asset(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
 
     asset = AIAsset(
         org_id=org_id,
@@ -107,7 +107,7 @@ async def list_assets(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     query = db.query(AIAsset).filter(
         AIAsset.org_id == org_id,
         AIAsset.is_active == is_active,
@@ -136,7 +136,7 @@ async def get_asset(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     asset = (
         db.query(AIAsset)
         .filter(AIAsset.id == asset_id, AIAsset.org_id == org_id)
@@ -158,7 +158,7 @@ async def update_asset(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     asset = (
         db.query(AIAsset)
         .filter(AIAsset.id == asset_id, AIAsset.org_id == org_id)
@@ -205,7 +205,7 @@ async def deactivate_asset(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     asset = (
         db.query(AIAsset)
         .filter(AIAsset.id == asset_id, AIAsset.org_id == org_id)
@@ -234,7 +234,7 @@ async def get_versions(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     # Verify ownership
     asset = (
         db.query(AIAsset)
@@ -269,7 +269,7 @@ async def create_relationship(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     # Verify source asset ownership
     source = (
         db.query(AIAsset)
@@ -311,7 +311,7 @@ async def get_asset_graph(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
 
     assets = (
         db.query(AIAsset)

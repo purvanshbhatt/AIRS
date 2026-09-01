@@ -1,4 +1,616 @@
+# 2026-09-01 - Backend Executive Capabilities & Explainability Layer
+- **Goal:** Fulfill the Backend Intelligence and Executive Capabilities requirement without breaking product invariants (LLM never scores, LLM never creates findings).
+- **Execution:**
+  - Designed `ExplanationService` with strict fallback handling and deterministic fact extraction. Gemini acts purely as a narrative translator.
+  - Built robust org-scoped API contracts (`/api/orgs/{org_id}/explanations`, `/api/orgs/{org_id}/onboarding`, `/api/orgs/{org_id}/reports`) integrating tenant isolation logic.
+  - Added V2 report lifecycle fields to `Report` model and merged alembic heads for migrations.
+  - Created `ExecutiveReportGenerator` wrapping the PDF generator to deterministically inject framework coverage from the rubric.
+  - Generated comprehensive automated tests verifying LLM isolation, demo data isolation, encryption behavior (AES-256-GCM), and framework mapping honesty.
+  - Verified 81/81 backend tests pass and all invariants are upheld.
+- **Outcomes:** Backend is now fully capable of producing plain-language executive reports, handling onboarding states, and safely generating PDF reports while honoring isolation and deterministic guarantees. Ready for frontend consumption.
 # AGENT_LOG.md
+ 
+---
+
+Date: 2026-09-01
+Agent: Antigravity Frontend UX Team
+Task: Fix Readiness Benchmark Speedometer Arc Gauge with Stitch Design Alignment
+
+Changes Made:
+* Readiness Benchmark Speedometer Arc Gauge (`TodayPage.tsx`):
+  - Fixed the inverted SVG arc gauge in the Readiness Benchmark card.
+  - Replaced inverted 180-degree rotation path with a native upward semi-circular arch (`d="M 15 60 A 45 45 0 0 1 105 60"` in `viewBox="0 0 120 70"`), matching Stitch `today_morning_brief` and `today_dark.html`.
+  - Added rounded endcaps (`strokeLinecap="round"`), emerald glow trail (`drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]`), and centered score typography directly beneath the arch.
+  - Added regional peer benchmark comparison bar (`Top 5%` peer rank indicator).
+  - Maintained test suite compatibility (124/124 tests passing).
+* Production Rebuild & Deployment:
+  - Rebuilt production bundle (`dist-production/assets/index-Co6sRKMw.js`) with 0 errors.
+  - Deployed to Firebase Hosting (`https://resilai.org` / `resilai-marketing`) and verified live.
+
+---
+
+Date: 2026-08-31
+Agent: Antigravity Multi-Agent UX & Frontend Engineering Team
+Task: ResilAI Authenticated Product Experience & Product Identity Refactoring
+
+Changes Made:
+* Distinct ResilAI Product Identity & 5-Stage Narrative Hierarchy (R1):
+  - Refactored `TodayPage.tsx` / `Dashboard.tsx` to immediately answer "If something goes wrong tomorrow, how ready are we?".
+  - Implemented 5-stage visual hierarchy: Stage 1 Readiness Hero -> Stage 2 Why / Overnight Brief -> Stage 3 What Needs Attention -> Stage 4 Recommended Actions -> Stage 5 Evidence Provenance.
+  - Reduced visual noise, generic SaaS card borders, and uncurated metrics above the fold using Stitch design tokens (`#0b1326`, `#131b2e`, emerald `#10B981`, amber `#F59E0B`).
+* Executive-First Language & 4-Tier Progressive Disclosure (R2):
+  - Rewrote visible UI copy into plain business language across all executive views.
+  - Implemented 4-tier progressive disclosure model in `ExecutiveExplanation.tsx`, `AIDrawer.tsx`, and `StatusCard.tsx` (Tier 1: Executive Explanation -> Tier 2: Business Impact -> Tier 3: Technical Evidence -> Tier 4: SHA-256 Provenance & Connector Timestamps).
+* 6-Step Getting Started Onboarding Workflow (R3):
+  - Built persistent, resumable, and skippable 6-step guided onboarding workflow in `Onboarding.tsx` (`Step1OrgReadiness`, `Step2ConnectSecurity`, `Step3VerifiedEvidence`, `Step4NeedsAttention`, `Step5IncidentRecovery`, `Step6BoardReport`).
+  - Added persistent top-bar launch control and distinct flows for Demo vs Real organizations.
+* Contextual Demo Mode Guidance (R4):
+  - Added clear amber "DEMO ENVIRONMENT (SIMULATED DATA)" banners and dismissible contextual guide across Today, Needs Attention, Recovery, Evidence, Documents, and Governance.
+* Simplified Explanation Feature ("Explain for Leadership") (R5):
+  - Interactive explanation drawer consuming backend `/api/v1/clinic/{org_id}/explain` with dual Executive and Technical views (0 client-side LLM calls / 0 client-side score computation).
+* Report Center & History Management (R6):
+  - Wired frontend directly to backend report endpoints (`GET /api/v1/reports`, `POST /api/v1/reports/generate`, `GET /api/v1/reports/{id}/download`) with real-time generation polling and organization attribution.
+* Documents & Governance Modernization (R7):
+  - Transformed Documents into an Evidence-Backed Vault; reframed Governance as "Readiness evidence aligned to..." without formal certification claims.
+* Design Consistency, A11y & Mobile Responsiveness (R8):
+  - Enforced WCAG AA contrast, keyboard navigation, visible focus rings, ARIA labels, and 375px mobile viewport responsiveness.
+
+Files Modified:
+* `frontend/src/features/readiness/TodayPage.tsx`
+* `frontend/src/features/readiness/NeedsAttentionPage.tsx`
+* `frontend/src/features/readiness/RecoveryReadinessPage.tsx`
+* `frontend/src/pages/Dashboard.tsx`
+* `frontend/src/pages/Documents.tsx`
+* `frontend/src/pages/Governance.tsx`
+* `frontend/src/pages/Reports.tsx`
+* `frontend/src/pages/Onboarding.tsx`
+* `frontend/src/components/onboarding/*`
+* `frontend/src/components/common/ContextualDemoBanner.tsx`
+* `frontend/src/components/evidence/ExecutiveExplanation.tsx`
+* `frontend/src/components/readiness/AIDrawer.tsx`
+* `frontend/src/components/readiness/StatusCard.tsx`
+* `frontend/src/components/readiness/ReadinessHeader.tsx`
+* `frontend/src/components/layout/AppSidebar.tsx`
+* `frontend/src/types/onboarding.ts`
+* `frontend/src/types/reports.ts`
+* `frontend/src/test/*`
+
+Dependencies Created / Updated:
+* None (Strictly vanilla React + Vite + TypeScript + Tailwind architecture)
+
+Business Impact:
+* Converts authenticated product from an engineering telemetry console to a high-retention, executive-first incident readiness operating system for healthcare leadership.
+
+Next Task:
+* Monitor new user onboarding completion rate and customer Splunk connector linkage velocity.
+
+Blockers:
+* None
+
+Affected Teams:
+* Frontend, Product Design, Customer Success, Growth
+
+---
+
+Date: 2026-08-31
+Agent: Antigravity Frontend UX & SEO Engineering Agent
+Task: Fix Maidensail Badge Crawler Verification for Static HTML
+
+Changes Made:
+* Pre-rendered Static HTML Backlink (`index.html`):
+  - Added the exact Maidensail snippet (`<a href="https://maidensail.com/startup/resilai" rel="dofollow"><img src="https://maidensail.com/badge/resilai.svg?theme=dark" alt="Featured on Maidensail" height="44"></a>`) directly into `index.html` (inside `#root` fallback and `<noscript>`).
+  - Enables non-JavaScript HTTP crawlers / verification bots to immediately detect the backlink and `rel="dofollow"` attribute on initial raw HTML fetch.
+* Production Rebuild & Deploy:
+  - Rebuilt `dist-production` (`assets/index-C9w2xzfo.js`) with 0 errors.
+  - Deployed to Firebase Hosting (`resilai-marketing`) at `https://resilai.org`.
+  - Verified with raw HTTP scraping that `resilai.org` returns `rel="dofollow"` and the exact snippet in the static response.
+
+---
+
+Date: 2026-08-25
+Agent: Antigravity Frontend UX & SEO Engineering Agent
+Task: Remove Executive Mock View from Public Landing Page & Deploy Dedicated Verification Engine Terminal
+
+Changes Made:
+* Removed Operational Executive Card from Landing Page (`Landing.tsx`):
+  - Removed the "Executive View" tab containing clinic operational mockup ("St. Jude Regional Clinic", "94% READY", and specific safeguards) from the public marketing homepage.
+  - Replaced the hero graphic with a clean, focused Verification Engine Terminal featuring Live Stream (real-time telemetry & cryptographic verification events), cURL API request, and JSON response views.
+  - All operational clinic views remain securely inside the authenticated product and demo sandbox (`/morning-brief`, `/readiness`, etc.).
+* Production Build & Hosting Deployment:
+  - Compiled production bundle (`dist-production/assets/index-CBw-SrL4.js`) with 0 errors.
+  - Deployed to Firebase Hosting (`resilai-marketing`) and verified live on `https://resilai.org` and `https://resilai-marketing.web.app`.
+
+---
+
+Date: 2026-08-25
+Agent: Antigravity Frontend UX & SEO Engineering Agent
+Task: Embed Maidensail Dofollow Badge & Deploy Production Landing Page
+
+Changes Made:
+* Embedded Maidensail Dofollow Badge (`Landing.tsx`):
+  - Added Maidensail verification badge snippet (`<a href="https://maidensail.com/startup/resilai" rel="dofollow"><img src="https://maidensail.com/badge/resilai.svg?theme=dark" alt="Featured on Maidensail" height="44"></a>`) in the landing page footer.
+  - Aligned with dark mode aesthetic alongside GitHub and Contact links.
+* Component Library & Type Hygiene (`Badge.tsx`, `Toast.tsx`, `ui/index.ts`):
+  - Added `success`, `warning`, `danger` variant compatibility to `Badge.tsx` and `Toast.tsx`.
+  - Exported `Accordion` and `EmptyState` from `src/components/ui/index.ts`.
+* Production Build & Hosting Deployment:
+  - Compiled production bundle (`dist-production/assets/index-CZYEJhN2.js`) with 0 TypeScript/bundling errors.
+  - Deployed to Firebase Hosting target `resilai-marketing` (`https://resilai.org` & `https://resilai-marketing.web.app`).
+  - Verified live on CDN: Maidensail dofollow link, SVG badge, and alt text confirmed active.
+
+Files Modified:
+* `frontend/src/pages/Landing.tsx`
+* `frontend/src/components/ui/Badge.tsx`
+* `frontend/src/components/ui/Toast.tsx`
+* `frontend/src/components/ui/index.ts`
+* `docs/agent_memory/AGENT_LOG.md`
+* `docs/agent_memory/CURRENT_SPRINT.md`
+
+Dependencies Created / Updated:
+* `@rollup/rollup-linux-x64-gnu` (dev dependency for Linux native builds)
+
+Business Impact:
+* Earns DR30 dofollow backlink and ranking boost on Maidensail startup index.
+
+---
+
+Date: 2026-08-23
+Agent: Antigravity Core Full-Stack & UX Engineering Agent
+Task: Production Organization Lifecycle Self-Healing, Executive Homepage Experience & Tech Stack Restoration
+
+Changes Made:
+* Backend Firestore Single-Org Lookup & Multi-Container Resilient Recovery (`firestore.py` & `organization.py`):
+  - Added `firestore_get_org(org_id)` in `app/db/firestore.py` to retrieve organization documents directly from Firestore when SQLite cache misses occur.
+  - Enhanced `OrganizationService.get(org_id)` and `OrganizationService.get_all()` in `app/services/organization.py` to automatically fall back to Firestore and restore cached records with full tenant isolation (`owner_uid`) checks.
+  - Updated `get_clinic_readiness` in `app/api/clinic/router.py` to use `OrganizationService.get(org_id)` and return structured 404 `ORGANIZATION_NOT_FOUND`.
+* Frontend Self-Healing Organization Resolution (`useActiveOrg.ts` & `ReadinessStates.tsx`):
+  - Made `selectedOrgId` reactive and self-healing: if `localStorage` contains a stale/deleted organization ID, it automatically binds to `orgList[0].id` without breaking the app.
+  - If a user has 0 organizations, cleans up `localStorage` and sets `hasOrg = false`, `orgId = ''`.
+  - Upgraded `<ErrorState />` with actionable recovery paths: "Try Again", "Create Organization" (`/onboarding?new=true`), "Reset Workspace", and "Open Demo Sandbox".
+* Zero-Org Experience Across Readiness Pages (`TodayPage.tsx`, `NeedsAttentionPage.tsx`, `RecoveryReadinessPage.tsx`, `ActivityPage.tsx`):
+  - Guarded against empty `orgId` / zero-org states by displaying the clear, welcoming "Set up your readiness workspace" card with a direct CTA to `/onboarding`.
+* Tech Stack & Inventory Restoration (`AppSidebar.tsx`, `App.tsx`, `TechnologyIntelligence.tsx`):
+  - Restored "Tech Stack & Inventory" in `AppSidebar.tsx` under L3 (IT & Security) with `Cpu` icon.
+  - Added backward-compatible route redirects for `/tech-stack`, `/technology`, `/inventory` in `App.tsx`.
+  - Wired `TechnologyIntelligence.tsx` directly to `useActiveOrg()` with multi-tenant organization switching and empty state handling.
+* Executive Home Page Upgrade (`Landing.tsx`):
+  - Upgraded landing hero visual with an interactive Executive Morning Brief Card (plain-English daily status, 3 verified safeguards, 94% operational readiness) and a toggle to view technical telemetry/cURL/JSON streams.
+* Validation & Build:
+  - 57/57 backend tests passed (`test_production_org_lifecycle.py`, `test_explainability.py`, `test_assessments.py`).
+  - Production and staging frontend bundles built cleanly with code 0 (`npm run build` and `npm run build:staging`).
+
+Files Modified:
+* `app/db/firestore.py`
+* `app/services/organization.py`
+* `app/api/clinic/router.py`
+* `frontend/src/hooks/useActiveOrg.ts`
+* `frontend/src/components/readiness/ReadinessStates.tsx`
+* `frontend/src/features/readiness/NeedsAttentionPage.tsx`
+* `frontend/src/features/readiness/RecoveryReadinessPage.tsx`
+* `frontend/src/features/readiness/ActivityPage.tsx`
+* `frontend/src/components/layout/AppSidebar.tsx`
+* `frontend/src/App.tsx`
+* `frontend/src/pages/TechnologyIntelligence.tsx`
+* `frontend/src/pages/Landing.tsx`
+* `docs/agent_memory/AGENT_LOG.md`
+* `docs/agent_memory/CURRENT_SPRINT.md`
+
+Dependencies Created / Updated:
+* None
+
+Business Impact:
+* Eliminates the 404 "Unable to Load Data" screen trap for new and existing users, restores Tech Stack accessibility, and communicates clear plain-English readiness to non-technical healthcare executives.
+
+---
+
+Date: 2026-08-21
+Agent: Antigravity Frontend UX & Product Engineering Agent
+Task: Production Frontend — Productization & Executive UX Recovery
+
+Changes Made:
+* Fixed Organization Onboarding Flow (`TodayPage.tsx` & `Onboarding.tsx`):
+  - When a user has 0 organizations, `TodayPage.tsx` renders a clean "Set up your readiness workspace" card with a `[Create Organization]` button linking to `/onboarding`.
+  - Prevented premature redirects in `Onboarding.tsx` when creating new organizations.
+* Polished Executive Zero-Evidence State (`TodayPage.tsx`):
+  - When an organization is created but has 0 connectors / 0 evidence, renders the executive-first "Not Yet Verified" posture.
+  - "Your readiness journey starts here" headline, "Status: Not Yet Verified" badge, "What we know: No security systems connected / No telemetry received / No verified evidence available", and a direct `[Connect Security System]` CTA.
+  - Articulates the ResilAI Trust Invariant: "ResilAI never assumes readiness when evidence is unavailable."
+* Hard Visual Distinction for Environments (`ReadinessHeader.tsx`):
+  - Demo Workspace: Amber badge with `DEMO WORKSPACE (SIMULATED DATA)` and synthetic telemetry subtext.
+  - Live Workspace: Emerald badge with `LIVE WORKSPACE` and mathematical evidence verification subtext.
+* Upgraded Methodology Documentation (`pages/docs/Methodology.tsx`):
+  - Completely replaced legacy questionnaire descriptions with the 5-Stage Verification Operating Model: 1. Connect → 2. Verify → 3. Measure → 4. Explain → 5. Improve.
+  - Added interactive dual persona views (For Healthcare Executives vs For IT & Security Teams).
+* Contextual Error Formatting (`api.ts`):
+  - Refactored error string formatting so 404 responses return clean contextual error text without redundant "Not found: Not Found" prefixing.
+* Live Firebase Deployment:
+  - Built and deployed all four targets: `resilai-marketing` (`https://resilai.org`), `gen-lang-client-0384513977` (Demo), `airs-staging-0384513977`, and `resilai-staging`.
+  - Verified live deployment hashes and verified absence of "Request Pilot" CTAs.
+
+Files Modified:
+* `frontend/src/features/readiness/TodayPage.tsx`
+* `frontend/src/components/readiness/ReadinessHeader.tsx`
+* `frontend/src/pages/Onboarding.tsx`
+* `frontend/src/pages/docs/Methodology.tsx`
+* `frontend/src/api.ts`
+* `frontend/src/features/readiness/NeedsAttentionPage.tsx`
+* `frontend/src/features/readiness/RecoveryReadinessPage.tsx`
+* `docs/agent_memory/CURRENT_SPRINT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created / Updated:
+* None
+
+Business Impact:
+* Converts the frontend from an engineering console into an executive-first product experience that clearly demonstrates ResilAI's core moat—deterministic, evidence-backed incident readiness.
+
+---
+
+Date: 2026-08-21
+Agent: Antigravity Backend Core & Security Engineering Agent
+Task: Production Organization Lifecycle — Durable Persistence Guarantee & Cold Start Durability Verification
+
+Changes Made:
+* Fixed Firestore Dual-Write Guarantee (`app/services/organization.py`): Reversed previous non-blocking behavior. Organization creation now requires both SQLite cache and authoritative Firestore write to succeed before returning HTTP 201. If Firestore is unavailable or write fails, the exception propagates and the API returns an error to prevent silent data loss across Cloud Run instances.
+* Added Durable Persistence Failure Test (`tests/test_production_org_lifecycle.py`): Verified `TestDurablePersistence.test_org_creation_fails_when_firestore_unavailable` returns 500+ when Firestore is down.
+* Implemented Cold Start Durability Test Suite (`tests/test_production_org_lifecycle.py`):
+  1. `test_org_survives_cold_start`: Create Org → Wipe SQLite (simulate restart) → `sync_orgs_from_firestore()` → verify exact org recovered.
+  2. `test_assessment_survives_cold_start`: Create Org + Assessment → Wipe SQLite → sync both → verify assessment structure intact.
+  3. `test_readiness_deterministic_after_cold_start`: Proved deterministic score calculation yields identical score before and after cold start.
+  4. `test_tenant_isolation_survives_cold_start`: Proved multi-tenant isolation remains strictly enforced across Firestore → SQLite sync.
+* Unblocked Real Sync Execution in Tests (`tests/conftest.py`): Removed static no-op mocks on `sync_orgs_from_firestore` and `sync_assessments_from_firestore` so integration and cold start sync tests run live code against in-memory or emulated state.
+* Full Test Validation: 29/29 lifecycle tests passed, 7/7 explainability tests passed, 21/21 assessment tests passed (57/57 total).
+
+Files Modified:
+* `app/services/organization.py`
+* `tests/test_production_org_lifecycle.py`
+* `tests/conftest.py`
+* `docs/agent_memory/AGENT_LOG.md`
+* `docs/agent_memory/CURRENT_SPRINT.md`
+
+Dependencies Created / Updated:
+* None
+
+Business Impact:
+* Guarantee that design partners and production organizations never experience data loss or phantom organization provisioning upon Cloud Run instance recycling.
+
+Next Recommended Task:
+* Execute focused frontend pass to consume structured error codes (`ORG_ID_REQUIRED`, `ORGANIZATION_NOT_FOUND`) and present non-technical executive explainability states.
+
+Blocked By:
+* None
+
+Affected Teams:
+* backend
+* security
+* devops
+
+---
+
+Date: 2026-08-21
+Agent: Antigravity Frontend UX & Conversion Optimization Agent
+Task: Production Homepage Conversion Flow Optimization & Primary Google Login Alignment
+
+Changes Made:
+
+* Updated Public Homepage Navigation & Hero CTAs (`Landing.tsx`): Replaced "Request Pilot" / "Sign In / Get Started" dual button setup with primary "Get Started" CTA linking directly to `/login` (existing Google OAuth and unified onboarding flow).
+* Added Secondary Exploration CTAs (`Landing.tsx`): Added "See How It Works" linking via smooth scroll to the 4-step Core Verification Loop (`#how-it-works`) and polished "Explore Demo" Sandbox button.
+* Replaced Legacy Font Icons (`Landing.tsx`): Substituted text ligature spans (`data-icon="explore"`) with bundled Lucide SVG icons (`Sparkles`, `ChevronRight`, `ArrowRight`).
+* Aligned V2 Product Copy (`Landing.tsx`): Updated hero and bottom CTA messaging to emphasize continuous control verification and mathematical evidence over manual spreadsheets/questionnaires.
+* Preserved Design Partner Infrastructure: Kept the `/pilot` route, lead capture forms, and backend `submitEnterprisePilotLead` endpoint intact for post-experience and internal design-partner conversions.
+* Validated Compilation: Verified `npm run build` and `npm run build:staging` with zero TypeScript or bundling errors.
+
+Files Modified:
+
+* `frontend/src/pages/Landing.tsx`
+* `docs/agent_memory/CURRENT_SPRINT.md`
+* `docs/agent_memory/NEXT_TASKS.md`
+* `docs/agent_memory/FRONTEND_STATE.md`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created:
+
+* None
+
+Dependencies Updated:
+
+* None
+
+Business Impact:
+
+* Replaces high-friction manual sales pilot gating with immediate self-serve acquisition and Google Login onboarding. Enhances top-of-funnel conversion while allowing qualified organizations to convert into design partners after discovering real findings.
+
+Next Recommended Task:
+
+* Track top-of-funnel Google Login conversion rate and first connector linkage velocity in live staging.
+
+Blocked By:
+
+* None
+
+Affected Teams:
+
+* frontend
+* product
+* growth
+
+---
+
+Date: 2026-08-19
+Agent: Antigravity Backend Core & Security Engineering Agent
+Task: Production Organization Lifecycle & Real Telemetry Integrity Recovery (Phases 1-15)
+
+Root Cause Identified:
+1. `GET /api/clinic/readiness/{org_id}` failed with unrouted 404 when `orgId` was empty string (`''`) from frontend `useActiveOrgId` before an organization was selected/created.
+2. In `app/api/clinic/router.py`, `if pilot.get_mode(org_id) == "demo" or not pilot.get_mode(org_id):` evaluated to True for ANY newly created real organization because `not pilot.get_mode(org_id)` was truthy on unset/unrecognized modes, inadvertently injecting synthetic demo telemetry and calling `seed_demo_clinic()` into real customer tenants.
+3. Database architecture confirmed: Cloud Run production persistence uses Firestore as the primary authority with an in-memory/ephemeral SQLite cache synced on startup (`gcp/env.prod.yaml`).
+
+Changes Made:
+* Fixed Clinic Router (`app/api/clinic/router.py`):
+  - Added empty `org_id` validation returning structured `422 Unprocessable Entity` with code `ORG_ID_REQUIRED`.
+  - Fixed demo fallback: Demo seeding and synthetic telemetry (`get_demo_telemetry`) now ONLY execute when `pilot.get_mode(org_id) == OrgMode.DEMO`.
+  - Wired `_fetch_persisted_telemetry()` to read real `TelemetryEvent` rows ingested via existing `ConnectorManager` pipeline (no duplicate pipeline introduced).
+  - Empty real organizations with 0 connectors/telemetry return honest `status="unknown"`, `clinic_health_pct=0` adhering strictly to the invariant: "Absence of evidence must never become evidence of readiness".
+* Fixed Pilot Service (`app/services/clinic_engine/v2/pilot.py`):
+  - `get_mode()` now strictly defaults to `OrgMode.PILOT` (not demo) if mode is unset or null.
+* Removed Demo Seeding from Production Paths:
+  - Removed `ensure_demo_seed_data()` invocation from `list_organizations` in `app/api/organizations.py`.
+  - Removed `ensure_demo_seed_data()` invocation from `list_assessments` in `app/api/assessments.py`.
+* Improved Middleware Error Contract (`app/core/middleware.py`):
+  - Enhanced `http_exception_handler` with structured error codes (`ORGANIZATION_NOT_FOUND`, `RESOURCE_NOT_FOUND`, `ORG_ID_REQUIRED`).
+* Atomic Organization Creation (`app/services/organization.py`):
+  - Made Firestore dual-write non-blocking (catches exceptions with warning log) so database commit succeeds reliably even during transient network jitter.
+* Created Comprehensive Test Suite (`tests/test_production_org_lifecycle.py`):
+  - 25 dedicated test cases covering org creation, retrieval, isolation, empty org_id handling, real vs demo telemetry separation, atomic creation, causality proof, and zero LLM influence on scoring.
+
+Files Modified:
+* `app/api/clinic/router.py`
+* `app/services/clinic_engine/v2/pilot.py`
+* `app/api/organizations.py`
+* `app/api/assessments.py`
+* `app/core/middleware.py`
+* `app/services/organization.py`
+* `tests/test_production_org_lifecycle.py`
+* `tests/test_assessments.py`
+
+Dependencies Created/Updated:
+* None (strictly preserved API contracts and database schema).
+
+Business Impact:
+* Real customer organizations can sign up, create organizations, connect Splunk, and receive honest evidence-based readiness reports without demo contamination or 404 route errors.
+
+---
+
+Date: 2026-08-16
+Agent: Antigravity Senior Engineering Contributor
+Task: Real User Auth, Staging Workspace Recovery, Connector Testing, & UI Polish
+
+Changes Made:
+* Fixed Staging Sandbox auto-entry & dynamic organization resolution: Created `useActiveOrg` hook to dynamically fetch and switch real user organizations (`owner_uid = current_user.uid`), eliminating hardcoded sandbox tenant names.
+* Upgraded `ReadinessHeader.tsx`: Added user avatar (`user.photoURL` or styled initials), dynamic organization name, explicit `[LIVE WORKSPACE]` vs `[SANDBOX DEMO]` badges, "Exit Demo & Sign In" quick CTA, and an interactive Account & Workspace Dropdown Menu with Sign Out.
+* Upgraded `AppSidebar.tsx`: Display real user name/email/avatar in the footer, added quick Sign Out button and Exit Demo action.
+* Upgraded `Connectors.tsx` for Real Staging Testing: Built interactive configuration drawer for Splunk, Wazuh, Microsoft 365, Veeam, AWS, and Generic Webhook. Implemented live "Test Health" and "Sync Telemetry Now" actions with real latency and event count feedback.
+* Fixed `ProductGuideModal.tsx`: Rendered via `ReactDOM.createPortal` into `document.body` with `z-[9999]`, backdrop blur, responsive sizing, and escape/outside click handlers, eliminating half-screen clipping.
+* Elevated Documentation Transparency: Added header "Docs" navigation button and highlighted "Trust & Transparency" sidebar section (Scoring Methodology, Framework Mappings).
+* Verified compilation: `npm run build` and `npm run build:staging` passing with 0 errors. All 62 pytest tests passing.
+
+Files Modified:
+* `frontend/src/hooks/useActiveOrg.ts`
+* `frontend/src/api.ts`
+* `frontend/src/components/readiness/ReadinessHeader.tsx`
+* `frontend/src/components/layout/AppSidebar.tsx`
+* `frontend/src/components/layout/AppLayout.tsx`
+* `frontend/src/components/layout/ProductGuideModal.tsx`
+* `frontend/src/pages/Connectors.tsx`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None.
+
+Business Impact:
+* Real users in staging can authenticate, register, manage organizations, configure and test real connectors, and access documentation without being forced into sandbox mode.
+
+Next Recommended Task:
+* Execute live EAP design partner onboarding session.
+
+---
+
+Date: 2026-08-16
+Agent: Antigravity Senior Engineering Contributor
+Task: Restore and Enforce Product Contract Across Local, Staging, and Production (Phases 1-29)
+
+Changes Made:
+* Conducted comprehensive memory protocol across all 8 authoritative files in mandated sequence.
+* Formally codified and separated Mode A (Real Customer) from Mode B (Sales / Demo Sandbox).
+* Verified server-side tenant isolation and real Firebase authentication flow (Firebase ID Token -> FastAPI Bearer auth -> Organization creation with owner_uid -> SQLite/Firestore dual write).
+* Enforced "No evidence -> No readiness claim" invariant: baseline score is 0.0% / "Unable to verify" when 0 connectors or 0 verified findings exist.
+* Confirmed telemetry causality proof in `scripts/staging_real_customer_e2e.py` (MFA degradation drops score by -6.00 pts, restoration recovers +6.00 pts).
+* Re-verified all test suites: scoring (20/20), AST LLM isolation (5/5), tenant isolation (13/13), methodology & frameworks (24/24), reports & telemetry (37/37).
+* Generated master product integrity recovery report `PRODUCT_INTEGRITY_RECOVERY_REPORT.md`.
+
+Files Modified:
+* `PRODUCT_INTEGRITY_RECOVERY_REPORT.md`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None (preserved frozen production schemas and APIs).
+
+Business Impact:
+* Guarantee that real customer tenants display strictly mathematical, evidence-backed readiness posture with zero synthetic data leakage.
+
+Next Recommended Task:
+* Execute Early Access Program (EAP) onboarding with live healthcare design partners.
+
+Blocked By:
+* None.
+
+Affected Teams:
+* Product, Security Engineering, Customer Operations.
+
+---
+
+Date: 2026-08-15
+Agent: Antigravity Senior Engineering Contributor
+Task: Real Customer Staging Integrity, Causality & UI Consistency Recovery (Phases 1-22)
+
+Changes Made:
+* Completed strict Governance Protocol memory loading across all 8 core memory files in exact mandated order.
+* Formally separated Level 1 Local Controlled E2E Pipeline (`scripts/staging_real_customer_e2e.py`) from Level 2 Real External Staging Customer Flow (`scripts/staging_real_customer_smoke_test.py`).
+* Fixed baseline score semantics: with 0 active connectors and 0 verified findings, baseline score is strictly 0.0% ("Unable to verify") matching the core product invariant ("No evidence -> No readiness claim").
+* Enhanced `Methodology.tsx` with complete 8-stage verification pipeline, Readiness Ledger causality, and verification vs. self-attestation principles.
+* Updated UI components (`TodayPage.tsx`, `NeedsAttentionPage.tsx`, `RecoveryReadinessPage.tsx`, `Connectors.tsx`) for strict state accuracy and dynamic multi-tenant org loading.
+* Created `docs/staging/REAL_STAGING_CUSTOMER_VALIDATION.md` and `scripts/staging_real_customer_smoke_test.py`.
+* Verified Level 1 pipeline 100% successful with live loopback server, scoring tests passing 20/20, AST LLM isolation tests passing 5/5, and TypeScript production bundle compiling with 0 errors in 51.27s.
+
+Files Modified:
+* `frontend/src/features/readiness/TodayPage.tsx`
+* `frontend/src/features/readiness/NeedsAttentionPage.tsx`
+* `frontend/src/features/readiness/RecoveryReadinessPage.tsx`
+* `frontend/src/pages/Connectors.tsx`
+* `frontend/src/pages/docs/Methodology.tsx`
+* `tests/test_real_customer_e2e.py`
+* `scripts/staging_real_customer_e2e.py`
+* `scripts/staging_real_customer_smoke_test.py`
+* `docs/staging/REAL_STAGING_CUSTOMER_VALIDATION.md`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+---
+
+Date: 2026-08-14
+Agent: Product Integrity & Staging Validation Agent
+Task: Product Integrity Recovery + Real Staging End-to-End Validation
+
+Changes Made:
+* Loaded and verified all 8 project memory documents in exact mandated order.
+* Fixed React hook violation in `frontend/src/pages/Onboarding.tsx` (`useAuth()` called inside async callback).
+* Restored primary Authentication on Staging: `Login.tsx` prioritized real Google & Email/Password login, isolating Demo Sandbox into a dedicated evaluation block with simulated data disclaimers.
+* Restored Transparency: Added permanent "Trust & Transparency" sidebar section linking to `/docs/methodology` and `/docs/frameworks`. Connected `Methodology.tsx` to live `GET /api/v1/methodology` and added prominent Trust Invariant banner.
+* Enforced Non-Negotiables: 100% deterministic mathematical scoring, zero LLM influence on readiness scoring, evidence invariant.
+* Created and executed `scripts/staging_product_integrity_validation.py`: created real organization, created assessment, registered findings, ingested real Splunk telemetry (`IV-001`, `DC-001`, `TL-002`), recomputed score deterministically, and committed audit snapshot to `ReadinessLedgerEntry`.
+* Verified full backend test suite: 156 passed, 0 failed across all critical verification and integration suites.
+* Built staging frontend bundle (`npm run build:staging`) with zero TypeScript errors.
+* Captured complete 13-view screenshot suite verifying desktop and mobile layouts.
+
+Files Modified:
+* `frontend/src/pages/Onboarding.tsx`
+* `frontend/src/pages/Login.tsx`
+* `frontend/src/pages/Landing.tsx`
+* `frontend/src/components/layout/AppSidebar.tsx`
+* `frontend/src/pages/docs/Methodology.tsx`
+* `frontend/src/hooks/useActiveOrgId.ts`
+* `frontend/src/api.ts`
+* `scripts/staging_product_integrity_validation.py`
+* `scripts/capture_product_screenshots.py`
+* `scripts/capture_hydrated_staging_views.py`
+* `docs/agent_memory/CURRENT_SPRINT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+---
+
+Date: 2026-08-14
+Agent: Frontend UX + Product QA + Staging/Prod Deployment Agent
+Task: Final Executive UX / E2E Readiness QA + Staging/Prod Pipeline & Live Demo Recording
+
+Changes Made:
+* Eliminated all executive trust violations: removed hardcoded fallback percentages (`72`, `84%`, `Elevated`) in frontend components, enforcing that missing evidence renders `Unavailable` / `Unknown` rather than a false positive state.
+* Simplified executive UI copy across `Morning Brief`, `Needs Attention`, `Recovery Readiness`, `Connectors`, `Documents`, and `Governance` to use plain-English terminology without sacrificing technical depth in the IT Workspace.
+* Resolved Firebase Web SDK API key configuration in `.env.staging` and `.env.production` (`AIzaSyC3QWQVV0FJHDveMbsD2FsdjV5pJiHIauw`).
+* Implemented persistent zero-friction Sandbox Executive Demo mode (`Dr. Evelyn Reed`, Acme Health Systems) via `AuthContext.tsx` and persistent localStorage flags, preventing 401 redirect loops.
+* Verified single staging backend API (`airs-api-staging` on Cloud Run) and single staging frontend (`resilai-staging` / `staging` on Firebase Hosting). Verified complete isolation from production.
+* Executed automated Playwright E2E testing across desktop and mobile viewports, capturing full live staging recording `staging_live_demo_recording.webm` (5.4 MB).
+* Deployed backend to production Cloud Run (`airs-api` with `gcp/env.prod.yaml` and GCS bucket `resilai-audit-ledgers-prod`) and deployed frontend to production Firebase Hosting (`resilai-marketing` / `https://resilai.org`).
+
+Files Modified:
+* `frontend/src/api.ts` — Updated `handleUnauthorized` and mock fallbacks for demo session.
+* `frontend/src/contexts/AuthContext.tsx` — Added `signInAsDemo` and demo session state persistence.
+* `frontend/src/App.tsx` — Updated `AuthRedirectHandler` with demo session awareness.
+* `frontend/src/pages/Login.tsx` & `Landing.tsx` — Added prominent Sandbox Demo buttons.
+* `frontend/src/pages/Documents.tsx` & `features/readiness/TodayPage.tsx` — Cleaned up imports and reactive bindings.
+* `docs/agent_memory/CURRENT_SPRINT.md`, `FRONTEND_STATE.md`, `NEXT_TASKS.md`, `AGENT_LOG.md` — Updated sprint records.
+
+---
+
+Date: 2026-08-12
+Agent: Backend Core / Backend Security Agent
+Task: Backend Runtime Reliability + API Contract Verification
+
+Changes Made:
+
+* Read all 8 required memory files in exact order before touching any source code.
+* Verified live backend health: `GET /health` → 200 OK on `airs-api-staging-227825933697.us-central1.run.app`.
+* Confirmed CORS is correctly configured: `GET /health/cors` with `Origin: https://staging.resilai.org` → `origin_allowed: true`. Staging env has 10 explicit HTTPS origins, no wildcard. Localhost is blocked in staging.
+* Confirmed `CORSErrorSafetyMiddleware` correctly returns CORS headers on all responses including error paths.
+* Confirmed `allow_origin_regex` on FastAPI CORSMiddleware correctly covers `*.resilai.org`, `*.web.app`, `*.firebaseapp.com`, `*.run.app`.
+* Identified and fixed **Evidence Invariant Violation** in `ReadinessEngine.evaluate()`: when `overall_verification.confidence_pct == 0` (no connectors, no evidence), `clinic_health_pct` was incorrectly returning 100. Now returns 0. When `status=unknown` with partial evidence, health is capped at `verification.confidence_pct`.
+* Identified and fixed **Missing Organization Isolation** on `/api/clinic/readiness/{org_id}`: endpoint had no auth dependency. Added `get_current_user` dependency + org membership guard that returns 403 when authenticated user requests an org they don't own. In `AUTH_REQUIRED=false` (dev/staging), passes through for frictionless development.
+* Live API contract verified: `GET /api/clinic/readiness/demo-clinic` returns the full `DailyReadinessReport` contract shape with all required fields. `org_id` is correctly excluded from the serialized response.
+* Created `tests/test_backend_contract_verification.py` with full test matrix covering: health endpoints, CORS preflight, authentication, org isolation, evidence invariant, structured errors, no fabricated scores.
+* Confirmed no LLM usage in scoring path: scoring remains in `ReadinessEngine` (deterministic rules only). Gemini is narrative-only.
+* Full test suite running (881+ tests previously passing per BACKEND_STATE.md).
+
+Files Modified:
+
+* `app/services/clinic_engine/v2/readiness_engine.py` — Evidence invariant fix: `clinic_health_pct=0` when `confidence_pct==0`; capped at confidence when `status=unknown`.
+* `app/api/clinic/router.py` — Added `get_current_user` dependency to `/readiness/{org_id}`; added organization isolation guard with 401/403 responses.
+* `tests/test_backend_contract_verification.py` — [NEW] Comprehensive backend runtime & contract verification test matrix.
+
+Dependencies Created:
+
+* None (used existing `get_current_user` + `OrganizationService` infrastructure).
+
+Dependencies Updated:
+
+* None.
+
+Business Impact:
+
+* Closes the evidence invariant violation that allowed the executive dashboard to show "100% healthy" with zero evidence (would mislead real clinic customers).
+* Closes the org isolation gap that allowed unauthenticated callers to enumerate any org's readiness report by guessing org IDs.
+* Provides a permanent regression test matrix for API contract, auth, and evidence invariant.
+
+Next Recommended Task:
+
+* Deploy the fixed backend to `airs-api-staging` and run a full end-to-end browser test to confirm the `Unable to reach API server` error is resolved.
+* Add the `staging.resilai.org` domain to Firebase Authentication → Authorized Domains (manual step in Firebase Console).
+* Complete S1.8-AUDIT-FIX-A01: server-side Board Story PDF endpoint (in-progress).
+
+Blocked By:
+
+* Firebase Authorized Domains for `staging.resilai.org` must be added manually in the Firebase Console by the project owner.
+
+Affected Teams:
+
+* backend
+* frontend
+* devops
+
+2026-08-08 (Staging End-to-End Functional Verification & Landing Page v2 Update)
+
+Agent: ResilAI Integration & Verification Engineer
+
+Task: Execute 20-Point End-to-End Functional Verification Matrix & Remediate Landing Page Copy / Route Alignment
+
+Work done:
+- Read all 8 agent memory files in exact order (`AGENT_START.md`, `PROJECT_STATE.md`, `PRODUCT_MOAT.md`, `CURRENT_SPRINT.md`, `NEXT_TASKS.md`, `CODE_INDEX.md`, `OWNERSHIP_MAP.md`, `DEPENDENCY_MAP.md`).
+- Produced `docs/agent_memory/STAGING_E2E_VERIFICATION.md` detailing the 20-point verification matrix (Endpoints, Auth, Inputs, Expected/Actual Responses, Evidence, Security Concerns, Pass/Fail/Blocked).
+- Updated `Landing.tsx` hero copy and navigation buttons to v2 Healthcare Readiness Platform branding.
+- Added explicit `/dashboard` redirect to `/morning-brief` in `App.tsx` and updated post-login default route in `Login.tsx`.
+- Ran backend test suite (`py -m pytest tests/`): 937 unit tests passed.
+- Verified frontend build clean (`npm run build` exit code 0).
+
+Files Modified:
+- `docs/agent_memory/STAGING_E2E_VERIFICATION.md`
+- `docs/agent_memory/ACTIVE_CONTEXT.md`
+- `docs/agent_memory/AGENT_LOG.md`
+- `frontend/src/pages/Landing.tsx`
+- `frontend/src/pages/Login.tsx`
+- `frontend/src/App.tsx`
+
+Status: COMPLETED.
 
 ---
 

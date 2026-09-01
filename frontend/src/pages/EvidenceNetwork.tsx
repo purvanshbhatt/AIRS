@@ -494,7 +494,7 @@ export function EvidenceNetwork() {
                     <div key={conn.connector_name} className="border-b border-slate-200/50 dark:border-slate-800/40 last:border-0 pb-3 last:pb-0">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black text-slate-900 dark:text-slate-100 capitalize">{conn.connector_name} Agent</span>
-                        <Badge variant={conn.confidence_score >= 80 ? 'success' : 'warning'} className="font-bold text-[10px]">
+                        <Badge variant={conn.confidence_score >= 80 ? "ready" : "drift"} className="font-bold text-[10px]">
                           {conn.confidence_score}% Confidence
                         </Badge>
                       </div>
@@ -580,7 +580,7 @@ export function EvidenceNetwork() {
                   <div className="p-4 border border-slate-200/60 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Wazuh Manager Hook</h3>
-                      <Badge variant={wazuhConnected ? 'success' : 'outline'} className="gap-1.5 rounded-xl px-3 py-1 font-bold">
+                      <Badge variant={wazuhConnected ? "ready" : 'outline'} className="gap-1.5 rounded-xl px-3 py-1 font-bold">
                         <span
                           className={`inline-block h-2 w-2 rounded-full ${wazuhConnected ? 'bg-primary-500 animate-pulse' : 'bg-slate-400 animate-pulse'}`}
                         />
@@ -656,7 +656,7 @@ export function EvidenceNetwork() {
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Splunk MCP configuration</h3>
                     {splunkConfigured && (
-                      <Badge variant="success" className="gap-1.5 rounded-xl px-2.5 py-1 font-bold">
+                      <Badge variant="ready" className="gap-1.5 rounded-xl px-2.5 py-1 font-bold">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Configured
                       </Badge>
@@ -711,7 +711,7 @@ export function EvidenceNetwork() {
                   <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-950/30 space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Evidence Health Check results</h3>
-                      <Badge variant={evidenceResults.overall_status === 'verified' ? 'success' : 'outline'} className="rounded-xl px-2.5 py-1 font-bold">
+                      <Badge variant={evidenceResults.overall_status === 'verified' ? "ready" : 'outline'} className="rounded-xl px-2.5 py-1 font-bold">
                         {evidenceResults.verified_controls}/{evidenceResults.total_controls} Controls Verified
                       </Badge>
                     </div>
@@ -756,7 +756,7 @@ export function EvidenceNetwork() {
 
                 {/* Mock Seed / External Findings */}
                 <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/40">
-                  <Badge variant={splunkConnected ? 'success' : 'outline'} className="rounded-xl px-2.5 py-1 font-bold">
+                  <Badge variant={splunkConnected ? "ready" : 'outline'} className="rounded-xl px-2.5 py-1 font-bold">
                     {splunkConnected ? 'Findings Synced' : 'No Findings'}
                   </Badge>
                   {!isReadOnly && (

@@ -2,18 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { LoadingState, ErrorState } from '../../components/readiness/ReadinessStates';
 import { getDailyReadinessReport } from '../../api';
 import type { DailyReadinessReport } from '../../types/readiness';
-import { Activity as ActivityIcon, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { useActiveOrg } from '../../hooks/useActiveOrg';
+import { ContextualDemoBanner } from '../../components/common/ContextualDemoBanner';
+import { Link } from 'react-router-dom';
+import { Activity as ActivityIcon, CheckCircle2, AlertTriangle, ShieldCheck, Building, ArrowRight } from 'lucide-react';
 
 export default function ActivityPage() {
+  const { orgId, hasOrg, isDemo, loading: orgLoading } = useActiveOrg();
   const [report, setReport] = useState<DailyReadinessReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const orgId = "default-org"; 
-
   const loadReport = async () => {
+    if (!orgId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setError(null);
     try {
       const data = await getDailyReadinessReport(orgId);
       setReport(data);
@@ -25,10 +31,45 @@ export default function ActivityPage() {
   };
 
   useEffect(() => {
-    loadReport();
-  }, []);
+    if (orgId) {
+      loadReport();
+    } else if (!orgLoading) {
+      setLoading(false);
+    }
+  }, [orgId, orgLoading]);
 
-  if (loading) return <LoadingState />;
+  if (orgLoading || loading) return <LoadingState />;
+
+  if (!hasOrg && !isDemo) {
+    return (
+      <div className="space-y-8 animate-fade-up max-w-2xl mx-auto py-12">
+        <div className="bg-slate-900/60 dark:bg-slate-900/60 rounded-3xl border border-slate-800 p-8 sm:p-10 text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <Building className="w-8 h-8 text-emerald-500" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
+              Set up your readiness workspace
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+              Create an organization to establish continuous audit activity logs and event histories.
+            </p>
+          </div>
+          <div>
+            <Link
+              to="/onboarding?new=true"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-br from-primary-600 to-emerald-500 text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-primary-500/25 transition-all active:scale-[0.98]"
+            >
+              <Building className="w-4 h-4" />
+              <span>Create Organization</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) return <ErrorState error={error} onRetry={loadReport} />;
   if (!report) return null;
 
@@ -51,6 +92,8 @@ export default function ActivityPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Contextual Demo Mode Amber Guidance Banner */}
+      <ContextualDemoBanner section="activity" />
       
       <div className="flex items-center gap-4 border-b border-slate-200 pb-6">
         <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">

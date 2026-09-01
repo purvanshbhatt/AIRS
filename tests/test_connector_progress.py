@@ -11,6 +11,17 @@ from app.core.auth import User
 client = TestClient(app)
 
 @pytest.fixture
+def mock_db_session():
+    with patch("app.api.integrations.get_db") as mock_get_db:
+        mock_db = MagicMock()
+        mock_get_db.return_value = mock_db
+        yield mock_db
+
+@pytest.fixture(autouse=True)
+def setup_db(db_session):
+    pass
+
+@pytest.fixture
 def mock_auth():
     # Mock require_auth dependency to bypass Firebase auth check in tests
     with patch("app.api.integrations.require_auth") as mock:

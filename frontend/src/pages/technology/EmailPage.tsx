@@ -30,7 +30,7 @@ const MOCK_EVENTS: TrustEvent[] = [
     details: '100% of outbound company domains validated with DMARC p=reject and strict DKIM alignment.',
     oldState: 'Self-Attested',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0xe8201fa7b99c43d'
   }
 ];
@@ -54,6 +54,8 @@ const MOCK_INVENTORY = [
   { domain: 'health-connect.org', dmarc: 'p=reject (100%)', spf: 'pass', dkim: 'valid (2048-bit)', status: 'Healthy' },
 ];
 
+import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+
 export function EmailPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
@@ -64,6 +66,8 @@ export function EmailPage() {
       transition={{ duration: 0.25 }}
       className="space-y-6 text-left"
     >
+      <SimulatedTelemetryBanner domainName="Email & Communication" />
+
       <SummaryCard
         domainName="Email Security & Delivery"
         status="ready"

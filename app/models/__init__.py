@@ -72,6 +72,13 @@ from app.models.clinic.msp import MSPRelationship
 from app.models.clinic.value_metric import ClinicValueMetric
 from app.models.clinic.readiness_snapshot import ReadinessSnapshot
 
+# Lifecycle Intelligence Models
+from app.models.lifecycle_catalog import (
+    GlobalSoftwareCatalog,
+    SoftwareVersion,
+    LifecycleReference,
+)
+
 __all__ = [
     "ClinicMomentRecord",
     "MomentStatus",
@@ -145,4 +152,7 @@ __all__ = [
     "MSPRelationship",
     "ClinicValueMetric",
     "ReadinessSnapshot",
+    "GlobalSoftwareCatalog",
+    "SoftwareVersion",
+    "LifecycleReference",
 ]

@@ -974,7 +974,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="AI Asset Inventory Incomplete",
         domain_id="ai_governance",
         severity=Severity.CRITICAL,
-        condition=lambda a, s: bool(globals().get("_ai_inv_empty")) ,
+        condition=lambda a, s: a.get("ai_01") is False,
         evidence_fn=lambda a, s: (
             "No AI assets have been catalogued in the AI Estate inventory. "
             "Without an inventory, AI governance cannot be reliably enforced."
@@ -988,7 +988,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="Unclassified AI Asset Type",
         domain_id="ai_governance",
         severity=Severity.HIGH,
-        condition=lambda a, s: True,
+        condition=lambda a, s: a.get("ai_02") is False,
         evidence_fn=lambda a, s: "One or more AI assets have an unclassified asset_type.",
         recommendation="Map each AI asset to a canonical AIAssetType (model, vector_db, "
                        "mcp_server, agent_framework, prompt_library, embedding_pipeline, "
@@ -999,7 +999,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="Prompt Library Publicly Exposed",
         domain_id="ai_governance",
         severity=Severity.CRITICAL,
-        condition=lambda a, s: True,
+        condition=lambda a, s: a.get("ai_03") is False,
         evidence_fn=lambda a, s: (
             "A prompt library is exposed publicly or to broad audiences."
         ),
@@ -1012,7 +1012,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="Vector DB Missing Retention Policy",
         domain_id="ai_governance",
         severity=Severity.HIGH,
-        condition=lambda a, s: True,
+        condition=lambda a, s: a.get("ai_04") is False,
         evidence_fn=lambda a, s: "Vector DB has no retention policy configured.",
         recommendation="Document and enforce a retention policy on every vector DB. "
                        "Pair with right-to-deletion flows for GDPR/CCPA cohorts.",
@@ -1022,7 +1022,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="MCP Server Internet-Facing",
         domain_id="ai_governance",
         severity=Severity.CRITICAL,
-        condition=lambda a, s: True,
+        condition=lambda a, s: a.get("ai_05") is False,
         evidence_fn=lambda a, s: (
             "MCP server is exposed publicly. Exposed MCP servers are a primary "
             "exploitation surface for prompt-injection attacks."
@@ -1038,7 +1038,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="Agent Framework in Production Touching Critical Assets",
         domain_id="ai_governance",
         severity=Severity.HIGH,
-        condition=lambda a, s: True,
+        condition=lambda a, s: a.get("ai_06") is True,
         evidence_fn=lambda a, s: (
             "An agent framework operating in production has been catalogued as "
             "Critical business criticality."
@@ -1052,7 +1052,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="Unversioned Prompt Asset",
         domain_id="ai_governance",
         severity=Severity.MEDIUM,
-        condition=lambda a, s: True,
+        condition=lambda a, s: False,  # Evaluated by automated discovery engine
         evidence_fn=lambda a, s: "A prompt asset has no recorded version.",
         recommendation="Version every prompt asset. Maintain an immutable history "
                        "in the AI Asset ledger with rollback capability.",
@@ -1062,7 +1062,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="EOL Model Dependencies",
         domain_id="ai_governance",
         severity=Severity.HIGH,
-        condition=lambda a, s: True,
+        condition=lambda a, s: False,  # Evaluated by automated discovery engine
         evidence_fn=lambda a, s: "Model is recorded as End-of-Life or Deprecated.",
         recommendation="Plan and execute migration to a supported successor. Add a "
                        "compensating control (enhanced monitoring, input filtering) "
@@ -1073,7 +1073,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="AI Asset Touches PII/PHI Without Network Isolation",
         domain_id="ai_governance",
         severity=Severity.CRITICAL,
-        condition=lambda a, s: True,
+        condition=lambda a, s: False,  # Evaluated by automated discovery engine
         evidence_fn=lambda a, s: (
             "AI asset handles PII/PHI but network isolation is disabled."
         ),
@@ -1087,7 +1087,7 @@ AI_GOVERNANCE_RULES: List[FindingRule] = [
         title="AI Asset Has No Governance Owner",
         domain_id="ai_governance",
         severity=Severity.HIGH,
-        condition=lambda a, s: True,
+        condition=lambda a, s: False,  # Evaluated by automated discovery engine
         evidence_fn=lambda a, s: "AI asset has no governance owner assigned.",
         recommendation="Assign a named governance owner for every AI asset. "
                        "Owners are accountable for compliance, change control, and "

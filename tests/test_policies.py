@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 # Helpers
 # ═══════════════════════════════════════════════════════════════════════
 
-def _create_test_asset(client: TestClient, name: str, asset_type: str = "model", **kwargs) -> dict:
+def _create_test_asset(client_with_org: TestClient, name: str, asset_type: str = "model", **kwargs) -> dict:
     """Helper to create a test AI asset."""
     payload = {
         "name": name,
@@ -26,12 +26,12 @@ def _create_test_asset(client: TestClient, name: str, asset_type: str = "model",
         "exposure_level": kwargs.get("exposure_level", "public"),
         "lifecycle_stage": kwargs.get("lifecycle_stage", "production"),
     }
-    resp = client.post("/api/v1/inventory/assets", json=payload)
+    resp = client_with_org.post("/api/v1/inventory/assets", json=payload)
     assert resp.status_code == 201
     return resp.json()
 
 
-def _create_test_policy(client: TestClient, name: str, rules: list, **kwargs) -> dict:
+def _create_test_policy(client_with_org: TestClient, name: str, rules: list, **kwargs) -> dict:
     """Helper to create a test governance policy."""
     payload = {
         "name": name,
@@ -40,7 +40,7 @@ def _create_test_policy(client: TestClient, name: str, rules: list, **kwargs) ->
         "enforcement_mode": kwargs.get("enforcement_mode", "enforce"),
         "description": kwargs.get("description", "Test policy"),
     }
-    resp = client.post("/api/v1/policies", json=payload)
+    resp = client_with_org.post("/api/v1/policies", json=payload)
     assert resp.status_code == 201, f"Failed to create policy: {resp.text}"
     return resp.json()
 
@@ -49,9 +49,9 @@ def _create_test_policy(client: TestClient, name: str, rules: list, **kwargs) ->
 # Policy CRUD Tests
 # ═══════════════════════════════════════════════════════════════════════
 
-def test_create_policy(client: TestClient):
+def test_create_policy(client_with_org: TestClient):
     """Test creating a governance policy."""
-    resp = client.post("/api/v1/policies", json={
+    resp = client_with_org.post("/api/v1/policies", json={
         "name": "AI Model Approval Required",
         "policy_type": "model_approval",
         "description": "All production models must have an approval record.",
@@ -75,9 +75,9 @@ def test_create_policy(client: TestClient):
     assert data["is_active"] is True
 
 
-def test_create_policy_invalid_type(client: TestClient):
+def test_create_policy_invalid_type(client_with_org: TestClient):
     """Test that invalid policy_type returns 400."""
-    resp = client.post("/api/v1/policies", json={
+    resp = client_with_org.post("/api/v1/policies", json={
         "name": "Bad Type",
         "policy_type": "nonexistent_type",
         "policy_definition": {"rules": []},
@@ -85,9 +85,9 @@ def test_create_policy_invalid_type(client: TestClient):
     assert resp.status_code == 400
 
 
-def test_create_policy_missing_rules(client: TestClient):
+def test_create_policy_missing_rules(client_with_org: TestClient):
     """Test that policy_definition without 'rules' returns 400."""
-    resp = client.post("/api/v1/policies", json={
+    resp = client_with_org.post("/api/v1/policies", json={
         "name": "No Rules",
         "policy_type": "ai_usage",
         "policy_definition": {"something": "else"},
@@ -95,32 +95,32 @@ def test_create_policy_missing_rules(client: TestClient):
     assert resp.status_code == 400
 
 
-def test_list_policies(client: TestClient):
+def test_list_policies(client_with_org: TestClient):
     """Test listing policies."""
-    _create_test_policy(client, "Policy A", [])
-    _create_test_policy(client, "Policy B", [])
+    _create_test_policy(client_with_org, "Policy A", [])
+    _create_test_policy(client_with_org, "Policy B", [])
 
-    resp = client.get("/api/v1/policies")
+    resp = client_with_org.get("/api/v1/policies")
     assert resp.status_code == 200
     data = resp.json()
     assert len(data) >= 2
 
 
-def test_get_policy(client: TestClient):
+def test_get_policy(client_with_org: TestClient):
     """Test getting a specific policy."""
-    policy = _create_test_policy(client, "Get This Policy", [])
+    policy = _create_test_policy(client_with_org, "Get This Policy", [])
 
-    resp = client.get(f"/api/v1/policies/{policy['id']}")
+    resp = client_with_org.get(f"/api/v1/policies/{policy['id']}")
     assert resp.status_code == 200
     assert resp.json()["name"] == "Get This Policy"
 
 
-def test_update_policy(client: TestClient):
+def test_update_policy(client_with_org: TestClient):
     """Test updating a policy increments version."""
-    policy = _create_test_policy(client, "Updatable Policy", [])
+    policy = _create_test_policy(client_with_org, "Updatable Policy", [])
     assert policy["version"] == 1
 
-    resp = client.patch(f"/api/v1/policies/{policy['id']}", json={
+    resp = client_with_org.patch(f"/api/v1/policies/{policy['id']}", json={
         "name": "Updated Policy Name",
         "enforcement_mode": "audit",
     })
@@ -135,13 +135,13 @@ def test_update_policy(client: TestClient):
 # Policy Evaluation Tests
 # ═══════════════════════════════════════════════════════════════════════
 
-def test_evaluate_policy_pass(client: TestClient):
+def test_evaluate_policy_pass(client_with_org: TestClient):
     """Test evaluating a policy that passes."""
     # Create an asset in development
-    _create_test_asset(client, "Dev Model", asset_type="model", lifecycle_stage="development")
+    _create_test_asset(client_with_org, "Dev Model", asset_type="model", lifecycle_stage="development")
 
     # Create a policy that only triggers on production models
-    policy = _create_test_policy(client, "Prod Only", [
+    policy = _create_test_policy(client_with_org, "Prod Only", [
         {
             "condition": "lifecycle_stage == 'production'",
             "require": "owner IS NOT NULL",
@@ -149,23 +149,23 @@ def test_evaluate_policy_pass(client: TestClient):
         }
     ])
 
-    resp = client.post(f"/api/v1/policies/{policy['id']}/evaluate")
+    resp = client_with_org.post(f"/api/v1/policies/{policy['id']}/evaluate")
     assert resp.status_code == 200
     data = resp.json()
     assert data["result"] == "pass"
     assert len(data["violations"]) == 0
 
 
-def test_evaluate_policy_fail_enforce(client: TestClient):
+def test_evaluate_policy_fail_enforce(client_with_org: TestClient):
     """Test evaluating a policy in enforce mode that fails."""
     # Create a production model without an owner
     _create_test_asset(
-        client, "Unowned Model", asset_type="model",
+        client_with_org, "Unowned Model", asset_type="model",
         lifecycle_stage="production",
     )
 
     # Policy requires owner for production models
-    policy = _create_test_policy(client, "Owner Required", [
+    policy = _create_test_policy(client_with_org, "Owner Required", [
         {
             "condition": "lifecycle_stage == 'production'",
             "require": "owner IS NOT NULL",
@@ -173,7 +173,7 @@ def test_evaluate_policy_fail_enforce(client: TestClient):
         }
     ], enforcement_mode="enforce")
 
-    resp = client.post(f"/api/v1/policies/{policy['id']}/evaluate")
+    resp = client_with_org.post(f"/api/v1/policies/{policy['id']}/evaluate")
     assert resp.status_code == 200
     data = resp.json()
     assert data["result"] == "fail"
@@ -182,14 +182,14 @@ def test_evaluate_policy_fail_enforce(client: TestClient):
     assert data["enforcement_mode"] == "enforce"
 
 
-def test_evaluate_policy_warn_audit_mode(client: TestClient):
+def test_evaluate_policy_warn_audit_mode(client_with_org: TestClient):
     """Test that violations in audit mode produce 'warn' instead of 'fail'."""
     _create_test_asset(
-        client, "Audit Model", asset_type="model",
+        client_with_org, "Audit Model", asset_type="model",
         lifecycle_stage="production",
     )
 
-    policy = _create_test_policy(client, "Audit Only", [
+    policy = _create_test_policy(client_with_org, "Audit Only", [
         {
             "condition": "lifecycle_stage == 'production'",
             "require": "owner IS NOT NULL",
@@ -197,18 +197,18 @@ def test_evaluate_policy_warn_audit_mode(client: TestClient):
         }
     ], enforcement_mode="audit")
 
-    resp = client.post(f"/api/v1/policies/{policy['id']}/evaluate")
+    resp = client_with_org.post(f"/api/v1/policies/{policy['id']}/evaluate")
     assert resp.status_code == 200
     data = resp.json()
     assert data["result"] == "warn"  # Not "fail" because mode is audit
     assert len(data["violations"]) >= 1
 
 
-def test_evaluate_disabled_policy(client: TestClient):
+def test_evaluate_disabled_policy(client_with_org: TestClient):
     """Test that disabled policies always pass."""
-    _create_test_asset(client, "Any Model", asset_type="model")
+    _create_test_asset(client_with_org, "Any Model", asset_type="model")
 
-    policy = _create_test_policy(client, "Disabled Policy", [
+    policy = _create_test_policy(client_with_org, "Disabled Policy", [
         {
             "condition": "asset_type == 'model'",
             "require": "owner IS NOT NULL",
@@ -216,23 +216,23 @@ def test_evaluate_disabled_policy(client: TestClient):
         }
     ], enforcement_mode="disabled")
 
-    resp = client.post(f"/api/v1/policies/{policy['id']}/evaluate")
+    resp = client_with_org.post(f"/api/v1/policies/{policy['id']}/evaluate")
     assert resp.status_code == 200
     data = resp.json()
     assert data["result"] == "pass"
     assert data["assets_evaluated"] == 0
 
 
-def test_evaluate_all_policies(client: TestClient):
+def test_evaluate_all_policies(client_with_org: TestClient):
     """Test evaluating all active policies."""
-    _create_test_asset(client, "All Eval Model", asset_type="model", lifecycle_stage="production")
+    _create_test_asset(client_with_org, "All Eval Model", asset_type="model", lifecycle_stage="production")
 
-    _create_test_policy(client, "Policy 1", [
+    _create_test_policy(client_with_org, "Policy 1", [
         {"condition": "lifecycle_stage == 'production'", "require": "owner IS NOT NULL", "severity": "high"}
     ], enforcement_mode="enforce")
-    _create_test_policy(client, "Policy 2", [], enforcement_mode="audit")
+    _create_test_policy(client_with_org, "Policy 2", [], enforcement_mode="audit")
 
-    resp = client.post("/api/v1/policies/evaluate-all")
+    resp = client_with_org.post("/api/v1/policies/evaluate-all")
     assert resp.status_code == 200
     data = resp.json()
     assert data["total_policies"] >= 2
@@ -241,11 +241,11 @@ def test_evaluate_all_policies(client: TestClient):
     assert "warning" in data
 
 
-def test_policy_condition_in_operator(client: TestClient):
+def test_policy_condition_in_operator(client_with_org: TestClient):
     """Test the IN operator in policy conditions."""
-    _create_test_asset(client, "Agent Asset", asset_type="agent", lifecycle_stage="production")
+    _create_test_asset(client_with_org, "Agent Asset", asset_type="agent", lifecycle_stage="production")
 
-    policy = _create_test_policy(client, "Type Gate", [
+    policy = _create_test_policy(client_with_org, "Type Gate", [
         {
             "condition": "asset_type IN ('agent', 'model')",
             "require": "business_criticality == 'critical'",
@@ -253,23 +253,23 @@ def test_policy_condition_in_operator(client: TestClient):
         }
     ])
 
-    resp = client.post(f"/api/v1/policies/{policy['id']}/evaluate")
+    resp = client_with_org.post(f"/api/v1/policies/{policy['id']}/evaluate")
     assert resp.status_code == 200
     data = resp.json()
     # Agent with critical criticality should pass
     assert data["result"] == "pass"
 
 
-def test_policy_evaluation_history(client: TestClient):
+def test_policy_evaluation_history(client_with_org: TestClient):
     """Test that evaluations are recorded in the audit trail."""
-    _create_test_asset(client, "Audited Model", asset_type="model")
-    policy = _create_test_policy(client, "Audited Policy", [])
+    _create_test_asset(client_with_org, "Audited Model", asset_type="model")
+    policy = _create_test_policy(client_with_org, "Audited Policy", [])
 
     # Evaluate twice
-    client.post(f"/api/v1/policies/{policy['id']}/evaluate")
-    client.post(f"/api/v1/policies/{policy['id']}/evaluate")
+    client_with_org.post(f"/api/v1/policies/{policy['id']}/evaluate")
+    client_with_org.post(f"/api/v1/policies/{policy['id']}/evaluate")
 
-    resp = client.get(f"/api/v1/policies/{policy['id']}/history")
+    resp = client_with_org.get(f"/api/v1/policies/{policy['id']}/history")
     assert resp.status_code == 200
     data = resp.json()
     assert len(data) >= 2

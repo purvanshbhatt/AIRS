@@ -50,22 +50,17 @@ async def list_items(
 ):
     """GET /api/governance/{org_id}/tech-stack"""
     _verify_org(db, user, org_id)
-    # Run technology discovery only in production
+    # Run technology discovery in staging to populate demo data
     from app.core.config import settings
-    if settings.ENV == "production" or not settings.is_staging:
-        def run_discovery():
-            try:
-                # Use a new DB session for background task
-                from app.db.database import SessionLocal
-                with SessionLocal() as bg_db:
-                    from app.services.discovery.orchestrator import TechnologyDiscoveryOrchestrator
-                    orchestrator = TechnologyDiscoveryOrchestrator(bg_db, org_id)
-                    orchestrator.run_discovery_cycle()
-            except Exception as e:
-                logger.error(f"Auto-discovery cycle failed during tech stack list: {e}")
-                
-        background_tasks.add_task(run_discovery)
-        
+    if settings.is_staging:
+        try:
+            # Run synchronously in staging so the API response includes it immediately
+            from app.services.asset_discovery import AssetDiscoveryService
+            svc = AssetDiscoveryService(db, org_id)
+            svc.discover_assets()
+        except Exception as e:
+            logger.error(f"Auto-discovery cycle failed during tech stack list: {e}")
+
     svc = TechStackService(db, org_id)
     items = svc.list_all()
     enriched = [svc.enrich_response(i) for i in items]

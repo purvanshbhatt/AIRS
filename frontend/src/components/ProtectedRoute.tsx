@@ -44,4 +44,22 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   return <>{children}</>;
 }
 
+export function RequireOrganization({ children }: ProtectedRouteProps) {
+  const { hasOrganizations, loading, isConfigured } = useAuth();
+  const location = useLocation();
+
+  if (loading || !isConfigured) {
+    // Parent ProtectedRoute handles loading and config
+    return <>{children}</>;
+  }
+
+  // If we know the user has no organizations, and they aren't already on the onboarding page
+  if (hasOrganizations === false && location.pathname !== '/onboarding') {
+    console.log('[RequireOrganization] No organizations found, redirecting to onboarding');
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 export default ProtectedRoute;

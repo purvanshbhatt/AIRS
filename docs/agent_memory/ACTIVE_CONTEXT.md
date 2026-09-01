@@ -1,15 +1,17 @@
 # Active Context
-Date: 2026-06-24
-Status: Sprint 1 (Tech Stack Intelligence) Completed
+Date: 2026-08-21
+Status: Production Homepage Primary Google Login Acquisition Flow & Pilot CTA Optimization Complete
 
 ## Recent Actions
-- Halted unauthorized architectural drift into SIEM/GRC.
-- Enforced strict "Readiness First" constraint via updated MASTER_PROTOCOL rules across `.cursorrules`, `.windsurfrules`, `.clinerules`, and `AGENT_START.md`.
-- Completed Epic 1: Direct Discovery (Graph, AWS, K8s).
-- Completed Epic 2: Version Normalization (Deterministic regex mapping).
-- Completed Epic 3: Lifecycle Intelligence.
-- Completed Epic 4: CVE Enrichment (Mocking NVD/KEV for staging).
-- Completed Epic 5: Readiness Impact Engine (Overlay modifiers in `scoring.py`).
+- Optimized Public Production Homepage (`Landing.tsx`):
+  - Primary conversion CTA is now "Get Started" routing visitors directly into the existing Google Login / unified auth flow (`/login`).
+  - Secondary CTA is "See How It Works", providing smooth scrolling navigation to the 4-step Core Loop (`#how-it-works`).
+  - Tertiary action is "Explore Demo", maintaining zero-friction access to the sandbox evaluation environment.
+  - Replaced legacy text ligature icons with bundled Lucide SVG icons (`Sparkles`, `ChevronRight`, `ArrowRight`).
+  - Aligned all copy with ResilAI V2 continuous control verification value proposition.
+- Preserved Design Partner Capability:
+  - Preserved `/pilot` route, form components, and backend `submitEnterprisePilotLead` endpoint for qualified healthcare organizations and MSPs.
+- Validation:
+  - `npm run build` (production target): Clean build in 42.91s with 0 errors.
+  - `npm run build:staging` (staging target): Clean build in 10.57s with 0 errors.
 
-## Current Focus
-Awaiting review of Sprint 1 deliverables before starting Sprint 2 (MCP Evidence Layer).

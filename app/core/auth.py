@@ -242,6 +242,18 @@ from app.core.security.rbac import require_role, require_permission, Role
 CurrentUser = Optional[User]
 RequiredUser = User
 
+def get_user_org_id(user: User, db) -> str:
+    from app.services.organization import OrganizationService
+    from fastapi import HTTPException, status
+    orgs = OrganizationService(db, owner_uid=user.uid).get_all()
+    if not orgs:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No organization found for the current user."
+        )
+    return orgs[0].id
+
+
 
 __all__ = [
     "User",
@@ -253,5 +265,6 @@ __all__ = [
     "Role",
     "CurrentUser",
     "RequiredUser",
+    "get_user_org_id",
 ]
 

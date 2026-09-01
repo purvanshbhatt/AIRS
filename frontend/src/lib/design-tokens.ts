@@ -1,71 +1,81 @@
 // src/lib/design-tokens.ts
-// Single source of truth for the ResilAI Visual Design Philosophy (Apple Health / Linear inspired)
+// Single source of truth for the ResilAI Visual Design Philosophy (Stitch Healthcare Readiness Platform / Apple Health / Linear inspired)
 
 export const tokens = {
   // Spacing & Layout
   layout: {
-    pageContainer: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8',
+    pageContainer: 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12',
     sectionGap: 'space-y-12',
     cardGap: 'gap-6',
   },
   
   // Typography
   typography: {
-    hero: 'text-4xl font-semibold tracking-tight text-slate-900 dark:text-white',
-    sectionTitle: 'text-2xl font-medium tracking-tight text-slate-900 dark:text-white',
-    cardTitle: 'text-lg font-medium text-slate-900 dark:text-white',
-    body: 'text-base text-slate-600 dark:text-slate-300',
-    small: 'text-sm text-slate-500 dark:text-slate-400',
-    label: 'text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-slate-400',
+    hero: 'text-3xl md:text-5xl font-bold tracking-tight text-on-surface',
+    sectionTitle: 'text-xl md:text-2xl font-semibold tracking-tight text-on-surface',
+    cardTitle: 'text-base md:text-lg font-semibold text-on-surface',
+    body: 'text-sm md:text-base text-on-surface-variant leading-relaxed',
+    small: 'text-xs text-on-surface-variant',
+    label: 'text-[11px] font-mono font-bold tracking-wider uppercase text-on-surface-variant',
+    mono: 'text-xs font-mono text-on-surface',
   },
 
-  // Surface & Elevation (Cards, Panels)
+  // Surface & Elevation (Cards, Panels, Modals, Drawers)
   surface: {
-    base: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl',
-    glass: 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 rounded-xl',
-    drawer: 'bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 shadow-2xl',
+    base: 'bg-surface-container-low border border-surface-bright/60 rounded-xl',
+    card: 'bg-surface-container-low border border-surface-bright/60 rounded-xl hover:bg-surface-container transition-colors duration-200',
+    container: 'bg-surface-container border border-surface-bright/40 rounded-xl',
+    containerHigh: 'bg-surface-container-high border border-outline-variant/40 rounded-xl',
+    containerLowest: 'bg-surface-container-lowest border border-outline-variant/30 rounded-xl',
+    glass: 'bg-surface-container-low/90 backdrop-blur-xl border border-surface-bright/50 rounded-xl',
+    drawer: 'bg-surface-container-lowest border-l border-surface-bright shadow-2xl',
   },
 
   // Interactive & Animation
   interaction: {
-    hover: 'transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5',
-    tap: 'active:scale-95 transition-transform duration-75',
-    focus: 'focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+    hover: 'transition-all duration-200 ease-out hover:border-ready-emerald/40 hover:shadow-md hover:-translate-y-0.5',
+    tap: 'active:scale-[0.98] transition-transform duration-75',
+    focus: 'focus:outline-none focus:ring-2 focus:ring-ready-emerald/50 focus:ring-offset-2 focus:ring-offset-background',
   },
 
   // Status Badges & Colors
   status: {
     ready: {
-      bg: 'bg-emerald-50 dark:bg-emerald-500/10',
-      text: 'text-emerald-700 dark:text-emerald-400',
-      border: 'border-emerald-200 dark:border-emerald-500/20',
-      icon: 'text-emerald-600 dark:text-emerald-500',
+      bg: 'bg-ready-emerald/10',
+      text: 'text-ready-emerald',
+      border: 'border-ready-emerald/30',
+      icon: 'text-ready-emerald',
+      glow: 'drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]',
     },
     warning: {
-      bg: 'bg-amber-50 dark:bg-amber-500/10',
-      text: 'text-amber-700 dark:text-amber-400',
-      border: 'border-amber-200 dark:border-amber-500/20',
-      icon: 'text-amber-600 dark:text-amber-500',
+      bg: 'bg-drift-amber/10',
+      text: 'text-drift-amber',
+      border: 'border-drift-amber/30',
+      icon: 'text-drift-amber',
+      glow: 'drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]',
     },
     error: {
-      bg: 'bg-rose-50 dark:bg-rose-500/10',
-      text: 'text-rose-700 dark:text-rose-400',
-      border: 'border-rose-200 dark:border-rose-500/20',
-      icon: 'text-rose-600 dark:text-rose-500',
+      bg: 'bg-critical-red/10',
+      text: 'text-critical-red',
+      border: 'border-critical-red/30',
+      icon: 'text-critical-red',
+      glow: 'drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]',
     },
     neutral: {
-      bg: 'bg-slate-50 dark:bg-slate-500/10',
-      text: 'text-slate-700 dark:text-slate-400',
-      border: 'border-slate-200 dark:border-slate-500/20',
-      icon: 'text-slate-500 dark:text-slate-400',
+      bg: 'bg-surface-container-high/60',
+      text: 'text-on-surface-variant',
+      border: 'border-outline-variant/40',
+      icon: 'text-outline',
+      glow: '',
     },
   },
 
   // Button Variants
   button: {
-    primary: 'inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 transition-colors',
-    secondary: 'inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors',
-    ghost: 'inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white transition-colors',
-    aiExplain: 'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-500/20 dark:hover:bg-indigo-500/20 transition-all hover:scale-105 cursor-pointer',
+    primary: 'inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg bg-ready-emerald text-surface-container-lowest hover:bg-ready-emerald/90 transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
+    secondary: 'inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-surface-container-high border border-outline-variant/40 text-on-surface hover:bg-surface-bright transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
+    ghost: 'inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer',
+    aiExplain: 'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-ready-emerald/10 text-ready-emerald border border-ready-emerald/30 hover:bg-ready-emerald/20 hover:border-ready-emerald/50 transition-all hover:scale-105 cursor-pointer shadow-xs',
+    danger: 'inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg bg-critical-red text-white hover:bg-critical-red/90 transition-colors cursor-pointer',
   }
 };

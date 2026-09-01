@@ -6,7 +6,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.models.discovery import (
     TechnologyInventory,
-    DiscoveredAsset,
+    HostAsset,
     InstalledProduct,
     EvidenceSource
 )
@@ -47,8 +47,8 @@ class TechnologyDiscoveryService:
         operating_system: Optional[str] = None,
         ip_address: Optional[str] = None,
         cloud_provider: Optional[str] = None
-    ) -> DiscoveredAsset:
-        asset = DiscoveredAsset(
+    ) -> HostAsset:
+        asset = HostAsset(
             org_id=self.org_id,
             inventory_id=inventory_id,
             asset_type=asset_type,

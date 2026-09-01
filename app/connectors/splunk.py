@@ -85,7 +85,7 @@ class SplunkConnector(Connector):
             return False
         try:
             health: SplunkHealthResponse = await self._client.get_health()
-            self._authenticated = health.status == "ok"
+            self._authenticated = health.status in ("ok", "healthy")
             if self._authenticated:
                 self.logger.info(
                     "Splunk MCP authentication successful (v%s)",
@@ -191,7 +191,7 @@ class SplunkConnector(Connector):
         try:
             health = await self._client.get_health()
             latency = int((time.monotonic() - start) * 1000)
-            if health.status == "ok":
+            if health.status in ("ok", "healthy"):
                 return ConnectorHealth(
                     status="healthy",
                     latency_ms=latency,

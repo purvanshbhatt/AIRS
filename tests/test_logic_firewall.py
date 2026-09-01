@@ -41,7 +41,7 @@ def test_logic_firewall_simulation_endpoint(client):
         json={
             "query": "What's our 401k policy?",
             "enable_logic_firewall": True,
-            "organization_name": "Acme Health Systems",
+            "organization_name": "ResilAI Clinic Systems",
         },
     )
 

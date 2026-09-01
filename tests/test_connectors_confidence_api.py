@@ -7,7 +7,12 @@ from app.services.evidence.registry import get_instance, reset_instance
 from app.services.evidence.base_adapter import EvidenceAdapter, AdapterHealth
 from app.core.auth import User, require_auth
 
-client = TestClient(app)
+@pytest.fixture
+def auth_override():
+    # Override auth to return a valid user with an org_id
+    user = User(uid="test_uid", email="test@example.com")
+    user.org_id = "org_123"
+    return user
 
 class MockAdapter(EvidenceAdapter):
     def __init__(self, name: str, health_res: AdapterHealth):
@@ -28,26 +33,9 @@ class MockAdapter(EvidenceAdapter):
         return self._health
 
 @pytest.fixture
-def auth_override():
-    # Override auth to return a valid user with an org_id
-    def override_require_auth():
-        user = User(uid="test_uid", email="test@example.com")
-        user.org_id = "org_123"
-        return user
-    
-    app.dependency_overrides[require_auth] = override_require_auth
-    yield
-    app.dependency_overrides.pop(require_auth, None)
-
-@pytest.fixture
 def auth_override_missing_org():
     # Override auth to return a valid user without org_id
-    def override_require_auth():
-        return User(uid="test_uid", email="test@example.com")
-    
-    app.dependency_overrides[require_auth] = override_require_auth
-    yield
-    app.dependency_overrides.pop(require_auth, None)
+    return User(uid="test_uid", email="test@example.com")
 
 @pytest.fixture
 def mock_registry():
@@ -67,12 +55,20 @@ def mock_registry():
     yield registry
     reset_instance()
 
-def test_connectors_confidence_api_missing_org(auth_override_missing_org):
+def test_connectors_confidence_api_missing_org(client, auth_override_missing_org):
+    client.app.dependency_overrides[require_auth] = lambda: auth_override_missing_org
     response = client.get("/api/v1/connectors/confidence")
-    assert response.status_code == 422
-    assert "Missing org_id" in response.json()["error"]["message"]
+    assert response.status_code == 404
+    assert "No organization found" in response.json()["error"]["message"]
+    client.app.dependency_overrides.clear()
 
-def test_connectors_confidence_api_success(auth_override, mock_registry):
+def test_connectors_confidence_api_success(client, auth_override, mock_registry, db_session):
+    from app.models import Organization
+    org = Organization(id="org_123", name="Test Org", owner_uid="test_uid")
+    db_session.add(org)
+    db_session.commit()
+
+    client.app.dependency_overrides[require_auth] = lambda: auth_override
     response = client.get("/api/v1/connectors/confidence")
     assert response.status_code == 200
     data = response.json()
@@ -89,3 +85,5 @@ def test_connectors_confidence_api_success(auth_override, mock_registry):
     assert "test-connector-2" in connectors
     assert connectors["test-connector-2"]["confidence_score"] == 0.0
     assert connectors["test-connector-2"]["factors"]["uptime"] == 0.0
+    
+    client.app.dependency_overrides.clear()

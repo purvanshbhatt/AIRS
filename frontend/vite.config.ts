@@ -1,10 +1,29 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { execSync } from 'child_process'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  let commitHash = 'unknown';
+  try {
+    commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+  } catch (e) {
+    console.warn('Failed to fetch git commit hash');
+  }
+  const buildTime = new Date().toISOString();
+
   return {
     plugins: [react()],
+    define: {
+      'window.__RESILAI_BUILD__': JSON.stringify({
+        commit: commitHash,
+        buildTime: buildTime,
+        environment: mode,
+        api: env.VITE_API_BASE_URL || 'unknown',
+        version: process.env.npm_package_version || '0.0.0'
+      })
+    },
     build: {
       outDir: `dist-${mode}`,
       rollupOptions: {

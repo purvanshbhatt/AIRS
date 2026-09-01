@@ -2,17 +2,58 @@ import pytest
 from app.services.lifecycle.lifecycle_intelligence import LifecycleIntelligenceService
 from app.models.tech_stack import TechStackItem
 
-def test_lifecycle_validation():
-    from app.db.database import SessionLocal
-    db = SessionLocal()
+from tests.conftest import db_session
+from app.models.lifecycle_catalog import GlobalSoftwareCatalog, SoftwareVersion
+
+def test_lifecycle_validation(db_session):
+    # Seed the DB with required software catalogs for the test cases
+    from datetime import date
+    db_session.add_all([
+        GlobalSoftwareCatalog(product_name="Python", vendor="Python Software Foundation", product_family="runtime"),
+        GlobalSoftwareCatalog(product_name="PostgreSQL", vendor="PostgreSQL Global Development Group", product_family="database"),
+        GlobalSoftwareCatalog(product_name="Node.js", vendor="OpenJS Foundation", product_family="runtime"),
+        GlobalSoftwareCatalog(product_name="Java", vendor="Oracle Corporation", product_family="runtime")
+    ])
+    db_session.commit()
     
-    service = LifecycleIntelligenceService(db=db)
+    # We also need to add the versions that are expected to be END_OF_LIFE and ACTIVE
+    # Python 3.8
+    db_session.add(SoftwareVersion(
+        catalog_id=db_session.query(GlobalSoftwareCatalog).filter_by(product_name="Python").first().id,
+        version_name="3.8",
+        eol_date=date(2024, 10, 14),
+        support_status="end_of_life"
+    ))
+    # PostgreSQL 11
+    db_session.add(SoftwareVersion(
+        catalog_id=db_session.query(GlobalSoftwareCatalog).filter_by(product_name="PostgreSQL").first().id,
+        version_name="11",
+        eol_date=date(2023, 11, 9),
+        support_status="end_of_life"
+    ))
+    # Node.js 16
+    db_session.add(SoftwareVersion(
+        catalog_id=db_session.query(GlobalSoftwareCatalog).filter_by(product_name="Node.js").first().id,
+        version_name="16",
+        eol_date=date(2023, 9, 11),
+        support_status="end_of_life"
+    ))
+    # Java 8
+    db_session.add(SoftwareVersion(
+        catalog_id=db_session.query(GlobalSoftwareCatalog).filter_by(product_name="Java").first().id,
+        version_name="8",
+        eol_date=date(2030, 12, 31),
+        support_status="supported"
+    ))
+    db_session.commit()
+
+    service = LifecycleIntelligenceService(db=db_session)
     
     test_cases = [
-        ("Python Software Foundation", "Python", "3.8", "END_OF_LIFE"),
-        ("PostgreSQL Global Development Group", "PostgreSQL", "11", "END_OF_LIFE"),
-        ("OpenJS Foundation", "Node.js", "16", "END_OF_LIFE"),
-        ("Oracle Corporation", "Java", "8", "ACTIVE") # Java 8 has long-term support
+        ("Python Software Foundation", "Python", "3.8", "EOL"),
+        ("PostgreSQL Global Development Group", "PostgreSQL", "11", "EOL"),
+        ("OpenJS Foundation", "Node.js", "16", "EOL"),
+        ("Oracle Corporation", "Java", "8", "SUPPORTED") # Java 8 has long-term support
     ]
     
     print("\n--- Lifecycle Intelligence Coverage Report ---")

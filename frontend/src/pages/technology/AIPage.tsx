@@ -30,7 +30,7 @@ const MOCK_EVENTS: TrustEvent[] = [
     details: 'Verified zero unredacted Patient Health Information (PHI) transmitted in LLM prompt logs across all internal AI tools.',
     oldState: 'Not Verified',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0xa0918c72e34f901'
   }
 ];
@@ -54,6 +54,8 @@ const MOCK_INVENTORY = [
   { model: 'Internal Knowledge Retrieval (Pinecone)', type: 'Vector Database', phiFilter: 'Encrypted KMS', auditLog: 'Logged', status: 'Healthy' },
 ];
 
+import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+
 export function AIPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
@@ -64,6 +66,8 @@ export function AIPage() {
       transition={{ duration: 0.25 }}
       className="space-y-6 text-left"
     >
+      <SimulatedTelemetryBanner domainName="AI & Machine Learning Governance" />
+
       <SummaryCard
         domainName="AI & Machine Learning Governance"
         status="ready"

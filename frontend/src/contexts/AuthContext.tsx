@@ -40,12 +40,15 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   isConfigured: boolean;
+  hasOrganizations: boolean | null;
   getToken: () => Promise<string | null>;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
+  signInAsDemo: () => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -75,12 +78,29 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const isDemo = typeof window !== 'undefined' ? localStorage.getItem('resilai_demo_user') : null;
+    if (isDemo === 'true') {
+      return {
+        uid: 'demo-executive-uid',
+        email: 'executive@acme-health.resilai.io',
+        displayName: 'Dr. Evelyn Reed (CMO & Exec Lead)',
+        photoURL: null,
+      };
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasOrganizations, setHasOrganizations] = useState<boolean | null>(() => {
+    const isDemo = typeof window !== 'undefined' ? localStorage.getItem('resilai_demo_user') : null;
+    return isDemo === 'true' ? true : null;
+  });
 
   // Listen for auth state changes
   useEffect(() => {
+    const isDemoActive = localStorage.getItem('resilai_demo_user') === 'true';
+
     if (!isFirebaseConfigured || !auth) {
       console.log('[Auth] Firebase not configured, skipping auth listener');
       setLoading(false);
@@ -95,6 +115,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       .then(() => {
         if (!isMounted) return;
         if (auth.currentUser) {
+          localStorage.removeItem('resilai_demo_user');
           setUser(toUser(auth.currentUser));
         }
       })
@@ -108,17 +129,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!isMounted) return;
         if (firebaseUser) {
           console.log('[Auth] User signed in:', firebaseUser.email);
+          localStorage.removeItem('resilai_demo_user');
           setUser(toUser(firebaseUser));
+          
+          // Verify workspace context and handle missing org profiles gracefully
+          setTokenProvider(async () => firebaseUser.getIdToken());
+          import('../api').then(({ getOrganizations }) => {
+            getOrganizations().then(orgs => {
+              if (orgs && orgs.length > 0) {
+                setHasOrganizations(true);
+                const saved = localStorage.getItem('resilai_selected_org_id');
+                if (!saved || !orgs.find(o => o.id === saved)) {
+                  localStorage.setItem('resilai_selected_org_id', orgs[0].id);
+                }
+              } else {
+                setHasOrganizations(false);
+                localStorage.removeItem('resilai_selected_org_id');
+              }
+              setLoading(false);
+            }).catch(err => {
+              console.error('[Auth] Failed to fetch orgs:', err);
+              setLoading(false);
+            });
+          }).catch(err => {
+            console.error('[Auth] Failed to import API:', err);
+            setLoading(false);
+          });
+          
         } else {
-          console.log('[Auth] No user signed in');
-          setUser(null);
+          if (localStorage.getItem('resilai_demo_user') === 'true') {
+            console.log('[Auth] Active Sandbox demo session retained');
+            setUser({
+              uid: 'demo-executive-uid',
+              email: 'executive@acme-health.resilai.io',
+              displayName: 'Dr. Evelyn Reed (CMO & Exec Lead)',
+              photoURL: null,
+            });
+            setHasOrganizations(true);
+            setLoading(false);
+          } else {
+            console.log('[Auth] No user signed in');
+            setUser(null);
+            setHasOrganizations(null);
+            localStorage.removeItem('resilai_selected_org_id');
+            setLoading(false);
+          }
         }
-        setLoading(false);
       },
       (err) => {
         if (!isMounted) return;
-        console.error('[Auth] Auth state error:', err);
-        setError(err.message);
+        console.warn('[Auth] Auth state observer notice (unauthenticated):', err);
+        // Do NOT set a blocking form error on initial passive page load
+        setUser(null);
+        setHasOrganizations(null);
+        localStorage.removeItem('resilai_selected_org_id');
         setLoading(false);
       }
     );
@@ -164,13 +228,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sign in with Google';
       console.error('[Auth] Google sign in error:', err);
       // Don't show popup closed errors
-      if (!message.includes('popup-closed')) {
-        setError(message);
+      if (!message.includes('popup-closed') && !message.includes('cancelled-popup-request')) {
+        setError(formatFirebaseError(message));
       }
       throw err;
     }
@@ -212,13 +277,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  // Enter Sandbox Demo Mode as Demo Healthcare Executive
+  const signInAsDemo = useCallback(async (): Promise<void> => {
+    setError(null);
+    localStorage.setItem('resilai_demo_user', 'true');
+    localStorage.setItem('resilai_selected_org_id', 'demo-health-org');
+    const demoUser: User = {
+      uid: 'demo-executive-uid',
+      email: 'executive@acme-health.resilai.io',
+      displayName: 'Dr. Evelyn Reed (CMO & Exec Lead)',
+      photoURL: null,
+    };
+    setUser(demoUser);
+    setHasOrganizations(true);
+    setLoading(false);
+  }, []);
+
   // Sign out
   const signOut = useCallback(async (): Promise<void> => {
     // Clear user-specific cached data to prevent cross-user leakage
     clearUserData();
+    localStorage.removeItem('resilai_demo_user');
+    localStorage.removeItem('resilai_selected_org_id');
+    setUser(null);
+    setHasOrganizations(null);
     
     if (!auth) {
-      setUser(null);
       return;
     }
 
@@ -234,17 +318,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
   }, []);
 
+  // Force a refresh of the user's context (e.g. after creating an organization)
+  const refreshAuth = useCallback(async (): Promise<void> => {
+    if (!auth || !auth.currentUser) return;
+    try {
+      setLoading(true);
+      const { getOrganizations } = await import('../api');
+      const orgs = await getOrganizations();
+      if (orgs && orgs.length > 0) {
+        setHasOrganizations(true);
+        const saved = localStorage.getItem('resilai_selected_org_id');
+        if (!saved || !orgs.find(o => o.id === saved)) {
+          localStorage.setItem('resilai_selected_org_id', orgs[0].id);
+        }
+      } else {
+        setHasOrganizations(false);
+        localStorage.removeItem('resilai_selected_org_id');
+      }
+    } catch (err) {
+      console.error('[Auth] Failed to refresh orgs:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const value: AuthContextValue = {
     user,
     loading,
     error,
     isConfigured: isFirebaseConfigured,
+    hasOrganizations,
     getToken,
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
+    signInAsDemo,
     signOut,
     clearError,
+    refreshAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -265,16 +376,25 @@ function formatFirebaseError(message: string): string {
     return 'Invalid email or password.';
   }
   if (message.includes('auth/email-already-in-use')) {
-    return 'An account with this email already exists.';
+    return 'An account with this email already exists. Please switch to Sign in.';
   }
   if (message.includes('auth/weak-password')) {
     return 'Password should be at least 6 characters.';
+  }
+  if (message.includes('auth/popup-blocked')) {
+    return 'Sign-in popup was blocked by your browser. Please allow popups for this site.';
+  }
+  if (message.includes('auth/popup-closed-by-user')) {
+    return '';
   }
   if (message.includes('auth/network-request-failed')) {
     return 'Network error. Check your connection.';
   }
   if (message.includes('auth/too-many-requests')) {
     return 'Too many attempts. Please try again later.';
+  }
+  if (message.includes('auth/api-keys-are-not-supported-by-this-api')) {
+    return 'Authentication service is re-authenticating. Please try signing in again with email/password or reload the page.';
   }
   return message;
 }

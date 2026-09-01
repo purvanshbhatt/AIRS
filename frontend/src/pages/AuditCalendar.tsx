@@ -576,7 +576,7 @@ export default function AuditCalendar() {
                         <span className="text-lg font-extrabold text-slate-900 dark:text-slate-155">
                           {entry.framework}
                         </span>
-                        <Badge variant={entry.audit_type === 'external' ? 'default' : 'warning'} className="font-extrabold text-xs rounded-lg px-2.5 py-0.5">
+                        <Badge variant={entry.audit_type === 'external' ? 'default' : "drift"} className="font-extrabold text-xs rounded-lg px-2.5 py-0.5">
                           {entry.audit_type}
                         </Badge>
                       </div>

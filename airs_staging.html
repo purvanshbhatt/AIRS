@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ResilAI - AI Security Readiness</title>
+    <meta name="description" content="ResilAI helps security leaders quantify AI incident readiness and prioritize remediation." />
+    <meta property="og:title" content="ResilAI - AI Security Readiness" />
+    <meta property="og:description" content="Board-ready AI incident readiness scoring, findings, and remediation priorities." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/favicon.png" />
+    <script>
+      (function () {
+        try {
+          const storageKey = 'airs-theme';
+          const savedTheme = localStorage.getItem(storageKey);
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const shouldUseDark =
+            savedTheme === 'dark' ||
+            ((savedTheme === 'system' || savedTheme === null) && prefersDark);
+
+          if (shouldUseDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-B6dASSWB.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-Dgh_w9CZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-charts-sFqJVi03.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-icons-sik5x0Rz.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-firebase-CRnlZWAe.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-Dq6DSdsd.css">
+  </head>
+  <body class="bg-slate-50 dark:bg-slate-950">
+    <div id="root"></div>
+  </body>
+</html>

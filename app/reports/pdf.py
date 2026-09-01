@@ -146,9 +146,8 @@ def create_score_donut(score: float, size: int = 150) -> Drawing:
     """
     drawing = Drawing(size, size)
     
-    # Calculate angles (ReportLab uses degrees, 0 = 3 o'clock, counter-clockwise)
+    # Calculate angles
     score_angle = (score / 100) * 360
-    remaining_angle = 360 - score_angle
     
     center = size / 2
     outer_radius = size / 2 - 5
@@ -165,41 +164,40 @@ def create_score_donut(score: float, size: int = 150) -> Drawing:
         score_color = Colors.HEAT_LOW
     else:
         score_color = Colors.HEAT_CRITICAL
+        
+    # 1. Background gray circle (full)
+    drawing.add(Circle(
+        center, center,
+        outer_radius,
+        fillColor=Colors.LIGHT_GRAY,
+        strokeColor=None
+    ))
     
-    # Draw background circle (remaining portion)
-    if remaining_angle > 0:
-        bg_wedge = Wedge(
+    # 2. Score wedge or full circle
+    if 0 < score_angle < 360:
+        drawing.add(Wedge(
             center, center,
             outer_radius,
-            90 - score_angle,  # Start after score wedge
-            90,  # End at top
-            radius1=inner_radius,
-            fillColor=Colors.LIGHT_GRAY,
-            strokeColor=None
-        )
-        drawing.add(bg_wedge)
-    
-    # Draw score wedge
-    if score > 0:
-        score_wedge = Wedge(
-            center, center,
-            outer_radius,
-            90,  # Start at top (12 o'clock)
-            90 - score_angle,  # End based on score
-            radius1=inner_radius,
+            90 - score_angle,  # Start angle
+            90,  # End angle at top
             fillColor=score_color,
             strokeColor=None
-        )
-        drawing.add(score_wedge)
+        ))
+    elif score_angle >= 360:
+        drawing.add(Circle(
+            center, center,
+            outer_radius,
+            fillColor=score_color,
+            strokeColor=None
+        ))
     
-    # Add center circle for cleaner look
-    center_circle = Circle(
+    # 3. Inner white circle to create the donut effect
+    drawing.add(Circle(
         center, center,
-        inner_radius - 2,
+        inner_radius,
         fillColor=Colors.WHITE,
         strokeColor=None
-    )
-    drawing.add(center_circle)
+    ))
     
     # Score text in center
     score_text = String(

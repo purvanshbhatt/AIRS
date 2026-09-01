@@ -55,15 +55,7 @@ router = APIRouter(prefix="/integrations", tags=["integrations"])
 _elastic_client: Optional[ElasticService] = None
 
 
-def _get_user_org_id(db: Session, user: User) -> str:
-    from app.services.organization import OrganizationService
-    orgs = OrganizationService(db, owner_uid=user.uid).get_all()
-    if not orgs:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No organization found for the current user."
-        )
-    return orgs[0].id
+from app.core.auth import User, require_auth, require_org_admin, get_user_org_id
 
 
 
@@ -206,7 +198,7 @@ async def get_wazuh_agent_status(
     from app.services.audit import record_connector_audit
     import json
 
-    org_id = _get_user_org_id(db, user)
+    org_id = get_user_org_id(user, db)
 
     cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if not cfg:
@@ -292,7 +284,7 @@ async def get_wazuh_vulnerabilities(
     from app.services.audit import record_connector_audit
     import json
 
-    org_id = _get_user_org_id(db, user)
+    org_id = get_user_org_id(user, db)
 
     cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
     if not cfg:
@@ -404,7 +396,7 @@ async def configure_splunk(
                 detail=f"Splunk MCP health={health.status}; credentials not stored.",
             )
         
-        org_id = config.get("org_id") or getattr(user, "org_id", "default-org")
+        org_id = config.get("org_id") or get_user_org_id(user, db)
         import json
         
         conn = db.query(Connector).filter(
@@ -479,7 +471,7 @@ async def run_splunk_query(
       - latest: End time (e.g., "now", "2026-05-08T23:59:59")
       - max_results: Max events to return (default 1000)
     """
-    org_id = _get_user_org_id(db, user)
+    org_id = get_user_org_id(user, db)
 
     conn = db.query(Connector).filter(
         Connector.org_id == org_id,
@@ -603,7 +595,7 @@ async def check_splunk_logging_health(
     
     Returns: Logging status with event counts and recent activity
     """
-    org_id = _get_user_org_id(db, user)
+    org_id = get_user_org_id(user, db)
 
     conn = db.query(Connector).filter(
         Connector.org_id == org_id,
@@ -749,7 +741,7 @@ async def configure_elastic(
         await client.verify_heartbeat()
         
         _elastic_client = client
-        logger.info(f"Elastic integration configured for {getattr(user, 'org_id', 'default-org')}")
+        logger.info(f"Elastic integration configured by {user.uid}")
         
         return {
             "status": "configured",
@@ -817,7 +809,7 @@ async def get_siem_integration_status(
     Returns: Integration status with last successful query timestamps
     """
     try:
-        org_id = _get_user_org_id(db, user)
+        org_id = get_user_org_id(user, db)
         wazuh_client = WazuhClientFactory.get_client(org_id, db)
     except Exception:
         wazuh_client = None

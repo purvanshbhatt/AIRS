@@ -92,3 +92,6 @@ npm run dev
 ## 📜 License & Compliance
 
 Copyright © 2026 ResilAI Inc. All rights reserved. Proprietary software.
+## Deployment Restrictions
+
+**DEPRECATION WARNING:** The Firebase Hosting target staging (mapped to irs-staging-0384513977) is strictly deprecated. Do NOT deploy to it. The canonical staging target is esilai-staging.

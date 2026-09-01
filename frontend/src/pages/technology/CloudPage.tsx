@@ -30,7 +30,7 @@ const MOCK_EVENTS: TrustEvent[] = [
     details: 'Zero publicly accessible cloud storage buckets or unencrypted EBS volumes across AWS & Azure accounts.',
     oldState: 'Not Verified',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0xc1029a7e6b541d0'
   }
 ];
@@ -54,6 +54,8 @@ const MOCK_INVENTORY = [
   { provider: 'Azure Healthcare Tenant', resources: '38 Managed Subscriptions', publicExposure: '0 Public Blobs', encryption: '100% Customer-Managed Key', status: 'Healthy' },
 ];
 
+import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+
 export function CloudPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
@@ -64,6 +66,8 @@ export function CloudPage() {
       transition={{ duration: 0.25 }}
       className="space-y-6 text-left"
     >
+      <SimulatedTelemetryBanner domainName="Cloud Infrastructure" />
+
       <SummaryCard
         domainName="Cloud Infrastructure Security"
         status="ready"

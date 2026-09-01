@@ -125,6 +125,17 @@ class ActionCard(BaseModel):
 # Readiness Checks — pass / fail / warning / unknown
 # ─────────────────────────────────────────────────────────────────────────────
 
+class ExecutiveExplanation(BaseModel):
+    """Plain-English explanation of a security finding for non-technical executives."""
+    status: str = Field(..., description="Deterministic verdict status (verified, failed, warning, unknown, unavailable, stale)")
+    business_label: str = Field(..., description="Plain-English name for the capability (e.g., 'Who Can Access Your Systems')")
+    technical_label: str = Field(..., description="Original technical name (e.g., 'Identity & Access Management')")
+    what_it_means: str = Field(..., description="Simple explanation of what is verified or not verified")
+    why_it_matters: str = Field(..., description="Business impact if this protection fails or is missing")
+    what_to_do_next: str = Field(..., description="Recommended next action for the user")
+    evidence_state: str = Field(..., description="Explicit state of the evidence (e.g., 'verified', 'missing', 'stale')")
+    last_verified_at: Optional[datetime] = Field(None, description="When this state was last confirmed by telemetry")
+
 class ReadinessCheck(BaseModel):
     """One item in the readiness report. Includes verification and optional action."""
     status: str                 # "pass", "fail", "warning", "unknown"
@@ -132,6 +143,7 @@ class ReadinessCheck(BaseModel):
     detail: Optional[str] = None
     verification: Optional[VerificationContext] = None
     action: Optional[ActionCard] = None
+    explanation: Optional[ExecutiveExplanation] = Field(None, description="Executive-friendly explanation of this check")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

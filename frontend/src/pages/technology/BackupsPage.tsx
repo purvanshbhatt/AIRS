@@ -37,7 +37,7 @@ const MOCK_BACKUP_EVENTS: TrustEvent[] = [
     details: 'Automated synthetic restore test completed successfully for Primary EHR Database. 0 block corruption detected.',
     oldState: 'Not Verified',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0xa73f82e1d94b01c'
   },
   {
@@ -49,7 +49,7 @@ const MOCK_BACKUP_EVENTS: TrustEvent[] = [
     details: 'S3 Object Lock compliance retention verified on 1,420 snapshots with compliance mode expiration set to 90 days.',
     oldState: 'Self-Attested',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0xb942c1ef6510a8e'
   }
 ];
@@ -74,6 +74,8 @@ const MOCK_BACKUP_INVENTORY = [
   { name: 'User Workstation Profiles', type: 'Endpoint Agent', target: 'Druva Endpoint', rpo: '1h', status: 'Warning', immutable: false },
 ];
 
+import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+
 export function BackupsPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
@@ -84,6 +86,8 @@ export function BackupsPage() {
       transition={{ duration: 0.25 }}
       className="space-y-6 text-left"
     >
+      <SimulatedTelemetryBanner domainName="Backups & Disaster Recovery" />
+
       {/* Executive Summary Card ("So What?") */}
       <SummaryCard
         domainName="Backups & Disaster Recovery"

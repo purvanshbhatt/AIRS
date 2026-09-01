@@ -31,7 +31,7 @@ const MOCK_EVENTS: TrustEvent[] = [
     details: '1,840 fleet devices confirmed reporting active telemetry with zero unpatched zero-day exploits detected.',
     oldState: 'Not Verified',
     newState: 'Verified',
-    status: 'success',
+    status: "ready",
     evidenceHash: '0xd41901a89c2f109'
   }
 ];
@@ -55,6 +55,8 @@ const MOCK_INVENTORY = [
   { name: 'Mobile Devices (iOS / Android MDM)', count: 680, edr: '99.2% Active', diskEncryption: '100% Enforced', status: 'Healthy' },
 ];
 
+import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+
 export function DevicesPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
@@ -65,6 +67,8 @@ export function DevicesPage() {
       transition={{ duration: 0.25 }}
       className="space-y-6 text-left"
     >
+      <SimulatedTelemetryBanner domainName="Devices & Workstations" />
+
       <SummaryCard
         domainName="Devices & Endpoints"
         status="ready"

@@ -93,10 +93,10 @@ function getDomainScaleBg(score: number) {
   return 'bg-danger-50 dark:bg-danger-900/30 text-danger-700 dark:text-danger-300 border-danger-200 dark:border-danger-800'
 }
 
-function getSeverityVariant(severity: string): 'danger' | 'warning' | 'default' | 'outline' | 'success' | 'primary' {
+function getSeverityVariant(severity: string): "critical" | "drift" | 'default' | 'outline' | "ready" | 'primary' {
   const s = severity.toUpperCase()
-  if (s === 'CRITICAL') return 'danger'
-  if (s === 'HIGH') return 'warning'
+  if (s === 'CRITICAL') return "critical"
+  if (s === 'HIGH') return "drift"
   if (s === 'MEDIUM') return 'default'
   return 'outline'
 }
@@ -565,10 +565,10 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
           <CardContent>
             <div className="space-y-4">
               {domain_scores.map((ds) => {
-                const baselineScore = summary.baseline_profiles?.[selectedBaseline]?.[ds.domain_id] || 0
+                const baselineScore = summary.baseline_profiles?.[selectedBaseline]?.[ds.domain_id]
                 const score5 = ds.score_5 || ds.score / 20
-                const diff = score5 - baselineScore
-                const isAbove = diff >= 0
+                const diff = baselineScore != null ? score5 - baselineScore : null
+                const isAbove = diff != null && diff >= 0
 
                 return (
                   <div key={ds.domain_id} className="flex items-center gap-4">
@@ -576,18 +576,20 @@ export function OverviewTab({ summary, selectedBaseline, setSelectedBaseline, su
                     <div className="flex-1 flex items-center gap-2">
                       <div className="flex-1 h-3 bg-gray-100 rounded-full relative overflow-hidden">
                         {/* Baseline marker */}
-                        <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-gray-400 z-10"
-                          style={{ left: `${(baselineScore / 5) * 100}%` }}
-                        />
+                        {baselineScore != null && (
+                          <div
+                            className="absolute top-0 bottom-0 w-0.5 bg-gray-400 z-10"
+                            style={{ left: `${(baselineScore / 5) * 100}%` }}
+                          />
+                        )}
                         {/* Actual score */}
                         <div
                           className={`h-full rounded-full ${getDomainScaleColor(score5)}`}
                           style={{ width: `${(score5 / 5) * 100}%` }}
                         />
                       </div>
-                      <div className={`w-16 text-right text-sm font-medium ${isAbove ? 'text-success-600' : 'text-danger-600'}`}>
-                        {isAbove ? '+' : ''}{diff.toFixed(1)}
+                      <div className={`w-16 text-right text-sm font-medium ${diff == null ? 'text-gray-400' : isAbove ? 'text-success-600' : 'text-danger-600'}`}>
+                        {diff == null ? '--' : `${isAbove ? '+' : ''}${diff.toFixed(1)}`}
                       </div>
                     </div>
                   </div>
@@ -1603,25 +1605,25 @@ export function AnalyticsTab({ summary }: AnalyticsTabProps) {
           <Card className="bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800">
             <CardContent className="p-4">
               <div className="text-sm font-medium text-red-800 dark:text-red-300">Critical Risks</div>
-              <div className="text-2xl font-bold text-red-900 dark:text-red-200">{risk_summary.severity_counts?.critical || 0}</div>
+              <div className="text-2xl font-bold text-red-900 dark:text-red-200">{risk_summary.severity_counts?.critical ?? '--'}</div>
             </CardContent>
           </Card>
           <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-800">
             <CardContent className="p-4">
               <div className="text-sm font-medium text-orange-800 dark:text-orange-300">High Risks</div>
-              <div className="text-2xl font-bold text-orange-900 dark:text-orange-200">{risk_summary.severity_counts?.high || 0}</div>
+              <div className="text-2xl font-bold text-orange-900 dark:text-orange-200">{risk_summary.severity_counts?.high ?? '--'}</div>
             </CardContent>
           </Card>
           <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardContent className="p-4">
               <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Findings</div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{risk_summary.findings_count || 0}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{risk_summary.findings_count ?? '--'}</div>
             </CardContent>
           </Card>
           <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800">
             <CardContent className="p-4">
               <div className="text-sm font-medium text-blue-800 dark:text-blue-300">Risk Score</div>
-              <div className="text-2xl font-bold text-blue-900 dark:text-blue-200">{risk_summary.total_risk_score || 0}</div>
+              <div className="text-2xl font-bold text-blue-900 dark:text-blue-200">{risk_summary.total_risk_score ?? '--'}</div>
             </CardContent>
           </Card>
         </div>

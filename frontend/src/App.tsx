@@ -1,13 +1,15 @@
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Wrench } from 'lucide-react';
 import AppLayout from './components/layout/AppLayout';
 import DocsLayout from './components/layout/DocsLayout';
 import { EnvironmentHeader } from './components/layout/EnvironmentHeader';
 import { ToastProvider } from './components/ui';
 import { AuthProvider, DemoModeProvider, useDemoMode, PersonaProvider } from './contexts';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, RequireOrganization } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
 import { setUnauthorizedHandler } from './api';
+import { DiagnosticsFooter } from './components/DiagnosticsFooter';
 
 // Public Pages
 import Landing from './pages/Landing';
@@ -17,11 +19,16 @@ import SecurityPage from './pages/Security';
 import PilotPage from './pages/Pilot';
 import StatusPage from './pages/Status';
 import AuditorView from './pages/AuditorView';
+import Onboarding from './pages/Onboarding';
 
 // MORNING OPERATIONS
 import TodayPage from './features/readiness/TodayPage';
 import NeedsAttentionPage from './features/readiness/NeedsAttentionPage';
 import RecoveryReadinessPage from './features/readiness/RecoveryReadinessPage';
+import DocumentsPage from './pages/Documents';
+import GovernancePage from './pages/Governance';
+import ConnectorsPage from './pages/Connectors';
+import ITWorkspacePage from './pages/ITWorkspace';
 import ActivityPage from './features/readiness/ActivityPage';
 
 // TECHNOLOGY OPERATIONS DOMAIN MINI-PRODUCTS
@@ -34,16 +41,16 @@ import CloudPage from './pages/technology/CloudPage';
 import AIPage from './pages/technology/AIPage';
 
 // LEGACY & PLATFORM
+import ReportsPage from './pages/Reports';
 import { EvidenceNetwork } from './pages/EvidenceNetwork';
 import ComplianceDrift from './pages/ComplianceDrift';
 import ReliabilityDashboard from './pages/ReliabilityDashboard';
 import TechnologyIntelligence from './pages/TechnologyIntelligence';
 import AuditCalendar from './pages/AuditCalendar';
 import Settings from './pages/Settings';
-import Integrations from './pages/Integrations';
 
 // Docs pages
-import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi } from './pages/docs';
+import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi, DocsGovernance } from './pages/docs';
 
 function ApiConfigBanner() {
   if (isApiConfigured) return null;
@@ -60,14 +67,20 @@ function MainAppRoutes() {
   return (
     <ProtectedRoute>
       <Routes>
-        <Route element={<AppLayout />}>
-          {/* MORNING OPERATIONS */}
+        <Route path="/onboarding" element={<Onboarding />} />
+        
+        <Route element={<RequireOrganization><AppLayout /></RequireOrganization>}>
+          {/* EXECUTIVE BRIEFING & MORNING OPERATIONS */}
           <Route path="/morning-brief" element={<TodayPage />} />
           <Route path="/needs-attention" element={<NeedsAttentionPage />} />
           <Route path="/recovery" element={<RecoveryReadinessPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/governance" element={<GovernancePage />} />
+          <Route path="/connectors" element={<ConnectorsPage />} />
           <Route path="/yesterday" element={<ActivityPage />} />
           
-          {/* TECHNOLOGY OPERATIONS DOMAIN MINI-PRODUCTS */}
+          {/* IT WORKSPACE & TECHNOLOGY OPERATIONS */}
+          <Route path="/operations" element={<ITWorkspacePage />} />
           <Route path="/identity" element={<IdentityPage />} />
           <Route path="/devices" element={<DevicesPage />} />
           <Route path="/backups" element={<BackupsPage />} />
@@ -77,18 +90,23 @@ function MainAppRoutes() {
           <Route path="/ai" element={<AIPage />} />
 
           {/* PLATFORM */}
-          <Route path="/connectors" element={<Integrations />} />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route path="/activity" element={<EvidenceNetwork />} />
           <Route path="/activity/compliance-drift" element={<ComplianceDrift />} />
           <Route path="/technology/intelligence" element={<TechnologyIntelligence />} />
           <Route path="/audit" element={<AuditCalendar />} />
           <Route path="/settings" element={<Settings />} />
 
+
           {/* BACKWARD-COMPATIBLE REDIRECTS FOR LEGACY PATHS */}
+          <Route path="/dashboard" element={<Navigate to="/morning-brief" replace />} />
           <Route path="/dashboard/today" element={<Navigate to="/morning-brief" replace />} />
           <Route path="/dashboard/attention" element={<Navigate to="/needs-attention" replace />} />
           <Route path="/dashboard/recovery" element={<Navigate to="/recovery" replace />} />
           <Route path="/dashboard/activity" element={<Navigate to="/yesterday" replace />} />
+          <Route path="/dashboard/reports" element={<Navigate to="/reports" replace />} />
+          <Route path="/reports-center" element={<Navigate to="/reports" replace />} />
+          <Route path="/report" element={<Navigate to="/reports" replace />} />
           
           <Route path="/explore/verification" element={<Navigate to="/activity" replace />} />
           <Route path="/explore/evidence" element={<Navigate to="/activity" replace />} />
@@ -101,8 +119,18 @@ function MainAppRoutes() {
           <Route path="/admin/settings" element={<Navigate to="/settings" replace />} />
           <Route path="/admin/team" element={<Navigate to="/settings" replace />} />
 
+          <Route path="/tech-stack" element={<Navigate to="/technology/intelligence" replace />} />
+          <Route path="/technology" element={<Navigate to="/technology/intelligence" replace />} />
+          <Route path="/inventory" element={<Navigate to="/technology/intelligence" replace />} />
+
           {/* INCIDENTS (Placeholder) */}
-          <Route path="/incidents/*" element={<div className="p-8 text-center text-slate-500">Incident workspace coming soon</div>} />
+          <Route path="/incidents/*" element={
+            <div className="flex flex-col items-center justify-center p-16 h-[50vh] text-center bg-surface-container-low border border-surface-bright rounded-2xl mx-auto mt-8 max-w-2xl">
+              <Wrench className="w-10 h-10 text-ready-emerald mb-4" />
+              <h2 className="text-xl font-bold text-on-surface mb-2">Incident Workspace Coming Soon</h2>
+              <p className="text-sm text-on-surface-variant max-w-md">Our unified incident response and forensics workspace is currently in private preview with select design partners. Stay tuned for early access.</p>
+            </div>
+          } />
 
           {/* Fallback to Morning Brief */}
           <Route path="*" element={<Navigate to="/morning-brief" replace />} />
@@ -117,6 +145,15 @@ function AuthRedirectHandler() {
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
+      const isDemo = typeof window !== 'undefined' && (
+        localStorage.getItem('resilai_demo_user') === 'true' ||
+        window.location.search.includes('env=demo') ||
+        window.location.hostname.includes('demo')
+      );
+      if (isDemo) {
+        console.log('[App] 401 in Demo session - suppressing navigation to /login');
+        return;
+      }
       if (isDevelopment) {
         console.log('[App] Handling 401 - navigating to /login');
       }
@@ -135,6 +172,7 @@ export default function App() {
           <ToastProvider>
             <AuthRedirectHandler />
             <ApiConfigBanner />
+            <DiagnosticsFooter />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Landing />} />
@@ -152,6 +190,7 @@ export default function App() {
               {/* Docs */}
               <Route path="/docs" element={<DocsLayout />}>
                 <Route index element={<DocsOverview />} />
+                <Route path="governance" element={<DocsGovernance />} />
                 <Route path="methodology" element={<DocsMethodology />} />
                 <Route path="frameworks" element={<DocsFrameworks />} />
                 <Route path="security" element={<DocsSecurity />} />

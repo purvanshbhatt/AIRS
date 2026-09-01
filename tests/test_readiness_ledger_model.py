@@ -25,7 +25,7 @@ from app.models import Organization, ReadinessLedgerEntry
 def _make_org(session) -> str:
     org = Organization(
         id=str(uuid.uuid4()),
-        name="Acme Corp",
+        name="sandbox Corp",
     )
     session.add(org)
     session.commit()

@@ -12,7 +12,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
-from app.core.auth import User, require_auth
+from app.core.auth import User, require_auth, get_user_org_id
 from app.db.database import get_db
 from app.schemas.connector import (
     ConnectorCreateRequest,
@@ -34,9 +34,9 @@ logger = logging.getLogger("airs.api.connectors")
 router = APIRouter(prefix="/connectors", tags=["connectors"])
 
 
-def _get_org_id(user: User) -> str:
+def _get_org_id(user: User, db: Session) -> str:
     """Extract org_id from authenticated user."""
-    return getattr(user, "org_id", "default-org")
+    return get_user_org_id(user, db)
 
 
 # =============================================================================
@@ -55,7 +55,7 @@ async def create_connector(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
 
     try:
@@ -85,7 +85,7 @@ async def list_connectors(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
     connectors = mgr.list_connectors(connector_type=connector_type)
 
@@ -112,9 +112,9 @@ async def get_confidence(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = getattr(user, "org_id", None)
-    # The instructions require 422 for missing org_id
-    if not org_id or org_id == "default-org":
+    org_id = _get_org_id(user, db)
+    # The instructions require 422 for missing org_id (though get_user_org_id raises 404 if missing)
+    if not org_id:
         raise HTTPException(status_code=422, detail="Missing org_id")
 
     from app.services.evidence.registry import get_instance
@@ -245,7 +245,7 @@ async def trigger_microsoft_sync(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
 
     from app.models.connector import Connector, ConnectorType
@@ -291,7 +291,7 @@ async def check_microsoft_health(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
 
     from app.models.connector import Connector, ConnectorType
@@ -332,7 +332,7 @@ async def get_connector(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
     try:
         connector = mgr.get_connector(connector_id)
@@ -352,7 +352,7 @@ async def update_connector(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
     try:
         connector = mgr.update_connector(
@@ -378,7 +378,7 @@ async def deactivate_connector(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
     try:
         mgr.deactivate_connector(connector_id)
@@ -401,7 +401,7 @@ async def trigger_sync(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
     try:
         result = await mgr.sync_connector(connector_id)
@@ -435,7 +435,7 @@ async def check_health(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
     try:
         health = await mgr.health_check(connector_id)
@@ -461,7 +461,7 @@ async def get_sync_history(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
     try:
         logs = mgr.get_sync_history(connector_id, limit=limit)

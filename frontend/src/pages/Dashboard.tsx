@@ -93,6 +93,7 @@ import type { GHIResponse } from '../api';
 import GHIGauge from '../components/GHIGauge';
 import CompetitorParityChart from '../components/CompetitorParityChart';
 import { ScoreTrendChart } from '../components/ScoreTrendChart';
+import { DataState, UnavailableState } from '../components/evidence/EvidenceState';
 import ReadinessDrivers from '../components/dashboard/ReadinessDrivers';
 import PersonaSwitcher from '../components/dashboard/PersonaSwitcher';
 import ExecutiveMondayMorning from '../components/ExecutiveMondayMorning';
@@ -403,24 +404,24 @@ export default function Dashboard() {
   const resolvedActions = remediationItems.filter((item) => item.status === 'completed' || item.status === 'done').length;
 
   const selectedOrganization = organizations.find((org) => org.id === selectedOrgId);
-  const displayOrganizationName = selectedOrganization?.name || 'Acme Health Systems';
+  const displayOrganizationName = selectedOrganization?.name || 'ResilAI Sandbox Clinic';
   const displayIndustry = selectedOrganization?.industry || 'Healthcare';
   const displayEmployees = isDemoMode ? '850' : selectedOrganization?.size || 'N/A';
   const displayCurrentScore = isDemoMode
     ? 72
     : dataSource === 'live'
-      ? (activeGhiData
-        ? Math.round(activeGhiData.ghi || 0)
-        : (latestCompleted
-          ? Math.round(latestCompleted.overall_score || 0)
+      ? (activeGhiData?.ghi != null
+        ? Math.round(activeGhiData.ghi)
+        : (latestCompleted?.overall_score != null
+          ? Math.round(latestCompleted.overall_score)
           : null))
-      : (latestCompleted
-        ? Math.round(latestCompleted.overall_score || 0)
+      : (latestCompleted?.overall_score != null
+        ? Math.round(latestCompleted.overall_score)
         : null);
   const displayPreviousScore = isDemoMode
     ? 58
-    : previousCompleted
-      ? Math.round(previousCompleted.overall_score || 0)
+    : previousCompleted?.overall_score != null
+      ? Math.round(previousCompleted.overall_score)
       : null;
   const displayDelta = isDemoMode ? 14 : scoreDelta;
   const displayReadinessLevel = getReadinessLevel(displayCurrentScore);
@@ -478,30 +479,10 @@ export default function Dashboard() {
   const execMeta = getExecutiveExplanation(activeGhiData?.grade || 'F', displayCurrentScore || 0);
 
   // Technical simulated logs array
-  const technicalForensicLogs = [
-    `[2026-05-23 15:42:01] INFO  splunk_connector: Splunk MCP base URL verified at https://splunk-hec.resilai.org:8088`,
-    `[2026-05-23 15:42:02] INFO  splunk_connector: HEC authorization token validation: SUCCESS`,
-    `[2026-05-23 15:42:15] DEBUG wazuh_sync: Checking agent status for 45 active nodes...`,
-    `[2026-05-23 15:42:16] SUCCESS wazuh_sync: Synchronized vulnerability catalog: 0 critical, 2 high, 14 medium CVEs outstanding`,
-    `[2026-05-23 15:43:00] INFO  governance_engine: Calculating Governance Health Index (GHI) for ${displayOrganizationName}...`,
-    `[2026-05-23 15:43:01] EVAL  governance_engine: Dimension AUDIT = ${(activeGhiData?.dimensions?.audit ?? 0).toFixed(1)}% (weight 40%)`,
-    `[2026-05-23 15:43:01] EVAL  governance_engine: Dimension LIFECYCLE = ${(activeGhiData?.dimensions?.lifecycle ?? 0).toFixed(1)}% (weight 30%)`,
-    `[2026-05-23 15:43:02] EVAL  governance_engine: Dimension SLA = ${(activeGhiData?.dimensions?.sla ?? 0).toFixed(1)}% (weight 20%)`,
-    `[2026-05-23 15:43:02] EVAL  governance_engine: Dimension COMPLIANCE = ${(activeGhiData?.dimensions?.compliance ?? 0).toFixed(1)}% (weight 10%)`,
-    `[2026-05-23 15:43:02] RESULT governance_engine: Composite GHI calculated as ${(activeGhiData?.ghi ?? 0).toFixed(2)}% -> Grade ${activeGhiData?.grade || 'N/A'}`,
-    `[2026-05-23 15:43:10] WARN  drift_monitor: NIST CSF v2.0 Control DE.AE-1 drifting: Automated logging is partially configured. Compliance risk activated.`,
-    `[2026-05-23 15:44:00] INFO  audit_sync: Next calendar event verified: ${upcomingAudits[0]?.framework || 'NIST CSF v2.0'} audit in ${upcomingAudits[0]?.days_until_audit || 12} days`,
-  ];
+  const technicalForensicLogs = (activeGhiData as any)?.forensic_logs;
 
   // Technical Framework Mapping Matrix Data
-  const frameworkMappings = [
-    { id: 'NIST PR.DS-1', name: 'Data-at-rest protection', framework: 'NIST CSF v2.0', source: 'Wazuh Agent API', status: 'Verified' },
-    { id: 'NIST DE.AE-1', name: 'Security continuous monitoring', framework: 'NIST CSF v2.0', source: 'Splunk Logging Health', status: 'Partial' },
-    { id: 'CIS Control 1.1', name: 'Establish and maintain asset inventory', framework: 'CIS Critical Controls', source: 'Wazuh Asset Discovery', status: 'Verified' },
-    { id: 'CIS Control 8.1', name: 'Establish and maintain audit logs', framework: 'CIS Critical Controls', source: 'Splunk Endpoint HEC', status: 'Verified' },
-    { id: 'OWASP A01:2021', name: 'Broken Access Control compliance', framework: 'OWASP Top 10', source: 'Static Code Scanner', status: 'Verified' },
-    { id: 'OWASP A06:2021', name: 'Vulnerable and Outdated Components', framework: 'OWASP Top 10', source: 'Wazuh Vuln Catalog', status: 'Partial' },
-  ];
+  const frameworkMappings = (activeGhiData as any)?.framework_mappings;
 
   /**
    * S1.8-AUDIT-FIX-A01 (CRITICAL): PDF is generated server-side via reportlab.
@@ -553,7 +534,7 @@ export default function Dashboard() {
 
           {!isReadOnly && (
             <Link to={selectedOrgId ? `/dashboard/assessment/new?org=${selectedOrgId}` : '/dashboard/assessment/new'}>
-              <Button className="gap-2 px-4 shadow-md py-2 text-sm bg-[#00C853] hover:bg-[#00C853]/90 text-white border-transparent">
+              <Button className="gap-2 px-4 shadow-md py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white border-transparent">
                 <Activity className="w-4 h-4" />
                 Run Readiness Check
               </Button>
@@ -657,19 +638,19 @@ export default function Dashboard() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Governance Health Index</span>
-                          <Badge className="bg-emerald-500/10 text-[#00C853] border-emerald-500/20 text-[9px] font-bold">
+                          <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] font-bold">
                             {displayDelta != null && displayDelta >= 0 ? '+' : ''}{displayDelta}%
                           </Badge>
                         </div>
                         <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
                           {displayCurrentScore != null ? `${displayCurrentScore}%` : <span className="text-2xl text-slate-400">—</span>}
                         </h3>
-                        <div className="flex items-center gap-1.5 mt-3.5 bg-[#00C853]/10 px-2.5 py-1 rounded-xl border border-[#00C853]/25 w-fit">
+                        <div className="flex items-center gap-1.5 mt-3.5 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/25 w-fit">
                           <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C853] opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C853]"></span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                           </span>
-                          <span className="text-[9px] font-extrabold text-[#00C853] uppercase tracking-wider">Verified via SIEM</span>
+                          <span className="text-[9px] font-extrabold text-emerald-500 uppercase tracking-wider">Verified via SIEM</span>
                         </div>
                       </div>
                     </Card>
@@ -684,10 +665,10 @@ export default function Dashboard() {
                           <Badge className="bg-indigo-500/10 text-indigo-500 border-indigo-500/20 text-[9px] font-bold">Score</Badge>
                         </div>
                         <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
-                          {dataSource === 'live' ? (rriData ? Math.round(rriData.rri_score) : 72) : 72}
+                          {rriData?.rri_score != null ? Math.round(rriData.rri_score) : (isDemoMode ? 72 : '—')}
                         </h3>
                         <div className="mt-3.5 text-[9px] font-extrabold text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-xl border border-indigo-500/25 w-fit uppercase tracking-wider">
-                          {dataSource === 'live' ? `SLA Exposure: ${rriData ? rriData.risk_band : 'Elevated'}` : 'SLA Exposure: Elevated'}
+                          {rriData?.risk_band ? `SLA Exposure: ${rriData.risk_band}` : (isDemoMode ? 'SLA Exposure: Elevated' : 'SLA Exposure: Unavailable')}
                         </div>
                       </div>
                     </Card>
@@ -702,11 +683,11 @@ export default function Dashboard() {
                           <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[9px] font-bold">Live</Badge>
                         </div>
                         <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
-                          {confidenceData ? Math.round(confidenceData.aggregate_score) : 84}%
+                          {confidenceData?.aggregate_score != null ? `${Math.round(confidenceData.aggregate_score)}%` : (isDemoMode ? '84%' : '—')}
                         </h3>
                         <div className="flex flex-wrap gap-1 mt-3">
-                          <Badge variant={confidenceData && confidenceData.aggregate_score >= 80 ? 'success' : 'outline'} className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg">
-                            {confidenceData && confidenceData.aggregate_score >= 80 ? 'High Confidence' : 'Health Check Required'}
+                          <Badge variant={confidenceData && confidenceData.aggregate_score >= 80 ? "ready" : 'outline'} className="text-[8px] font-bold px-1.5 py-0.5 rounded-lg">
+                            {confidenceData ? (confidenceData.aggregate_score >= 80 ? 'High Confidence' : 'Health Check Required') : (isDemoMode ? 'Demo Confidence' : 'No Telemetry')}
                           </Badge>
                         </div>
                       </div>
@@ -722,11 +703,11 @@ export default function Dashboard() {
                           <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] font-bold">Alert</Badge>
                         </div>
                         <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
-                          {openActions + inProgressActions || 22}
+                          {openActions + inProgressActions || 0}
                         </h3>
                         <div className="flex flex-wrap gap-1 mt-3">
-                          <span className="text-[8px] font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded-lg">3 Critical</span>
-                          <span className="text-[8px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded-lg">7 Moderate</span>
+                          <span className="text-[8px] font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded-lg">{openActions} Open</span>
+                          <span className="text-[8px] font-extrabold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded-lg">{inProgressActions} In Progress</span>
                         </div>
                       </div>
                     </Card>
@@ -756,7 +737,7 @@ export default function Dashboard() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">Technology Health</span>
-                          <Badge className="bg-emerald-500/10 text-[#00C853] border-emerald-500/20 text-[9px] font-bold">Stable</Badge>
+                          <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] font-bold">Stable</Badge>
                         </div>
                         <h3 className="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1.5">
                           92%
@@ -810,7 +791,7 @@ export default function Dashboard() {
               <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <PlugZap className="w-5 h-5 text-[#00C853]" />
+                    <PlugZap className="w-5 h-5 text-emerald-500" />
                     Connector Health
                   </CardTitle>
                   <CardDescription className="text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -823,7 +804,7 @@ export default function Dashboard() {
                       <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Wazuh Manager</p>
                       <p className="text-[10px] text-slate-450 font-semibold mt-0.5">Continuous host CVE sync</p>
                     </div>
-                    <Badge variant={telemetryData?.wazuh_status === 'configured' ? 'success' : 'outline'} className="font-bold text-[10px]">
+                    <Badge variant={telemetryData?.wazuh_status === 'configured' ? "ready" : 'outline'} className="font-bold text-[10px]">
                       {telemetryData?.wazuh_status === 'configured' ? 'Active' : 'Offline'}
                     </Badge>
                   </div>
@@ -833,7 +814,7 @@ export default function Dashboard() {
                       <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Splunk MCP Ingestion</p>
                       <p className="text-[10px] text-slate-450 font-semibold mt-0.5">Automated control validation</p>
                     </div>
-                    <Badge variant={(telemetryData?.splunk_status === 'configured' || integrationSnapshot.splunkConnected) ? 'success' : 'outline'} className="font-bold text-[10px]">
+                    <Badge variant={(telemetryData?.splunk_status === 'configured' || integrationSnapshot.splunkConnected) ? "ready" : 'outline'} className="font-bold text-[10px]">
                       {(telemetryData?.splunk_status === 'configured' || integrationSnapshot.splunkConnected) ? 'Active' : 'Offline'}
                     </Badge>
                   </div>
@@ -843,7 +824,7 @@ export default function Dashboard() {
                       <p className="text-xs font-bold text-slate-800 dark:text-slate-200">API Webhooks Gateway</p>
                       <p className="text-[10px] text-slate-450 font-semibold mt-0.5">Dynamic drift webhooks</p>
                     </div>
-                    <Badge variant={integrationSnapshot.webhookActive ? 'success' : 'outline'} className="font-bold text-[10px]">
+                    <Badge variant={integrationSnapshot.webhookActive ? "ready" : 'outline'} className="font-bold text-[10px]">
                       {integrationSnapshot.webhookActive ? 'Active' : 'Offline'}
                     </Badge>
                   </div>
@@ -885,7 +866,7 @@ export default function Dashboard() {
                             <tr key={sim.id} className="border-b border-slate-100 dark:border-slate-900 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
                               <td className="py-3 font-bold text-slate-800 dark:text-slate-200">{sim.category.replace(/_/g, ' ').toUpperCase()}</td>
                               <td className="py-3">
-                                <span className={`font-mono font-extrabold ${sim.blast_radius_score > 75 ? 'text-red-500' : sim.blast_radius_score > 40 ? 'text-amber-500' : 'text-[#00C853]'}`}>
+                                <span className={`font-mono font-extrabold ${sim.blast_radius_score > 75 ? 'text-red-500' : sim.blast_radius_score > 40 ? 'text-amber-500' : 'text-emerald-500'}`}>
                                   {sim.blast_radius_score}%
                                 </span>
                               </td>
@@ -901,11 +882,11 @@ export default function Dashboard() {
               </Card>
 
               {/* ── BOARD STORY PDF BRIEF ACTION ── */}
-              <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-emerald-500/10 to-indigo-500/10 backdrop-blur-md shadow-sm">
+              <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-md shadow-sm">
                 <CardContent className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div>
                     <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <Brain className="w-5 h-5 text-[#00C853]" />
+                      <Brain className="w-5 h-5 text-primary-500" />
                       Board Briefing
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
@@ -919,7 +900,7 @@ export default function Dashboard() {
                     <a
                       href={boardStoryPdfUrl}
                       download
-                      className="bg-[#00C853] hover:bg-[#00C853]/90 text-white font-bold rounded-xl shadow-md py-2.5 px-4 flex items-center gap-2 text-sm transition-colors"
+                      className="bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-md py-2.5 px-4 flex items-center gap-2 text-sm transition-colors"
                     >
                       <Download className="w-4 h-4" />
                       Board Story PDF
@@ -974,17 +955,17 @@ export default function Dashboard() {
                   <div className="mt-2 text-xs font-mono text-slate-700 dark:text-slate-300 space-y-2">
                     <div className="flex items-center justify-between">
                       <span>Wazuh Agent API:</span>
-                      <Badge variant="success" className="font-bold">CONNECTED</Badge>
+                      <Badge variant="ready" className="font-bold">CONNECTED</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Splunk Endpoint HEC:</span>
-                      <Badge variant={integrationSnapshot.splunkConnected ? 'success' : 'outline'} className="font-bold">
+                      <Badge variant={integrationSnapshot.splunkConnected ? "ready" : 'outline'} className="font-bold">
                         {integrationSnapshot.splunkConnected ? 'ACTIVE' : 'OFFLINE'}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Webhooks Endpoint:</span>
-                      <Badge variant={integrationSnapshot.webhookActive ? 'success' : 'outline'} className="font-bold">
+                      <Badge variant={integrationSnapshot.webhookActive ? "ready" : 'outline'} className="font-bold">
                         {integrationSnapshot.webhookActive ? 'VERIFIED' : 'DISABLED'}
                       </Badge>
                     </div>
@@ -1072,19 +1053,25 @@ export default function Dashboard() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="font-mono text-xs text-slate-300 space-y-2.5 overflow-x-auto select-all max-h-64 overflow-y-auto leading-relaxed bg-black/60 p-4 rounded-xl border border-slate-900 scrollbar-thin">
-                    {technicalForensicLogs.map((log, index) => {
-                      let color = 'text-slate-300';
-                      if (log.includes('WARN')) color = 'text-amber-400';
-                      if (log.includes('SUCCESS') || log.includes('RESULT')) color = 'text-emerald-400';
-                      if (log.includes('DEBUG')) color = 'text-cyan-500';
-                      return (
-                        <div key={index} className={color}>
-                          {log}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <DataState state={technicalForensicLogs ? 'verified' : 'unavailable'} fallback={
+                    <div className="bg-slate-950/50 border border-slate-800 p-8 rounded-xl flex items-center justify-center">
+                      <UnavailableState message="No live forensic telemetry available for this organization." />
+                    </div>
+                  }>
+                    <div className="font-mono text-xs text-slate-300 space-y-2.5 overflow-x-auto select-all max-h-64 overflow-y-auto leading-relaxed bg-black/60 p-4 rounded-xl border border-slate-900 scrollbar-thin">
+                      {technicalForensicLogs?.map((log: any, index: number) => {
+                        let color = 'text-slate-300';
+                        if (log.includes('WARN')) color = 'text-amber-400';
+                        if (log.includes('SUCCESS') || log.includes('RESULT')) color = 'text-emerald-400';
+                        if (log.includes('DEBUG')) color = 'text-cyan-500';
+                        return (
+                          <div key={index} className={color}>
+                            {log}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </DataState>
                 </CardContent>
               </Card>
 
@@ -1126,29 +1113,34 @@ export default function Dashboard() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
-                    <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left font-mono text-xs text-slate-700 dark:text-slate-300">
-                      <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-500">
-                        <tr>
-                          <th className="px-4 py-3 font-bold">Control ID</th>
-                          <th className="px-4 py-3 font-bold">Requirement</th>
-                          <th className="px-4 py-3 font-bold">Catalog</th>
-                          <th className="px-4 py-3 font-bold">Telemetry Source</th>
-                          <th className="px-4 py-3 font-bold">Sync Posture</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900/10">
-                        {frameworkMappings
-                          .filter((mapping) => frameworkFilter === 'ALL' || mapping.framework === frameworkFilter)
-                          .map((mapping, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                            <td className="px-4 py-3 font-bold text-slate-900 dark:text-slate-100">{mapping.id}</td>
-                            <td className="px-4 py-3 font-sans max-w-xs truncate">{mapping.name}</td>
-                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{mapping.framework}</td>
-                            <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{mapping.source}</td>
-                            <td className="px-4 py-3">
-                              <Badge
-                                variant={mapping.status === 'Verified' ? 'success' : 'warning'}
+                  <DataState state={frameworkMappings ? 'verified' : 'unavailable'} fallback={
+                    <div className="p-12 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center">
+                      <UnavailableState message="No framework mapping data available." />
+                    </div>
+                  }>
+                    <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left font-mono text-xs text-slate-700 dark:text-slate-300">
+                        <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-500">
+                          <tr>
+                            <th className="px-4 py-3 font-bold">Control ID</th>
+                            <th className="px-4 py-3 font-bold">Requirement</th>
+                            <th className="px-4 py-3 font-bold">Catalog</th>
+                            <th className="px-4 py-3 font-bold">Telemetry Source</th>
+                            <th className="px-4 py-3 font-bold">Sync Posture</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900/10">
+                          {frameworkMappings
+                            ?.filter((mapping: any) => frameworkFilter === 'ALL' || mapping.framework === frameworkFilter)
+                            .map((mapping: any, idx: number) => (
+                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                              <td className="px-4 py-3 font-bold text-slate-900 dark:text-slate-100">{mapping.id}</td>
+                              <td className="px-4 py-3 font-sans max-w-xs truncate">{mapping.name}</td>
+                              <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{mapping.framework}</td>
+                              <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{mapping.source}</td>
+                              <td className="px-4 py-3">
+                                <Badge
+                                variant={mapping.status === 'Verified' ? "ready" : "drift"}
                                 className="font-extrabold uppercase tracking-wider text-[9px] font-mono rounded-lg px-2 py-0.5"
                               >
                                 {mapping.status}
@@ -1159,6 +1151,7 @@ export default function Dashboard() {
                       </tbody>
                     </table>
                   </div>
+                </DataState>
                 </CardContent>
               </Card>
 
@@ -1310,7 +1303,7 @@ export default function Dashboard() {
             </div>
             <div className="text-right">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Net Change</p>
-              <Badge variant="danger" className="mt-1 font-mono text-sm px-3 py-1">
+              <Badge variant="critical" className="mt-1 font-mono text-sm px-3 py-1">
                 -3
               </Badge>
             </div>

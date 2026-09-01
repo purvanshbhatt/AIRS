@@ -17,9 +17,12 @@ SECRET = b"shared-telemetry-secret"
 def generate_signature(payload_bytes: bytes) -> str:
     return "sha256=" + hmac.new(SECRET, payload_bytes, hashlib.sha256).hexdigest()
 
+from app.db.database import SessionLocal, engine, Base
+
 @pytest.fixture(scope="module")
 def setup_db():
     # Setup test DB or reuse local test sqlite
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     # Ensure there's an organization
     org = db.query(Organization).first()
@@ -29,6 +32,7 @@ def setup_db():
         db.commit()
     yield db
     db.close()
+    Base.metadata.drop_all(bind=engine)
 
 def test_webhook_signature_forgery():
     """Test 1: Send a POST request with an invalid X-Hub-Signature-256 header."""

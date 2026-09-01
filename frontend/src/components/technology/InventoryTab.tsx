@@ -56,9 +56,9 @@ export function InventoryTab({ items, isLoading, error, onRetry }: InventoryTabP
     switch (impact.toLowerCase()) {
       case 'critical':
       case 'high':
-        return <Badge variant="danger" className="text-[10px] font-bold capitalize">{impact}</Badge>;
+        return <Badge variant="critical" className="text-[10px] font-bold capitalize">{impact}</Badge>;
       case 'medium':
-        return <Badge variant="warning" className="text-[10px] font-bold capitalize">{impact}</Badge>;
+        return <Badge variant="drift" className="text-[10px] font-bold capitalize">{impact}</Badge>;
       default:
         return <Badge variant="outline" className="text-[10px] font-bold capitalize text-slate-500">{impact}</Badge>;
     }

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Continuous Readiness &amp; AI Security Lifecycle</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#2d3449",
+                        "readiness-low": "#ef4444",
+                        "deep-navy": "#020617",
+                        "on-secondary-fixed": "#001e2c",
+                        "on-primary-container": "#00422b",
+                        "on-tertiary": "#650911",
+                        "on-tertiary-fixed-variant": "#842225",
+                        "tertiary-container": "#fc7c78",
+                        "error": "#ffb4ab",
+                        "surface-container": "#171f33",
+                        "primary-container": "#10b981",
+                        "surface-container-low": "#131b2e",
+                        "on-primary-fixed-variant": "#005236",
+                        "on-primary": "#003824",
+                        "secondary": "#7bd0ff",
+                        "surface-container-high": "#222a3d",
+                        "on-secondary-fixed-variant": "#004c69",
+                        "primary-fixed-dim": "#4edea3",
+                        "readiness-high": "#10b981",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#002113",
+                        "background": "#0b1326",
+                        "on-background": "#dae2fd",
+                        "secondary-fixed": "#c4e7ff",
+                        "inverse-surface": "#dae2fd",
+                        "readiness-med": "#f59e0b",
+                        "glass-stroke": "rgba(255, 255, 255, 0.1)",
+                        "outline-variant": "#3c4a42",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "surface-dim": "#0b1326",
+                        "on-secondary-container": "#00374d",
+                        "primary": "#4edea3",
+                        "on-surface": "#dae2fd",
+                        "surface-container-lowest": "#060e20",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary-container": "#711419",
+                        "on-surface-variant": "#bbcabf",
+                        "on-tertiary-fixed": "#410005",
+                        "slate-surface": "#1e293b",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-error": "#690005",
+                        "primary-fixed": "#6ffbbe",
+                        "secondary-container": "#00a6e0",
+                        "secondary-fixed-dim": "#7bd0ff",
+                        "on-secondary": "#00354a",
+                        "outline": "#86948a",
+                        "surface-bright": "#31394d",
+                        "inverse-primary": "#006c49",
+                        "surface": "#0b1326",
+                        "surface-tint": "#4edea3",
+                        "inverse-on-surface": "#283044",
+                        "tertiary": "#ffb3af"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "stack-lg": "32px",
+                        "section-padding": "120px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "mono-code": ["ui-monospace"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "mono-code": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background-color: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .bg-radial-glow {
+            background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-deep-navy text-on-surface overflow-x-hidden min-h-screen">
+<!-- TopNavBar -->
+<nav class="bg-background/80 dark:bg-background/80 docked full-width top-0 sticky backdrop-blur-xl border-b border-glass-stroke flat no shadows z-50">
+<div class="flex justify-between items-center w-full px-gutter py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-2">
+<img alt="ResilAI Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLvWlpwfNeHGzzTodFahxQu_A785f4WBKIjLI4PDQxlL4HSbsb78XPCGcDnukrQy3HWPmy6V_bod5zhXoK8uOUCF4WOguM0Nbx6UMgLmXw8pH9MNgB-QS9ianQrsre2ucgYtIaFx9B1Jg_eJcpz8pgFBRXuuAwXMF-aCCsCD1A3W8X5LNDbdM3hfzEbaJANZUSV4tfEPYY_h_AzsJUCa2eKXwAhSieThjkLBKD0ChbL6h_z3YVxqInVcZUA"/>
+<span class="text-body-lg font-bold text-on-background dark:text-on-background tracking-tight">ResilAI</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 text-label-caps font-label-caps" href="#">Compliance</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 text-label-caps font-label-caps" href="#">Security</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 text-label-caps font-label-caps" href="#">Audit Logs</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 text-label-caps font-label-caps" href="#">Integrations</a>
+</div>
+<div class="flex items-center gap-4">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 text-label-caps font-label-caps hidden md:block" href="#">Sign In</a>
+<a class="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-label-caps text-label-caps hover:opacity-90 transition-opacity" href="#">Request Demo</a>
+</div>
+</div>
+</nav>
+<main class="relative z-10 pt-section-padding pb-section-padding max-w-container-max mx-auto px-gutter">
+<!-- Hero Section -->
+<section class="flex flex-col items-center text-center mb-section-padding relative">
+<div class="absolute inset-0 bg-radial-glow -z-10 pointer-events-none w-full h-[600px] top-[-200px]"></div>
+<div class="inline-flex items-center gap-2 bg-surface-container-high border border-glass-stroke px-4 py-1.5 rounded-full mb-8">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
+<span class="text-label-caps font-label-caps text-on-surface-variant">Continuous Readiness &amp; AI Security Lifecycle</span>
+</div>
+<h1 class="text-display-lg-mobile md:text-display-lg font-display-lg-mobile md:font-display-lg text-on-surface mb-6 max-w-4xl mx-auto">
+                Neutralizing Subjectivity in <span class="text-primary">Compliance Audits</span>
+</h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-2xl mx-auto mb-10">
+                ResilAI continuously validates your system perimeters against active framework targets. Turn subjective readiness checks into deterministic, auditable compliance telemetry.
+            </p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
+<a class="bg-primary-container text-on-primary-container px-8 py-4 rounded-lg font-headline-md text-body-md hover:bg-primary transition-colors text-center" href="#">
+                    Request Enterprise Pilot
+                </a>
+<a class="glass-panel text-on-surface px-8 py-4 rounded-lg font-headline-md text-body-md hover:bg-surface-container-high transition-colors text-center flex items-center justify-center gap-2" href="#">
+                    Launch Sandbox Demo
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-8 border-y border-glass-stroke py-12 mb-section-padding">
+<div class="text-center">
+<div class="text-display-lg-mobile md:text-display-lg font-display-lg-mobile md:font-display-lg text-primary mb-2">9+</div>
+<div class="text-label-caps font-label-caps text-on-surface-variant">Compliance Frameworks</div>
+</div>
+<div class="text-center">
+<div class="text-display-lg-mobile md:text-display-lg font-display-lg-mobile md:font-display-lg text-secondary mb-2">5</div>
+<div class="text-label-caps font-label-caps text-on-surface-variant">Security Domains</div>
+</div>
+<div class="text-center">
+<div class="text-display-lg-mobile md:text-display-lg font-display-lg-mobile md:font-display-lg text-primary mb-2">30+</div>
+<div class="text-label-caps font-label-caps text-on-surface-variant">Assessment Questions</div>
+</div>
+<div class="text-center">
+<div class="text-display-lg-mobile md:text-display-lg font-display-lg-mobile md:font-display-lg text-secondary mb-2">&lt;5min</div>
+<div class="text-label-caps font-label-caps text-on-surface-variant">Time to Complete</div>
+</div>
+</section>
+<!-- Bento Grid Section -->
+<section class="mb-section-padding">
+<div class="text-center mb-16">
+<h2 class="text-headline-md font-headline-md text-on-surface mb-4">Readiness, Compliance &amp; Risk — Unified</h2>
+<p class="text-body-md font-body-md text-on-surface-variant max-w-2xl mx-auto">
+                    Built by GRC professionals for modern engineering teams. Deterministic scoring you can verify, with AI summaries where they matter most.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="glass-panel p-8 rounded-xl flex flex-col gap-4 col-span-1 md:col-span-1">
+<div class="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center border border-glass-stroke">
+<span class="material-symbols-outlined text-primary">radar</span>
+</div>
+<h3 class="text-body-lg font-headline-md text-on-surface">Comprehensive Assessment</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Evaluate your security posture across 5 critical domains with 30+ targeted questions designed by incident response experts.</p>
+</div>
+<div class="glass-panel p-8 rounded-xl flex flex-col gap-4 col-span-1 md:col-span-1">
+<div class="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center border border-glass-stroke">
+<span class="material-symbols-outlined text-primary">verified</span>
+</div>
+<h3 class="text-body-lg font-headline-md text-on-surface">Compliance Intelligence</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Auto-detect applicable frameworks — SOC 2, HIPAA, PCI-DSS, CMMC, GDPR — based on your organization profile. Know what's mandatory vs. recommended.</p>
+</div>
+<div class="glass-panel p-8 rounded-xl flex flex-col gap-4 col-span-1 md:col-span-1">
+<div class="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center border border-glass-stroke">
+<span class="material-symbols-outlined text-primary">bar_chart</span>
+</div>
+<h3 class="text-body-lg font-headline-md text-on-surface">Instant Scoring &amp; Insights</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Get immediate visibility into your readiness level with weighted scores, maturity ratings, and prioritized findings.</p>
+</div>
+<div class="glass-panel p-8 rounded-xl flex flex-col gap-4 col-span-1 md:col-span-1 md:col-start-1">
+<div class="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center border border-glass-stroke">
+<span class="material-symbols-outlined text-secondary">calendar_month</span>
+</div>
+<h3 class="text-body-lg font-headline-md text-on-surface">Audit Calendar &amp; Forecasts</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Schedule upcoming audits, get countdown alerts, and run pre-audit risk forecasts that cross-reference your live findings.</p>
+</div>
+<div class="glass-panel p-8 rounded-xl flex flex-col gap-4 col-span-1 md:col-span-2">
+<div class="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center border border-glass-stroke">
+<span class="material-symbols-outlined text-primary">description</span>
+</div>
+<h3 class="text-body-lg font-headline-md text-on-surface">Executive-Ready Reports</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Generate professional PDF reports with AI-powered narratives, actionable recommendations, and benchmark comparisons. Track component versions and LTS status. Get deterministic risk classification for EOL, deprecated, and outdated dependencies.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-deep-navy dark:bg-deep-navy w-full py-section-padding border-t border-glass-stroke flat no shadows">
+<div class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center gap-stack-md">
+<div class="flex items-center gap-4">
+<img alt="ResilAI Logo" class="h-6 w-6 object-contain opacity-50 grayscale" src="https://lh3.googleusercontent.com/aida/AP1WRLvWlpwfNeHGzzTodFahxQu_A785f4WBKIjLI4PDQxlL4HSbsb78XPCGcDnukrQy3HWPmy6V_bod5zhXoK8uOUCF4WOguM0Nbx6UMgLmXw8pH9MNgB-QS9ianQrsre2ucgYtIaFx9B1Jg_eJcpz8pgFBRXuuAwXMF-aCCsCD1A3W8X5LNDbdM3hfzEbaJANZUSV4tfEPYY_h_AzsJUCa2eKXwAhSieThjkLBKD0ChbL6h_z3YVxqInVcZUA"/>
+<span class="text-body-lg font-bold text-on-surface dark:text-on-surface text-sm text-on-surface-variant">© 2024 ResilAI. Precision Healthcare for Fintech.</span>
+</div>
+<div class="flex items-center gap-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 text-label-caps font-label-caps" href="#">Legal</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 text-label-caps font-label-caps" href="#">Privacy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 text-label-caps font-label-caps" href="#">Security Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-200 text-label-caps font-label-caps" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</body></html>

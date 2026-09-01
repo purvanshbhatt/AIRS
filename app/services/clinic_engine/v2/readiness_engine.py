@@ -23,6 +23,7 @@ from app.services.clinic_engine.v2.risk_engine import BusinessRiskEngine
 from app.services.clinic_engine.v2.action_engine import ActionEngine
 from app.services.clinic_engine.v2.trust_engine import TrustEngine
 from app.services.clinic_engine.v2.coverage_engine import CoverageEngine
+from app.services.clinic_engine.v2.explainability_engine import ExplainabilityEngine
 
 class ReadinessEngine:
     """The product layer aggregator.
@@ -37,6 +38,7 @@ class ReadinessEngine:
         self.action_engine = ActionEngine()
         self.trust_engine = TrustEngine(db)
         self.coverage_engine = CoverageEngine(db)
+        self.explainability_engine = ExplainabilityEngine()
 
     def evaluate(self, org_id: str, moments: List[ClinicMoment]) -> DailyReadinessReport:
         """The main product method. Produces the morning readiness check."""
@@ -79,19 +81,30 @@ class ReadinessEngine:
             elif m.verdict == Verdict.UNKNOWN:
                 status = "unknown"
                 
+            verification = verifications.get(m.id)
+            moment_actions = actions.get(m.id, [])
+            explanation = self.explainability_engine.build_explanation(
+                moment=m,
+                verdict_status=status,
+                verification=verification,
+                actions=moment_actions
+            )
+                
             check = ReadinessCheck(
-                status=status,
+                check_id=m.id,
                 label=m.translation.what_happened,
+                status=status,
                 detail=m.translation.why_care,
-                verification=verifications.get(m.id),
-                action=actions.get(m.id)[0] if actions.get(m.id) else None
+                verification=verification,
+                action=moment_actions[0] if moment_actions else None,
+                explanation=explanation
             )
             
             if status == "pass":
                 passed_checks.append(check)
             elif status == "fail":
                 failed_checks.append(check)
-                immediate_actions.extend(actions.get(m.id, []))
+                immediate_actions.extend(moment_actions)
             elif status == "warning":
                 warnings.append(check)
             elif status == "unknown":
@@ -99,7 +112,7 @@ class ReadinessEngine:
                     UnknownItem(
                         label=m.translation.what_happened,
                         impact="Confidence reduced due to missing data.",
-                        source=verifications.get(m.id).verification_source if verifications.get(m.id) else "Unknown",
+                        source=verification.verification_source if verification else "Unknown",
                     )
                 )
 
@@ -116,11 +129,22 @@ class ReadinessEngine:
             overall_status = ReadinessStatus.safe_to_open
 
         # 8. Calculate Business Health (0-100)
-        clinic_health_pct = 100
-        clinic_health_pct -= len(failed_checks) * 15
-        clinic_health_pct -= len(warnings) * 5
-        clinic_health_pct -= len(unknowns) * 2
-        clinic_health_pct = max(0, clinic_health_pct)
+        # INVARIANT: Absence of evidence must never become evidence of readiness.
+        # When confidence is 0 (no connectors, no evidence), health MUST be 0.
+        # When status is unknown, health is capped at the verification confidence level.
+        if overall_verification.confidence_pct == 0:
+            # No evidence at all — cannot assert any health score
+            clinic_health_pct = 0
+        else:
+            clinic_health_pct = 100
+            clinic_health_pct -= len(failed_checks) * 15
+            clinic_health_pct -= len(warnings) * 5
+            clinic_health_pct -= len(unknowns) * 2
+            clinic_health_pct = max(0, clinic_health_pct)
+            # Cap at verification confidence to prevent overstating health
+            # when evidence coverage is partial
+            if overall_status == ReadinessStatus.unknown:
+                clinic_health_pct = min(clinic_health_pct, overall_verification.confidence_pct)
 
         # 9. Generate Greeting and Summary
         greeting = f"Good Morning {context.primary_contact}" if context.primary_contact else "Good Morning"

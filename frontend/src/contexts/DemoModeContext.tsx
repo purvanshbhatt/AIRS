@@ -9,6 +9,8 @@ interface DemoModeContextValue {
   isReadOnly: boolean;
   /** Default organization name */
   organizationName: string;
+  /** Whether this organization is managed by an MSP */
+  isMspTenant: boolean;
   /** Full system status from backend */
   systemStatus: SystemStatus | null;
   /** Whether the context is still loading */
@@ -47,7 +49,8 @@ export function DemoModeProvider({ children }: DemoModeProviderProps) {
   const value = useMemo<DemoModeContextValue>(() => ({
     isDemoMode: systemStatus?.demo_mode ?? false,
     isReadOnly: systemStatus?.is_read_only ?? false,
-    organizationName: 'Acme Health Systems',
+    organizationName: 'ResilAI Sandbox Clinic',
+    isMspTenant: true, // Hardcoded for MVP validation
     systemStatus,
     isLoading,
     refresh: fetchStatus,

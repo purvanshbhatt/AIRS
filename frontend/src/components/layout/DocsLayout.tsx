@@ -24,6 +24,7 @@ interface NavItem {
 
 const docsNavigation: NavItem[] = [
     { name: 'Overview', href: '/docs', icon: BookOpen },
+    { name: 'Governance Engine', href: '/docs/governance', icon: Shield },
     { name: 'Methodology', href: '/docs/methodology', icon: BarChart3 },
     { name: 'Frameworks', href: '/docs/frameworks', icon: Shield },
     { name: 'Security', href: '/docs/security', icon: Lock },
@@ -244,10 +245,10 @@ export default function DocsLayout() {
                     <div className="flex items-center gap-4">
                         <ThemeToggle />
                         <Link
-                            to="/assessment/new"
+                            to="/dashboard"
                             className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-semibold rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all shadow-sm shadow-blue-500/10"
                         >
-                            Start Assessment
+                            Open Dashboard
                         </Link>
                     </div>
                 </header>

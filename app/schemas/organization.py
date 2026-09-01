@@ -16,9 +16,17 @@ class OrganizationBase(BaseModel):
     size: Optional[str] = Field(None, pattern="^(1-50|51-200|201-1000|1000\\+)$")
     contact_email: Optional[str] = Field(None, max_length=255)
     contact_name: Optional[str] = Field(None, max_length=255)
+    country: Optional[str] = Field(None, max_length=100)
+    region_state: Optional[str] = Field(None, max_length=100)
+    regulatory_profile: Optional[str] = Field(None)
     notes: Optional[str] = Field(None, max_length=5000)
+    
+    # Phase 7: MSP Tenancy Model
+    managed_by_msp_id: Optional[str] = Field(None, description="ID of the MSP managing this organization, if applicable.")
+    org_mode: Optional[str] = Field(default="production", max_length=20)
+    deployment_mode: Optional[str] = Field(default="production", max_length=20)
 
-    @field_validator("name", "industry", "contact_email", "contact_name", "notes", mode="before")
+    @field_validator("name", "industry", "contact_email", "contact_name", "country", "region_state", "notes", "managed_by_msp_id", "org_mode", "deployment_mode", mode="before")
     @classmethod
     def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
         return strip_dangerous(v)
@@ -36,11 +44,14 @@ class OrganizationUpdate(BaseModel):
     size: Optional[str] = Field(None, pattern="^(1-50|51-200|201-1000|1000\\+)$")
     contact_email: Optional[str] = Field(None, max_length=255)
     contact_name: Optional[str] = Field(None, max_length=255)
+    country: Optional[str] = Field(None, max_length=100)
+    region_state: Optional[str] = Field(None, max_length=100)
+    regulatory_profile: Optional[str] = Field(None)
     notes: Optional[str] = Field(None, max_length=5000)
     # Phase 5: Governance & Analytics Control
     analytics_enabled: Optional[bool] = None
 
-    @field_validator("name", "industry", "contact_email", "contact_name", "notes", mode="before")
+    @field_validator("name", "industry", "contact_email", "contact_name", "country", "region_state", "notes", mode="before")
     @classmethod
     def sanitize_text(cls, v: Optional[str]) -> Optional[str]:
         return strip_dangerous(v)

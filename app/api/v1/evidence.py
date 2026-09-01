@@ -54,3 +54,41 @@ async def get_evidence_lineage(
             {"stage": "Board Story", "detail": "Narrative Updated"}
         ]
     }
+
+@router.get("/ledger")
+async def get_evidence_ledger(
+    org_id: str,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """
+    Returns the evidence ledger (Audit Trail).
+    """
+    ledgers = db.query(EvidenceLedger).filter(EvidenceLedger.org_id == org_id).order_by(EvidenceLedger.timestamp.desc()).limit(limit).all()
+    return [{
+        "id": l.id,
+        "evidence_hash": l.evidence_hash,
+        "source_name": l.source_name,
+        "event_type": l.event_type,
+        "timestamp": l.timestamp,
+        "overall_confidence": l.overall_confidence,
+        "verification_status": l.verification_status
+    } for l in ledgers]
+
+@router.get("/packages")
+async def get_evidence_packages(
+    org_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth)
+):
+    """
+    Returns the availability of evidence packages (Evidence Vault).
+    """
+    # For now, we return mock availability data based on the ledger existence.
+    has_evidence = db.query(EvidenceLedger).filter(EvidenceLedger.org_id == org_id).first() is not None
+    return {
+        "hipaa": {"available": has_evidence, "last_generated": None},
+        "security": {"available": has_evidence, "last_generated": None},
+        "backup": {"available": has_evidence, "last_generated": None}
+    }

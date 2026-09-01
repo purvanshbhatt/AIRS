@@ -26,7 +26,7 @@ from app.services.readiness_ledger import record_score_change
 def _make_org(session) -> str:
     org = Organization(
         id=str(uuid.uuid4()),
-        name="Acme - Ledger Test",
+        name="sandbox - Ledger Test",
     )
     session.add(org)
     session.commit()
@@ -108,18 +108,13 @@ class TestRecordScoreChange:
 
 
 class TestScoreAndRecordHook:
-    def test_score_and_record_writes_ledger_row(self):
+    def test_score_and_record_writes_ledger_row(self, db_session):
         from app.models import Organization
-        from app.db.database import SessionLocal
 
         org = Organization(id=str(uuid.uuid4()), name="Hook Test")
-        session = SessionLocal()
-        try:
-            session.add(org)
-            session.commit()
-            org_id = org.id
-        finally:
-            session.close()
+        db_session.add(org)
+        db_session.commit()
+        org_id = org.id
 
         # The hook may already be installed by other tests in the file.
         # attach_to_scoring is idempotent.
@@ -144,28 +139,19 @@ class TestScoreAndRecordHook:
         assert "final_readiness" in result
         baseline_final = result["final_readiness"]
 
-        session = SessionLocal()
-        try:
-            rows = session.query(ReadinessLedgerEntry).filter(
-                ReadinessLedgerEntry.org_id == org_id
-            ).all()
-            assert len(rows) == 1
-            assert rows[0].delta == pytest.approx(round(baseline_final - 55.0, 2))
-        finally:
-            session.close()
+        rows = db_session.query(ReadinessLedgerEntry).filter(
+            ReadinessLedgerEntry.org_id == org_id
+        ).all()
+        assert len(rows) == 1
+        assert rows[0].delta == pytest.approx(round(baseline_final - 55.0, 2))
 
-    def test_invariance_under_replay(self):
+    def test_invariance_under_replay(self, db_session):
         from app.models import Organization
-        from app.db.database import SessionLocal
 
         org = Organization(id=str(uuid.uuid4()), name="Replay Test")
-        s = SessionLocal()
-        try:
-            s.add(org)
-            s.commit()
-            org_id = org.id
-        finally:
-            s.close()
+        db_session.add(org)
+        db_session.commit()
+        org_id = org.id
 
         from app.services import readiness_ledger as rl
         rl.attach_to_scoring()

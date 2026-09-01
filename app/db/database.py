@@ -4,6 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
 
+import os
+from sqlalchemy.pool import StaticPool
+
 def get_engine_args():
     """
     Get SQLAlchemy engine configuration based on database type.
@@ -15,9 +18,10 @@ def get_engine_args():
     
     # SQLite configuration
     if db_url.startswith("sqlite"):
-        return {
-            "connect_args": {"check_same_thread": False},
-        }
+        args = {"connect_args": {"check_same_thread": False}}
+        if db_url == "sqlite://" or db_url == "sqlite:///:memory:" or os.environ.get("TESTING") == "true":
+            args["poolclass"] = StaticPool
+        return args
     
     # PostgreSQL configuration (Cloud SQL / standard Postgres)
     # Pool settings optimized for Cloud Run's autoscaling

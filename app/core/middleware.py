@@ -65,13 +65,13 @@ class CORSErrorSafetyMiddleware(BaseHTTPMiddleware):
             req_method = request.headers.get("access-control-request-method")
             
             response = Response(status_code=204)
-            # Use matching origin or default to raw_origin if present, else "*"
-            allow_origin = origin if origin else (raw_origin.strip().rstrip("/") if raw_origin else "*")
-            response.headers["Access-Control-Allow-Origin"] = allow_origin
-            response.headers["Access-Control-Allow-Methods"] = req_method if req_method else "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
-            response.headers["Access-Control-Allow-Headers"] = req_headers if req_headers else "*"
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Max-Age"] = "86400"
+            # Only use the validated 'origin'. If not trusted, don't allow CORS.
+            if origin:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Methods"] = req_method if req_method else "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
+                response.headers["Access-Control-Allow-Headers"] = req_headers if req_headers else "*"
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                response.headers["Access-Control-Max-Age"] = "86400"
             return response
 
         try:
@@ -138,11 +138,10 @@ class CORSErrorSafetyMiddleware(BaseHTTPMiddleware):
                     content={"error": {"code": "INTERNAL_ERROR", "message": "Internal server error"}},
                 )
 
-        # Ensure CORS headers are always present for valid origins
-        allow_origin = origin if origin else (raw_origin.strip().rstrip("/") if raw_origin else "")
-        if allow_origin:
+        # Ensure CORS headers are always present for valid origins only
+        if origin:
             if "access-control-allow-origin" not in response.headers:
-                response.headers["Access-Control-Allow-Origin"] = allow_origin
+                response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Expose-Headers"] = "*"
 
@@ -361,9 +360,15 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """
     Handler for HTTP exceptions with consistent error format.
+
+    Produces structured error responses that let the frontend distinguish:
+    - ORGANIZATION_NOT_FOUND (specific 404 from org lookup)
+    - NOT_FOUND (generic route not found)
+    - ORG_ID_REQUIRED (missing/empty org identifier)
+    - UNAUTHORIZED / FORBIDDEN / etc.
     """
     request_id = get_request_id() or "-"
-    
+
     # Map status codes to error codes
     error_codes = {
         400: "BAD_REQUEST",
@@ -375,21 +380,40 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
         429: "RATE_LIMITED",
         500: "INTERNAL_ERROR",
     }
-    
+
     error_code = error_codes.get(exc.status_code, f"HTTP_{exc.status_code}")
-    
+
+    # Extract message from detail, handling both string and dict formats
+    detail = exc.detail
+    if isinstance(detail, dict):
+        message = detail.get("message", str(detail))
+    elif isinstance(detail, str):
+        message = detail
+    else:
+        message = str(detail) if detail else "Unknown error"
+
+    # Refine error code based on detail content for better frontend disambiguation
+    if exc.status_code == 404 and isinstance(detail, str):
+        if "Organization not found" in detail:
+            error_code = "ORGANIZATION_NOT_FOUND"
+        elif "Issue not found" in detail:
+            error_code = "RESOURCE_NOT_FOUND"
+    elif exc.status_code == 422 and isinstance(detail, str):
+        if "Organization ID is required" in detail:
+            error_code = "ORG_ID_REQUIRED"
+
     response = JSONResponse(
         status_code=exc.status_code,
         content={
             "error": {
                 "code": error_code,
-                "message": exc.detail,
+                "message": message,
                 "request_id": request_id
             }
         }
     )
     response.headers["X-Request-ID"] = request_id
-    
+
     return response
 
 

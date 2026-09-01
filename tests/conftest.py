@@ -11,20 +11,12 @@ from sqlalchemy.pool import StaticPool
 os.environ.setdefault("ENV", "local")
 os.environ.setdefault("AUTH_REQUIRED", "false")
 os.environ.setdefault("DEMO_MODE", "true")
+os.environ.setdefault("TESTING", "true")
+os.environ["DATABASE_URL"] = "sqlite://"
 
-from app.main import app
-from app.db.database import Base, get_db
-
-# Use in-memory SQLite for testing
-SQLALCHEMY_DATABASE_URL = "sqlite://"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from app.main import app as fastapi_app
+from app.db.database import Base, get_db, engine, SessionLocal as TestingSessionLocal
+import app.models as app_models  # Force register all models for testing
 
 
 # ── Firestore mock layer ────────────────────────────────────────────
@@ -82,8 +74,6 @@ def _mock_firestore_if_no_emulator():
         patch("app.db.firestore.firestore_get_finding_tracking_map", return_value={}),
         patch("app.db.firestore.firestore_get_all_orgs", return_value=[]),
         patch("app.db.firestore.firestore_get_all_assessments", return_value=[]),
-        patch("app.db.firestore.sync_orgs_from_firestore", return_value=0),
-        patch("app.db.firestore.sync_assessments_from_firestore", return_value=0),
         patch("app.db.firestore.require_firestore", return_value=True),
         patch("app.db.firestore.is_firestore_available", return_value=True),
         patch("app.services.organization.firestore_save_org", return_value=True),
@@ -115,16 +105,103 @@ def db_session():
         Base.metadata.drop_all(bind=engine)
 
 
+from app.core.auth import User, require_auth
+
+# Mock users for testing
+USER_NO_ORG = User(uid="user-no-org", email="no_org@example.com", name="No Org User")
+USER_WITH_ORG = User(uid="user-with-org", email="has_org@example.com", name="Has Org User")
+USER_A = User(uid="user-a", email="user_a@example.com", name="User A")
+USER_B = User(uid="user-b", email="user_b@example.com", name="User B")
+
+
+def make_auth_override(user: User):
+    """Create an auth override for the given user."""
+    async def override():
+        return user
+    return override
+
+
 @pytest.fixture(scope="function")
 def client(db_session):
-    """Create a test client with database override."""
+    """Generic test client. Does not guarantee auth or org presence."""
     def override_get_db():
         try:
             yield db_session
         finally:
             pass
     
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
+    fastapi_app.dependency_overrides[get_db] = override_get_db
+    with TestClient(fastapi_app) as test_client:
         yield test_client
-    app.dependency_overrides.clear()
+    fastapi_app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def client_no_org(db_session):
+    """Client authenticated as a user with NO organization."""
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+    
+    fastapi_app.dependency_overrides[get_db] = override_get_db
+    fastapi_app.dependency_overrides[require_auth] = make_auth_override(USER_NO_ORG)
+    with TestClient(fastapi_app) as test_client:
+        yield test_client
+    fastapi_app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def client_with_org(db_session):
+    """Client authenticated as a user WITH one organization provisioned."""
+    from app.models.organization import Organization
+    
+    # Provision organization
+    org = Organization(id="test-org-123", name="Provisioned Org", owner_uid=USER_WITH_ORG.uid)
+    db_session.add(org)
+    db_session.commit()
+    
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+    
+    fastapi_app.dependency_overrides[get_db] = override_get_db
+    fastapi_app.dependency_overrides[require_auth] = make_auth_override(USER_WITH_ORG)
+    with TestClient(fastapi_app) as test_client:
+        yield test_client
+    fastapi_app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def client_user_a(db_session):
+    """Client authenticated as User A."""
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+    
+    fastapi_app.dependency_overrides[get_db] = override_get_db
+    fastapi_app.dependency_overrides[require_auth] = make_auth_override(USER_A)
+    with TestClient(fastapi_app) as test_client:
+        yield test_client
+    fastapi_app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def client_user_b(db_session):
+    """Client authenticated as User B."""
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+    
+    fastapi_app.dependency_overrides[get_db] = override_get_db
+    fastapi_app.dependency_overrides[require_auth] = make_auth_override(USER_B)
+    with TestClient(fastapi_app) as test_client:
+        yield test_client
+    fastapi_app.dependency_overrides.clear()

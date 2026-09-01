@@ -50,6 +50,7 @@ class ConnectorSyncResult:
     errors_count: int = 0
     duration_ms: int = 0
     error_details: Optional[str] = None
+    events: List[Any] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -162,7 +163,7 @@ class BaseConnector(abc.ABC):
                 "Sync completed: %d events in %dms", len(events), duration
             )
             return ConnectorSyncResult(
-                success=True, events_ingested=len(events), duration_ms=duration
+                success=True, events_ingested=len(events), duration_ms=duration, events=events
             )
         except Exception as exc:
             duration = int((time.monotonic() - start) * 1000)
@@ -194,9 +195,17 @@ class Connector(BaseConnector):
     
     CAPABILITIES: List[str] = []
     
-    def __init__(self, connector_id: str, organization_id: str, credentials: Dict[str, Any] = None, config: Optional[Dict[str, Any]] = None):
-        super().__init__(connector_id=connector_id, org_id=organization_id, credentials=credentials or {}, config=config)
-        self.organization_id = organization_id
+    def __init__(
+        self,
+        connector_id: str,
+        organization_id: Optional[str] = None,
+        credentials: Dict[str, Any] = None,
+        config: Optional[Dict[str, Any]] = None,
+        org_id: Optional[str] = None,
+    ):
+        resolved_org_id = org_id or organization_id or ""
+        super().__init__(connector_id=connector_id, org_id=resolved_org_id, credentials=credentials or {}, config=config)
+        self.organization_id = resolved_org_id
 
     async def collect_evidence(self) -> List[RawEvent]:
         """Wrapper for V2 Clinic Engine over V1 sync()."""

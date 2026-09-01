@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Mobile Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "slate-text": "#475569",
+                        "on-secondary-fixed": "#001a42",
+                        "surface-container-lowest": "#060d20",
+                        "tertiary-container": "#e29100",
+                        "inverse-on-surface": "#283044",
+                        "surface-variant": "#2d3449",
+                        "error": "#ffb4ab",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-primary": "#003824",
+                        "surface-container-highest": "#2d3449",
+                        "on-tertiary-container": "#523200",
+                        "inverse-primary": "#006c49",
+                        "primary-fixed-dim": "#4edea3",
+                        "status-critical": "#ef4444",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed": "#2a1700",
+                        "surface-dim": "#0b1326",
+                        "on-primary-fixed": "#002113",
+                        "surface-dark": "#0b1326",
+                        "surface": "#0b1326",
+                        "on-secondary-fixed-variant": "#004395",
+                        "on-secondary-container": "#e6ecff",
+                        "primary-container": "#10b981",
+                        "on-background": "#dbe2fd",
+                        "secondary": "#adc6ff",
+                        "on-primary-container": "#00422b",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-secondary": "#002e6a",
+                        "surface-tint": "#4edea3",
+                        "on-surface-variant": "#bbcabf",
+                        "tertiary": "#ffb95f",
+                        "status-ready": "#10b981",
+                        "outline-variant": "#3c4a42",
+                        "surface-container-high": "#222a3e",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "error-container": "#93000a",
+                        "surface-light": "#ffffff",
+                        "primary": "#4edea3",
+                        "outline": "#86948a",
+                        "slate-soft": "#f8fafc",
+                        "surface-bright": "#31394e",
+                        "background": "#0b1326",
+                        "primary-fixed": "#6ffbbe",
+                        "on-surface": "#dbe2fd",
+                        "on-primary-fixed-variant": "#005236",
+                        "surface-container-low": "#131b2e",
+                        "surface-container": "#171f33",
+                        "on-tertiary": "#472a00",
+                        "secondary-container": "#0566d9",
+                        "inverse-surface": "#dbe2fd",
+                        "on-error-container": "#ffdad6",
+                        "status-drift": "#f59e0b",
+                        "tertiary-fixed-dim": "#ffb95f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "1.5rem",
+                        "max-content-width": "1200px",
+                        "margin-desktop": "2.5rem",
+                        "margin-mobile": "1rem",
+                        "sidebar-width": "260px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "narrative-summary": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "title-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "narrative-summary": ["18px", { "lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .ring-progress {
+            stroke-dasharray: 283;
+            stroke-dashoffset: 28; /* 90% */
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md antialiased md:hidden pb-[80px]">
+<!-- Top App Bar (Mobile optimized, simpler than desktop) -->
+<header class="fixed top-0 left-0 w-full z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant/10 px-margin-mobile h-16 flex justify-between items-center">
+<div class="font-headline-lg-mobile text-headline-lg-mobile text-primary">ResilAI</div>
+<div class="flex items-center gap-4 text-on-surface">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a healthcare executive in a dimly lit, high-end corporate office. Subtle, cool lighting emphasizes authority and trust. The image matches a modern, clinical premium aesthetic with deep blues and crisp whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBs5MbFbHybITgHSv_yfD-dDh5h9eVZr3Vp0WY-N45rNzgfGJlOf7qnfkRY6pmkVGtAG9ZD9bCl0VfLoQTriyNEEZcjiZIvG_uPILNeX8bmUIPDk8QM1YPVAd6ER9iB4Tr59GtsffuXGjI0Cp3k-IPQ_ViXgArLDlnzPH3yH27EkB3_BHf2N264PNzcvlNdbhpvsOh3mnv7hjH91br5QdY66XcFssjsLFV-2OVcEMDxGmflhGEYuBqP"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 mt-16 px-margin-mobile py-6 flex flex-col gap-6">
+<!-- Status Ring Hero -->
+<section class="flex flex-col items-center justify-center pt-4 pb-2">
+<div class="relative w-48 h-48 flex items-center justify-center">
+<!-- Background Ring -->
+<svg class="absolute inset-0 w-full h-full -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#131b2e" stroke-width="8"></circle>
+</svg>
+<!-- Progress Ring -->
+<svg class="absolute inset-0 w-full h-full -rotate-90" viewbox="0 0 100 100">
+<circle class="ring-progress text-status-ready" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="text-center z-10 flex flex-col items-center">
+<span class="material-symbols-outlined text-status-ready text-4xl mb-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<h2 class="font-display-lg text-display-lg text-on-surface">90%</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">Ready</p>
+</div>
+</div>
+</section>
+<!-- Narrative Summary (Morning Brief) -->
+<section class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/10">
+<h3 class="font-title-md text-title-md text-on-surface mb-3">Morning Brief</h3>
+<p class="font-narrative-summary text-narrative-summary text-on-surface-variant">
+                Clinic operations are largely stable. However, <span class="text-status-drift font-semibold">2 connectors</span> require attention following the overnight security patch. Compliance remains at target levels.
+            </p>
+</section>
+<!-- Actionable Triage Cards -->
+<section class="flex flex-col gap-4">
+<h3 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest pl-1">Needs Attention</h3>
+<div class="bg-surface-container rounded-lg p-4 border border-outline-variant/10 flex items-start gap-4 active:scale-[0.98] transition-transform">
+<div class="p-3 bg-surface-container-high rounded-lg text-status-drift">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex-1">
+<h4 class="font-title-md text-title-md text-on-surface">EHR Sync Delayed</h4>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm mt-1">Last successful sync 4h ago.</p>
+</div>
+<button class="text-primary p-2">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="bg-surface-container rounded-lg p-4 border border-outline-variant/10 flex items-start gap-4 active:scale-[0.98] transition-transform">
+<div class="p-3 bg-surface-container-high rounded-lg text-status-drift">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">gavel</span>
+</div>
+<div class="flex-1">
+<h4 class="font-title-md text-title-md text-on-surface">Policy Update Pending</h4>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm mt-1">Review Q3 Privacy Addendum.</p>
+</div>
+<button class="text-primary p-2">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Mobile Replacement for SideNav) -->
+<nav class="fixed bottom-0 left-0 w-full bg-surface-container border-t border-outline-variant/10 pb-safe z-50">
+<div class="flex justify-around items-center h-16 px-2">
+<!-- Active Tab: Today -->
+<a class="flex flex-col items-center justify-center w-16 h-full text-primary font-semibold relative" href="#">
+<div class="absolute top-0 w-8 h-1 bg-primary rounded-b-full"></div>
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">today</span>
+<span class="text-[10px] font-medium leading-none">Today</span>
+</a>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined mb-1">warning</span>
+<span class="text-[10px] font-medium leading-none">Attention</span>
+</a>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined mb-1">rebase_edit</span>
+<span class="text-[10px] font-medium leading-none">Recovery</span>
+</a>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined mb-1">hub</span>
+<span class="text-[10px] font-medium leading-none">Connectors</span>
+</a>
+</div>
+</nav>
+</body></html>
