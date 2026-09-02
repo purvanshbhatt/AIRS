@@ -159,9 +159,17 @@ export default function About() {
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
                   {/* Founder Avatar */}
                   <div className="relative shrink-0">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-primary-600 to-emerald-500 flex items-center justify-center text-white font-extrabold text-3xl shadow-md border-2 border-white dark:border-slate-800">
-                      <span>PB</span>
-                    </div>
+                    {COMPANY_INFO.founder.avatarUrl ? (
+                      <img
+                        src={COMPANY_INFO.founder.avatarUrl}
+                        alt={COMPANY_INFO.founder.name}
+                        className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shadow-md border-2 border-white dark:border-slate-800"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-primary-600 to-emerald-500 flex items-center justify-center text-white font-extrabold text-3xl shadow-md border-2 border-white dark:border-slate-800">
+                        <span>PB</span>
+                      </div>
+                    )}
                     <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-mono font-bold uppercase tracking-wider shadow-xs">
                       Founder
                     </div>
