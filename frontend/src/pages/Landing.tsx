@@ -25,7 +25,8 @@ import {
   Layers,
   Sparkles,
 } from 'lucide-react';
-import ThemeToggle from '../components/ui/ThemeToggle';
+import { PublicNavbar } from '../components/layout/PublicNavbar';
+import { Footer } from '../components/layout/Footer';
 
 const personas = [
   {
@@ -140,84 +141,12 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 transition-colors duration-300">
-      {/* Navigation */}
-      <nav 
-        className="fixed left-0 right-0 z-50 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300"
-        style={{ top: 'var(--banner-height, 0px)' }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <img src="/logo_header.svg" alt="ResilAI Logo" className="h-11 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-5">
-                <Link
-                  to="/docs/methodology"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  Methodology
-                </Link>
-                <Link
-                  to="/docs/frameworks"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  Frameworks
-                </Link>
-                <Link
-                  to="/about"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  About
-                </Link>
-                <Link
-                  to="/security"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  Security
-                </Link>
-                <Link
-                  to="/status"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  Status
-                </Link>
-                <Link
-                  to="/login"
-                  className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  Sign In
-                </Link>
-              </div>
-
-              <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
-
-              <ThemeToggle />
-
-              <button
-                onClick={handleEnterSandbox}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-850 transition-all shadow-sm"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Demo</span>
-              </button>
-
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-br from-primary-600 to-emerald-500 text-white text-xs font-semibold rounded-xl hover:shadow-md hover:shadow-primary-500/20 transition-all active:scale-[0.98]"
-              >
-                <span>Get Started</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 transition-colors duration-300 flex flex-col">
+      {/* Unified Public Navigation */}
+      <PublicNavbar transparent />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 overflow-hidden px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-16 sm:pt-20 pb-24 overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-500/10 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
 
@@ -610,52 +539,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800/80 py-12 transition-colors duration-300 text-xs text-slate-500 dark:text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex flex-col items-center md:items-start gap-3">
-              <img src="/logo_footer_and github.svg" alt="ResilAI Logo" className="h-20 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
-              <span className="font-medium text-slate-500 dark:text-slate-400">Continuous Readiness Intelligence</span>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              <a
-                href="https://maidensail.com/startup/resilai"
-                rel="dofollow"
-                target="_blank"
-                className="inline-flex items-center transition-opacity hover:opacity-90"
-              >
-                <img
-                  src="https://maidensail.com/badge/resilai.svg?theme=dark"
-                  alt="Featured on Maidensail"
-                  height="44"
-                />
-              </a>
-              <a
-                href="https://www.github.com/purvanshbhatt/AIRS"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-              >
-                <Github className="w-4.5 h-4.5" />
-                <span>GitHub</span>
-              </a>
-              <a
-                href="mailto:purvansh95b@gmail.com"
-                className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-              >
-                <Mail className="w-4.5 h-4.5" />
-                <span>Contact</span>
-              </a>
-            </div>
-
-            <p className="text-slate-400 dark:text-slate-500">
-              &copy; {new Date().getFullYear()} ResilAI. Open source under GNU AGPL-3.0 license.
-            </p>
-          </div>
-        </div>
-      </footer>
+      {/* Unified Public Footer */}
+      <Footer />
     </div>
   );
 }

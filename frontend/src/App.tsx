@@ -15,6 +15,10 @@ import { DiagnosticsFooter } from './components/DiagnosticsFooter';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import About from './pages/About';
+import Results from './pages/Results';
+import PublicAi from './pages/PublicAi';
+import Pricing from './pages/Pricing';
+import Contact from './pages/Contact';
 import SecurityPage from './pages/Security';
 import PilotPage from './pages/Pilot';
 import StatusPage from './pages/Status';
@@ -81,13 +85,14 @@ function MainAppRoutes() {
           
           {/* IT WORKSPACE & TECHNOLOGY OPERATIONS */}
           <Route path="/operations" element={<ITWorkspacePage />} />
+          <Route path="/operations/ai" element={<AIPage />} />
+          <Route path="/technology/ai" element={<AIPage />} />
           <Route path="/identity" element={<IdentityPage />} />
           <Route path="/devices" element={<DevicesPage />} />
           <Route path="/backups" element={<BackupsPage />} />
           <Route path="/email" element={<EmailPage />} />
           <Route path="/network" element={<NetworkPage />} />
           <Route path="/cloud" element={<CloudPage />} />
-          <Route path="/ai" element={<AIPage />} />
 
           {/* PLATFORM */}
           <Route path="/reports" element={<ReportsPage />} />
@@ -179,6 +184,11 @@ export default function App() {
               <Route path="/readiness" element={<Navigate to="/morning-brief" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/about" element={<About />} />
+              <Route path="/results" element={<Results />} />
+              <Route path="/ai" element={<PublicAi />} />
+              <Route path="/product/ai" element={<Navigate to="/ai" replace />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/security" element={<SecurityPage />} />
               <Route path="/pilot" element={<PilotPage />} />
               <Route path="/status" element={<StatusPage />} />
