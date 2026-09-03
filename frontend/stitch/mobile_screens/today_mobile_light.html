@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Today</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-error-container": "#93000a",
+                      "on-primary": "#ffffff",
+                      "outline-variant": "#c6c6cd",
+                      "on-secondary-fixed": "#002113",
+                      "tertiary-fixed-dim": "#b7c8e1",
+                      "secondary-fixed-dim": "#4edea3",
+                      "secondary-fixed": "#6ffbbe",
+                      "on-primary-fixed": "#131b2e",
+                      "on-secondary": "#ffffff",
+                      "surface-container": "#eceef0",
+                      "surface-tint": "#565e74",
+                      "tertiary": "#000000",
+                      "surface-bright": "#f7f9fb",
+                      "inverse-primary": "#bec6e0",
+                      "on-surface-variant": "#45464d",
+                      "on-tertiary-fixed-variant": "#38485d",
+                      "surface-container-lowest": "#ffffff",
+                      "outline": "#76777d",
+                      "on-primary-container": "#7c839b",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#dae2fd",
+                      "surface-container-low": "#f2f4f6",
+                      "primary-fixed-dim": "#bec6e0",
+                      "surface-dim": "#d8dadc",
+                      "tertiary-container": "#0b1c30",
+                      "on-background": "#191c1e",
+                      "on-tertiary-container": "#75859d",
+                      "on-secondary-container": "#00714d",
+                      "error": "#ba1a1a",
+                      "on-error": "#ffffff",
+                      "surface": "#f7f9fb",
+                      "secondary-container": "#6cf8bb",
+                      "secondary": "#006c49",
+                      "surface-variant": "#e0e3e5",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-highest": "#e0e3e5",
+                      "on-secondary-fixed-variant": "#005236",
+                      "primary-container": "#131b2e",
+                      "tertiary-fixed": "#d3e4fe",
+                      "on-tertiary-fixed": "#0b1c30",
+                      "surface-container-high": "#e6e8ea",
+                      "inverse-on-surface": "#eff1f3",
+                      "on-surface": "#191c1e",
+                      "primary": "#000000",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "inverse-surface": "#2d3133",
+                      "background": "#f7f9fb"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "base": "8px",
+                      "gutter": "24px",
+                      "container-padding": "32px",
+                      "stack-md": "12px",
+                      "section-gap": "64px",
+                      "stack-sm": "4px",
+                      "stack-lg": "24px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "display": [
+                              "Inter"
+                      ],
+                      "mono-data": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "mono-data": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        [data-weight="fill"] .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col antialiased">
+<!-- TopAppBar (Mobile & Web) -->
+<header class="bg-surface dark:bg-background text-primary dark:text-on-background font-body-md text-body-md w-full h-16 border-b border-outline-variant dark:border-outline flat no shadows flex justify-between items-center px-container-padding w-full sticky top-0 z-50">
+<div class="font-headline-md text-headline-md font-semibold text-primary dark:text-on-background">ResilAI</div>
+<div class="flex items-center gap-gutter">
+<button aria-label="notifications" class="cursor-pointer active:opacity-80 hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors rounded-full p-2 flex items-center justify-center text-on-surface-variant dark:text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button aria-label="account_circle" class="cursor-pointer active:opacity-80 hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors rounded-full p-2 flex items-center justify-center text-on-surface-variant dark:text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar (Web Only) -->
+<nav class="hidden md:flex flex-col h-full py-stack-lg bg-surface-container-low dark:bg-surface-container-lowest text-primary dark:text-on-background font-label-caps text-label-caps h-screen w-64 fixed left-0 top-16 border-r border-outline-variant dark:border-outline flat no shadows z-40">
+<div class="px-container-padding mb-section-gap">
+<div class="font-headline-lg text-headline-lg font-bold tracking-tight text-primary dark:text-on-background">ResilAI</div>
+<div class="text-on-surface-variant font-body-sm text-body-sm mt-stack-sm">Executive Readiness</div>
+</div>
+<div class="flex-1 overflow-y-auto px-base">
+<a class="text-primary dark:text-primary-fixed border-l-4 border-primary dark:border-primary-fixed bg-surface-container-high dark:bg-surface-container-highest hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out flex items-center gap-stack-md py-stack-md px-4 mb-stack-sm rounded-r-DEFAULT" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+<a class="text-on-surface-variant dark:text-on-tertiary-fixed-variant hover:text-primary dark:hover:text-on-background hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out flex items-center gap-stack-md py-stack-md px-4 mb-stack-sm rounded-r-DEFAULT border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">health_and_safety</span>
+                    Readiness
+                </a>
+<a class="text-on-surface-variant dark:text-on-tertiary-fixed-variant hover:text-primary dark:hover:text-on-background hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out flex items-center gap-stack-md py-stack-md px-4 mb-stack-sm rounded-r-DEFAULT border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                    Analytics
+                </a>
+<a class="text-on-surface-variant dark:text-on-tertiary-fixed-variant hover:text-primary dark:hover:text-on-background hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out flex items-center gap-stack-md py-stack-md px-4 mb-stack-sm rounded-r-DEFAULT border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">groups</span>
+                    Personnel
+                </a>
+<a class="text-on-surface-variant dark:text-on-tertiary-fixed-variant hover:text-primary dark:hover:text-on-background hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out flex items-center gap-stack-md py-stack-md px-4 mb-stack-sm rounded-r-DEFAULT border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+</div>
+<div class="px-container-padding mt-auto">
+<button class="w-full bg-on-error-container text-on-error font-label-caps text-label-caps py-3 rounded-DEFAULT hover:opacity-90 transition-opacity">Emergency Protocol</button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 w-full md:ml-64 overflow-y-auto pb-24 md:pb-0">
+<div class="p-4 md:p-container-padding max-w-[1120px] mx-auto">
+<!-- Status Header -->
+<div class="mb-section-gap flex flex-col items-center justify-center py-section-gap">
+<div class="relative w-48 h-48 flex items-center justify-center mb-stack-lg">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#F1F5F9" stroke-width="8"></circle>
+<circle class="transition-all duration-1000 ease-out" cx="50" cy="50" fill="none" r="45" stroke="#059669" stroke-dasharray="283" stroke-dashoffset="20" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="font-display text-display text-primary">94</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mt-1">Ready</span>
+</div>
+</div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-center max-w-lg mx-auto">All critical systems operational. Your team is performing optimally.</h1>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Daily Briefing Card (Spans full on mobile, 8 cols on desktop) -->
+<div class="col-span-1 md:col-span-8 bg-surface-lowest border border-outline-variant rounded-xl p-gutter shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05)]">
+<div class="flex items-center gap-stack-sm mb-stack-lg border-b border-surface-variant pb-stack-sm">
+<span class="material-symbols-outlined text-primary">summarize</span>
+<h2 class="font-headline-md text-headline-md">Executive Briefing</h2>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface mb-stack-lg">Overnight vital monitoring indicates a 12% improvement in overall team recovery scores compared to last week. The new shift protocols implemented in the ICU ward appear to be mitigating stress-related fatigue effectively.</p>
+<div class="grid grid-cols-2 gap-4 mt-stack-lg">
+<div class="bg-surface p-4 rounded-lg border border-outline-variant">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-1">Avg Recovery</span>
+<span class="font-mono-data text-mono-data text-primary text-xl">88%</span>
+</div>
+<div class="bg-surface p-4 rounded-lg border border-outline-variant">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-1">Risk Index</span>
+<span class="font-mono-data text-mono-data text-secondary text-xl">Low (1.2)</span>
+</div>
+</div>
+</div>
+<!-- Needs Attention List (Spans full on mobile, 4 cols on desktop) -->
+<div class="col-span-1 md:col-span-4 bg-surface-lowest border border-outline-variant rounded-xl p-gutter">
+<div class="flex items-center gap-stack-sm mb-stack-lg border-b border-surface-variant pb-stack-sm">
+<span class="material-symbols-outlined text-error">warning</span>
+<h2 class="font-headline-md text-headline-md text-error">Needs Attention</h2>
+</div>
+<ul class="flex flex-col gap-0 divide-y divide-surface-variant">
+<li class="py-stack-md flex justify-between items-start cursor-pointer hover:bg-surface-bright transition-colors rounded-DEFAULT px-2 -mx-2">
+<div>
+<h3 class="font-body-md text-body-md font-medium">Dr. S. Chen</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Consecutive 14hr shifts</p>
+</div>
+<span class="bg-[#ffdad6] text-[#93000a] font-label-caps text-label-caps px-2 py-1 rounded-full">Review</span>
+</li>
+<li class="py-stack-md flex justify-between items-start cursor-pointer hover:bg-surface-bright transition-colors rounded-DEFAULT px-2 -mx-2">
+<div>
+<h3 class="font-body-md text-body-md font-medium">Surgical Team B</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Elevated stress markers</p>
+</div>
+<span class="bg-[#ffdad6] text-[#93000a] font-label-caps text-label-caps px-2 py-1 rounded-full">Intervene</span>
+</li>
+<li class="py-stack-md flex justify-between items-start cursor-pointer hover:bg-surface-bright transition-colors rounded-DEFAULT px-2 -mx-2">
+<div>
+<h3 class="font-body-md text-body-md font-medium">Equipment Audit</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Due in 48 hours</p>
+</div>
+<span class="bg-surface-variant text-on-surface-variant font-label-caps text-label-caps px-2 py-1 rounded-full">Log</span>
+</li>
+</ul>
+<button class="w-full mt-stack-lg border border-outline text-primary bg-surface-lowest hover:bg-surface-container-low transition-colors font-label-caps text-label-caps py-2 rounded-DEFAULT">View All Alerts</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Bottom Nav Bar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface border-t border-outline-variant flex justify-around items-center h-16 z-50">
+<a class="flex flex-col items-center justify-center w-full h-full text-primary font-bold" href="#">
+<span class="material-symbols-outlined mb-1" data-weight="fill">dashboard</span>
+<span class="font-label-caps text-[10px]">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">health_and_safety</span>
+<span class="font-label-caps text-[10px]">Readiness</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">analytics</span>
+<span class="font-label-caps text-[10px]">Analytics</span>
+</a>
+<a class="flex flex-col items-center justify-center w-full h-full text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">groups</span>
+<span class="font-label-caps text-[10px]">Personnel</span>
+</a>
+</nav>
+</body></html>

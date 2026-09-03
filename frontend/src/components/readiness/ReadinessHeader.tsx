@@ -81,17 +81,19 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
           </div>
           <div>
             <h2 className="text-sm font-bold text-on-surface flex items-center gap-2">
-              <span className="truncate max-w-[200px] sm:max-w-[280px]">{orgName || 'Workspace'}</span>
+              <span className="truncate max-w-[100px] xs:max-w-[140px] sm:max-w-[200px] md:max-w-[280px]">{orgName || 'Workspace'}</span>
               
               {isDemo ? (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  DEMO WORKSPACE (SIMULATED DATA)
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shadow-sm shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  <span className="hidden sm:inline">DEMO WORKSPACE (SIMULATED DATA)</span>
+                  <span className="sm:hidden">DEMO</span>
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  LIVE WORKSPACE
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-sm shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="hidden sm:inline">LIVE WORKSPACE</span>
+                  <span className="sm:hidden">LIVE</span>
                 </span>
               )}
 
@@ -119,11 +121,11 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
       </div>
 
       {/* Header Actions & User Profile Menu */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
         {/* Persistent Getting Started 6-Step Guide Launcher */}
         <button
           onClick={() => setIsGettingStartedOpen(true)}
-          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm ${
+          className={`px-2 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm shrink-0 ${
             !isOnboardingDone
               ? 'bg-ready-emerald/20 border-ready-emerald/50 text-ready-emerald hover:bg-ready-emerald hover:text-slate-950 animate-pulse'
               : 'bg-surface-container-high hover:bg-surface-container-highest border-outline-variant/60 text-on-surface'
@@ -135,7 +137,6 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
           <span className="hidden sm:inline">
             {!isOnboardingDone ? `Getting Started (${onboardingCurrentStep}/6)` : 'Getting Started'}
           </span>
-          <span className="sm:hidden">Start</span>
         </button>
 
         {/* Quick Exit Demo CTA */}
@@ -152,7 +153,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
         {/* Scoring Methodology Docs Link */}
         <Link
           to="/docs/methodology"
-          className="p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-1.5 text-xs font-medium"
+          className="hidden sm:flex p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors items-center gap-1.5 text-xs font-medium"
           title="Scoring Methodology & Trust Contract"
         >
           <BookOpen className="w-4 h-4" />
@@ -162,7 +163,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
         {/* Product Guide Modal Trigger */}
         <button 
           onClick={() => setIsGuideOpen(true)}
-          className="p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-1.5 text-xs font-medium"
+          className="hidden sm:flex p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors items-center gap-1.5 text-xs font-medium"
           aria-label="Product Guide"
           title="How ResilAI Works"
         >

@@ -160,7 +160,7 @@ aside.fixed {
   height: calc(100vh - var(--banner-height, 0px)) !important;
 }
 
-header.sticky, nav.fixed {
+header.sticky, nav.fixed:not([class*="bottom-"]) {
   top: var(--banner-height, 0px) !important;
 }
 

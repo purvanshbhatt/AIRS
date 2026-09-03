@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Request Access</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#842225",
+                      "inverse-on-surface": "#2b322d",
+                      "outline-variant": "#3c4a42",
+                      "on-surface-variant": "#bbcabf",
+                      "error": "#ffb4ab",
+                      "slate-text": "#475569",
+                      "tertiary-fixed": "#ffdad7",
+                      "on-primary-fixed-variant": "#005236",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "primary-container": "#10b981",
+                      "on-error": "#690005",
+                      "primary": "#4edea3",
+                      "surface-container-highest": "#2f3632",
+                      "surface-container": "#1a211d",
+                      "on-primary-fixed": "#002113",
+                      "surface-container-lowest": "#09100c",
+                      "obsidian-deep": "#060d20",
+                      "on-secondary-container": "#adb4ce",
+                      "outline": "#86948a",
+                      "slate-soft": "#f8fafc",
+                      "secondary": "#bfc6e0",
+                      "surface-container-high": "#242c27",
+                      "surface-dim": "#0e1511",
+                      "secondary-fixed": "#dbe2fd",
+                      "secondary-fixed-dim": "#bfc6e0",
+                      "on-tertiary": "#650911",
+                      "surface": "#0e1511",
+                      "primary-fixed-dim": "#4edea3",
+                      "tertiary-fixed-dim": "#ffb3af",
+                      "surface-bright": "#343b36",
+                      "tertiary": "#ffb3af",
+                      "on-surface": "#dde4dd",
+                      "surface-container-low": "#161d19",
+                      "surface-variant": "#2f3632",
+                      "status-critical": "#ef4444",
+                      "on-secondary-fixed": "#131b2e",
+                      "tertiary-container": "#fc7c78",
+                      "surface-tint": "#4edea3",
+                      "background": "#0e1511",
+                      "inverse-surface": "#dde4dd",
+                      "on-secondary": "#283044",
+                      "on-tertiary-container": "#711419",
+                      "on-background": "#dde4dd",
+                      "status-drift": "#f59e0b",
+                      "inverse-primary": "#006c49",
+                      "on-tertiary-fixed": "#410005",
+                      "error-container": "#93000a",
+                      "primary-fixed": "#6ffbbe",
+                      "secondary-container": "#3f465c",
+                      "clinical-white": "#ffffff",
+                      "on-primary-container": "#00422b",
+                      "emerald-accent": "#4edea3",
+                      "on-error-container": "#ffdad6",
+                      "on-primary": "#003824"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "max-content-width": "1200px",
+                      "unit-sm": "8px",
+                      "unit-md": "16px",
+                      "unit-xs": "4px",
+                      "margin-desktop": "2.5rem",
+                      "gutter": "1.5rem",
+                      "margin-mobile": "1rem",
+                      "sidebar-width": "260px",
+                      "unit-lg": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "narrative-summary": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "title-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "narrative-summary": [
+                              "18px",
+                              {
+                                      "lineHeight": "30px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "12px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "52px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "title-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center justify-center p-4">
+<!-- Background Atmospheric Effect -->
+<div class="fixed inset-0 z-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background"></div>
+<main class="relative z-10 w-full max-w-lg flex flex-col gap-8">
+<!-- Header -->
+<header class="text-center flex flex-col items-center gap-6">
+<img alt="ResilAI Logo" class="h-16 w-16 object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WaVT4k86DaQWh82Ud8dmx-FdNFZE1h4TE8vMqGzgA99O0-Zzzv-aBaVNpStpGattKfO6EfO3ULZdJeUv3rtgNTKXFJZI0dlKZ2Y65XIFqkkr18ftFKADxOP-JiWqZB0jXziS3Bj5G_EyaQ3FBtqEoc59daLMywcrYZBSWyZ3Mm83b7eNYAV2Q-u0RpAmLz6vn6nX4VsAypU1xPGxdU8E0YzOELZNv6737FKK6o9-sfNI5c3NoNWLtLktA"/>
+<div class="flex flex-col gap-2">
+<h1 class="font-headline-lg text-headline-lg hidden md:block text-on-surface">Begin Your Readiness Journey</h1>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:hidden text-on-surface">Begin Your Readiness Journey</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Establish secure executive access to your clinic's security posture.</p>
+</div>
+</header>
+<!-- Progress Indicator -->
+<div class="flex items-center justify-center gap-3">
+<div class="w-8 h-1 rounded-full bg-primary shadow-[0_0_8px_rgba(78,222,163,0.3)]"></div>
+<div class="w-8 h-1 rounded-full bg-surface-container-high"></div>
+<div class="w-8 h-1 rounded-full bg-surface-container-high"></div>
+</div>
+<!-- Form Card -->
+<div class="bg-surface-container-low rounded-xl border border-surface-container-highest p-unit-lg shadow-2xl relative overflow-hidden">
+<!-- Inner Glow -->
+<div class="absolute inset-0 pointer-events-none rounded-xl border border-clinical-white/5"></div>
+<form class="flex flex-col gap-6">
+<!-- Step Title -->
+<div class="flex flex-col gap-1 border-b border-surface-container-highest pb-4">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Step 1 of 3</span>
+<h2 class="font-title-md text-title-md text-on-surface">Contact Information</h2>
+</div>
+<!-- Input Fields -->
+<div class="flex flex-col gap-4">
+<!-- Full Name -->
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="fullName">FULL NAME</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">person</span>
+<input class="w-full bg-surface-container-high border border-outline-variant rounded text-on-surface font-body-md text-body-md pl-10 pr-4 py-3 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all placeholder:text-outline" id="fullName" name="fullName" placeholder="Dr. Jane Doe" type="text"/>
+</div>
+</div>
+<!-- Professional Email -->
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="email">PROFESSIONAL EMAIL</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">mail</span>
+<input class="w-full bg-surface-container-high border border-outline-variant rounded text-on-surface font-body-md text-body-md pl-10 pr-4 py-3 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all placeholder:text-outline" id="email" name="email" placeholder="jane.doe@clinic.com" type="email"/>
+</div>
+</div>
+<!-- Role -->
+<div class="flex flex-col gap-2 relative">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="role">PRIMARY ROLE</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">badge</span>
+<select class="w-full bg-surface-container-high border border-outline-variant rounded text-on-surface font-body-md text-body-md pl-10 pr-4 py-3 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all appearance-none cursor-pointer" id="role" name="role">
+<option class="text-outline" disabled="" selected="" value="">Select your role...</option>
+<option value="ciso">Chief Information Security Officer</option>
+<option value="cio">Chief Information Officer</option>
+<option value="medical_director">Medical Director</option>
+<option value="it_admin">IT Administrator</option>
+<option value="other">Other Executive</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 text-on-surface-variant pointer-events-none" style="font-variation-settings: 'FILL' 0;">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex justify-end pt-4 border-t border-surface-container-highest mt-2">
+<button class="bg-primary text-on-primary font-title-md text-title-md px-6 py-3 rounded flex items-center gap-2 hover:bg-emerald-accent/90 transition-colors shadow-[0_0_15px_rgba(78,222,163,0.1)]" type="button">
+                        Continue to Verification
+                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+<!-- Footer Info -->
+<div class="text-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">lock</span>
+                Secure 256-bit SSL encrypted connection
+            </p>
+</div>
+</main>
+</body></html>

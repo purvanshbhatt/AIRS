@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Ask ResilAI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error": "#ffb4ab",
+                      "on-secondary-fixed": "#131b2e",
+                      "primary-container": "#10b981",
+                      "on-primary-container": "#00422b",
+                      "tertiary": "#ffb3af",
+                      "primary": "#4edea3",
+                      "secondary-fixed-dim": "#bfc6e0",
+                      "surface-container-lowest": "#09100c",
+                      "surface-variant": "#2f3632",
+                      "status-critical": "#ef4444",
+                      "surface-tint": "#4edea3",
+                      "on-surface": "#dde4dd",
+                      "obsidian-deep": "#060d20",
+                      "on-primary": "#003824",
+                      "tertiary-fixed-dim": "#ffb3af",
+                      "on-secondary": "#283044",
+                      "surface-bright": "#343b36",
+                      "primary-fixed-dim": "#4edea3",
+                      "primary-fixed": "#6ffbbe",
+                      "on-tertiary": "#650911",
+                      "outline-variant": "#3c4a42",
+                      "on-tertiary-container": "#711419",
+                      "surface-container": "#1a211d",
+                      "inverse-on-surface": "#2b322d",
+                      "tertiary-container": "#fc7c78",
+                      "on-secondary-container": "#adb4ce",
+                      "inverse-primary": "#006c49",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "on-surface-variant": "#bbcabf",
+                      "on-background": "#dde4dd",
+                      "slate-soft": "#f8fafc",
+                      "on-error": "#690005",
+                      "on-error-container": "#ffdad6",
+                      "error-container": "#93000a",
+                      "outline": "#86948a",
+                      "clinical-white": "#ffffff",
+                      "tertiary-fixed": "#ffdad7",
+                      "on-primary-fixed": "#002113",
+                      "secondary-container": "#3f465c",
+                      "secondary": "#bfc6e0",
+                      "surface-dim": "#0e1511",
+                      "on-primary-fixed-variant": "#005236",
+                      "on-tertiary-fixed": "#410005",
+                      "emerald-accent": "#4edea3",
+                      "on-tertiary-fixed-variant": "#842225",
+                      "surface-container-low": "#161d19",
+                      "background": "#0e1511",
+                      "surface": "#0e1511",
+                      "surface-container-high": "#242c27",
+                      "slate-text": "#475569",
+                      "secondary-fixed": "#dbe2fd",
+                      "inverse-surface": "#dde4dd",
+                      "surface-container-highest": "#2f3632",
+                      "status-drift": "#f59e0b"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "max-content-width": "1200px",
+                      "unit-xs": "4px",
+                      "sidebar-width": "260px",
+                      "margin-desktop": "2.5rem",
+                      "margin-mobile": "1rem",
+                      "unit-sm": "8px",
+                      "unit-lg": "24px",
+                      "gutter": "1.5rem",
+                      "unit-md": "16px"
+              },
+              "fontFamily": {
+                      "narrative-summary": [
+                              "Inter"
+                      ],
+                      "title-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-lg-mobile": [
+                              "Hanken Grotesk"
+                      ],
+                      "display-lg": [
+                              "Hanken Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Hanken Grotesk"
+                      ]
+              },
+              "fontSize": {
+                      "narrative-summary": [
+                              "18px",
+                              {
+                                      "lineHeight": "30px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "title-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "12px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "52px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .glow-ready {
+            box-shadow: 0 0 15px rgba(78, 222, 163, 0.05);
+        }
+        
+        .pulse-thinking {
+            animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% {
+                border-color: rgba(78, 222, 163, 0.2);
+            }
+            50% {
+                border-color: rgba(78, 222, 163, 0.8);
+            }
+        }
+      </style>
+</head>
+<body class="bg-background text-on-surface font-body-md h-screen flex overflow-hidden selection:bg-primary selection:text-on-primary">
+<!-- Side Navigation -->
+<nav class="hidden md:flex flex-col py-unit-lg gap-unit-sm fixed left-0 top-0 h-full w-sidebar-width bg-surface-container dark:bg-surface-container bg-surface-container-low border-r border-outline-variant/10 z-40 backdrop-blur-[15px] bg-opacity-95">
+<div class="px-unit-lg mb-unit-lg flex flex-col gap-1">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary">ResilAI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Precision Compliance</p>
+</div>
+<div class="flex-1 flex flex-col gap-1 overflow-y-auto">
+<a class="flex items-center gap-unit-md bg-secondary-container/20 text-primary border-l-4 border-primary px-unit-md py-unit-sm cursor-pointer transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+<span class="font-body-md text-body-md font-medium">Command Center</span>
+</a>
+<a class="flex items-center gap-unit-md text-on-surface-variant px-unit-md py-unit-sm hover:bg-surface-variant/30 hover:text-on-surface transition-all cursor-pointer transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-body-md text-body-md font-medium">Audit Evidence</span>
+</a>
+<a class="flex items-center gap-unit-md text-on-surface-variant px-unit-md py-unit-sm hover:bg-surface-variant/30 hover:text-on-surface transition-all cursor-pointer transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">verified_user</span>
+<span class="font-body-md text-body-md font-medium">System Readiness</span>
+</a>
+<a class="flex items-center gap-unit-md text-on-surface-variant px-unit-md py-unit-sm hover:bg-surface-variant/30 hover:text-on-surface transition-all cursor-pointer transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md text-body-md font-medium">Operational Status</span>
+</a>
+<a class="flex items-center gap-unit-md text-on-surface-variant px-unit-md py-unit-sm hover:bg-surface-variant/30 hover:text-on-surface transition-all cursor-pointer transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">code</span>
+<span class="font-body-md text-body-md font-medium">Telemetry</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col gap-1">
+<a class="flex items-center gap-unit-md text-on-surface-variant px-unit-md py-unit-sm hover:bg-surface-variant/30 hover:text-on-surface transition-all cursor-pointer transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-body-md text-body-md font-medium">Documentation</span>
+</a>
+<a class="flex items-center gap-unit-md text-on-surface-variant px-unit-md py-unit-sm hover:bg-surface-variant/30 hover:text-on-surface transition-all cursor-pointer transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-body-md text-body-md font-medium">Security Logs</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col md:ml-sidebar-width h-full relative overflow-hidden bg-background">
+<!-- Header -->
+<header class="px-margin-mobile md:px-margin-desktop py-unit-lg flex flex-col gap-unit-xs border-b border-white/5 z-10 backdrop-blur-sm bg-background/80 shrink-0">
+<h2 class="font-display-lg text-display-lg text-on-surface">Ask ResilAI</h2>
+<p class="font-narrative-summary text-narrative-summary text-on-surface-variant">Query your readiness telemetry, evidence, and compliance posture.</p>
+</header>
+<!-- Chat / Results Area -->
+<div class="flex-1 overflow-y-auto px-margin-mobile md:px-margin-desktop py-unit-lg pb-32 custom-scrollbar flex flex-col gap-unit-lg">
+<div class="max-w-[800px] mx-auto w-full flex flex-col gap-unit-lg">
+<!-- Suggested Queries Grid (Initial State context) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-unit-md mb-8">
+<button class="text-left bg-surface-container hover:bg-surface-container-high transition-colors p-unit-lg rounded-xl border border-white/10 flex flex-col gap-unit-xs group">
+<span class="material-symbols-outlined text-primary mb-2 group-hover:scale-110 transition-transform">health_and_safety</span>
+<span class="font-body-md text-body-md text-on-surface">Are we HIPAA compliant today?</span>
+</button>
+<button class="text-left bg-surface-container hover:bg-surface-container-high transition-colors p-unit-lg rounded-xl border border-white/10 flex flex-col gap-unit-xs group">
+<span class="material-symbols-outlined text-primary mb-2 group-hover:scale-110 transition-transform">history</span>
+<span class="font-body-md text-body-md text-on-surface">Show me the last 3 backup logs.</span>
+</button>
+<button class="text-left bg-surface-container hover:bg-surface-container-high transition-colors p-unit-lg rounded-xl border border-white/10 flex flex-col gap-unit-xs group">
+<span class="material-symbols-outlined text-primary mb-2 group-hover:scale-110 transition-transform">trending_up</span>
+<span class="font-body-md text-body-md text-on-surface">Explain the current EMR latency issue for leadership.</span>
+</button>
+<button class="text-left bg-surface-container hover:bg-surface-container-high transition-colors p-unit-lg rounded-xl border border-white/10 flex flex-col gap-unit-xs group">
+<span class="material-symbols-outlined text-primary mb-2 group-hover:scale-110 transition-transform">summarize</span>
+<span class="font-body-md text-body-md text-on-surface">Generate a readiness summary for the board.</span>
+</button>
+</div>
+<!-- Structured Response Example -->
+<div class="flex flex-col gap-unit-md">
+<!-- User Query Anchor -->
+<div class="flex items-center gap-unit-sm self-end">
+<span class="bg-surface-variant text-on-surface px-4 py-2 rounded-full font-body-md text-body-md border border-white/10">Are we ready today?</span>
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+</div>
+<!-- System Response Structure -->
+<div class="flex flex-col gap-unit-md self-start w-full">
+<div class="flex items-center gap-unit-sm mb-2">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(78,222,163,0.3)]">
+<span class="material-symbols-outlined text-on-primary text-sm" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">ResilAI Analysis Complete</span>
+</div>
+<!-- Executive Summary Card -->
+<div class="bg-surface-container rounded-xl p-unit-lg border border-white/10 glow-ready relative overflow-hidden">
+<div class="absolute top-0 right-0 p-unit-md">
+<div class="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_5px_#4edea3]"></div>
+<span class="font-label-sm text-label-sm text-primary">NOMINAL</span>
+</div>
+</div>
+<div class="flex items-start gap-4 mb-4">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div class="flex flex-col gap-1">
+<h3 class="font-title-md text-title-md text-on-surface">System State Verified</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">14/14 core verifications passed at 02:00 AM.</p>
+</div>
+</div>
+<p class="font-narrative-summary text-narrative-summary text-on-surface pt-4 border-t border-white/5">
+                                All primary compliance controls are operating within expected parameters. Evidence collection for the current audit window is up to date and cryptographically secured.
+                            </p>
+</div>
+<!-- Evidence Block -->
+<div class="bg-[#0a0f16] rounded-xl border border-white/10 p-unit-md flex flex-col gap-2 shadow-inner font-label-sm text-label-sm text-slate-400 overflow-x-auto">
+<div class="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
+<span class="uppercase tracking-widest text-on-surface-variant text-[10px]">Raw Telemetry Evidence Snippet</span>
+<button class="hover:text-primary transition-colors flex items-center gap-1 group">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+<span class="opacity-0 group-hover:opacity-100 transition-opacity">Copy</span>
+</button>
+</div>
+<pre><code><span class="text-primary">{</span>
+  <span class="text-secondary-fixed-dim">"status"</span>: <span class="text-tertiary">"verified"</span>,
+  <span class="text-secondary-fixed-dim">"mfa_enforced"</span>: <span class="text-primary">true</span>,
+  <span class="text-secondary-fixed-dim">"encryption_at_rest"</span>: <span class="text-tertiary">"AES-256"</span>,
+  <span class="text-secondary-fixed-dim">"timestamp"</span>: <span class="text-tertiary">"2023-10-27T02:00:00Z"</span>,
+  <span class="text-secondary-fixed-dim">"signature"</span>: <span class="text-tertiary">"sha256-8f2c..."</span>
+<span class="text-primary">}</span></code></pre>
+</div>
+<!-- Actionable Advice -->
+<div class="bg-surface-container-high rounded-xl p-unit-md border border-l-4 border-l-primary border-y-white/5 border-r-white/5 flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-0.5">info</span>
+<div>
+<h4 class="font-body-md text-body-md font-medium text-on-surface">Action Required: None</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">No immediate action required. Next scheduled automated audit scan will commence in 48 hours.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area (Fixed Bottom) -->
+<div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-background via-background/95 to-transparent pt-12 pb-margin-mobile md:pb-margin-desktop px-margin-mobile md:px-margin-desktop z-20">
+<div class="max-w-[800px] mx-auto relative">
+<div class="absolute -top-6 left-0 right-0 flex justify-center pointer-events-none">
+<span class="bg-surface-container px-3 py-1 rounded-t-lg border-t border-x border-white/10 font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 shadow-md">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span> ResilAI is ready
+                     </span>
+</div>
+<div class="relative bg-surface-container-low rounded-xl border border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.5)] pulse-thinking focus-within:border-primary transition-colors flex items-center overflow-hidden group">
+<span class="material-symbols-outlined text-on-surface-variant ml-4 mr-2">search</span>
+<input autocomplete="off" class="w-full bg-transparent border-none text-on-surface font-body-md text-body-md py-4 px-2 focus:ring-0 placeholder:text-on-surface-variant/50 placeholder:font-light outline-none" placeholder="Query system state, audit logs, or compliance posture..." type="text"/>
+<button class="mr-2 p-2 rounded-lg bg-surface hover:bg-primary/20 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+<div class="mt-2 text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant/50">Press <kbd class="font-mono bg-surface px-1.5 py-0.5 rounded border border-white/10">Enter</kbd> to submit query</span>
+</div>
+</div>
+</div>
+</main>
+<style>
+        /* Custom Scrollbar for dark theme */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1); 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1); 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.2); 
+        }
+    </style>
+</body></html>

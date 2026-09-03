@@ -45,7 +45,7 @@ describe('Public Website Expansion & Google for Startups Review Readiness', () =
       expect(screen.getByText('About Us')).toBeInTheDocument();
       expect(screen.getByText('Contact')).toBeInTheDocument();
       expect(screen.getByText('Docs')).toBeInTheDocument();
-      expect(screen.getByText('Sign In')).toBeInTheDocument();
+      expect(screen.getAllByText('Sign In').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Get Started')).toBeInTheDocument();
     });
 
@@ -74,8 +74,8 @@ describe('Public Website Expansion & Google for Startups Review Readiness', () =
       renderPublicPage(<About />);
       expect(screen.getByText(COMPANY_INFO.founder.name)).toBeInTheDocument();
       expect(screen.getByText(COMPANY_INFO.founder.role)).toBeInTheDocument();
-      const linkedinLink = screen.getByRole('link', { name: /LinkedIn Profile/i });
-      expect(linkedinLink).toHaveAttribute('href', COMPANY_INFO.founder.linkedin);
+      const linkedinLinks = screen.getAllByRole('link', { name: /LinkedIn Profile/i });
+      expect(linkedinLinks[0]).toHaveAttribute('href', COMPANY_INFO.founder.linkedin);
     });
 
     it('renders core non-negotiable trust invariants', () => {

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>ResilAI - Secure Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "error": "#ffb4ab",
+            "on-tertiary-fixed": "#410005",
+            "surface-dim": "#0e1511",
+            "primary-fixed-dim": "#4edea3",
+            "status-critical": "#ef4444",
+            "tertiary-container": "#fc7c78",
+            "on-secondary-fixed": "#131b2e",
+            "inverse-primary": "#006c49",
+            "on-primary-container": "#00422b",
+            "secondary-fixed": "#dbe2fd",
+            "on-surface": "#dde4dd",
+            "primary-container": "#10b981",
+            "on-tertiary": "#650911",
+            "primary": "#4edea3",
+            "on-error-container": "#ffdad6",
+            "surface-container-high": "#242c27",
+            "on-tertiary-container": "#711419",
+            "slate-soft": "#f8fafc",
+            "background": "#0e1511",
+            "on-background": "#dde4dd",
+            "surface-bright": "#343b36",
+            "secondary-fixed-dim": "#bfc6e0",
+            "surface": "#0e1511",
+            "on-primary-fixed-variant": "#005236",
+            "on-secondary-container": "#adb4ce",
+            "slate-text": "#475569",
+            "surface-tint": "#4edea3",
+            "status-drift": "#f59e0b",
+            "emerald-accent": "#4edea3",
+            "surface-container": "#1a211d",
+            "surface-container-lowest": "#09100c",
+            "on-secondary-fixed-variant": "#3f465c",
+            "primary-fixed": "#6ffbbe",
+            "outline-variant": "#3c4a42",
+            "tertiary-fixed-dim": "#ffb3af",
+            "secondary-container": "#3f465c",
+            "inverse-on-surface": "#2b322d",
+            "on-primary": "#003824",
+            "clinical-white": "#ffffff",
+            "on-primary-fixed": "#002113",
+            "tertiary": "#ffb3af",
+            "surface-container-highest": "#2f3632",
+            "obsidian-deep": "#060d20",
+            "tertiary-fixed": "#ffdad7",
+            "secondary": "#bfc6e0",
+            "surface-variant": "#2f3632",
+            "on-tertiary-fixed-variant": "#842225",
+            "outline": "#86948a",
+            "error-container": "#93000a",
+            "on-surface-variant": "#bbcabf",
+            "inverse-surface": "#dde4dd",
+            "surface-container-low": "#161d19",
+            "on-secondary": "#283044",
+            "on-error": "#690005"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "1rem",
+            "unit-lg": "24px",
+            "unit-xs": "4px",
+            "gutter": "1.5rem",
+            "sidebar-width": "260px",
+            "unit-sm": "8px",
+            "unit-md": "16px",
+            "margin-desktop": "2.5rem",
+            "max-content-width": "1200px"
+          },
+          "fontFamily": {
+            "label-sm": ["JetBrains Mono", "monospace"],
+            "narrative-summary": ["Inter", "sans-serif"],
+            "display-lg": ["Hanken Grotesk", "sans-serif"],
+            "title-md": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "headline-lg-mobile": ["Hanken Grotesk", "sans-serif"],
+            "headline-lg": ["Hanken Grotesk", "sans-serif"]
+          },
+          "fontSize": {
+            "label-sm": ["12px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+            "narrative-summary": ["18px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "display-lg": ["48px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col justify-between p-margin-mobile relative overflow-hidden">
+<!-- Atmospheric Glow for Obsidian Mode -->
+<div class="absolute -top-32 -left-32 w-96 h-96 bg-primary opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Header -->
+<header class="w-full pt-12 pb-8 flex flex-col items-center justify-center relative z-10">
+<div class="w-16 h-16 bg-surface-container-high rounded-2xl flex items-center justify-center border border-surface-variant shadow-lg mb-6">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface text-center tracking-tight">ResilAI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-2 uppercase tracking-widest">Clinical Executive</p>
+</header>
+<!-- Login Form Container -->
+<main class="w-full max-w-sm mx-auto flex-1 flex flex-col justify-center z-10">
+<form class="space-y-6">
+<!-- Input Group: Email -->
+<div class="space-y-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant" for="email">Clinical ID / Email</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">person</span>
+<input class="w-full bg-surface-container-low border border-surface-variant rounded-xl py-4 pl-12 pr-4 text-on-surface font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-colors outline-none placeholder:text-on-surface-variant/50 shadow-inner" id="email" placeholder="name@hospital.org" required="" type="email"/>
+</div>
+</div>
+<!-- Input Group: Password -->
+<div class="space-y-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant" for="password">Secure Passphrase</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">lock</span>
+<input class="w-full bg-surface-container-low border border-surface-variant rounded-xl py-4 pl-12 pr-12 text-on-surface font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary transition-colors outline-none placeholder:text-on-surface-variant/50 shadow-inner" id="password" placeholder="••••••••" required="" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+<!-- Quick Actions -->
+<div class="flex items-center justify-between pt-2">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="w-4 h-4 rounded border-surface-variant bg-surface-container text-primary focus:ring-primary focus:ring-offset-0 focus:ring-offset-background" type="checkbox"/>
+<span class="font-body-md text-[14px] text-on-surface-variant group-hover:text-on-surface transition-colors">Remember device</span>
+</label>
+<a class="font-body-md text-[14px] text-primary hover:text-primary-fixed transition-colors" href="#">Recover Access</a>
+</div>
+<!-- CTA -->
+<button class="w-full bg-primary text-on-primary-fixed font-title-md text-title-md py-4 rounded-xl shadow-[0_0_15px_rgba(78,222,163,0.2)] hover:bg-primary-fixed hover:shadow-[0_0_20px_rgba(78,222,163,0.3)] transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2" type="submit">
+        Authenticate
+        <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+</form>
+<!-- Biometric Alternative -->
+<div class="mt-8 flex flex-col items-center gap-4">
+<div class="w-full flex items-center gap-4">
+<div class="h-px flex-1 bg-surface-variant"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">OR CONTINUE WITH</span>
+<div class="h-px flex-1 bg-surface-variant"></div>
+</div>
+<button class="w-16 h-16 rounded-full border border-surface-variant bg-surface-container-low flex items-center justify-center text-on-surface hover:text-primary hover:border-primary transition-colors focus:outline-none active:scale-[0.95]" type="button">
+<span class="material-symbols-outlined text-3xl">fingerprint</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-8 text-center z-10">
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[14px]">shield</span>
+      SOC 2 Type II Certified
+    </p>
+</footer>
+<!-- Setup focus states script -->
+<script>
+    // Micro-interaction for inputs
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('focus', () => {
+        input.parentElement.querySelector('.material-symbols-outlined').classList.add('text-primary');
+        input.parentElement.querySelector('.material-symbols-outlined').classList.remove('text-on-surface-variant');
+      });
+      input.addEventListener('blur', () => {
+        input.parentElement.querySelector('.material-symbols-outlined').classList.remove('text-primary');
+        input.parentElement.querySelector('.material-symbols-outlined').classList.add('text-on-surface-variant');
+      });
+    });
+  </script>
+</body></html>

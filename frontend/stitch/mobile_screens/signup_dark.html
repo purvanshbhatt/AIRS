@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&amp;family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed": "#410005",
+                        "surface-dim": "#0e1511",
+                        "primary-fixed-dim": "#4edea3",
+                        "status-critical": "#ef4444",
+                        "tertiary-container": "#fc7c78",
+                        "on-secondary-fixed": "#131b2e",
+                        "inverse-primary": "#006c49",
+                        "on-primary-container": "#00422b",
+                        "secondary-fixed": "#dbe2fd",
+                        "on-surface": "#dde4dd",
+                        "primary-container": "#10b981",
+                        "on-tertiary": "#650911",
+                        "primary": "#4edea3",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-high": "#242c27",
+                        "on-tertiary-container": "#711419",
+                        "slate-soft": "#f8fafc",
+                        "background": "#0e1511",
+                        "on-background": "#dde4dd",
+                        "surface-bright": "#343b36",
+                        "secondary-fixed-dim": "#bfc6e0",
+                        "surface": "#0e1511",
+                        "on-primary-fixed-variant": "#005236",
+                        "on-secondary-container": "#adb4ce",
+                        "slate-text": "#475569",
+                        "surface-tint": "#4edea3",
+                        "status-drift": "#f59e0b",
+                        "emerald-accent": "#4edea3",
+                        "surface-container": "#1a211d",
+                        "surface-container-lowest": "#09100c",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "primary-fixed": "#6ffbbe",
+                        "outline-variant": "#3c4a42",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "secondary-container": "#3f465c",
+                        "inverse-on-surface": "#2b322d",
+                        "on-primary": "#003824",
+                        "clinical-white": "#ffffff",
+                        "on-primary-fixed": "#002113",
+                        "tertiary": "#ffb3af",
+                        "surface-container-highest": "#2f3632",
+                        "obsidian-deep": "#060d20",
+                        "tertiary-fixed": "#ffdad7",
+                        "secondary": "#bfc6e0",
+                        "surface-variant": "#2f3632",
+                        "on-tertiary-fixed-variant": "#842225",
+                        "outline": "#86948a",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#bbcabf",
+                        "inverse-surface": "#dde4dd",
+                        "surface-container-low": "#161d19",
+                        "on-secondary": "#283044",
+                        "on-error": "#690005"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "unit-lg": "24px",
+                        "unit-xs": "4px",
+                        "gutter": "1.5rem",
+                        "sidebar-width": "260px",
+                        "unit-sm": "8px",
+                        "unit-md": "16px",
+                        "margin-desktop": "2.5rem",
+                        "max-content-width": "1200px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "narrative-summary": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "title-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "narrative-summary": ["18px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0e1511; /* fallback */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Ambient Background Effect -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute -top-[40%] -right-[20%] w-[100%] h-[100%] rounded-full bg-primary-container opacity-[0.03] blur-[120px]"></div>
+<div class="absolute -bottom-[40%] -left-[20%] w-[80%] h-[80%] rounded-full bg-secondary opacity-[0.02] blur-[100px]"></div>
+</div>
+<!-- Onboarding Container -->
+<main class="w-full max-w-4xl grid md:grid-cols-2 gap-unit-lg md:gap-0 bg-surface-container-low rounded-xl border border-outline-variant shadow-2xl overflow-hidden z-10 relative">
+<!-- Left Panel: Narrative & Progress -->
+<div class="p-unit-lg md:p-gutter flex flex-col justify-between bg-surface-container border-r border-outline-variant relative overflow-hidden">
+<!-- Glass Overlay -->
+<div class="absolute inset-0 bg-surface-dim/30 backdrop-blur-xl pointer-events-none z-0"></div>
+<div class="relative z-10">
+<header class="mb-12">
+<h1 class="font-display-lg text-display-lg text-primary mb-2 tracking-tight">ResilAI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Establish Your Baseline</p>
+</header>
+<div class="space-y-6">
+<p class="font-narrative-summary text-narrative-summary text-on-surface">
+                        Welcome to the command center. To construct an accurate clinical operational model, we require foundational parameters.
+                    </p>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-80">
+                        This Evidence-First approach ensures all subsequent analytics are anchored to verifiable institutional truth.
+                    </p>
+</div>
+</div>
+<!-- Progress Indicators -->
+<div class="mt-12 relative z-10">
+<div class="flex items-center gap-unit-xs mb-4">
+<div class="h-1 flex-1 bg-primary rounded-full relative overflow-hidden">
+<div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+</div>
+<div class="h-1 flex-1 bg-surface-container-highest rounded-full"></div>
+<div class="h-1 flex-1 bg-surface-container-highest rounded-full"></div>
+</div>
+<div class="flex justify-between items-center text-label-sm font-label-sm text-on-surface-variant">
+<span>01. Organization Data</span>
+<span>33% Complete</span>
+</div>
+</div>
+</div>
+<!-- Right Panel: Form Inputs -->
+<div class="p-unit-lg md:p-gutter flex flex-col justify-center bg-surface-container-lowest">
+<div class="mb-8">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">Organization Identity</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Define the primary entity for clinical observation.</p>
+</div>
+<form class="space-y-6">
+<!-- Input Group: Facility Name -->
+<div class="space-y-2">
+<label class="block font-label-sm text-label-sm text-on-surface" for="facility-name">Facility Identifier</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-size: 20px;">domain</span>
+</span>
+<input class="w-full bg-surface-container-high border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary text-on-surface placeholder-on-surface-variant/50 pl-10 py-3 font-body-md text-body-md transition-colors" id="facility-name" name="facility-name" placeholder="e.g. Memorial General Hospital" type="text"/>
+</div>
+</div>
+<!-- Input Group: Clinical Domain -->
+<div class="space-y-2">
+<label class="block font-label-sm text-label-sm text-on-surface" for="clinical-domain">Primary Clinical Domain</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-size: 20px;">medical_services</span>
+</span>
+<select class="w-full bg-surface-container-high border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary text-on-surface pl-10 py-3 font-body-md text-body-md appearance-none transition-colors" id="clinical-domain" name="clinical-domain">
+<option class="text-on-surface-variant/50" disabled="" selected="" value="">Select domain...</option>
+<option value="acute">Acute Care</option>
+<option value="ambulatory">Ambulatory</option>
+<option value="specialty">Specialty Center</option>
+<option value="research">Clinical Research</option>
+</select>
+<span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-size: 20px;">expand_more</span>
+</span>
+</div>
+</div>
+<!-- Input Group: EMR System -->
+<div class="space-y-2">
+<label class="block font-label-sm text-label-sm text-on-surface" for="emr-system">Primary EMR Integration</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-size: 20px;">dataset</span>
+</span>
+<input class="w-full bg-surface-container-high border border-outline-variant rounded focus:border-primary focus:ring-1 focus:ring-primary text-on-surface placeholder-on-surface-variant/50 pl-10 py-3 font-body-md text-body-md transition-colors" id="emr-system" name="emr-system" placeholder="e.g. Epic, Cerner" type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="pt-6 flex justify-end gap-4 border-t border-outline-variant mt-8">
+<button class="px-6 py-2 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button">
+                        Cancel
+                    </button>
+<button class="px-6 py-2 rounded font-label-sm text-label-sm bg-primary text-on-primary-fixed hover:bg-primary-fixed hover:shadow-[0_0_15px_rgba(78,222,163,0.2)] transition-all flex items-center gap-2" type="submit">
+                        Initialize Parameters
+                        <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+</main>
+</body></html>

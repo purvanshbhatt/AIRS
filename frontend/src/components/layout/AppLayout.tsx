@@ -83,7 +83,8 @@ export default function AppLayout() {
 
       {/* Mobile Bottom Navigation Bar */}
       <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-low border-t border-outline-variant/40 z-50"
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-low/95 backdrop-blur-md border-t border-outline-variant/40 z-50 pb-[env(safe-area-inset-bottom)]"
+        style={{ top: 'auto', bottom: 0 }}
         aria-label="Mobile Bottom Navigation"
       >
         <ul className="flex justify-around items-center h-16 px-2">

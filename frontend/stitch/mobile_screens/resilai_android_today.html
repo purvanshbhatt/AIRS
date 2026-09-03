@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>ResilAI Obsidian - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed": "#ffddb8",
+                      "on-primary-fixed-variant": "#005236",
+                      "tertiary": "#c0c1ff",
+                      "outline-variant": "#3c4a42",
+                      "secondary-fixed-dim": "#ffb95f",
+                      "surface-container": "#171f33",
+                      "on-tertiary-fixed-variant": "#2f2ebe",
+                      "inverse-on-surface": "#283044",
+                      "outline": "#86948a",
+                      "inverse-primary": "#006c4a",
+                      "error": "#ffb4ab",
+                      "primary": "#4edea3",
+                      "on-primary": "#003824",
+                      "on-tertiary-fixed": "#07006c",
+                      "primary-fixed": "#6ffbbe",
+                      "on-background": "#dae2fd",
+                      "on-secondary-fixed-variant": "#653e00",
+                      "critical-red": "#EF4444",
+                      "on-secondary-container": "#5b3800",
+                      "primary-container": "#11b981",
+                      "on-secondary": "#472a00",
+                      "on-tertiary": "#1000a9",
+                      "surface-dim": "#0b1326",
+                      "outline-muted": "#3c4a42",
+                      "surface-bright": "#31394d",
+                      "on-secondary-fixed": "#2a1700",
+                      "inverse-surface": "#dae2fd",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#ee9800",
+                      "on-tertiary-container": "#1d17b2",
+                      "surface-container-high": "#222a3d",
+                      "secondary": "#ffb95f",
+                      "on-primary-fixed": "#002114",
+                      "tertiary-fixed": "#e1e0ff",
+                      "tertiary-container": "#9699ff",
+                      "surface": "#0b1326",
+                      "ready-emerald": "#10B981",
+                      "background": "#0b1326",
+                      "surface-base": "#0b1326",
+                      "on-error": "#690005",
+                      "on-surface": "#dae2fd",
+                      "surface-container-highest": "#2d3449",
+                      "surface-container-lowest": "#060e20",
+                      "error-container": "#93000a",
+                      "drift-amber": "#F59E0B",
+                      "on-surface-variant": "#bbcabf",
+                      "primary-fixed-dim": "#4edea3",
+                      "surface-tint": "#4edea3",
+                      "on-primary-container": "#00422b",
+                      "tertiary-fixed-dim": "#c0c1ff",
+                      "surface-container-low": "#131b2e",
+                      "surface-variant": "#2d3449"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-md": "1rem",
+                      "section-gap": "3rem",
+                      "container-max": "1200px",
+                      "stack-sm": "0.5rem",
+                      "page-margin": "2rem",
+                      "gutter": "1.5rem"
+              },
+              "fontFamily": {
+                      "label-sm": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "mono-sm": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "title-md": ["Inter"],
+                      "headline-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "label-sm": ["13px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "mono-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        /* Smooth scrolling and anti-aliasing */
+        html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        
+        /* Ambient Glow Effect */
+        .ambient-glow {
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.15);
+        }
+        
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(34, 42, 61, 0.6); /* surface-container-high with opacity */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(60, 74, 66, 0.5); /* outline-variant */
+        }
+        
+        /* SVG Ring Animation */
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 1s ease-in-out;
+            stroke-dasharray: 565.48; /* 2 * pi * r (90) */
+            stroke-dashoffset: 565.48;
+        }
+
+        /* Material You Ripple Effect (simplified) */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::after {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform .5s, opacity 1s;
+        }
+        .ripple:active::after {
+            transform: scale(0, 0);
+            opacity: 0.2;
+            transition: 0s;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col md:flex-row pb-[80px] md:pb-0 relative overflow-x-hidden">
+<!-- Mobile Top App Bar (Only visible on small screens) -->
+<header class="md:hidden flex justify-between items-center px-4 w-full h-16 bg-surface dark:bg-background border-b border-outline-variant dark:border-outline sticky top-0 z-50 glass-panel">
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-semibold text-primary dark:text-on-background">
+            ResilAI
+        </div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary dark:text-on-background cursor-pointer active:opacity-80">notifications</span>
+<span class="material-symbols-outlined text-primary dark:text-on-background cursor-pointer active:opacity-80">account_circle</span>
+</div>
+</header>
+<!-- Desktop Side Navigation (Hidden on Mobile) -->
+<nav class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 py-8 bg-surface-container-low dark:bg-surface-container-lowest border-r border-outline-variant dark:border-outline z-40">
+<div class="px-6 mb-12 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<div>
+<h1 class="font-headline-lg text-headline-lg font-bold tracking-tight text-primary dark:text-on-background">ResilAI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Executive Readiness</p>
+</div>
+</div>
+<ul class="flex-1 px-4 space-y-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-primary dark:text-primary-fixed border-l-4 border-primary dark:border-primary-fixed bg-surface-container-high dark:bg-surface-container-highest transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant dark:text-on-tertiary-fixed-variant hover:text-primary dark:hover:text-on-background hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">health_and_safety</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Readiness</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant dark:text-on-tertiary-fixed-variant hover:text-primary dark:hover:text-on-background hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Analytics</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant dark:text-on-tertiary-fixed-variant hover:text-primary dark:hover:text-on-background hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Personnel</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant dark:text-on-tertiary-fixed-variant hover:text-primary dark:hover:text-on-background hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Settings</span>
+</a>
+</li>
+</ul>
+<div class="px-6 mt-auto">
+<button class="w-full py-3 rounded-lg bg-critical-red/10 text-critical-red border border-critical-red/20 font-label-sm text-label-sm uppercase tracking-wider hover:bg-critical-red/20 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">warning</span>
+                Emergency Protocol
+            </button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 p-4 md:p-8 w-full max-w-[1200px] mx-auto flex flex-col gap-8 pb-safe pt-6">
+<!-- Hero Section: Readiness Status -->
+<section class="flex flex-col items-center justify-center py-8">
+<h2 class="font-title-md text-title-md text-on-surface-variant mb-8 text-center">Are we ready today?</h2>
+<div class="relative w-64 h-64 flex items-center justify-center ambient-glow rounded-full">
+<!-- SVG Ring -->
+<svg class="absolute inset-0 w-full h-full transform -rotate-90" viewbox="0 0 200 200">
+<circle class="text-surface-container-highest" cx="100" cy="100" fill="none" r="90" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-ready-emerald progress-ring__circle" cx="100" cy="100" fill="none" id="status-ring" r="90" stroke="currentColor" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<!-- Inner Content -->
+<div class="flex flex-col items-center justify-center z-10 glass-panel rounded-full w-48 h-48">
+<span class="font-display-lg text-display-lg text-ready-emerald">94%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mt-1">System Nominal</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-8 text-center max-w-md">
+                All critical systems operating within acceptable parameters. No immediate executive action required.
+            </p>
+</section>
+<!-- Bento Grid for Key Metrics -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-4">
+<!-- Personnel Health Card -->
+<div class="md:col-span-8 glass-panel rounded-xl p-4 md:p-6 border-t-2 border-t-primary/30 hover:bg-surface-container-highest transition-colors group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-background">Personnel Readiness</h3>
+</div>
+<button class="text-primary hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">Available</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-on-background">1,248</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">On Leave</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-on-background">42</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">Fatigue Risk</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-drift-amber flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">warning</span> 18
+                        </span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant mb-1">Trend</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-ready-emerald flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +2.4%
+                        </span>
+</div>
+</div>
+</div>
+<!-- AI Insights Card -->
+<div class="md:col-span-4 glass-panel rounded-xl p-4 md:p-6 border-t-2 border-t-tertiary/30 hover:bg-surface-container-highest transition-colors">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary">psychology</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-background">AI Briefing</h3>
+</div>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<div class="mt-1 w-2 h-2 rounded-full bg-ready-emerald shrink-0"></div>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Shift coverage optimized for upcoming high-volume period.</p>
+</li>
+<li class="flex items-start gap-3">
+<div class="mt-1 w-2 h-2 rounded-full bg-drift-amber shrink-0"></div>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">Minor supply chain delay noted in sector 4. Monitoring.</p>
+</li>
+</ul>
+</div>
+</section>
+<!-- Floating Interaction Bar (Ask ResilAI) -->
+<div class="fixed bottom-[80px] md:bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-md px-4 z-50">
+<div class="glass-panel rounded-full p-2 flex items-center gap-2 border border-outline-variant shadow-lg ambient-glow">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-tertiary flex items-center justify-center shrink-0 ripple cursor-pointer">
+<span class="material-symbols-outlined text-on-primary">mic</span>
+</div>
+<input class="bg-transparent border-none outline-none text-on-background font-body-md flex-1 px-2 focus:ring-0 placeholder-on-surface-variant truncate" placeholder="Ask ResilAI for a situation report..." type="text"/>
+<button class="p-2 rounded-full hover:bg-surface-container-highest transition-colors shrink-0 text-primary">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Navigation (Hidden on Desktop) -->
+<nav class="md:hidden fixed bottom-0 w-full h-[80px] bg-surface-container-highest border-t border-outline-variant flex justify-around items-center px-2 pb-safe z-50 glass-panel">
+<a class="flex flex-col items-center justify-center w-16 h-full text-primary dark:text-primary-fixed" href="#">
+<div class="px-4 py-1 rounded-full bg-surface-container-low mb-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wide">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant" href="#">
+<div class="px-4 py-1 rounded-full mb-1 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">health_and_safety</span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wide">Readiness</span>
+</a>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant" href="#">
+<div class="px-4 py-1 rounded-full mb-1 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wide">Analytics</span>
+</a>
+<a class="flex flex-col items-center justify-center w-16 h-full text-on-surface-variant" href="#">
+<div class="px-4 py-1 rounded-full mb-1 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wide">Settings</span>
+</a>
+</nav>
+<script>
+        // Animate the status ring on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const ring = document.getElementById('status-ring');
+                if (ring) {
+                    // Calculate offset for 94% (565.48 * (1 - 0.94) = 33.92)
+                    ring.style.strokeDashoffset = '33.92';
+                }
+            }, 100);
+        });
+    </script>
+</body></html>

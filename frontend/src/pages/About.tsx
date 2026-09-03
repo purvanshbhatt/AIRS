@@ -21,9 +21,10 @@ import {
 } from 'lucide-react';
 import { PublicNavbar } from '../components/layout/PublicNavbar';
 import { Footer } from '../components/layout/Footer';
-import { COMPANY_INFO } from '../config/company';
+import { COMPANY_INFO, getCompanyLeadership } from '../config/company';
 
 export default function About() {
+  const leaders = getCompanyLeadership();
   useEffect(() => {
     document.title = 'About ResilAI — AI Incident Readiness';
     window.scrollTo(0, 0);
@@ -153,76 +154,85 @@ export default function About() {
               </p>
             </div>
 
-            {/* Founder Card */}
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 shadow-lg hover:border-primary-500/40 transition-all duration-300">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-                  {/* Founder Avatar */}
-                  <div className="relative shrink-0">
-                    {COMPANY_INFO.founder.avatarUrl ? (
-                      <img
-                        src={COMPANY_INFO.founder.avatarUrl}
-                        alt={COMPANY_INFO.founder.name}
-                        className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shadow-md border-2 border-white dark:border-slate-800"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-primary-600 to-emerald-500 flex items-center justify-center text-white font-extrabold text-3xl shadow-md border-2 border-white dark:border-slate-800">
-                        <span>PB</span>
+            {/* Leadership Cards */}
+            <div className={leaders.length > 1 ? "grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto" : "max-w-2xl mx-auto"}>
+              {leaders.map((person) => {
+                const initials = person.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+                const badgeText = person.role.includes('Co-Founder') ? 'Co-Founder' : 'Founder';
+
+                return (
+                  <div key={person.name} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 shadow-lg hover:border-primary-500/40 transition-all duration-300 flex flex-col justify-between">
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+                      {/* Avatar */}
+                      <div className="relative shrink-0">
+                        {person.avatarUrl ? (
+                          <img
+                            src={person.avatarUrl}
+                            alt={person.name}
+                            className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shadow-md border-2 border-white dark:border-slate-800"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-primary-600 to-emerald-500 flex items-center justify-center text-white font-extrabold text-3xl shadow-md border-2 border-white dark:border-slate-800">
+                            <span>{initials}</span>
+                          </div>
+                        )}
+                        <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-mono font-bold uppercase tracking-wider shadow-xs">
+                          {badgeText}
+                        </div>
                       </div>
-                    )}
-                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-mono font-bold uppercase tracking-wider shadow-xs">
-                      Founder
+
+                      {/* Details */}
+                      <div className="space-y-3 flex-1">
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-50">
+                            {person.name}
+                          </h3>
+                          <p className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                            {person.role}
+                          </p>
+                        </div>
+
+                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {person.bio}
+                        </p>
+
+                        <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                          <a
+                            href={person.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-primary-950/50 hover:text-primary-600 dark:hover:text-primary-400 border border-slate-200 dark:border-slate-700 transition-colors"
+                          >
+                            <Linkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
+                            <span>LinkedIn Profile</span>
+                            <ArrowUpRight className="w-3 h-3 opacity-60" />
+                          </a>
+                          {person.github && (
+                            <a
+                              href={person.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
+                            >
+                              <Github className="w-3.5 h-3.5" />
+                              <span>GitHub</span>
+                            </a>
+                          )}
+                          {person.email && (
+                            <a
+                              href={`mailto:${person.email}`}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              <span>Email</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Founder Details */}
-                  <div className="space-y-3 flex-1">
-                    <div>
-                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-50">
-                        {COMPANY_INFO.founder.name}
-                      </h3>
-                      <p className="text-sm font-semibold text-primary-600 dark:text-primary-400">
-                        {COMPANY_INFO.founder.role}
-                      </p>
-                    </div>
-
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                      {COMPANY_INFO.founder.bio}
-                    </p>
-
-                    <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
-                      <a
-                        href={COMPANY_INFO.founder.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-primary-950/50 hover:text-primary-600 dark:hover:text-primary-400 border border-slate-200 dark:border-slate-700 transition-colors"
-                      >
-                        <Linkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
-                        <span>LinkedIn Profile</span>
-                        <ArrowUpRight className="w-3 h-3 opacity-60" />
-                      </a>
-                      {COMPANY_INFO.founder.github && (
-                        <a
-                          href={COMPANY_INFO.founder.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
-                        >
-                          <Github className="w-3.5 h-3.5" />
-                          <span>GitHub</span>
-                        </a>
-                      )}
-                      <a
-                        href={`mailto:${COMPANY_INFO.founder.email || COMPANY_INFO.contactEmail}`}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
-                      >
-                        <Mail className="w-3.5 h-3.5" />
-                        <span>Email</span>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
         </section>

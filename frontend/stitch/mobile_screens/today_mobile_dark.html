@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Today Brief</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&amp;family=Inter:wght@400;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error": "#ffb4ab",
+                      "on-tertiary-fixed": "#410005",
+                      "surface-dim": "#0e1511",
+                      "primary-fixed-dim": "#4edea3",
+                      "status-critical": "#ef4444",
+                      "tertiary-container": "#fc7c78",
+                      "on-secondary-fixed": "#131b2e",
+                      "inverse-primary": "#006c49",
+                      "on-primary-container": "#00422b",
+                      "secondary-fixed": "#dbe2fd",
+                      "on-surface": "#dde4dd",
+                      "primary-container": "#10b981",
+                      "on-tertiary": "#650911",
+                      "primary": "#4edea3",
+                      "on-error-container": "#ffdad6",
+                      "surface-container-high": "#242c27",
+                      "on-tertiary-container": "#711419",
+                      "slate-soft": "#f8fafc",
+                      "background": "#0e1511",
+                      "on-background": "#dde4dd",
+                      "surface-bright": "#343b36",
+                      "secondary-fixed-dim": "#bfc6e0",
+                      "surface": "#0e1511",
+                      "on-primary-fixed-variant": "#005236",
+                      "on-secondary-container": "#adb4ce",
+                      "slate-text": "#475569",
+                      "surface-tint": "#4edea3",
+                      "status-drift": "#f59e0b",
+                      "emerald-accent": "#4edea3",
+                      "surface-container": "#1a211d",
+                      "surface-container-lowest": "#09100c",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "primary-fixed": "#6ffbbe",
+                      "outline-variant": "#3c4a42",
+                      "tertiary-fixed-dim": "#ffb3af",
+                      "secondary-container": "#3f465c",
+                      "inverse-on-surface": "#2b322d",
+                      "on-primary": "#003824",
+                      "clinical-white": "#ffffff",
+                      "on-primary-fixed": "#002113",
+                      "tertiary": "#ffb3af",
+                      "surface-container-highest": "#2f3632",
+                      "obsidian-deep": "#060d20",
+                      "tertiary-fixed": "#ffdad7",
+                      "secondary": "#bfc6e0",
+                      "surface-variant": "#2f3632",
+                      "on-tertiary-fixed-variant": "#842225",
+                      "outline": "#86948a",
+                      "error-container": "#93000a",
+                      "on-surface-variant": "#bbcabf",
+                      "inverse-surface": "#dde4dd",
+                      "surface-container-low": "#161d19",
+                      "on-secondary": "#283044",
+                      "on-error": "#690005"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "1rem",
+                      "unit-lg": "24px",
+                      "unit-xs": "4px",
+                      "gutter": "1.5rem",
+                      "sidebar-width": "260px",
+                      "unit-sm": "8px",
+                      "unit-md": "16px",
+                      "margin-desktop": "2.5rem",
+                      "max-content-width": "1200px"
+              },
+              "fontFamily": {
+                      "label-sm": ["JetBrains Mono"],
+                      "narrative-summary": ["Inter"],
+                      "display-lg": ["Hanken Grotesk"],
+                      "title-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "narrative-summary": ["18px", {"lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        /* Pulse Animation for Status Ring */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+        .animate-pulse-ring {
+            animation: pulse-ring 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md overflow-x-hidden pb-20 selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top AppBar (Mobile Style) -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface-dim/80 dark:bg-surface-dim/80 backdrop-blur-xl border-b border-outline-variant flex justify-between items-center h-16 px-margin-mobile">
+<div class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">ResilAI</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 mt-16 px-margin-mobile pt-6 flex flex-col gap-6">
+<!-- Narrative Summary (Executive TL;DR) -->
+<section class="mb-2">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile mb-2">Today Brief</h1>
+<p class="font-narrative-summary text-narrative-summary text-on-surface-variant">
+                System state is nominal. 3 minor clinical anomalies resolved overnight. Waiting for your review on 1 critical incident.
+            </p>
+</section>
+<!-- Large Status Ring (Native Mobile Feel) -->
+<section class="flex flex-col items-center justify-center py-8 relative">
+<div class="relative w-48 h-48 flex items-center justify-center">
+<!-- Glowing Ring Background -->
+<div class="absolute inset-0 rounded-full border-4 border-primary/20 animate-pulse-ring"></div>
+<div class="absolute inset-2 rounded-full border-2 border-primary/40"></div>
+<!-- Core Status -->
+<div class="z-10 text-center flex flex-col items-center">
+<span class="material-symbols-outlined text-primary text-5xl mb-2" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-title-md text-title-md text-primary">Ready</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">99.9% Uptime</span>
+</div>
+</div>
+</section>
+<!-- Simplified 'Needs Attention' Card -->
+<section class="bg-surface-container rounded-xl p-unit-lg border border-outline-variant shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-error-container/20 flex items-center justify-center text-status-critical">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+</div>
+<div>
+<h2 class="font-title-md text-title-md text-on-surface">Needs Attention</h2>
+<span class="font-label-sm text-label-sm text-status-critical">1 Critical Incident</span>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Patient vitals anomaly detected in Ward C. Immediate review required by duty physician.
+            </p>
+</section>
+<!-- Bento Grid for Stats -->
+<section class="grid grid-cols-2 gap-4">
+<!-- Stat Card 1 -->
+<div class="bg-surface-container rounded-xl p-4 border border-outline-variant flex flex-col">
+<span class="material-symbols-outlined text-secondary mb-2" data-icon="monitoring">monitoring</span>
+<span class="font-title-md text-title-md text-on-surface">1,204</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Patients Monitored</span>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface-container rounded-xl p-4 border border-outline-variant flex flex-col">
+<span class="material-symbols-outlined text-status-drift mb-2" data-icon="fact_check">fact_check</span>
+<span class="font-title-md text-title-md text-on-surface">12</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Audits Pending</span>
+</div>
+</section>
+</main>
+<!-- Floating Voice-Activated Action Button -->
+<div class="fixed bottom-24 right-margin-mobile z-50">
+<button class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-[0_4px_20px_rgba(78,222,163,0.4)] hover:scale-105 active:scale-95 transition-all duration-150 relative group">
+<span class="material-symbols-outlined text-3xl" data-icon="mic">mic</span>
+<!-- Tooltip -->
+<div class="absolute right-20 top-1/2 -translate-y-1/2 bg-surface-container-high text-on-surface px-4 py-2 rounded-lg font-label-sm text-label-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg border border-outline-variant">
+                Ask ResilAI
+            </div>
+</button>
+</div>
+<!-- Bottom Navigation Bar (Mobile Shell) -->
+<nav class="fixed bottom-0 left-0 w-full bg-surface-dim/90 backdrop-blur-md border-t border-outline-variant h-16 flex justify-around items-center px-4 z-40">
+<button class="flex flex-col items-center gap-1 text-primary active:scale-95 duration-150">
+<div class="bg-secondary-container/20 px-4 py-1 rounded-full">
+<span class="material-symbols-outlined" data-icon="clinical_notes" data-weight="fill" style="font-variation-settings: 'FILL' 1;">clinical_notes</span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wide font-medium">Today</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 duration-150">
+<div class="px-4 py-1">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wide font-medium">Trends</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 duration-150">
+<div class="px-4 py-1">
+<span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wide font-medium">Clinical</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-on-surface transition-colors active:scale-95 duration-150">
+<div class="px-4 py-1">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wide font-medium">Settings</span>
+</button>
+</nav>
+</body></html>

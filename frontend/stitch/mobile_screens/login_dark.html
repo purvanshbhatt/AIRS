@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Secure Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;family=Inter:wght@400;600&amp;family=Hanken+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed": "#410005",
+                        "surface-dim": "#0e1511",
+                        "primary-fixed-dim": "#4edea3",
+                        "status-critical": "#ef4444",
+                        "tertiary-container": "#fc7c78",
+                        "on-secondary-fixed": "#131b2e",
+                        "inverse-primary": "#006c49",
+                        "on-primary-container": "#00422b",
+                        "secondary-fixed": "#dbe2fd",
+                        "on-surface": "#dde4dd",
+                        "primary-container": "#10b981",
+                        "on-tertiary": "#650911",
+                        "primary": "#4edea3",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-high": "#242c27",
+                        "on-tertiary-container": "#711419",
+                        "slate-soft": "#f8fafc",
+                        "background": "#0e1511",
+                        "on-background": "#dde4dd",
+                        "surface-bright": "#343b36",
+                        "secondary-fixed-dim": "#bfc6e0",
+                        "surface": "#0e1511",
+                        "on-primary-fixed-variant": "#005236",
+                        "on-secondary-container": "#adb4ce",
+                        "slate-text": "#475569",
+                        "surface-tint": "#4edea3",
+                        "status-drift": "#f59e0b",
+                        "emerald-accent": "#4edea3",
+                        "surface-container": "#1a211d",
+                        "surface-container-lowest": "#09100c",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "primary-fixed": "#6ffbbe",
+                        "outline-variant": "#3c4a42",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "secondary-container": "#3f465c",
+                        "inverse-on-surface": "#2b322d",
+                        "on-primary": "#003824",
+                        "clinical-white": "#ffffff",
+                        "on-primary-fixed": "#002113",
+                        "tertiary": "#ffb3af",
+                        "surface-container-highest": "#2f3632",
+                        "obsidian-deep": "#060d20",
+                        "tertiary-fixed": "#ffdad7",
+                        "secondary": "#bfc6e0",
+                        "surface-variant": "#2f3632",
+                        "on-tertiary-fixed-variant": "#842225",
+                        "outline": "#86948a",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#bbcabf",
+                        "inverse-surface": "#dde4dd",
+                        "surface-container-low": "#161d19",
+                        "on-secondary": "#283044",
+                        "on-error": "#690005"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "unit-lg": "24px",
+                        "unit-xs": "4px",
+                        "gutter": "1.5rem",
+                        "sidebar-width": "260px",
+                        "unit-sm": "8px",
+                        "unit-md": "16px",
+                        "margin-desktop": "2.5rem",
+                        "max-content-width": "1200px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "narrative-summary": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "title-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "narrative-summary": ["18px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(22, 29, 25, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(134, 148, 138, 0.2);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 40px rgba(78, 222, 163, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-surface-dim text-on-surface min-h-screen flex items-center justify-center p-4 antialiased overflow-hidden selection:bg-primary/20 selection:text-primary">
+<!-- Abstract Background Element -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute -top-[40%] -left-[20%] w-[140%] h-[140%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-container-high via-surface-dim to-surface-dim opacity-50 blur-[100px]"></div>
+<div class="absolute top-[20%] right-[10%] w-[30%] h-[40%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-surface-dim/0 to-transparent opacity-30 blur-[80px]"></div>
+</div>
+<!-- Main Container -->
+<main class="w-full max-w-[480px] relative z-10">
+<!-- Logo Section -->
+<div class="flex flex-col items-center mb-unit-lg">
+<div class="w-16 h-16 rounded-xl bg-surface-container-high border border-outline-variant flex items-center justify-center mb-4 glow-effect">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="shield_lock" style="font-variation-settings: 'FILL' 1;">shield_lock</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">ResilAI</h1>
+<p class="font-label-sm text-label-sm text-primary mt-2 uppercase tracking-widest opacity-80">Command Center Access</p>
+</div>
+<!-- Login Card -->
+<div class="glass-panel rounded-xl p-8 w-full glow-effect">
+<div class="mb-8 text-center">
+<p class="font-narrative-summary text-narrative-summary text-on-surface-variant">
+                    Secure executive authentication required for clinical data systems.
+                </p>
+</div>
+<form class="space-y-5" onsubmit="event.preventDefault();">
+<!-- Email Input -->
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant block" for="email">Clinical ID or Email</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-70" data-icon="person">person</span>
+<input autocomplete="email" class="w-full bg-surface-container border border-outline-variant rounded-lg py-3 pl-10 pr-4 text-on-surface font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors placeholder:text-outline" id="email" placeholder="id@resilai.med" type="email"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-1">
+<div class="flex justify-between items-center">
+<label class="font-label-sm text-label-sm text-on-surface-variant" for="password">Security Protocol</label>
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-fixed transition-colors" href="#">Reset Key</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-70" data-icon="key">key</span>
+<input autocomplete="current-password" class="w-full bg-surface-container border border-outline-variant rounded-lg py-3 pl-10 pr-10 text-on-surface font-body-md text-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" id="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full bg-primary text-on-primary-fixed font-title-md text-title-md py-3 px-4 rounded-lg hover:bg-primary-fixed active:scale-[0.98] transition-all duration-200 mt-2 flex items-center justify-center gap-2" type="submit">
+                    Initialize Session
+                    <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<!-- Divider -->
+<div class="flex items-center gap-4 my-8">
+<div class="flex-1 h-px bg-outline-variant"></div>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Federated Identity</span>
+<div class="flex-1 h-px bg-outline-variant"></div>
+</div>
+<!-- SSO Options -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-2 bg-surface-container-high border border-outline-variant hover:border-outline hover:bg-surface-container-highest rounded-lg py-2.5 px-4 transition-colors font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined" data-icon="business">business</span>
+                    Microsoft
+                </button>
+<button class="flex items-center justify-center gap-2 bg-surface-container-high border border-outline-variant hover:border-outline hover:bg-surface-container-highest rounded-lg py-2.5 px-4 transition-colors font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined" data-icon="domain">domain</span>
+                    Google
+                </button>
+</div>
+<!-- Technical Metadata Footer -->
+<div class="mt-8 text-center border-t border-outline-variant/30 pt-4">
+<p class="font-label-sm text-label-sm text-outline opacity-60 font-mono">
+                    SYS: SECURE_ENV_OK | LAT: 12ms | V: 4.2.1
+                 </p>
+</div>
+</div>
+</main>
+<script>
+        // Minimal interaction logic for input focus states
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('.material-symbols-outlined').classList.replace('text-on-surface-variant', 'text-primary');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('.material-symbols-outlined').classList.replace('text-primary', 'text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

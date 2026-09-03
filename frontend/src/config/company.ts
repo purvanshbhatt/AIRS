@@ -70,3 +70,35 @@ export const COMPANY_INFO: CompanyInfo = {
     maidensail: 'https://maidensail.com/startup/resilai',
   },
 };
+
+export const DIVYANI_CO_FOUNDER: TeamMember = {
+  name: 'Divyani',
+  role: 'Co-Founder',
+  bio: 'Co-founder and healthcare systems specialist focused on clinical operations, compliance integrity, and incident mitigation architecture.',
+  avatarUrl: '/divyani.jpg',
+  linkedin: 'https://www.linkedin.com/in/purvanshbhatt',
+  isFounder: true,
+};
+
+/**
+ * Returns true if running in staging mode or staging domain
+ */
+export function isStagingEnvironment(): boolean {
+  if (import.meta.env.MODE === 'staging') return true;
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname.toLowerCase();
+    return host.includes('staging');
+  }
+  return false;
+}
+
+/**
+ * Leadership list: Includes Divyani in staging; keeps solely Purvansh in production
+ */
+export function getCompanyLeadership(): TeamMember[] {
+  if (isStagingEnvironment()) {
+    return [COMPANY_INFO.founder, DIVYANI_CO_FOUNDER];
+  }
+  return [COMPANY_INFO.founder];
+}
+
