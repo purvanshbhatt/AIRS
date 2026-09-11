@@ -1,0 +1,5 @@
+I started writing software on my own volition in college around 2020, driven by the frustration of seeing security treated as theoretical slides rather than executable code.
+
+My first self-directed project was an automated forensic log parser and artifact extractor in Python. During early digital forensics labs, analyzing disk images and memory dumps involved hours of repetitive CLI commands and manual hex inspection. I realized attackers automate their playbooks in milliseconds while defenders were drowning in manual triage. I wrote a tool to parse prefetch files, parse MFT records, and automatically construct a unified chronological attack timeline mapped to MITRE ATT&CK.
+
+Seeing raw machine noise turn into an undeniable, minute-by-minute narrative of an intrusion hooked me instantly. It taught me the defining lesson of my engineering career: software is most powerful when it strips away human wishful thinking and exposes deterministic, verifiable truth. That same obsession is what led me to build my vulnerability scanner, MITRE eCTF firmware defenses, and ultimately ResilAI.

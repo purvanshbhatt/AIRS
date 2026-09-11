@@ -1,0 +1,1 @@
+I am currently based in Jersey City, NJ on valid STEM OPT work authorization, fully committed to building ResilAI full-time. The live product staging environment, architecture specifications, and deterministic methodology endpoints are available to inspect directly at airs-staging-0384513977.web.app and github.com/purvanshbhatt/AIRS.

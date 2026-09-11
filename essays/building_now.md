@@ -1,0 +1,6 @@
+I am building ResilAI to answer the single question healthcare practices and critical SMBs fail to answer every morning: 'If a cyber or AI incident strikes today, are we actually operational and legally protected?'
+
+Security vendors flood operators with thousands of disconnected alerts, while compliance tools offer stale checkboxes. ResilAI continuously ingests telemetry (M365, Wazuh, Veeam, Cloud Run), evaluates it against deterministic rubrics, and issues an immutable Daily Readiness Report with 1-click reversible remediation cards. If an endpoint connector goes offline, we degrade to 'Unknown' rather than masking danger behind false safety.
+
+Why me:
+I hold an M.S. in Cybersecurity from Pace University (3.9 GPA) and 3+ years in DFIR and GRC engineering. At Filmy AI, I built the security program from scratch, cutting post-release vulnerabilities by 30%. In DFIR consulting, I investigated 20+ breaches where clinics went dark because no one verified backup integrity or credential revocations. I know the operational pain, and I have already built the complete production prototype with live staging.
