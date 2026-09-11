@@ -1,0 +1,142 @@
+name: Daily Backup Sync
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: daily-backup-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  daily-backup-sync:
+    name: Sync staging to daily-sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install branch protection pre-push hook
+        run: |
+          mkdir -p .git/hooks
+          cat << 'EOF' > .git/hooks/pre-push
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          FORBIDDEN_PATTERNS=("main" "demo-stable")
+
+          while read -r local_ref local_sha remote_ref remote_sha; do
+            branch_name="${remote_ref##*/}"
+            for forbidden in "${FORBIDDEN_PATTERNS[@]}"; do
+              if [ "$branch_name" = "$forbidden" ]; then
+                echo "::error::[CRITICAL SECURITY BLOCK] Push to protected branch '$branch_name' is forbidden!" >&2
+                exit 1
+              fi
+            done
+          done
+          exit 0
+          EOF
+          chmod +x .git/hooks/pre-push
+
+      - name: Sync staging into daily-sync
+        id: sync
+        run: |
+          set -euo pipefail
+
+          echo "Fetching latest staging branch..."
+          git fetch origin +refs/heads/staging:refs/remotes/origin/staging
+
+          # Check if daily-sync exists on origin
+          if git ls-remote --exit-code --heads origin daily-sync >/dev/null 2>&1; then
+            echo "Remote branch 'daily-sync' exists. Tracking and checking out..."
+            git fetch origin +refs/heads/daily-sync:refs/remotes/origin/daily-sync
+            git checkout -B daily-sync origin/daily-sync
+
+            BEFORE_SHA=$(git rev-parse HEAD)
+            echo "Merging origin/staging into daily-sync..."
+            git merge origin/staging --no-edit -m "chore(backup): merge staging into daily-sync [skip ci]"
+            AFTER_SHA=$(git rev-parse HEAD)
+
+            if [ "$BEFORE_SHA" != "$AFTER_SHA" ]; then
+              STATUS="Successfully merged latest commits from staging"
+            else
+              STATUS="Already up to date with staging (no new commits)"
+            fi
+          else
+            echo "Remote branch 'daily-sync' does not exist. Creating from origin/staging..."
+            git checkout -B daily-sync origin/staging
+            STATUS="Initialized daily-sync branch from staging"
+          fi
+
+          COMMIT_HASH=$(git rev-parse HEAD)
+          echo "COMMIT_HASH=$COMMIT_HASH" >> "$GITHUB_ENV"
+          echo "SYNC_STATUS=$STATUS" >> "$GITHUB_ENV"
+          echo "commit_hash=$COMMIT_HASH" >> "$GITHUB_OUTPUT"
+          echo "sync_status=$STATUS" >> "$GITHUB_OUTPUT"
+
+      - name: Validate and push daily-sync
+        run: |
+          set -euo pipefail
+
+          TARGET_BRANCH="daily-sync"
+
+          # Explicit guard: Block main and demo-stable
+          if [ "$TARGET_BRANCH" = "main" ] || [ "$TARGET_BRANCH" = "demo-stable" ]; then
+            echo "::error::[SECURITY VIOLATION] Target branch '$TARGET_BRANCH' is strictly protected. Push blocked."
+            exit 1
+          fi
+
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "demo-stable" ]; then
+            echo "::error::[SECURITY VIOLATION] Currently on protected branch '$CURRENT_BRANCH'. Push blocked."
+            exit 1
+          fi
+
+          if [ "$CURRENT_BRANCH" != "daily-sync" ]; then
+            echo "::error::[SECURITY VIOLATION] Unexpected active branch '$CURRENT_BRANCH'. Expected 'daily-sync'."
+            exit 1
+          fi
+
+          echo "Pushing verified branch 'daily-sync' to origin..."
+          git push -u origin daily-sync
+
+      - name: Publish Audit Log to GitHub Summary
+        if: always()
+        run: |
+          COMMIT_HASH="${COMMIT_HASH:-N/A}"
+          SYNC_STATUS="${SYNC_STATUS:-Failed / Interrupted}"
+
+          echo "### 🔄 ResilAI Daily Backup Sync Audit Log" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Parameter | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|:---|:---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Source Branch** | \`staging\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Target Branch** | \`daily-sync\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Commit Hash** | \`${COMMIT_HASH}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Sync Status** | ${SYNC_STATUS} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Trigger Event** | \`${{ github.event_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Workflow Run** | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Timestamp (UTC)** | $(date -u '+%Y-%m-%d %H:%M:%S UTC') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "> **Branch Protection Enforcement:** Pushes to \`main\` and \`demo-stable\` are explicitly blocked by policy." >> "$GITHUB_STEP_SUMMARY"
+
+          echo "=========================================================="
+          echo "  ResilAI Daily Backup Sync - Audit Log"
+          echo "  Source Branch : staging"
+          echo "  Target Branch : daily-sync"
+          echo "  Commit Hash   : ${COMMIT_HASH}"
+          echo "  Sync Status   : ${SYNC_STATUS}"
+          echo "  Timestamp     : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================================="
