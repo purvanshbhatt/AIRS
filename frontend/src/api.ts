@@ -171,7 +171,7 @@ async function request<T>(
   }
   
   // Retry logic for transient network errors (e.g., Cloud Run cold starts)
-  const MAX_RETRIES = 2;
+  const MAX_RETRIES = (import.meta.env.MODE === 'test') ? 0 : 2;
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {

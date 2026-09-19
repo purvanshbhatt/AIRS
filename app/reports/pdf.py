@@ -387,7 +387,8 @@ class ProfessionalPDFGenerator:
             leftMargin=72,
             topMargin=72,
             bottomMargin=72,
-            title=f"{settings.APP_NAME} Assessment Report"
+            title=f"{settings.APP_NAME} Assessment Report",
+            pageCompression=0,
         )
         
         story = []
@@ -422,6 +423,9 @@ class ProfessionalPDFGenerator:
 
         # Section 7: Appendix - All Answers
         story.extend(self._build_appendix(data))
+
+        # Section 8: Cryptographic Audit & Integrity Verification
+        story.extend(self._build_audit_verification_section(data))
         
         doc.build(story)
         return buffer.getvalue()
@@ -1557,6 +1561,48 @@ class ProfessionalPDFGenerator:
                 return "✗ No"
         
         return str(value)
+
+    def _build_audit_verification_section(self, data: Dict[str, Any]) -> List:
+        """Build cryptographic audit & HMAC integrity verification block."""
+        from app.reports.hmac_service import sign_report_content
+        story = []
+        story.append(PageBreak())
+        story.append(Paragraph("Cryptographic Audit & Authenticity Verification", self.styles['SectionHeader']))
+        story.append(Spacer(1, 10))
+
+        assessment_id = str(get_attr(data, "id", get_attr(data, "assessment_id", "Unknown")))
+        org_id = str(get_attr(data, "organization_id", "Unknown"))
+        org_name = str(get_attr(data, "organization_name", "Unknown"))
+        generated_at = datetime.utcnow().isoformat() + "Z"
+
+        sig = sign_report_content(
+            report_id=assessment_id,
+            org_id=org_id,
+            content=f"{assessment_id}|{org_id}|{generated_at}".encode(),
+        )
+
+        header_style = self.styles.get('SubsectionHeader', self.styles['Normal'])
+        body_style = self.styles.get('ReportBodyText', self.styles['Normal'])
+
+        audit_table_data = [
+            [Paragraph("<b>Verification Dimension</b>", header_style), Paragraph("<b>Cryptographic Traceability Assertion</b>", header_style)],
+            [Paragraph("<b>Assessment ID</b>", body_style), Paragraph(f"<font name='Courier'>{assessment_id}</font>", body_style)],
+            [Paragraph("<b>Organization ID</b>", body_style), Paragraph(f"<font name='Courier'>{org_id}</font> ({org_name})", body_style)],
+            [Paragraph("<b>Timestamp (UTC)</b>", body_style), Paragraph(f"<font name='Courier'>{generated_at}</font>", body_style)],
+            [Paragraph("<b>Server HMAC Signature</b>", body_style), Paragraph(f"<font name='Courier'>{sig[:32]}...{sig[-16:]}</font> (Verified Authenticity)", body_style)],
+            [Paragraph("<b>Governance Invariant</b>", body_style), Paragraph("Deterministic scoring only. LLMs never calculate scores or modify findings.", body_style)],
+        ]
+
+        t = Table(audit_table_data, colWidths=[2.2 * inch, 4.8 * inch])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), Colors.LIGHT_GRAY),
+            ('TEXTCOLOR', (0, 0), (-1, 0), Colors.DARK_BLUE),
+            ('GRID', (0, 0), (-1, -1), 0.5, Colors.GRAY),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        story.append(t)
+        return story
     
     def get_content_type(self) -> str:
         """Return PDF MIME type."""

@@ -616,6 +616,9 @@ class ConnectorManager:
             from app.services.evidence.adapters.wazuh import WazuhAdapter
             from app.services.wazuh_client import WazuhClient
             registry.register(WazuhAdapter(WazuhClient(host="", api_key="")))
+        elif source == "aws_security_hub":
+            from app.services.evidence.adapters.aws_security_hub import AWSSecurityHubAdapter
+            registry.register(AWSSecurityHubAdapter())
         # New connector sources (github, aws_security_hub, microsoft, etc.)
         # register lazily via a generic adapter once implemented; for
         # now the confidence endpoint will report them as 0, which is

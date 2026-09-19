@@ -50,11 +50,23 @@ class NormalizedEvidence(BaseModel):
     
     def compute_hash(self) -> str:
         """Deterministically hash the payload for the immutable ledger."""
-        payload_str = json.dumps(self.raw_payload, sort_keys=True, default=str)
-        # Include source and timestamp in hash for uniqueness
-        base_string = f"{self.source_connector}|{self.timestamp.isoformat()}|{payload_str}"
-        self.evidence_hash = hashlib.sha256(base_string.encode()).hexdigest()
+        from app.services.evidence.integrity import compute_evidence_hash
+        self.evidence_hash = compute_evidence_hash(
+            source_connector=self.source_connector,
+            timestamp_iso=self.timestamp.isoformat(),
+            payload=self.raw_payload,
+        )
         return self.evidence_hash
+
+    def verify_integrity(self) -> bool:
+        """Verify that the evidence_hash matches the authoritative payload."""
+        from app.services.evidence.integrity import verify_evidence_hash
+        return verify_evidence_hash(
+            source_connector=self.source_connector,
+            timestamp_iso=self.timestamp.isoformat(),
+            payload=self.raw_payload,
+            claimed_hash=self.evidence_hash,
+        )
 
 class EvidenceCollectionResult(BaseModel):
     provider_name: str

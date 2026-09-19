@@ -2,6 +2,7 @@
 Health check endpoint for Cloud Run and load balancer probes.
 """
 
+from datetime import datetime, timezone
 from typing import Optional, List
 import importlib.util
 
@@ -19,8 +20,11 @@ class ProductInfo(BaseModel):
 
 
 class HealthResponse(BaseModel):
-    """Health check response."""
+    """Health check response with multi-cloud observability."""
     status: str
+    provider: Optional[str] = "gcp"
+    environment: Optional[str] = "production"
+    timestamp: Optional[str] = None
     product: ProductInfo
 
 
@@ -73,10 +77,26 @@ async def health_check() -> HealthResponse:
     """
     Health check endpoint.
     
-    Returns a simple status for load balancer health probes.
-    Cloud Run uses this to determine if the service is ready to receive traffic.
+    Returns a status for load balancer health probes across cloud providers.
+    Cloud Run and AWS App Runner use this to determine if the service is ready to receive traffic.
     """
-    return HealthResponse(status="ok", product=ProductInfo(**get_product_info()))
+    provider_name = settings.CLOUD_PROVIDER.value if hasattr(settings, "CLOUD_PROVIDER") else "gcp"
+    if provider_name == "aws" and (getattr(settings, "AWS_STANDBY", False) or settings.ENV.value in ("standby", "aws_standby")):
+        env_name = "aws_standby"
+    elif getattr(settings, "AWS_STANDBY", False) or settings.ENV.value in ("standby", "aws_standby"):
+        env_name = "standby"
+    elif settings.ENV.value == "prod":
+        env_name = "production"
+    else:
+        env_name = settings.ENV.value
+
+    return HealthResponse(
+        status="ok",
+        provider=provider_name,
+        environment=env_name,
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        product=ProductInfo(**get_product_info()),
+    )
 
 
 @router.get(

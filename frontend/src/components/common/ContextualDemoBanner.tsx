@@ -114,15 +114,19 @@ export function ContextualDemoBanner({
   onOpenGettingStarted,
   dismissible = false,
 }: ContextualDemoBannerProps) {
-  const { isDemo } = useActiveOrg();
+  const { isDemo, orgName } = useActiveOrg();
   const [dismissed, setDismissed] = useState(false);
 
   // Only display in Demo mode
   if (!isDemo || dismissed) return null;
 
   const guidance = SECTION_GUIDANCE[section] || SECTION_GUIDANCE.generic;
-  const headline = customHeadline || guidance.headline;
-  const description = customDescription || guidance.description;
+  const rawHeadline = customHeadline || guidance.headline;
+  const rawDescription = customDescription || guidance.description;
+
+  const displayOrg = orgName?.includes('Acme Health Systems') ? 'Acme Health Systems' : (orgName || 'Acme Health Systems');
+  const headline = rawHeadline.replace('Acme Health Systems', displayOrg);
+  const description = rawDescription.replace('Acme Health Systems', displayOrg);
 
   return (
     <aside
@@ -153,6 +157,10 @@ export function ContextualDemoBanner({
 
             <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed max-w-3xl">
               {description}
+            </p>
+
+            <p className="text-xs text-amber-600/95 dark:text-amber-400/95 font-medium mt-1 leading-relaxed max-w-3xl border-l-2 border-amber-500 pl-2">
+              This environment uses simulated security telemetry. Results shown here are not evidence from a connected customer environment.
             </p>
 
             <div className="mt-2 text-[11px] font-mono text-amber-500/90 flex items-center gap-1">

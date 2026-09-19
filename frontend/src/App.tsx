@@ -1,11 +1,13 @@
-import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Wrench } from 'lucide-react';
 import AppLayout from './components/layout/AppLayout';
 import DocsLayout from './components/layout/DocsLayout';
 import { EnvironmentHeader } from './components/layout/EnvironmentHeader';
 import { ToastProvider } from './components/ui';
-import { AuthProvider, DemoModeProvider, useDemoMode, PersonaProvider } from './contexts';
+import { AuthProvider, DemoModeProvider, useDemoMode, PersonaProvider, VerticalProvider } from './contexts';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useVertical, detectVerticalFromLocation } from './contexts/VerticalContext';
 import { ProtectedRoute, RequireOrganization } from './components/ProtectedRoute';
 import { isApiConfigured, apiBaseUrl, isDevelopment } from './config';
 import { setUnauthorizedHandler } from './api';
@@ -169,47 +171,73 @@ function AuthRedirectHandler() {
   return null;
 }
 
+function VerticalRouteSync() {
+  const location = useLocation();
+  const { setVertical, currentVertical } = useVertical();
+
+  useEffect(() => {
+    const detected = detectVerticalFromLocation({
+      search: location.search,
+      pathname: location.pathname,
+      hostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
+    });
+    if (detected.vertical !== currentVertical) {
+      setVertical(detected.vertical);
+    }
+  }, [location.search, location.pathname, currentVertical, setVertical]);
+
+  return null;
+}
+
 export default function App() {
   return (
-    <AuthProvider>
-      <DemoModeProvider>
-        <PersonaProvider>
-          <ToastProvider>
-            <AuthRedirectHandler />
-            <ApiConfigBanner />
-            <DiagnosticsFooter />
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Landing />} />
-              <Route path="/readiness" element={<Navigate to="/morning-brief" replace />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/results" element={<Results />} />
-              <Route path="/ai" element={<PublicAi />} />
-              <Route path="/product/ai" element={<Navigate to="/ai" replace />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/security" element={<SecurityPage />} />
-              <Route path="/pilot" element={<PilotPage />} />
-              <Route path="/status" element={<StatusPage />} />
-              <Route path="/auditor" element={<AuditorView />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <DemoModeProvider>
+          <PersonaProvider>
+            <VerticalProvider>
+              <ToastProvider>
+                <VerticalRouteSync />
+                <AuthRedirectHandler />
+                <ApiConfigBanner />
+                <DiagnosticsFooter />
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/healthcare" element={<Landing defaultVertical="healthcare" />} />
+                  <Route path="/legal" element={<Landing defaultVertical="legal" />} />
+                  <Route path="/general" element={<Landing defaultVertical="general" />} />
+                  <Route path="/readiness" element={<Navigate to="/morning-brief" replace />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/results" element={<Results />} />
+                  <Route path="/ai" element={<PublicAi />} />
+                  <Route path="/product/ai" element={<Navigate to="/ai" replace />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/security" element={<SecurityPage />} />
+                  <Route path="/pilot" element={<PilotPage />} />
+                  <Route path="/status" element={<StatusPage />} />
+                  <Route path="/auditor" element={<AuditorView />} />
 
-              {/* Main Application Routes */}
-              <Route path="/*" element={<MainAppRoutes />} />
+                  {/* Main Application Routes */}
+                  <Route path="/*" element={<MainAppRoutes />} />
 
-              {/* Docs */}
-              <Route path="/docs" element={<DocsLayout />}>
-                <Route index element={<DocsOverview />} />
-                <Route path="governance" element={<DocsGovernance />} />
-                <Route path="methodology" element={<DocsMethodology />} />
-                <Route path="frameworks" element={<DocsFrameworks />} />
-                <Route path="security" element={<DocsSecurity />} />
-                <Route path="api" element={<DocsApi />} />
-              </Route>
-            </Routes>
-          </ToastProvider>
-        </PersonaProvider>
-      </DemoModeProvider>
-    </AuthProvider>
+                  {/* Docs */}
+                  <Route path="/docs" element={<DocsLayout />}>
+                    <Route index element={<DocsOverview />} />
+                    <Route path="governance" element={<DocsGovernance />} />
+                    <Route path="methodology" element={<DocsMethodology />} />
+                    <Route path="frameworks" element={<DocsFrameworks />} />
+                    <Route path="security" element={<DocsSecurity />} />
+                    <Route path="api" element={<DocsApi />} />
+                  </Route>
+                </Routes>
+              </ToastProvider>
+            </VerticalProvider>
+          </PersonaProvider>
+        </DemoModeProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

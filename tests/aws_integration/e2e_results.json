@@ -1,0 +1,130 @@
+{
+  "timestamp": "2026-09-17T23:58:34Z",
+  "tests": {
+    "credential_resolution": {
+      "pass": true,
+      "message": "AWS credentials resolved"
+    },
+    "authentication": {
+      "pass": true,
+      "message": "Authenticated"
+    },
+    "permissions": {
+      "pass": true,
+      "message": "All required permissions verified"
+    },
+    "health_check": {
+      "pass": true,
+      "latency_ms": 86,
+      "message": "Security Hub reachable"
+    },
+    "sync": {
+      "pass": true,
+      "findings_count": 20,
+      "duration_ms": 737,
+      "message": "Synced 20 findings in 737ms"
+    },
+    "finding_structure": {
+      "pass": true,
+      "message": "All required fields present"
+    },
+    "severity_distribution": {
+      "pass": true,
+      "distribution": {
+        "critical": 2,
+        "low": 16,
+        "medium": 2
+      },
+      "message": "{'critical': 2, 'low': 16, 'medium': 2}"
+    },
+    "finding_categories": {
+      "pass": true,
+      "categories": [
+        "arn:aws:guardduty:us-east-1:505467908065:detector",
+        "security-control"
+      ],
+      "count": 2,
+      "message": "2 categories found"
+    },
+    "traceability": {
+      "pass": true,
+      "traceable_count": 20,
+      "total_count": 20,
+      "percentage": 100.0,
+      "message": "20/20 findings traceable (100%)"
+    },
+    "no_llm_in_connector": {
+      "pass": true,
+      "message": "No LLM references"
+    },
+    "sample_findings": {
+      "pass": true,
+      "samples": [
+        {
+          "title": "Potential credential compromise of Root/Root indicated by a sequence of actions.",
+          "severity": "critical",
+          "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/654eddc77f...",
+          "compliance_status": ""
+        },
+        {
+          "title": "The API GetParameter was invoked using root credentials.",
+          "severity": "low",
+          "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/654eddc77f...",
+          "compliance_status": ""
+        },
+        {
+          "title": "The API UploadPart was invoked from a remote host potentially running Kali Linux.",
+          "severity": "medium",
+          "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/654eddc77f...",
+          "compliance_status": ""
+        },
+        {
+          "title": "The API DescribeStacks was invoked from a Kali Linux computer.",
+          "severity": "medium",
+          "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/654eddc77f...",
+          "compliance_status": ""
+        },
+        {
+          "title": "Amazon S3 Block Public Access was disabled for the S3 bucket resilai-clinic-website-505467908065.",
+          "severity": "low",
+          "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/654eddc77f...",
+          "compliance_status": ""
+        },
+        {
+          "title": "AWS Config should be enabled and use the service-linked role for resource recording",
+          "severity": "critical",
+          "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/...",
+          "compliance_status": "FAILED"
+        },
+        {
+          "title": "Ensure a log metric filter and alarm exist for AWS Config configuration changes",
+          "severity": "low",
+          "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/...",
+          "compliance_status": "FAILED"
+        },
+        {
+          "title": "Ensure a log metric filter and alarm exist for S3 bucket policy changes",
+          "severity": "low",
+          "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/...",
+          "compliance_status": "FAILED"
+        },
+        {
+          "title": "Ensure a log metric filter and alarm exist for disabling or scheduled deletion of customer created CMKs",
+          "severity": "low",
+          "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/...",
+          "compliance_status": "FAILED"
+        },
+        {
+          "title": "Ensure a log metric filter and alarm exist for AWS Management Console authentication failures",
+          "severity": "low",
+          "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/...",
+          "compliance_status": "FAILED"
+        }
+      ]
+    }
+  },
+  "overall_pass": true,
+  "findings_count": 20,
+  "evidence_records": 20,
+  "pipeline_proven": true
+}

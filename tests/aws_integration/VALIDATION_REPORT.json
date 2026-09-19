@@ -1,0 +1,151 @@
+{
+  "generated_at": "2026-09-17T02:35:10.945504+00:00",
+  "aws_environment_status": "DEPLOYED",
+  "aws_environment_status_flag": "AWS_ENVIRONMENT_STATUS=DEPLOYED",
+  "environment_name": "ResilAI-Test (Disposable)",
+  "connector": "aws_security_hub",
+  "capabilities": {
+    "aws_api_reachable": "PROVEN",
+    "connector_sync": "PROVEN",
+    "direct_ec2_api_ingestion": "NOT_IMPLEMENTED",
+    "direct_s3_api_ingestion": "NOT_IMPLEMENTED",
+    "direct_cloudtrail_ingestion": "NOT_IMPLEMENTED",
+    "direct_cloudwatch_ingestion": "NOT_IMPLEMENTED",
+    "telemetry_event": "PROVEN",
+    "evidence_ledger": "PROVEN",
+    "normalized_evidence": "PROVEN",
+    "evidence_adapter": "PROVEN",
+    "tenant_isolation": "PROVEN",
+    "evidence_integrity": "PROVEN",
+    "pdf_hmac": "PROVEN",
+    "credential_encryption": "GAP",
+    "deterministic_engine": "PROVEN"
+  },
+  "layers": [
+    {
+      "layer": "AWS Security Hub API Reachability",
+      "description": "Real finding generated/available in live AWS",
+      "key": "aws_api_reachable",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "AWS Security Hub Ingestion",
+      "description": "ResilAI retrieves findings via boto3 AWSSecurityHubConnector.sync()",
+      "key": "connector_sync",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "AWS EC2 Asset Discovery",
+      "description": "Direct EC2 resource discovery API ingestion",
+      "key": "direct_ec2_api_ingestion",
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "layer": "AWS S3 Direct Discovery",
+      "description": "Direct S3 bucket discovery API ingestion",
+      "key": "direct_s3_api_ingestion",
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "layer": "AWS CloudTrail Direct Ingestion",
+      "description": "Direct CloudTrail audit event stream ingestion",
+      "key": "direct_cloudtrail_ingestion",
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "layer": "AWS CloudWatch Direct Ingestion",
+      "description": "Direct CloudWatch metrics/alarms ingestion",
+      "key": "direct_cloudwatch_ingestion",
+      "status": "NOT_IMPLEMENTED"
+    },
+    {
+      "layer": "TelemetryEvent Ingestion",
+      "description": "Raw event persisted with deduplication",
+      "key": "telemetry_event",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "EvidenceLedger",
+      "description": "Immutable evidence record created with deterministic hash",
+      "key": "evidence_ledger",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "NormalizedEvidenceRecord",
+      "description": "Evidence available for Verification Engine",
+      "key": "normalized_evidence",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "AWSSecurityHubAdapter",
+      "description": "Evidence confidence scoring and adapter registration",
+      "key": "evidence_adapter",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "Tenant Isolation",
+      "description": "Strict org_id scoping across connectors and evidence",
+      "key": "tenant_isolation",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "SHA-256 Evidence Integrity",
+      "description": "Canonical SHA-256 payload verification before evaluation (fails closed)",
+      "key": "evidence_integrity",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "Server-Side PDF HMAC Validation",
+      "description": "Cryptographic HMAC-SHA256 signature and content SHA-256 in executive report",
+      "key": "pdf_hmac",
+      "status": "PROVEN"
+    },
+    {
+      "layer": "Connector Credential Encryption",
+      "description": "At-rest encryption of third-party connector API keys",
+      "key": "credential_encryption",
+      "status": "GAP"
+    },
+    {
+      "layer": "Deterministic Engine Scoring",
+      "description": "Scoring engine remains 100% deterministic with zero LLM imports in path",
+      "key": "deterministic_engine",
+      "status": "PROVEN"
+    }
+  ],
+  "known_gaps": [
+    {
+      "gap": "Direct CloudTrail ingestion",
+      "detail": "Connector reads Security Hub only, not CloudTrail logs directly"
+    },
+    {
+      "gap": "Direct CloudWatch ingestion",
+      "detail": "Connector reads Security Hub only, not CloudWatch metrics/alarms"
+    },
+    {
+      "gap": "Direct EC2/S3 API ingestion",
+      "detail": "Connector reads Security Hub aggregated findings, not individual service APIs"
+    },
+    {
+      "gap": "Real AWS asset discovery",
+      "detail": "`AWSDiscoveryService.discover_from_aws()` returns hardcoded mock data"
+    },
+    {
+      "gap": "Control ID mapping",
+      "detail": "AWS Security Hub findings are ingested but not mapped to NIST CSF / SOC 2 control IDs"
+    },
+    {
+      "gap": "Connector credential encryption",
+      "detail": "CONNECTOR_CREDENTIAL_ENCRYPTION=GAP - `ConnectorManager._encrypt_credentials()` is `json.dumps()`"
+    }
+  ],
+  "invariants_verified": {
+    "llm_never_calculates_scores": true,
+    "llm_never_modifies_findings": true,
+    "llm_never_determines_framework_mappings": true,
+    "connector_never_modifies_scores": true,
+    "evidence_hash_is_deterministic": true,
+    "evidence_integrity_fails_closed": true,
+    "pdf_hmac_secret_never_exposed": true
+  }
+}

@@ -8,7 +8,10 @@ import os
 from datetime import datetime, timezone
 import logging
 
-from google.cloud import storage
+try:
+    from google.cloud import storage
+except ImportError:
+    storage = None
 from app.db.database import SessionLocal
 from app.services.assessment import AssessmentService
 from app.reports.pdf import ProfessionalPDFGenerator
@@ -57,6 +60,9 @@ def export_compliance_report_to_gcs(assessment_id: str, owner_uid: str) -> None:
         # Upload to GCS
         bucket_name = os.getenv("COMPLIANCE_GCS_BUCKET", "resilai-audit-ledgers-staging")
         try:
+            if not storage:
+                logger.warning("google.cloud.storage not available, skipping export")
+                return
             storage_client = storage.Client()
             bucket = storage_client.bucket(bucket_name)
             

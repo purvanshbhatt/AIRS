@@ -67,14 +67,22 @@ class AWSSecurityHubConnector(Connector):
             secret_key = self._credentials.get("aws_secret_access_key", "")
             role_arn = self._credentials.get("role_arn")
 
+            session_kwargs = {"region_name": self._region}
+            if access_key and secret_key:
+                session_kwargs["aws_access_key_id"] = access_key
+                session_kwargs["aws_secret_access_key"] = secret_key
+                if self._credentials.get("aws_session_token"):
+                    session_kwargs["aws_session_token"] = self._credentials["aws_session_token"]
+
             if role_arn:
                 # Assume role via STS
-                sts = boto3.client(
-                    "sts",
-                    aws_access_key_id=access_key,
-                    aws_secret_access_key=secret_key,
-                    region_name=self._region,
-                )
+                sts_kwargs = {"region_name": self._region}
+                if access_key and secret_key:
+                    sts_kwargs["aws_access_key_id"] = access_key
+                    sts_kwargs["aws_secret_access_key"] = secret_key
+                    if self._credentials.get("aws_session_token"):
+                        sts_kwargs["aws_session_token"] = self._credentials["aws_session_token"]
+                sts = boto3.client("sts", **sts_kwargs)
                 assumed = sts.assume_role(
                     RoleArn=role_arn,
                     RoleSessionName=f"resilai-connector-{self.connector_id[:8]}",
@@ -88,11 +96,7 @@ class AWSSecurityHubConnector(Connector):
                     region_name=self._region,
                 )
             else:
-                self._session = boto3.Session(
-                    aws_access_key_id=access_key,
-                    aws_secret_access_key=secret_key,
-                    region_name=self._region,
-                )
+                self._session = boto3.Session(**session_kwargs)
 
             self._hub_client = self._session.client("securityhub")
             # Verify connectivity

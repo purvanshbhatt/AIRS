@@ -33,10 +33,11 @@ function getStoredTheme(): Theme {
 
 interface ThemeProviderProps {
     children: ReactNode;
+    defaultTheme?: Theme;
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-    const [theme, setThemeState] = useState<Theme>(() => (FORCE_LIGHT_THEME ? 'light' : getStoredTheme()));
+export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
+    const [theme, setThemeState] = useState<Theme>(() => (FORCE_LIGHT_THEME ? 'light' : (defaultTheme || getStoredTheme())));
     const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
         theme === 'system' ? getSystemTheme() : theme
     );

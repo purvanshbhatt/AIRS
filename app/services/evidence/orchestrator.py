@@ -20,8 +20,19 @@ class EvidenceOrchestrator:
         """
         new_count = 0
         duplicate_count = 0
+        rejected_count = 0
         
         for evidence in result.evidence:
+            # 1. Authoritative SHA-256 verification: fail closed if payload was tampered
+            if not evidence.verify_integrity():
+                logger.error(
+                    "Evidence integrity verification failed for connector %s, event %s. Failing closed.",
+                    evidence.source_connector,
+                    evidence.event_type,
+                )
+                rejected_count += 1
+                continue
+
             # Check if hash already exists in ledger
             existing = self.db.query(EvidenceLedger).filter_by(evidence_hash=evidence.evidence_hash).first()
             if existing:

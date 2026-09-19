@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -27,24 +27,80 @@ import {
 } from 'lucide-react';
 import { PublicNavbar } from '../components/layout/PublicNavbar';
 import { Footer } from '../components/layout/Footer';
+import { useVertical, detectVerticalFromLocation } from '../contexts/VerticalContext';
+import { getVerticalConfig, isVerticalKey } from '../config/verticals';
+import type { VerticalKey, VerticalConfig } from '../types/vertical';
 
-const personas = [
-  {
-    icon: Shield,
-    title: 'Executive (L1) — "Are we ready?"',
-    description: 'Get a deterministic, board-ready answer to your most critical question without navigating complex technical dashboards or interpreting raw logs.',
-  },
-  {
-    icon: Target,
-    title: 'Manager (L2) — "What changed and what needs action?"',
-    description: 'Understand exactly how your readiness posture drifted, why it matters to the business, and the clear remediation steps required to fix it.',
-  },
-  {
-    icon: TerminalIcon,
-    title: 'IT & Security (L3) — "What evidence proves it?"',
-    description: 'Trace every finding down to the raw evidence block, timestamp, and connector source. No more guesswork — just cryptographic proof of your operational state.',
-  },
-];
+export interface LandingProps {
+  defaultVertical?: VerticalKey;
+}
+
+const getPersonasForVertical = (vertical: VerticalKey) => {
+  if (vertical === 'healthcare') {
+    return [
+      {
+        icon: Shield,
+        title: 'Executive (L1) — "Can we treat patients and stay open?"',
+        description:
+          'Get a deterministic, board-ready answer on clinical continuity and ransomware resilience without interpreting complex technical logs.',
+      },
+      {
+        icon: Target,
+        title: 'Clinic Manager (L2) — "What EHR or backup controls drifted?"',
+        description:
+          'Understand how clinical workstation, Veeam backup, and Entra ID configurations drifted, with concrete remediation paths.',
+      },
+      {
+        icon: TerminalIcon,
+        title: 'Clinical IT / MSP (L3) — "What telemetry proves our readiness?"',
+        description:
+          'Trace findings directly to immutable backup verification, EHR uptime telemetry, and Active Directory audit logs.',
+      },
+    ];
+  }
+  if (vertical === 'legal') {
+    return [
+      {
+        icon: Shield,
+        title: 'Managing Partner (L1) — "Is client confidentiality protected?"',
+        description:
+          'Obtain verifiable confirmation that client matters, financial records, and firm operations withstand ransomware without breach.',
+      },
+      {
+        icon: Target,
+        title: 'Practice Director (L2) — "What document vault risks need action?"',
+        description:
+          'Pinpoint privileged access drift, document management system policy violations, and unencrypted attorney endpoints.',
+      },
+      {
+        icon: TerminalIcon,
+        title: 'Legal IT / MSP (L3) — "What evidence proves ABA compliance?"',
+        description:
+          'Cryptographic evidence connecting NetDocuments access logs, MFA enforcement, and secure repository retention.',
+      },
+    ];
+  }
+  return [
+    {
+      icon: Shield,
+      title: 'Executive (L1) — "Are we ready?"',
+      description:
+        'Get a deterministic, board-ready answer to your most critical question without navigating complex technical dashboards or interpreting raw logs.',
+    },
+    {
+      icon: Target,
+      title: 'Manager (L2) — "What changed and what needs action?"',
+      description:
+        'Understand exactly how your readiness posture drifted, why it matters to the business, and the clear remediation steps required to fix it.',
+    },
+    {
+      icon: TerminalIcon,
+      title: 'IT & Security (L3) — "What evidence proves it?"',
+      description:
+        'Trace every finding down to the raw evidence block, timestamp, and connector source. No more guesswork — just cryptographic proof of your operational state.',
+    },
+  ];
+};
 
 const loopSteps = [
   { title: 'CONNECT', description: 'Connect the security and operational systems your organization already uses.', icon: Layers },
@@ -54,17 +110,91 @@ const loopSteps = [
 ];
 
 
-export default function Landing() {
-  const navigate = useNavigate();
+export default function Landing({ defaultVertical }: LandingProps = {}) {
+  let navigate: ReturnType<typeof useNavigate> | undefined;
+  try {
+    navigate = useNavigate();
+  } catch {
+    // Graceful fallback if outside router
+  }
+
+  let locationSearch = '';
+  let locationPathname = '';
+  try {
+    const loc = useLocation();
+    locationSearch = loc.search;
+    locationPathname = loc.pathname;
+  } catch {
+    // Outside Router
+  }
+
   const { signInAsDemo, clearError } = useAuth();
+
+  const detectedFromRoute = useMemo(() => {
+    return detectVerticalFromLocation({
+      search: locationSearch,
+      pathname: locationPathname,
+    });
+  }, [locationSearch, locationPathname]);
+
+  let vContext: ReturnType<typeof useVertical> | undefined;
+  try {
+    vContext = useVertical();
+  } catch {
+    // Graceful fallback when rendered outside VerticalProvider
+  }
+
+  const effectiveVertical: VerticalKey = useMemo(() => {
+    // 1. Query parameter (?vertical=...) has highest precedence
+    if (detectedFromRoute.source === 'query') {
+      return detectedFromRoute.vertical;
+    }
+    // 2. Explicit prop defaultVertical (e.g. from <Route path="/healthcare" ...>)
+    if (defaultVertical && isVerticalKey(defaultVertical)) {
+      return defaultVertical;
+    }
+    // 3. Path prefix (/healthcare, /legal, /general)
+    if (detectedFromRoute.source === 'path') {
+      return detectedFromRoute.vertical;
+    }
+    // 4. From VerticalContext (subdomain or active state)
+    if (vContext?.currentVertical) {
+      return vContext.currentVertical;
+    }
+    // 5. Default fallback
+    return 'general';
+  }, [detectedFromRoute, defaultVertical, vContext?.currentVertical]);
+
+  const effectiveConfig: VerticalConfig = useMemo(() => {
+    if (vContext && vContext.currentVertical === effectiveVertical) {
+      return vContext.config;
+    }
+    return getVerticalConfig(effectiveVertical);
+  }, [vContext, effectiveVertical]);
+
+  const currentVertical = effectiveVertical;
+  const config = effectiveConfig;
+
+  useEffect(() => {
+    if (vContext?.setVertical && vContext.currentVertical !== effectiveVertical) {
+      vContext.setVertical(effectiveVertical);
+    }
+  }, [effectiveVertical, vContext]);
 
   const handleEnterSandbox = async () => {
     clearError();
     try {
       await signInAsDemo();
-      navigate("/morning-brief", { replace: true });
     } catch {
-      navigate("/morning-brief", { replace: true });
+      // ignore
+    } finally {
+      localStorage.setItem('resilai_demo_user', 'true');
+      localStorage.setItem('resilai_selected_org_id', config.demoOrgId);
+      if (navigate) {
+        navigate(`/morning-brief?vertical=${currentVertical}`, { replace: true });
+      } else if (typeof window !== 'undefined') {
+        window.location.href = `/morning-brief?vertical=${currentVertical}`;
+      }
     }
   };
 
@@ -72,14 +202,55 @@ export default function Landing() {
   const [copied, setCopied] = useState(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
 
-  const [telemetryLogs, setTelemetryLogs] = useState<string[]>([
-    `[2026-05-23T21:15:23Z] INITIALIZING TELEMETRY STREAM...`,
-    `[2026-05-23T21:15:24Z] CONNECTED TO DAEMON // HOST: api.resilai.io`,
-    `[2026-05-23T21:15:25Z] SYNCHRONIZING NIST CSF 2.0 CONTROL SETS...`
-  ]);
+  const initialLogs =
+    currentVertical === 'healthcare'
+      ? [
+          `[2026-05-23T21:15:23Z] INITIALIZING HEALTHCARE TELEMETRY STREAM...`,
+          `[2026-05-23T21:15:24Z] CONNECTED TO CLINICAL DAEMON // HOST: api.resilai.io`,
+          `[2026-05-23T21:15:25Z] SYNCHRONIZING HIPAA & NIST CSF 2.0 CONTROL SETS...`,
+        ]
+      : currentVertical === 'legal'
+      ? [
+          `[2026-05-23T21:15:23Z] INITIALIZING LEGAL PRACTICE TELEMETRY STREAM...`,
+          `[2026-05-23T21:15:24Z] CONNECTED TO DOCUMENT VAULT DAEMON // HOST: api.resilai.io`,
+          `[2026-05-23T21:15:25Z] SYNCHRONIZING ABA 477R & SOC 2 CONTROL SETS...`,
+        ]
+      : [
+          `[2026-05-23T21:15:23Z] INITIALIZING TELEMETRY STREAM...`,
+          `[2026-05-23T21:15:24Z] CONNECTED TO DAEMON // HOST: api.resilai.io`,
+          `[2026-05-23T21:15:25Z] SYNCHRONIZING NIST CSF 2.0 CONTROL SETS...`,
+        ];
+
+  const [telemetryLogs, setTelemetryLogs] = useState<string[]>(initialLogs);
 
   useEffect(() => {
-    const events = [
+    setTelemetryLogs(initialLogs);
+  }, [currentVertical]);
+
+  useEffect(() => {
+    const healthcareEvents = [
+      () => `[${new Date().toISOString()}] [INFO] Checked Epic EHR Clinical API - 200 OK`,
+      () => `[${new Date().toISOString()}] [SYNC] Synced Veeam Cloud Connect Immutable Snapshot ID v-9481`,
+      () => `[${new Date().toISOString()}] [POLL] Fetched clinical workstation posture: Score=86.5%`,
+      () => `[${new Date().toISOString()}] [INFO] HIPAA Security Rule §164.312(a)(2)(iv) verified`,
+      () => `[${new Date().toISOString()}] [WARN] Endpoint latency drift: Clinic Workstation 04 (3.2d since scan)`,
+      () => `[${new Date().toISOString()}] [SYNC] Microsoft 365 Entra ID conditional access policy matched`,
+      () => `[${new Date().toISOString()}] [INFO] Re-validating PACS imaging recovery SLA...`,
+      () => `[${new Date().toISOString()}] [SUCCESS] All 340 clinical telemetry loops validated`,
+    ];
+
+    const legalEvents = [
+      () => `[${new Date().toISOString()}] [INFO] Checked NetDocuments Vault API - 200 OK`,
+      () => `[${new Date().toISOString()}] [SYNC] Synced ABA Formal Opinion 477R Control ID L-204`,
+      () => `[${new Date().toISOString()}] [POLL] Fetched partner laptop disk encryption posture: Score=89.0%`,
+      () => `[${new Date().toISOString()}] [INFO] Elite 3E practice management ledger sync completed`,
+      () => `[${new Date().toISOString()}] [WARN] Privileged share link expiration warning: 24h remaining`,
+      () => `[${new Date().toISOString()}] [SYNC] Azure AD MFA enforcement matched for litigation team`,
+      () => `[${new Date().toISOString()}] [INFO] Re-validating client document vault backup snapshot...`,
+      () => `[${new Date().toISOString()}] [SUCCESS] All 340 firm telemetry loops validated`,
+    ];
+
+    const generalEvents = [
       () => `[${new Date().toISOString()}] [INFO] Checked /health/system - 200 OK`,
       () => `[${new Date().toISOString()}] [SYNC] Synced MITRE ATT&CK Control ID T1548`,
       () => `[${new Date().toISOString()}] [POLL] Fetched latest GHI domain metrics: Score=82.0%`,
@@ -87,8 +258,15 @@ export default function Landing() {
       () => `[${new Date().toISOString()}] [WARN] Endpoint latency drift warning: min 14d, current 3.0d`,
       () => `[${new Date().toISOString()}] [SYNC] Telemetry logs matched OWASP AI Top 10 guidelines`,
       () => `[${new Date().toISOString()}] [INFO] Re-validating FastAPI core runtime status...`,
-      () => `[${new Date().toISOString()}] [SUCCESS] All 340 engineering log loops validated`
+      () => `[${new Date().toISOString()}] [SUCCESS] All 340 engineering log loops validated`,
     ];
+
+    const events =
+      currentVertical === 'healthcare'
+        ? healthcareEvents
+        : currentVertical === 'legal'
+        ? legalEvents
+        : generalEvents;
 
     const interval = setInterval(() => {
       setTelemetryLogs(prev => {
@@ -101,7 +279,7 @@ export default function Landing() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [currentVertical]);
 
   useEffect(() => {
     if (logContainerRef.current) {
@@ -143,7 +321,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 transition-colors duration-300 flex flex-col">
       {/* Unified Public Navigation */}
-      <PublicNavbar transparent />
+      <PublicNavbar transparent currentVertical={effectiveVertical} />
 
       {/* Hero Section */}
       <section className="relative pt-16 sm:pt-20 pb-24 overflow-hidden px-4 sm:px-6 lg:px-8">
@@ -157,9 +335,14 @@ export default function Landing() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-950/40 text-primary-700 dark:text-primary-300 rounded-full text-xs font-semibold tracking-wide border border-primary-100 dark:border-primary-900/50"
+              data-testid="hero-badge"
             >
               <Zap className="w-3.5 h-3.5" />
-              Deterministic Verification for Healthcare
+              {currentVertical === 'healthcare'
+                ? 'Deterministic Verification for Healthcare'
+                : currentVertical === 'legal'
+                ? 'Deterministic Verification for Law Firms'
+                : 'Deterministic Verification · AI Incident Readiness'}
             </motion.div>
 
             <motion.h1
@@ -167,21 +350,56 @@ export default function Landing() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-slate-900 dark:text-slate-50"
+              data-testid="landing-headline"
             >
-              Know if your healthcare organization is ready <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-emerald-500 dark:from-primary-400 dark:to-emerald-300">
-                before an incident happens.
-              </span>
+              {config.headline}
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed"
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="text-xl sm:text-2xl font-semibold text-primary-600 dark:text-primary-400 leading-snug"
+              data-testid="landing-core-question"
             >
-              ResilAI continuously tests whether your organization's most critical security and operational controls actually work—and maintains the mathematical evidence proving it.
+              {config.coreQuestion}
             </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed"
+            >
+              {currentVertical === 'healthcare'
+                ? "ResilAI continuously tests whether your clinic's most critical EHR, backup, and clinical operational controls actually work—and maintains the mathematical evidence proving you can keep caring for patients."
+                : currentVertical === 'legal'
+                ? "ResilAI continuously tests whether your firm's critical client document repositories, partner credentials, and privileged workflows actually work—and maintains the evidence proving client confidentiality is preserved."
+                : "Universal incident readiness, deterministic scoring, evidence pipeline, and business impact translation without healthcare-only constraints. ResilAI continuously tests whether your organization's most critical cloud, identity, and SaaS controls actually work—and maintains mathematical evidence proving it."}
+            </motion.p>
+
+            {/* Focus Areas */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="pt-2 space-y-2"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                Priority Focus Areas ({config.displayName})
+              </p>
+              <div className="flex flex-wrap gap-2" data-testid="landing-focus-areas">
+                {config.focusAreas.map((area, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    {area}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 15 }}
@@ -190,7 +408,7 @@ export default function Landing() {
               className="flex flex-wrap items-center gap-4 pt-4"
             >
               <Link
-                to="/login"
+                to={currentVertical === 'general' ? '/login' : `/login?vertical=${currentVertical}`}
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-br from-primary-600 to-emerald-500 text-white font-semibold rounded-2xl hover:shadow-lg hover:shadow-primary-500/25 transition-all duration-300 active:scale-[0.98]"
               >
                 Get Started
@@ -204,10 +422,11 @@ export default function Landing() {
               </a>
               <button
                 onClick={handleEnterSandbox}
-                className="inline-flex items-center gap-2 px-5 py-3.5 text-slate-600 dark:text-slate-400 font-medium rounded-2xl hover:text-slate-900 dark:hover:text-slate-100 transition-all text-sm"
+                className="inline-flex items-center gap-2 px-5 py-3.5 text-slate-600 dark:text-slate-400 font-medium rounded-2xl hover:text-slate-900 dark:hover:text-slate-100 transition-all text-sm cursor-pointer"
+                data-testid="hero-demo-cta"
               >
                 <Sparkles className="w-4 h-4 text-amber-500" />
-                Explore Demo
+                Explore Demo ({config.demoOrgName})
               </button>
             </motion.div>
           </div>
@@ -381,7 +600,7 @@ export default function Landing() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {personas.map((persona, i) => (
+            {getPersonasForVertical(currentVertical).map((persona, i) => (
               <motion.div
                 key={persona.title}
                 initial={{ opacity: 0, y: 20 }}
@@ -415,10 +634,18 @@ export default function Landing() {
                 AI-Powered Executive Summaries
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                Executive-Ready Audits
+                {currentVertical === 'healthcare'
+                  ? 'Clinical Continuity Audits'
+                  : currentVertical === 'legal'
+                  ? 'Firm & Client Confidentiality Audits'
+                  : 'Executive-Ready Audits'}
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                Generate comprehensive PDF reports that executives and auditors trust. Includes compliance thermal maps, score charts, and real-time posture indicators.
+                {currentVertical === 'healthcare'
+                  ? 'Generate comprehensive audit reports that healthcare boards, insurers, and regulators trust. Verifies ransomware recovery SLAs, EHR resilience, and immutable backup integrity.'
+                  : currentVertical === 'legal'
+                  ? 'Generate comprehensive audit reports that managing partners, clients, and underwriters trust. Verifies document vault isolation, attorney access controls, and ABA compliance.'
+                  : 'Generate comprehensive PDF reports that executives and auditors trust. Includes compliance thermal maps, score charts, and real-time posture indicators.'}
               </p>
               <ul className="space-y-3.5">
                 {[
@@ -446,7 +673,9 @@ export default function Landing() {
                       <Shield className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-white font-bold text-sm tracking-wide">ResilAI Readiness Verification</p>
+                      <p className="text-white font-bold text-sm tracking-wide">
+                        ResilAI Readiness Verification — {config.displayName}
+                      </p>
                       <p className="text-white/80 text-xs">Readiness Intelligence OS</p>
                     </div>
                   </div>
@@ -466,20 +695,16 @@ export default function Landing() {
 
                   {/* Domain bars */}
                   <div className="space-y-3.5">
-                    {[
-                      { name: 'Telemetry & Logging', score: 92 },
-                      { name: 'Identity & Access Visibility', score: 88 },
-                      { name: 'Detection Coverage', score: 81 },
-                    ].map((d) => (
-                      <div key={d.name}>
+                    {config.criticalSystems.slice(0, 3).map((sys, idx) => (
+                      <div key={sys}>
                         <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">
-                          <span>{d.name}</span>
-                          <span className="font-bold">{d.score}%</span>
+                          <span>{sys}</span>
+                          <span className="font-bold">{92 - idx * 5}%</span>
                         </div>
                         <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary-500 rounded-full"
-                            style={{ width: `${d.score}%` }}
+                            style={{ width: `${92 - idx * 5}%` }}
                           />
                         </div>
                       </div>
@@ -493,9 +718,19 @@ export default function Landing() {
                         !
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-amber-950 dark:text-amber-300">Identity Provider Idle Timeouts</p>
+                        <p className="text-xs font-bold text-amber-950 dark:text-amber-300">
+                          {currentVertical === 'healthcare'
+                            ? 'Immutable Backup Air-Gap Verification'
+                            : currentVertical === 'legal'
+                            ? 'Privileged Document Vault Access Drift'
+                            : 'Identity Provider Idle Timeouts'}
+                        </p>
                         <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
-                          Idle sessions exceed 15-minute SLA limits inside Okta configurations.
+                          {currentVertical === 'healthcare'
+                            ? 'Veeam Cloud Connect repository sync delayed by 2 hours on EHR imaging archive.'
+                            : currentVertical === 'legal'
+                            ? 'Unrestricted share link active on confidential litigation folder in NetDocuments.'
+                            : 'Idle sessions exceed 15-minute SLA limits inside Okta configurations.'}
                         </p>
                       </div>
                     </div>
@@ -515,14 +750,22 @@ export default function Landing() {
             Deterministic verification in minutes
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-            Verify Your Operational Readiness Posture
+            {currentVertical === 'healthcare'
+              ? 'Verify Your Clinic’s Operational Readiness'
+              : currentVertical === 'legal'
+              ? 'Verify Your Firm’s Incident Readiness Posture'
+              : 'Verify Your Operational Readiness Posture'}
           </h2>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Verify whether the controls protecting your critical operations actually work. Establish an isolated workspace or explore our pre-populated clinic demo.
+            {currentVertical === 'healthcare'
+              ? 'Verify whether the controls protecting your clinic operations and patient care actually work. Explore the pre-populated Northstar Family Health demo.'
+              : currentVertical === 'legal'
+              ? 'Verify whether the controls protecting your client documents and practice management systems actually work. Explore the pre-populated Northstar & Cole LLP demo.'
+              : 'Verify whether the controls protecting your critical operations actually work. Establish an isolated workspace or explore our pre-populated demo.'}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link
-              to="/login"
+              to={currentVertical === 'general' ? '/login' : `/login?vertical=${currentVertical}`}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-br from-primary-600 to-emerald-500 text-white text-base font-semibold rounded-2xl hover:shadow-lg hover:shadow-primary-500/25 transition-all active:scale-[0.98]"
             >
               Get Started
@@ -530,10 +773,11 @@ export default function Landing() {
             </Link>
             <button
               onClick={handleEnterSandbox}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-base font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-all active:scale-[0.98]"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-base font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-all active:scale-[0.98] cursor-pointer"
+              data-testid="bottom-demo-cta"
             >
               <Sparkles className="w-4 h-4 text-amber-500" />
-              Explore Demo Sandbox
+              Explore Demo Sandbox ({config.demoOrgName})
             </button>
           </div>
         </div>

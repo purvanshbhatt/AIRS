@@ -59,7 +59,22 @@ Base = declarative_base()
 
 
 def get_db():
-    """Dependency to get primary database session (Read/Write)."""
+    """Dependency to get primary database session (Read/Write).
+    
+    In AWS Standby mode prior to explicit disaster recovery restoration,
+    state-dependent endpoints fail safely with 503 Service Unavailable.
+    """
+    if getattr(settings, "is_aws_standby_locked", False):
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": {
+                    "code": "DISASTER_RECOVERY_DATABASE_NOT_READY",
+                    "message": "Disaster recovery standby is active. Database restoration from S3 backup has not yet been activated.",
+                }
+            }
+        )
     db = SessionLocal()
     try:
         yield db
@@ -68,8 +83,20 @@ def get_db():
 
 def get_replica_db():
     """Dependency to get replica database session (Read-Only)."""
+    if getattr(settings, "is_aws_standby_locked", False):
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": {
+                    "code": "DISASTER_RECOVERY_DATABASE_NOT_READY",
+                    "message": "Disaster recovery standby is active. Database restoration from S3 backup has not yet been activated.",
+                }
+            }
+        )
     db = ReplicaSessionLocal()
     try:
         yield db
     finally:
         db.close()
+

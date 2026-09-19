@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getOrganizations } from '../api';
+import { detectVerticalFromLocation } from '../contexts/VerticalContext';
 import type { Organization } from '../types';
 
 export interface ActiveOrgState {
@@ -35,15 +36,63 @@ export function useActiveOrg(): ActiveOrgState {
 
   const fetchOrgs = useCallback(async () => {
     if (isDemo) {
-      const demoOrg = {
-        id: 'demo-health-org',
-        name: 'Acme Health Systems (Demo)',
-        industry: 'Healthcare',
-        created_at: new Date().toISOString(),
-        owner_uid: 'demo-executive-uid',
-      } as unknown as Organization;
-      setOrgs([demoOrg]);
-      setSelectedOrgId('demo-health-org');
+      const savedOrgId = typeof window !== 'undefined' ? localStorage.getItem('resilai_selected_org_id') : '';
+      let activeDemoOrgId = savedOrgId || '';
+
+      if (!activeDemoOrgId) {
+        try {
+          const detected = detectVerticalFromLocation();
+          if (detected.vertical === 'healthcare' && detected.source !== 'default') {
+            activeDemoOrgId = 'demo-northstar-health';
+          } else if (detected.vertical === 'legal' && detected.source !== 'default') {
+            activeDemoOrgId = 'demo-northstar-cole';
+          } else if (detected.vertical === 'general' && detected.source !== 'default') {
+            activeDemoOrgId = 'demo-acme-technologies';
+          } else {
+            activeDemoOrgId = 'demo-health-org';
+          }
+        } catch {
+          activeDemoOrgId = 'demo-health-org';
+        }
+      }
+
+      const allDemoOrgs: Organization[] = [
+        {
+          id: 'demo-acme-technologies',
+          name: 'Acme Technologies',
+          industry: 'Enterprise & Cloud',
+          created_at: new Date().toISOString(),
+          owner_uid: 'demo-executive-uid',
+        } as unknown as Organization,
+        {
+          id: 'demo-northstar-health',
+          name: 'Northstar Family Health',
+          industry: 'Healthcare',
+          created_at: new Date().toISOString(),
+          owner_uid: 'demo-executive-uid',
+        } as unknown as Organization,
+        {
+          id: 'demo-northstar-cole',
+          name: 'Northstar & Cole LLP',
+          industry: 'Legal',
+          created_at: new Date().toISOString(),
+          owner_uid: 'demo-executive-uid',
+        } as unknown as Organization,
+      ];
+
+      if (activeDemoOrgId === 'demo-health-org' || !allDemoOrgs.some(o => o.id === activeDemoOrgId)) {
+        allDemoOrgs.unshift({
+          id: 'demo-health-org',
+          name: 'Acme Health Systems (Demo)',
+          industry: 'Healthcare',
+          created_at: new Date().toISOString(),
+          owner_uid: 'demo-executive-uid',
+        } as unknown as Organization);
+      }
+
+      const activeDemo = allDemoOrgs.find(o => o.id === activeDemoOrgId) || allDemoOrgs[0];
+      setOrgs(allDemoOrgs);
+      setSelectedOrgId(activeDemo.id);
       setLoading(false);
       return;
     }
@@ -103,7 +152,7 @@ export function useActiveOrg(): ActiveOrgState {
 
   const orgId = activeOrg?.id || (isDemo ? 'demo-health-org' : '');
   const orgName = isDemo
-    ? 'Acme Health Systems'
+    ? (activeOrg?.name || 'Acme Health Systems')
     : (activeOrg?.name || (user?.email ? `${user.email.split('@')[0]}'s Workspace` : ''));
 
   return {
