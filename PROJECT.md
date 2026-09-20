@@ -1,150 +1,123 @@
-# Project: ResilAI Authenticated Product Experience Refactoring
+# Project: ResilAI Multi-Vertical Positioning Experiment (Staging Only)
 
 ## Architecture
-ResilAI is an executive-first healthcare incident readiness platform. The authenticated product experience is built on:
-- **Core Narrative Flow**: Answers *"Are we ready for today?"* via 5 progressive stages:
-  1. *Current Readiness* (Macro status & Readiness Score Arc)
-  2. *Why* (Overnight verification summary & delta explanation)
-  3. *What Needs Attention* (Triage of active gaps & incident risks)
-  4. *What Should We Do* (Executive / IT recommended actions & 1-click remediation)
-  5. *How Can We Prove It* (Verifiable evidence links, connector sync status, SHA-256 cryptographic provenance)
-- **4-Tier Progressive Disclosure Model**:
-  1. *Tier 1 (Executive Explanation)*: Plain-English business summary suitable for Managing Partners (<2 min/day).
-  2. *Tier 2 (Business Impact)*: Operational consequences, patient appointment disruption risk, liability exposure.
-  3. *Tier 3 (Technical Evidence)*: Inspected system controls, monitored telemetry endpoints, raw configuration payloads.
-  4. *Tier 4 (Cryptographic Provenance)*: SHA-256 evidence hash, connector origin, exact UTC execution timestamp.
-- **Backend Intelligence Only**: No client-side LLM calls, synthetic intelligence, or frontend score math. All metrics, executive explanations, and reports are served by backend deterministic engines (`ReadinessEngine`, `ExplainabilityEngine`, Report APIs).
-- **Stitch Design System Tokens (`5374718910617390721`)**: Obsidian canvas `#0b1326`, surface container hierarchy `#131b2e` to `#2d3449`, text `#dae2fd`/`#bbcabf`, accents `#10B981` (Ready Emerald), `#F59E0B` (Drift Amber), `#EF4444` (Critical Red), Lucide icons.
-
----
+- **Multi-Vertical Architecture**:
+  - Frontend detects vertical context via `VerticalContext` supporting:
+    1. Subdomain detection (`healthcare.staging.resilai.org`, `legal.staging.resilai.org`, `staging.resilai.org`).
+    2. URL path fallback (`/healthcare`, `/legal`, `/`).
+    3. URL query parameter fallback (`?vertical=healthcare`, `?vertical=legal`, `?vertical=general`).
+  - Synchronous static fallback in `frontend/src/config/verticals.ts` ensures resilience even if backend public config API is unavailable.
+- **Backend Public Config**:
+  - `GET /api/public/product-config` exposes display metadata, industry labels, headlines, questions, focus areas, and demo org IDs.
+- **Architectural Invariant (Shared Deterministic Engine)**:
+  - Mathematical readiness calculation remains strictly centralized in `app/services/scoring.py` (`calculate_readiness_delta`).
+  - Connectors (`SplunkConnector`, `EvidenceAdapter`) and control registries remain shared.
+  - Zero duplicate scoring engines. Only narrative translations (`app/services/explanation.py`) and demo organization personas adapt to verticals.
+- **Simulated Demo Sandbox**:
+  - 3 Distinct Demo Personas:
+    1. General: Acme Technologies (`demo-acme-technologies`, Alex Chen - VP Eng, Cloud/SaaS/Identity).
+    2. Healthcare: Northstar Family Health (`demo-northstar-health`, Dr. Evelyn Reed - CMO, EHR/Veeam/Workstations).
+    3. Legal: Northstar & Cole LLP (`demo-northstar-cole`, Marcus Cole - Managing Partner, NetDocuments/Elite 3E/Partner Laptops).
+  - Unlocked organization switcher dropdown in `ReadinessHeader.tsx` by providing all 3 demo tenants when in demo mode.
+  - Hardened mutation guard in `api.ts:141` (`|| localStorage.getItem('resilai_demo_user') === 'true'`) to guarantee 100% read-only sandbox isolation.
+  - Global amber sticky banner (`bg-amber-500/10 border-b border-amber-500/20 text-amber-900 dark:text-amber-200`) across all demo routes in `AppLayout.tsx`.
+- **Staging Deployment Isolation**:
+  - Firebase Hosting targets `resilai-staging` and `staging` serving `frontend/dist-staging` (`staging.resilai.org`).
+  - Cloud Run target `airs-api-staging`.
+  - Zero modifications or deployments to production (`resilai-marketing`, `resilai.org`, `airs-api`).
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| F1 | Narrative Dashboard Hierarchy | 5-stage narrative layout on `TodayPage.tsx`: Readiness → Why → Needs Attention → Actions → Provenance | M1 | R1, Survey 1 |
-| F2 | Stitch Design Tokens & Visual Hierarchy | Apply obsidian/emerald/amber Stitch palette, eliminate nested card borders & noise | M1 | R1, Survey 1 |
-| F3 | 4-Tier Progressive Disclosure Cards & AIDrawer | Unified 4-tier model (Executive -> Impact -> Technical -> SHA-256) across cards and `AIDrawer.tsx` | M1 | R2, Survey 1 |
-| F4 | 6-Step Guided Onboarding Workflow | Persistent, resumable, skippable 6-step walkthrough (Readiness, Connect, Verify, Needs Attention, Recovery, Board Report) | M2 | R3, Survey 2 |
-| F5 | Persistent Getting Started Triggers | Header & sidebar controls to re-launch Getting Started at any time; per-org completion persistence | M2 | R3, Survey 2 |
-| F6 | Contextual Demo Mode Guidance & Disclaimers | Prominent "DEMO ENVIRONMENT (SIMULATED DATA)" & staged contextual guidance across Today, Triage, Recovery, Docs, Governance | M2 | R4, Survey 2 |
-| F7 | "Explain for Leadership" Backend Integration | Dual Executive vs Technical presentation consuming backend `/api/v1/clinic/{org_id}/explain` & `DailyReadinessReport` without client LLMs | M3 | R5, Survey 2 |
-| F8 | Report Center Backend Integration & History | Connect Reports to `/api/v1/reports`, `/api/v1/reports/generate`, `/api/v1/reports/{id}/download`, live progress, timestamps | M4 | R6, Survey 2 |
-| F9 | Documents Vault Modernization | Transform Documents into Evidence-Backed Readiness & Audit Vault matching Stitch templates | M5 | R7, Survey 2 |
-| F10 | Governance Framework Alignment Framing | Frame frameworks (NIST CSF 2.0, NIST AI RMF, CIS, SOC 2, ISO 27001, HIPAA) as "Readiness evidence aligned to..." | M5 | R7, Survey 2 |
-| F11 | Purge Legacy Phrasing | Remove legacy V1 "five domains" / questionnaire assessment phrasing across all components | M5 | R7, Survey 2 |
-| F12 | Design Consistency & Icon Standardization | Migrate all Material Symbols font icons to `lucide-react`, unify badge styling | M6 | R8, Survey 3 |
-| F13 | Mobile Drawer & Responsive Layout (375px) | Fix `AppSidebar.tsx` hidden class in mobile drawer, ensure horizontal table scroll wrappers | M6 | R8, Survey 3 |
-| F14 | WCAG AA Accessibility & Motion Support | Visible focus rings, ARIA labels on icon buttons, `@media (prefers-reduced-motion)` support | M6 | R8, Survey 3 |
-| F15 | Comprehensive 4-Tier E2E Test Suite | 4-tier opaque-box test suite (Tiers 1-4) + Tier 5 adversarial hardening (124 passed tests) | E2E/M7 | R8, Survey 3 |
-
----
+| 1 | Subdomain Vertical Detection | Parse hostname for `healthcare.staging.resilai.org`, `legal.staging.resilai.org`, `staging.resilai.org` | M1 | survey 1 & 3 |
+| 2 | Path & Query Vertical Fallback | Route `/healthcare`, `/legal`, and query params `?vertical=healthcare`, `?vertical=legal` | M1 | survey 1 |
+| 3 | VerticalContext Provider & Hook | Centralized state provider & `useVertical()` hook with TypeScript interfaces | M1 | survey 1 |
+| 4 | Public Product Config Endpoint | `GET /api/public/product-config` returning display metadata and static frontend fallback | M1 | survey 3 |
+| 5 | General Platform Landing Experience | Universal positioning headline, question, focus areas (Cloud, SaaS, Identity) | M2 | survey 1 |
+| 6 | Healthcare Landing Experience | Healthcare positioning headline, ransomware question, focus areas (EHR, Veeam, M365) | M2 | survey 1 |
+| 7 | Legal Landing Experience | Law firm positioning headline, client data question, focus areas (DMS, partner access, ABA) | M2 | survey 1 |
+| 8 | Navbar & CTA Vertical Routing | Navigation links and demo CTAs preserve vertical context across public site | M2 | survey 1 |
+| 9 | Multi-Vertical Demo Persona Registry | `demoPersonas.ts` defining Acme Technologies, Northstar Family Health, Northstar & Cole LLP | M3 | survey 2 |
+| 10 | Demo Organization Switcher Activation | Return all 3 demo tenants in `useActiveOrg.ts` to unlock org switcher in `ReadinessHeader.tsx` | M3 | survey 2 |
+| 11 | Demo Auth & Report Resolution | Synchronize user persona and resolve vertical-specific `DailyReadinessReport` in demo mode | M3 | survey 2 |
+| 12 | Demo Sandbox Mutation Guard Hardening | Check `resilai_demo_user` in `api.ts:141` to prevent demo mutation requests | M3 | survey 2 |
+| 13 | Global Amber Demo Banner | Persistent sticky amber demo banner across all demo routes in `AppLayout.tsx` & parameterized contextual banner | M3 | survey 2 |
+| 14 | Frontend Test Suite Harmonization | Update banner matchers in `SimulatedTelemetryBanner` and mock timing so `npm test` achieves 100% pass | M3 | survey 1 & 2 |
+| 15 | Scoring Engine Invariant Verification | Verify `scoring.py`, `calculate_readiness_delta`, AST LLM isolation, zero duplicate engines | M4 | survey 3 |
+| 16 | Backend Pytest Harness Cleanliness | Update `pytest.ini:norecursedirs` for `scratch/` and verify pytest passing with 0 regressions | M4 | survey 3 |
+| 17 | Staging-Only Build Verification | Run `tsc -b && vite build --mode staging` cleanly outputting `dist-staging/` | M5 | survey 1 & 3 |
+| 18 | Production Isolation Verification | Verify Firebase `marketing` and Cloud Run `airs-api` production targets remain untouched | M5 | survey 3 |
+| 19 | E2E Test Suite (Tiers 1-4) | Comprehensive opaque-box test suite verifying all features across all tiers | M6 | testing track |
+| 20 | Adversarial Coverage Hardening (Tier 5) | White-box stress testing, gap analysis, and adversarial test cases | M6 | project pattern |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| E2E | E2E Testing Track Infrastructure & Test Suites | Setup Vitest test runner, test utilities, Tier 1-4 test suites, publish `TEST_READY.md` | none | DONE |
-| M1 | Visual Identity & Today/Dashboard Narrative Overhaul | Refactor `TodayPage.tsx`, `StatusCard.tsx`, `AIDrawer.tsx`, Stitch styling (F1, F2, F3) | none | DONE |
-| M2 | Guided 6-Step Onboarding & Contextual Demo Guidance | 6-step onboarding wizard, persistent launcher, demo banners across primary pages (F4, F5, F6) | none | DONE |
-| M3 | Leadership Simplified Explanation & Dual Presentation | "Explain for leadership" modals/drawers consuming backend contracts (F7) | M1 | DONE |
-| M4 | Report Center Backend Integration & History Management | Wire Reports page to backend report endpoints, generation progress & history (F8) | none | DONE |
-| M5 | Documents Vault & Governance Modernization | Transform Documents into Audit Vault, modernize Governance with framework alignment framing, purge 5-domain copy (F9, F10, F11) | none | DONE |
-| M6 | Design Consistency, A11y & Mobile Responsiveness | Fix mobile sidebar drawer, migrate Lucide icons, WCAG AA ARIA labels & focus, 375px support (F12, F13, F14) | none | DONE |
-| M7 | Final Integration, 100% E2E Pass & Coverage Hardening | Run all test tiers (Tiers 1-4), adversarial hardening, verify TypeScript build (F15) | E2E, M1-M6 | DONE |
-
----
+| M1 | Host- and Route-Aware Vertical Architecture | `VerticalContext`, subdomain/path/query detection, `GET /api/public/product-config`, static fallback | Survey | DONE (types, config, context, backend public endpoint) |
+| M2 | Distinct Landing & Positioning Experiences | General, Healthcare, Legal headlines, questions, focus areas in `Landing.tsx` & `PublicNavbar.tsx` | M1 | DONE (copy, positioning, non-looping router synchronization) |
+| M3 | Vertical-Aware Demo Sandbox, Personas & Banners | `demoPersonas.ts`, `useActiveOrg`, `AuthContext`, `api.ts` mutation guard, global amber banner, vitest baseline fix | M1, M2 | IN_PROGRESS |
+| M4 | Shared Deterministic Engine Invariant & Backend Tests | AST LLM isolation tests, shared scoring audit, backend test regression verification | none | PLANNED |
+| M5 | Staging-Only Build, Deployment Isolation & Verification | `dist-staging` build, Firebase staging targets verification, production isolation audit | M1, M2, M3, M4 | PLANNED |
+| M6 | E2E Test Suite Pass & Adversarial Hardening | Pass 100% of E2E tests (Tiers 1-4), then execute Phase 2 adversarial hardening (Tier 5) | M1..M5, TEST_READY | PLANNED |
 
 ## Interface Contracts
-
-### 1. `DailyReadinessReport` & `ExecutiveExplanation` Contract (`src/types/readiness.ts` & `src/api.ts`)
+### `frontend/src/types/vertical.ts` ↔ Components & Hooks
 ```typescript
-export interface ExecutiveExplanation {
-  status: 'ready' | 'attention_required' | 'critical' | 'unknown';
-  business_label: string;
-  technical_label: string;
-  what_it_means: string;
-  why_it_matters: string;
-  what_to_do_next: string;
-  evidence_state: string;
-  last_verified_at: string;
-  evidence_hash?: string;
-  source_connector?: string;
-}
+export type VerticalKey = 'general' | 'healthcare' | 'legal';
 
-export interface ReadinessCheckItem {
-  id: string;
-  title: string;
-  severity: 'critical' | 'warning' | 'info' | 'verified';
-  category: 'data_recovery' | 'access_control' | 'device_security' | 'threat_monitoring';
-  explanation: ExecutiveExplanation;
-  raw_telemetry?: Record<string, any>;
-  source_connector: string;
-  last_verified_at: string;
-  evidence_hash: string;
+export interface VerticalConfig {
+  key: VerticalKey;
+  displayName: string;
+  industryLabel: string;
+  tagline: string;
+  headline: string;
+  coreQuestion: string;
+  focusAreas: string[];
+  demoOrgId: string;
+  demoOrgName: string;
+  demoPersonaName: string;
+  demoPersonaRole: string;
+  criticalSystems: string[];
 }
 ```
 
-### 2. Onboarding Workflow Contract (`src/types/onboarding.ts`)
-```typescript
-export type OnboardingStepNumber = 1 | 2 | 3 | 4 | 5 | 6;
-
-export interface OnboardingStepState {
-  currentStep: OnboardingStepNumber;
-  completedSteps: OnboardingStepNumber[];
-  isDismissed: boolean;
-  isCompleted: boolean;
-  mode: 'demo' | 'real';
+### `GET /api/public/product-config` Contract
+- **Method**: `GET`
+- **Path**: `/api/public/product-config`
+- **Query Params**: `vertical` (optional: `general` | `healthcare` | `legal`)
+- **Headers**: `X-ResilAI-Vertical` (optional)
+- **Response**:
+```json
+{
+  "vertical_key": "healthcare",
+  "display_name": "ResilAI Healthcare",
+  "industry_label": "Healthcare",
+  "headline": "Incident readiness for healthcare organizations",
+  "core_question": "If ransomware hits your clinic tomorrow morning, can you keep operating and prove you're ready?",
+  "focus_areas": [
+    "Ransomware resilience",
+    "EHR clinical operations continuity",
+    "Microsoft 365 & Entra ID protection",
+    "Veeam immutable backup integrity",
+    "Recovery readiness SLAs",
+    "Executive board visibility"
+  ],
+  "demo_org_id": "demo-northstar-health",
+  "demo_org_name": "Northstar Family Health"
 }
 ```
 
-### 3. Report Management Contract (`src/types/reports.ts`)
-```typescript
-export interface BackendReport {
-  id: string;
-  title: string;
-  type: 'board_story' | 'monthly_ops' | 'hipaa_audit' | 'technical_telemetry';
-  format: 'pdf' | 'json' | 'csv';
-  status: 'ready' | 'generating' | 'failed';
-  generated_at: string;
-  size_bytes?: number;
-  organization_id: string;
-  download_url: string;
-  summary?: string;
-}
-```
-
----
-
-## Code Layout
-```
-frontend/
-├── src/
-│   ├── api.ts                               # Centralized API client & mock fallbacks
-│   ├── App.tsx                              # Application routes (includes /reports)
-│   ├── components/
-│   │   ├── common/                          # ContextualDemoBanner, SimulatedTelemetryBanner
-│   │   ├── layout/                          # AppLayout, AppSidebar (mobile drawer support), ReadinessHeader
-│   │   ├── onboarding/                      # 6-Step Getting Started modal, stepper & step views
-│   │   ├── readiness/                       # TodayPage sections, AIDrawer, StatusCard, Arc gauges
-│   │   ├── evidence/                        # ExecutiveExplanation 4-tier cards, Provenance widgets
-│   │   └── ui/                              # Atoms (Badge, Button, Card, Modal, Input)
-│   ├── features/
-│   │   ├── readiness/TodayPage.tsx          # 5-Stage narrative Morning Brief dashboard
-│   │   ├── triage/NeedsAttentionPage.tsx    # Active incident triage & remediation
-│   │   └── recovery/RecoveryReadinessPage.tsx # Continuity & backup immutability
-│   ├── pages/
-│   │   ├── Documents.tsx                    # Evidence-Backed Readiness & Audit Vault
-│   │   ├── Governance.tsx                   # Framework Alignment Posture & Non-Certification Framing
-│   │   ├── Reports.tsx                      # Report Center & History Management
-│   │   └── Onboarding.tsx                   # Guided Getting Started page
-│   ├── lib/
-│   │   └── design-tokens.ts                 # Stitch color & typography tokens
-│   └── test/
-│       ├── setup.ts                         # Vitest DOM polyfills & matchers
-│       ├── tier1/tier1-feature-coverage.test.tsx # Tier 1 Feature Tests (40 tests)
-│       ├── tier2/tier2-boundary-corner.test.tsx  # Tier 2 Boundary Tests (40 tests)
-│       ├── tier2/tier2-onboarding.test.tsx       # Tier 2 Onboarding Tests (13 tests)
-│       ├── tier3/tier3-cross-feature.test.tsx    # Tier 3 Cross-Feature Tests (12 tests)
-│       ├── tier4/tier4-real-world-scenarios.test.tsx # Tier 4 Scenarios (5 tests)
-│       ├── tier4/tier4-report-center.test.tsx    # Tier 4 Report Center Tests (5 tests)
-│       └── challenger-adversarial-stress.test.tsx # Challenger Stress Tests (9 tests)
-```
+### Code Layout
+- `frontend/src/types/vertical.ts` — Vertical TypeScript types
+- `frontend/src/config/verticals.ts` — Synchronous static vertical configuration registry
+- `frontend/src/contexts/VerticalContext.tsx` — Vertical context provider, subdomain & route detector, `useVertical()` hook
+- `frontend/src/data/demoPersonas.ts` — Vertical demo personas (Acme Technologies, Northstar Family Health, Northstar & Cole LLP)
+- `frontend/src/hooks/useActiveOrg.ts` — Active organization hook supporting multi-tenant demo switcher
+- `frontend/src/components/layout/AppLayout.tsx` — Global persistent amber demo banner
+- `frontend/src/components/common/ContextualDemoBanner.tsx` — Parameterized contextual demo banner
+- `frontend/src/pages/Landing.tsx` — Dynamic multi-vertical landing page
+- `frontend/src/components/layout/PublicNavbar.tsx` — Public navigation with vertical context preservation
+- `frontend/src/api.ts` — Demo mutation guard hardening & vertical-specific readiness report routing
+- `app/api/public.py` (or `app/api/v1/config.py`) — `GET /api/public/product-config`
+- `tests/` — Scoring delta, LLM isolation, backend contract tests
+- `frontend/src/test/` — Vitest unit & integration tests

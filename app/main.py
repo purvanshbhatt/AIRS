@@ -25,6 +25,7 @@ from app.db.database import engine, Base
 from app.api.routes.health import router as health_router
 from app.api import router as api_router
 from app.api.clinic.router import router as clinic_router
+from app.api.public import router as public_router
 from app.services.audit import register_system_auditor
 
 import logging
@@ -335,6 +336,7 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.include_router(health_router)
 app.include_router(api_router, prefix="/api", deprecated=True, include_in_schema=False)
 app.include_router(clinic_router, prefix="/api/clinic")
+app.include_router(public_router, prefix="/api/public", tags=["Public"])
 
 # Internal assurance endpoints (staging-only, gated by ENV check)
 from app.api.internal import router as internal_router

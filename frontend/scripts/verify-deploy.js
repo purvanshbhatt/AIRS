@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const STAGING_URL = 'https://staging.resilai.org';
+const STAGING_URL = process.env.STAGING_URL || 'https://resilai-staging.web.app';
 
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {

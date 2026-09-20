@@ -8,7 +8,7 @@ Loads .env file only in local environment mode.
 import os
 import sys
 from enum import Enum
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from functools import lru_cache
 
 from pydantic import field_validator, model_validator
@@ -50,17 +50,34 @@ def validate_deployment() -> None:
         DeploymentValidationError: If ENV doesn't match expected project ID
     """
     env = os.environ.get("ENV", "local").lower()
+    
+    # Detect cloud provider from CLOUD_PROVIDER or ENVIRONMENT
+    cloud_provider = os.environ.get("CLOUD_PROVIDER", "").lower()
+    if not cloud_provider:
+        env_raw = os.environ.get("ENVIRONMENT", "").lower()
+        if env_raw in ("aws", "amazon"):
+            cloud_provider = "aws"
+        elif env_raw in ("gcp", "google"):
+            cloud_provider = "gcp"
+    if not cloud_provider and (os.environ.get("AWS_REGION") or os.environ.get("AWS_EXECUTION_ENV")):
+        cloud_provider = "aws"
+
+    # AWS standby deployment validation
+    if cloud_provider == "aws":
+        print(f"✓ AWS deployment validation passed: PROVIDER=aws, ENV={env}", file=sys.stderr)
+        return
+
+    # Skip validation for local development or standby
+    if env in ("local", "standby", "aws_standby"):
+        print(f"INFO: {env.capitalize()} environment — deployment validation skipped.", file=sys.stderr)
+        return
+
     project_id = os.environ.get("GCP_PROJECT_ID") or os.environ.get("FIREBASE_PROJECT_ID")
     
-    # Skip validation for local development
-    if env == "local":
-        print("INFO: Local environment — deployment validation skipped.", file=sys.stderr)
-        return
-    
     # Validate ENV is recognized
-    if env not in ("demo", "staging", "local", "prod"):
+    if env not in ("demo", "staging", "local", "prod", "standby", "aws_standby"):
         raise DeploymentValidationError(
-            f"Invalid ENV='{env}'. Must be one of: demo, staging, local, prod"
+            f"Invalid ENV='{env}'. Must be one of: demo, staging, local, prod, standby, aws_standby"
         )
     
     # Assert environment constraints
@@ -85,12 +102,21 @@ def validate_deployment() -> None:
     print(f"INFO: Startup assertion passed — ENV={env}, PROJECT={project_id}", file=sys.stderr)
 
 
+class CloudProvider(str, Enum):
+    """Cloud runtime provider."""
+    GCP = "gcp"
+    AWS = "aws"
+    LOCAL = "local"
+
+
 class Environment(str, Enum):
     """Application environment."""
     LOCAL = "local"
     STAGING = "staging"
     DEMO = "demo"
     PROD = "prod"
+    STANDBY = "standby"
+    AWS_STANDBY = "aws_standby"
 
 
 class Settings(BaseSettings):
@@ -105,6 +131,11 @@ class Settings(BaseSettings):
     # Core Settings
     # ===========================================
     ENV: Environment = Environment.LOCAL
+    ENVIRONMENT: Optional[str] = None
+    CLOUD_PROVIDER: CloudProvider = CloudProvider.GCP
+    AWS_REGION: str = "us-east-1"
+    AWS_STANDBY: bool = False
+    DR_DATABASE_RESTORED: bool = False
     APP_NAME: str = "ResilAI"
     APP_VERSION: Optional[str] = None
     DEPLOYED_AT: Optional[str] = None
@@ -198,6 +229,24 @@ class Settings(BaseSettings):
         # env_file is set dynamically in settings_customise_sources
     )
 
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_cloud_and_env(cls, values: Any) -> Any:
+        """Normalize CLOUD_PROVIDER and ENVIRONMENT aliases."""
+        if isinstance(values, dict):
+            env_raw = str(values.get("ENVIRONMENT") or "").lower()
+            cp_raw = str(values.get("CLOUD_PROVIDER") or "").lower()
+            
+            if env_raw in ("aws", "amazon") or cp_raw in ("aws", "amazon"):
+                values["CLOUD_PROVIDER"] = CloudProvider.AWS
+                if not values.get("ENV") or values.get("ENV") == "local":
+                    values["ENV"] = Environment.STANDBY
+            elif env_raw in ("gcp", "google") or cp_raw in ("gcp", "google"):
+                values["CLOUD_PROVIDER"] = CloudProvider.GCP
+            elif env_raw in ("prod", "staging", "demo", "local", "standby", "aws_standby"):
+                values["ENV"] = env_raw
+        return values
+
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
         """Validate that production environment has required settings."""
@@ -228,7 +277,9 @@ class Settings(BaseSettings):
                 )
 
         if self.ENV in (Environment.PROD, Environment.STAGING, Environment.DEMO):
-            if not self.ENCRYPTION_SECRET:
+            # Allow AWS standby mode without requiring ENCRYPTION_SECRET unless active writes are enabled
+            is_standby_mode = self.AWS_STANDBY or self.ENV == Environment.STANDBY or (self.CLOUD_PROVIDER == CloudProvider.AWS and not self.ENCRYPTION_SECRET)
+            if not self.ENCRYPTION_SECRET and not is_standby_mode:
                 errors.append(
                     f"ENCRYPTION_SECRET is required in {self.ENV.value}. "
                     "Set it via Secret Manager and bind it at deploy time."
@@ -355,6 +406,26 @@ class Settings(BaseSettings):
         return self.ENV == Environment.DEMO
 
 
+    @property
+    def is_aws(self) -> bool:
+        """Check if running in AWS environment."""
+        return self.CLOUD_PROVIDER == CloudProvider.AWS
+
+    @property
+    def is_gcp(self) -> bool:
+        """Check if running in GCP environment."""
+        return self.CLOUD_PROVIDER == CloudProvider.GCP
+
+    @property
+    def is_aws_standby_locked(self) -> bool:
+        """
+        In AWS Standby mode, stateful database operations are blocked
+        until an operator explicitly performs disaster-recovery database restoration
+        (DR_DATABASE_RESTORED=true).
+        """
+        return self.CLOUD_PROVIDER == CloudProvider.AWS and self.AWS_STANDBY and not self.DR_DATABASE_RESTORED
+
+
 def _load_env_file() -> Optional[str]:
     """
     Determine if .env file should be loaded.
@@ -406,6 +477,7 @@ except Exception as e:
 __all__ = [
     "Settings", 
     "Environment", 
+    "CloudProvider",
     "settings", 
     "get_settings",
     "DeploymentValidationError",

@@ -75,8 +75,13 @@ class ConnectorRegistry:
 
         Raises ``KeyError`` if the type is not registered.
         """
+        # Support common aliases
+        resolved_type = connector_type
+        if resolved_type == "aws" and "aws_security_hub" in cls._registry:
+            resolved_type = "aws_security_hub"
+
         try:
-            return cls._registry[connector_type]
+            return cls._registry[resolved_type]
         except KeyError:
             available = ", ".join(sorted(cls._registry)) or "(none)"
             raise KeyError(

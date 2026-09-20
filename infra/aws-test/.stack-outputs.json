@@ -1,0 +1,22 @@
+[
+    {
+        "OutputKey": "SecurityHubArn",
+        "OutputValue": "arn:aws:securityhub:us-east-1:505467908065:hub/default",
+        "Description": "ARN of the Security Hub"
+    },
+    {
+        "OutputKey": "Region",
+        "OutputValue": "us-east-1",
+        "Description": "AWS Region of the stack"
+    },
+    {
+        "OutputKey": "TestBucketName",
+        "OutputValue": "resilai-test-505467908065-us-east-1",
+        "Description": "Name of the intentionally unencrypted S3 bucket"
+    },
+    {
+        "OutputKey": "ConnectorRoleArn",
+        "OutputValue": "arn:aws:iam::505467908065:role/resilai-test-connector-role",
+        "Description": "ARN of the IAM role for the ResilAI connector"
+    }
+]

@@ -1,0 +1,391 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  ResilAI Healthcare Test Environment - Simulates a mid-size healthcare
+  organization with common AWS misconfigurations that generate real
+  Security Hub findings for telemetry validation.
+
+Parameters:
+  AccountId:
+    Type: String
+    Description: 'AWS Account ID for this environment'
+    MinLength: 12
+    MaxLength: 12
+
+Resources:
+  # =================================================================
+  # AWS Config - REQUIRED for Security Hub compliance evaluations
+  # =================================================================
+
+  ConfigRecorderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: resilai-test-config-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWS_ConfigRole
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: Owner
+          Value: ResilAI
+
+  ConfigRecorderBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'resilai-config-${AccountId}'
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteAfter7Days
+            Status: Enabled
+            ExpirationInDays: 7
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+
+  ConfigRecorderBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ConfigRecorderBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AWSConfigBucketPermissionsCheck
+            Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !GetAtt ConfigRecorderBucket.Arn
+          - Sid: AWSConfigBucketDelivery
+            Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub '${ConfigRecorderBucket.Arn}/AWSLogs/${AccountId}/Config/*'
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+
+  # NOTE: ConfigRecorder and DeliveryChannel are set up via post-deploy
+  # script (deploy-healthcare.sh) because CloudFormation has a circular
+  # dependency issue with these resources that causes deployment hangs.
+
+  # =================================================================
+  # VPC - Healthcare clinic network (no cost)
+  # =================================================================
+
+  ClinicVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: resilai-clinic-network
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: Department
+          Value: HealthIT
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref ClinicVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: resilai-clinic-public-subnet
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: resilai-clinic-igw
+
+  IGWAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref ClinicVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ClinicVPC
+      Tags:
+        - Key: Name
+          Value: resilai-clinic-public-rt
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IGWAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRTAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  # =================================================================
+  # DELIBERATELY MISCONFIGURED SECURITY GROUPS
+  # These trigger Security Hub findings for open ports
+  # =================================================================
+
+  # Finding: SSH open to 0.0.0.0/0
+  EHRAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: EHR Application Server - MISCONFIGURED for testing
+      VpcId: !Ref ClinicVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0    # DELIBERATE: SSH open to world
+          Description: SSH open to world - triggers finding
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0    # DELIBERATE: MySQL open to world
+          Description: MySQL open to world - triggers finding
+      Tags:
+        - Key: Name
+          Value: resilai-ehr-app-sg
+        - Key: Application
+          Value: EHR-System
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+
+  # Finding: RDP open to 0.0.0.0/0
+  RadiologyWorkstationSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Radiology PACS Workstation - MISCONFIGURED for testing
+      VpcId: !Ref ClinicVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0    # DELIBERATE: RDP open to world
+          Description: RDP open to world - triggers finding
+        - IpProtocol: tcp
+          FromPort: 104
+          ToPort: 104
+          CidrIp: 0.0.0.0/0    # DELIBERATE: DICOM open to world
+          Description: DICOM port open to world
+      Tags:
+        - Key: Name
+          Value: resilai-radiology-pacs-sg
+        - Key: Application
+          Value: PACS-Imaging
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+
+  # Finding: All ports open
+  LegacyLabSystemSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Legacy Lab System - DANGEROUSLY MISCONFIGURED for testing
+      VpcId: !Ref ClinicVPC
+      SecurityGroupIngress:
+        - IpProtocol: -1            # DELIBERATE: ALL traffic
+          CidrIp: 0.0.0.0/0        # DELIBERATE: From anywhere
+          Description: All traffic open - triggers critical finding
+      Tags:
+        - Key: Name
+          Value: resilai-legacy-lab-sg
+        - Key: Application
+          Value: Legacy-LIS
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+
+  # =================================================================
+  # S3 BUCKETS - Healthcare data storage with misconfigurations
+  # =================================================================
+
+  # Finding: Public bucket with PHI-relevant naming
+  PatientRecordsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'resilai-patient-records-${AccountId}'
+      # DELIBERATE: No encryption, no versioning, no logging
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: DataClassification
+          Value: PHI
+        - Key: Department
+          Value: Medical-Records
+
+  # Finding: No versioning, no encryption
+  MedicalImagesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'resilai-medical-images-${AccountId}'
+      # DELIBERATE: No encryption, no versioning
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: DataClassification
+          Value: PHI
+        - Key: Department
+          Value: Radiology
+
+  # Finding: Public read ACL
+  ClinicWebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'resilai-clinic-website-${AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false       # DELIBERATE: public access not blocked
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: Department
+          Value: Marketing
+
+  # =================================================================
+  # IAM USERS - Healthcare staff with poor security hygiene
+  # =================================================================
+
+  # Finding: IAM user with no MFA, console access
+  DrSmithUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: resilai-test-dr-smith
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: Department
+          Value: Cardiology
+        - Key: Role
+          Value: Physician
+
+  # Finding: IAM user with inline admin policy
+  ITAdminUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: resilai-test-it-admin
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: Department
+          Value: HealthIT
+        - Key: Role
+          Value: IT-Administrator
+
+  ITAdminPolicy:
+    Type: AWS::IAM::UserPolicy
+    Properties:
+      UserName: !Ref ITAdminUser
+      PolicyName: resilai-test-it-admin-full-access
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: '*'                  # DELIBERATE: Full admin via inline
+            Resource: '*'
+
+  # Finding: IAM user with unused credentials concept
+  BillingClerkUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: resilai-test-billing-clerk
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: Department
+          Value: Billing
+        - Key: Role
+          Value: Billing-Clerk
+
+  # =================================================================
+  # IAM GROUP - Without proper policies
+  # =================================================================
+
+  ClinicalStaffGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: resilai-test-clinical-staff
+
+  DrSmithGroupMembership:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref ClinicalStaffGroup
+      Users:
+        - !Ref DrSmithUser
+
+  # =================================================================
+  # SNS TOPIC - Unencrypted (triggers finding)
+  # =================================================================
+
+  PatientAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: resilai-patient-alerts
+      # DELIBERATE: No KMS encryption
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Healthcare-Test
+        - Key: Department
+          Value: Nursing
+
+  # =================================================================
+  # CLOUDWATCH LOG GROUP - No encryption
+  # =================================================================
+
+  EHRAuditLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /resilai-test/ehr-audit-logs
+      RetentionInDays: 7
+      # DELIBERATE: No KMS encryption
+
+  # =================================================================
+  # FLOW LOGS - Deliberately NOT enabled on the VPC
+  # This generates "VPC Flow Logs should be enabled" finding
+  # =================================================================
+  # (Intentionally omitted to trigger the finding)
+
+Outputs:
+  ClinicVPCId:
+    Description: VPC ID for the healthcare clinic network
+    Value: !Ref ClinicVPC
+  EHRSecurityGroupId:
+    Description: Security Group for EHR app (misconfigured)
+    Value: !Ref EHRAppSecurityGroup
+  PatientRecordsBucket:
+    Description: S3 bucket for patient records (no encryption)
+    Value: !Ref PatientRecordsBucket
+  MedicalImagesBucket:
+    Description: S3 bucket for medical images (no encryption)
+    Value: !Ref MedicalImagesBucket
+  ConfigRecorderRoleArn:
+    Description: IAM role ARN for AWS Config recorder
+    Value: !GetAtt ConfigRecorderRole.Arn
+  ConfigBucketName:
+    Description: S3 bucket for AWS Config delivery
+    Value: !Ref ConfigRecorderBucket

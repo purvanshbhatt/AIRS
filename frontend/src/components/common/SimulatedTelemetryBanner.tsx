@@ -12,16 +12,22 @@ export function SimulatedTelemetryBanner({ domainName }: SimulatedTelemetryBanne
         <Sparkles className="w-4 h-4 text-drift-amber" />
       </div>
       <div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="font-semibold text-on-surface text-sm">
-            {domainName} — Operator Workspace Preview
+            {domainName ? `${domainName} — Operator Workspace Preview` : 'Operator Workspace Preview'}
           </span>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase bg-drift-amber/10 text-drift-amber border border-drift-amber/30">
-            Simulated Telemetry
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase bg-drift-amber/10 text-drift-amber border border-drift-amber/30 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <span>Simulated Telemetry</span>
+            <span>•</span>
+            <span>DEMO ENVIRONMENT (SIMULATED DATA)</span>
           </span>
         </div>
         <p className="mt-1 leading-relaxed text-on-surface-variant">
           This deep technical domain view displays illustrative operator telemetry and simulated historical trends. Production readiness verification is calculated deterministically on the Morning Brief from live connector evidence.
+        </p>
+        <p className="mt-1 leading-relaxed text-drift-amber font-medium">
+          This environment uses simulated security telemetry. Results shown here are not evidence from a connected customer environment.
         </p>
       </div>
     </div>

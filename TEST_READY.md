@@ -1,106 +1,154 @@
-# TEST READY REPORT — ResilAI Authenticated Product Experience Refactoring
+# TEST READY REPORT — ResilAI Multi-Vertical Positioning Experiment (Staging Only)
 
-**Date**: 2026-08-31  
-**Author**: `teamwork_preview_test_writer_e2e`  
-**Target Workspace**: `/run/media/purvansh/Software/Projects/AIRS/frontend`  
-**Test Runner**: Vitest 4.1.11 with `@testing-library/react`, `jsdom`, and `@testing-library/user-event`  
-**Total Tests**: 115 passing (100% Pass Rate, 0 Failures, 0 Skipped)
+**Date**: 2026-09-18  
+**Author**: `teamwork_preview_test_writer_e2e_1`  
+**Target Workspace**: `/run/media/purvansh/Software/Projects/AIRS`  
+**Test Runners**: 
+- Frontend: Vitest 4.1.11 with `@testing-library/react`, `jsdom`, `@testing-library/user-event`
+- Backend: Pytest 9.1.1 (`.venv_linux`) with `FastAPI TestClient`  
+**Total Tests**: 83 passing (100% Pass Rate, 0 Failures, 0 Skipped)
 
 ---
 
 ## 1. Test Execution Instructions
 
-To run the complete automated test suite locally:
-
+### Complete Automated E2E Test Suite Run
 ```bash
-# Navigate to the frontend workspace
-cd frontend
+# 1. Frontend Multi-Vertical Positioning Suite (Tiers 1-4)
+cd /run/media/purvansh/Software/Projects/AIRS/frontend
+npx vitest run src/test/e2e-vertical-positioning.test.tsx
 
-# Run all test suites
-npm test
-# or
-npx vitest run
-
-# Run specific tiers
-npx vitest run src/test/tier1/tier1-feature-coverage.test.tsx
-npx vitest run src/test/tier2/tier2-boundary-corner.test.tsx
-npx vitest run src/test/tier3/tier3-cross-feature.test.tsx
-npx vitest run src/test/tier4/tier4-real-world-scenarios.test.tsx
+# 2. Backend Public Config & Scoring Invariant E2E Suite
+cd /run/media/purvansh/Software/Projects/AIRS
+./.venv_linux/bin/pytest tests/test_e2e_vertical_config.py -v
 ```
 
 ---
 
-## 2. Test Suite Architecture & Coverage Matrix
+## 2. Test Suite Architecture & Coverage Summary Table
 
-| Suite / Tier | Test File | Requirement Scope | Tests Executed | Tests Passed | Pass Rate |
+| Test Suite / Tier | Test File | Requirement & Feature Scope | Tests Executed | Tests Passed | Pass Rate |
 | :--- | :--- | :--- | :---: | :---: | :---: |
-| **Tier 1: Feature Coverage** | `src/test/tier1/tier1-feature-coverage.test.tsx` | R1–R8 Core Functional Paths | 40 | 40 | 100% |
-| **Tier 2: Boundary & Corner Cases** | `src/test/tier2/tier2-boundary-corner.test.tsx` | R1–R8 Extremes, Fallbacks, A11y | 40 | 40 | 100% |
-| **Tier 3: Cross-Feature State & Nav** | `src/test/tier3/tier3-cross-feature.test.tsx` | Cross-Page State Transitions | 12 | 12 | 100% |
-| **Tier 4: Real-World Persona Journeys** | `src/test/tier4/tier4-real-world-scenarios.test.tsx` | End-to-End User Workflows | 5 | 5 | 100% |
-| **Unit & Subcomponent Baselines** | `src/test/components/**`, `src/test/features/**` | Common Banners & Recovery | 18 | 18 | 100% |
-| **TOTAL** | — | **Full System Verification** | **115** | **115** | **100%** |
+| **Tier 1: Feature Coverage (F1–F3)** | `frontend/src/test/e2e-vertical-positioning.test.tsx` | Subdomain, Path & Query Fallback | 16 | 16 | 100% |
+| **Tier 1: Feature Coverage (F4)** | `frontend/src/test/e2e-vertical-positioning.test.tsx` | Public Config & Static Fallback | 5 | 5 | 100% |
+| **Tier 1: Feature Coverage (F5–F7)** | `frontend/src/test/e2e-vertical-positioning.test.tsx` | General, Healthcare & Legal Landing Copy | 15 | 15 | 100% |
+| **Tier 1: Feature Coverage (F8–F10)** | `frontend/src/test/e2e-vertical-positioning.test.tsx` | Demo Personas, Amber Banner, Mutation Guard | 15 | 15 | 100% |
+| **Tier 2: Boundary & Corner Cases** | `frontend/src/test/e2e-vertical-positioning.test.tsx` | Unknown Verticals, Case Normalization, Trailing Slashes | 7 | 7 | 100% |
+| **Tier 3: Cross-Feature State & Nav** | `frontend/src/test/e2e-vertical-positioning.test.tsx` | Subdomain+Demo, Path+Switch, Persistence, Guard | 5 | 5 | 100% |
+| **Tier 4: Real-World Scenarios** | `frontend/src/test/e2e-vertical-positioning.test.tsx` | Clinic Exec, Law Partner, CISO, Auditor, Mutation Blocker | 5 | 5 | 100% |
+| **Backend API Contract & Invariant** | `tests/test_e2e_vertical_config.py` | `GET /api/public/product-config`, R4 Invariant, AST Isolation | 15 | 15 | 100% |
+| **TOTAL** | — | **Full System E2E Suite** | **83** | **83** | **100%** |
 
 ---
 
-## 3. Requirement Verification Breakdown (R1 – R8)
+## 3. Feature Verification Checklist (F1 – F10 across Tiers 1–4)
 
-### R1: Product Identity & 5-Stage Narrative Hierarchy
-- **Stage 1 (Current Readiness / North Star Hero)**: Verified macro status badges, circular arc progress gauge, and readiness score percentage (`T1.R1.01`, `T2.R1.01`, `T2.R1.02`).
-- **Stage 2 (Why / Morning Brief)**: Verified overnight verification summary, health metrics, and 1-sentence executive verdict (`T1.R1.02`, `T2.R1.04`, `T2.R1.05`).
-- **Stage 3 (What Needs Attention)**: Verified prioritized risk cards, severity badges, and triage links (`T1.R1.03`, `T2.R1.03`, `T3.CF.01`).
-- **Stage 4 (What Should We Do)**: Verified 1-click remediation buttons, `executing` state feedback, and API invocation (`T1.R1.04`, `T3.CF.03`, `T4.J2`).
-- **Stage 5 (How Can We Prove It)**: Verified verified protections display, SHA-256 evidence hashes, and audit vault exploration links (`T1.R1.05`).
+### F1: Subdomain Vertical Detection
+- [x] `healthcare.staging.resilai.org` detects `healthcare` with source `subdomain` (`F1.01`).
+- [x] `legal.staging.resilai.org` detects `legal` with source `subdomain` (`F1.02`).
+- [x] `staging.resilai.org` defaults to `general` (`F1.03`).
+- [x] `healthcare.localhost:5173` detects `healthcare` (`F1.04`).
+- [x] `legal.localhost` detects `legal` (`F1.05`).
+- [x] Unrecognized subdomains (`random.staging.resilai.org`) default safely to `general` (`F1.06`).
 
-### R2: Executive-First 4-Tier Progressive Disclosure
-- **Tier 1 (Executive Summary)**: Plain-English business labels and "What It Means" (`T1.R2.01`, `T2.R2.01`).
-- **Tier 2 (Business Impact)**: "Why It Matters" and "What To Do Next" risk framing (`T1.R2.02`, `T2.R2.03`).
-- **Tier 3 (Technical Evidence)**: Collapsed-by-default technical telemetry and system indicators (`T1.R2.03`, `T2.R2.04`).
-- **Tier 4 (Cryptographic Provenance)**: Freshness timestamps, source connectors, confidence scores, and SHA-256 proof chains in `AIDrawer` (`T1.R2.04`, `T1.R2.05`, `T2.R2.02`, `T3.CF.04`).
+### F2: Path Prefix Vertical Fallback
+- [x] `/healthcare` activates healthcare vertical (`F2.01`).
+- [x] `/legal` activates legal vertical (`F2.02`).
+- [x] `/general` activates general vertical (`F2.03`).
+- [x] Deep subpaths (`/healthcare/onboarding`) preserve healthcare vertical (`F2.04`).
+- [x] Deep subpaths (`/legal/audit-ledger`) preserve legal vertical (`F2.05`).
 
-### R3: Comprehensive Getting Started & Onboarding Workflow
-- **Step 1 (Organization Profile)**: Organization name, clinic size, medical specialty validation and blockers (`T1.R3.01`, `T2.R3.01`, `T4.J3`).
-- **Step 2 (Integrations / Connectors)**: Microsoft 365, Veeam, CrowdStrike connector management and connection toggles (`T1.R3.02`, `T2.R3.04`, `T3.CF.06`).
-- **Step 3 (Evidence Ledger & Telemetry)**: Real-time verification preview and cryptographic log proofs (`T1.R3.03`, `T2.R3.05`).
-- **Workflow Navigation & Persistence**: "Skip to Dashboard", `localStorage` completion persistence, and safe backwards navigation (`T1.R3.04`, `T1.R3.05`, `T2.R3.02`, `T2.R3.03`, `T3.CF.05`).
+### F3: Query Parameter Fallback & Precedence
+- [x] `?vertical=healthcare` detects `healthcare` (`F3.01`).
+- [x] `?vertical=legal` detects `legal` (`F3.02`).
+- [x] `?vertical=general` detects `general` (`F3.03`).
+- [x] Query parameter overrides conflicting path prefix (`F3.04`).
+- [x] Query parameter overrides conflicting host subdomain (`F3.05`).
 
-### R4: Contextual Demo Mode Guidance & Disclaimers
-- **Strict Data Isolation**: Unverified live workspace state detection and launchpad guidance (`T1.R4.03`, `T2.R4.03`, `T3.CF.11`).
-- **Contextual Amber Guidance Banners**: `SimulatedTelemetryBanner` and section-specific demo banners with production distinction notices (`T1.R4.02`, `T1.R4.05`, `T2.R4.01`, `T2.R4.02`, `T2.R4.04`).
-- **Clean Sidebar Layout**: Modern grouped navigation (`L1`, `L2`, `L3`, `Trust & Transparency`) with deprecated workspace toggles removed (`T1.R4.04`, `T2.R4.05`, `T3.CF.07`).
+### F4: Public Configuration API & Synchronous Static Registry
+- [x] Synchronous static registry provides complete baseline configurations for all three verticals (`F4.01`).
+- [x] `VerticalProvider` mounts instantly without blank state (`F4.02`).
+- [x] Background fetch enriches configuration from `GET /api/public/product-config` (`F4.03`).
+- [x] Retains static fallback seamlessly when backend endpoint returns 500 (`F4.04`).
+- [x] Retains static fallback seamlessly when network fetch throws error (`F4.05`).
+- [x] Backend `GET /api/public/product-config` responds with 200 OK and valid JSON schema (`TestPublicConfigContract`).
 
-### R5: Simplified Explanation Feature ("Explain for Leadership")
-- **Client-Side Deterministic Synthesis**: Plain-English narrative generation without client-side LLM calls (`T1.R5.01`, `T4.J1`).
-- **Dual Presentation Modal**: Instant toggle between Executive Narrative and Technical Telemetry (`T1.R5.02`, `T3.CF.02`, `T4.J1`).
-- **Robust Component States**: Clear severity badge classes, interactive action states (idle, executing, verified), and graceful unavailable fallbacks (`T1.R5.03`, `T1.R5.04`, `T1.R5.05`, `T2.R5.01`, `T2.R5.02`, `T2.R5.03`, `T2.R5.04`, `T2.R5.05`).
+### F5: General Landing Page Positioning
+- [x] Headline verified: `"ResilAI — AI Incident Readiness Platform"` (`F5.01`).
+- [x] Core question verified: `"If a security or AI incident happens tomorrow, are you actually ready?"` (`F5.02`).
+- [x] Focus areas verify universal incident readiness, cloud & SaaS reliability (`F5.03`).
+- [x] Demo target verified: `Acme Technologies` (`demo-acme-technologies`) (`F5.04`).
+- [x] Critical systems verify AWS Multi-Region, Okta Identity, GitHub CI/CD (`F5.05`).
 
-### R6: Report UX & History Management
-- **Report Library & Filtering**: Metadata rendering, format filtering (PDF, JSON, CSV), and search filtering (`T1.R6.01`, `T1.R6.02`, `T2.R6.01`, `T2.R6.02`, `T2.R6.04`).
-- **Real-Time Report Generation**: Template selection, custom title binding, real-time progress simulation, and report creation (`T3.CF.10`, `T4.J4`).
-- **Report Actions**: Blob download management, link copying to clipboard, and deletion with confirmation safeguards (`T1.R6.03`, `T1.R6.04`, `T1.R6.05`, `T2.R6.03`, `T2.R6.05`, `T4.J4`).
+### F6: Healthcare Landing Page Positioning
+- [x] Headline verified: `"Incident readiness for healthcare organizations"` (`F6.01`).
+- [x] Core question verified: `"If ransomware hits your clinic tomorrow morning, can you keep operating and prove you're ready?"` (`F6.02`).
+- [x] Focus areas prioritize ransomware resilience, EHR continuity, Veeam immutable backups (`F6.03`).
+- [x] Demo target verified: `Northstar Family Health` (`demo-northstar-health`) (`F6.04`).
+- [x] Critical systems verify Epic EHR Clinical System, Veeam Cloud Connect, PACS Imaging (`F6.05`).
 
-### R7: Documents & Governance Page Modernization
-- **Evidence Vault**: Audit-ready compliance folders (HIPAA, Policies, Configs, Recovery) and playbook downloads (`T1.R7.01`, `T1.R7.02`, `T2.R7.01`).
-- **Audit Sync Ledger**: Immutable connector synchronization logs with event types and SHA-256 hashes (`T1.R7.03`, `T2.R7.02`, `T3.CF.09`, `T4.J5`).
-- **Governance & Framework Alignment**: Frameworks Bento Grid (NIST CSF 2.0, HIPAA, SOC 2, ISO 27001, CIS) with continuous telemetry status, non-certification disclaimer, and control modal drill-down (`T1.R7.04`, `T2.R7.04`, `T2.R7.05`, `T3.CF.08`, `T4.J5`).
-- **Compliance Drift Tracking**: Baseline vs telemetry comparison table, variance percentage calculations, and evidence hash copying (`T1.R7.05`, `T2.R7.03`, `T4.J5`).
+### F7: Legal Landing Page Positioning
+- [x] Headline verified: `"Incident readiness for law firms"` (`F7.01`).
+- [x] Core question verified: `"If ransomware hits your firm tomorrow morning, can you keep operating and protect client data?"` (`F7.02`).
+- [x] Focus areas prioritize client data protection, privileged access, ABA compliance (`F7.03`).
+- [x] Demo target verified: `Northstar & Cole LLP` (`demo-northstar-cole`) (`F7.04`).
+- [x] Critical systems verify NetDocuments Vault, Elite 3E Practice Management, Partner Laptops (`F7.05`).
 
-### R8: Design Consistency, A11y & Responsive Layouts
-- **Tier 2 Recovery Readiness & Needs Attention Pages**: RTO/RPO displays, downtime estimations, and critical blocker counters (`T1.R8.01`, `T1.R8.02`, `T2.R8.03`, `T2.R8.04`).
-- **Responsive Layout & Navigation**: 375px mobile viewport adaptations, stacked grids, and accessible sidebar links (`T1.R8.03`, `T2.R8.01`, `T2.R8.05`, `T3.CF.07`).
-- **Accessibility & Focus**: ARIA labels, keyboard interaction (Escape/Backdrop drawer dismissal), and explicit form input associations (`T1.R8.04`, `T1.R8.05`, `T2.R8.02`).
+### F8: Demo Persona Launch Coordination
+- [x] General demo maps to `demo-acme-technologies` and persona Alex Chen (`F8.01`).
+- [x] Healthcare demo maps to `demo-northstar-health` and persona Dr. Evelyn Reed (`F8.02`).
+- [x] Legal demo maps to `demo-northstar-cole` and persona Marcus Cole (`F8.03`).
+- [x] Demo session registers `localStorage.getItem('resilai_demo_user') === 'true'` (`F8.04`).
+- [x] Dynamic programmatic switching between personas updates context state smoothly (`F8.05`).
+
+### F9: Global Amber Demo Banner Presence
+- [x] Sticky amber demo banner displays `DEMO ENVIRONMENT • SIMULATED DATA` (`F9.01`).
+- [x] Banner does not render in live customer mode (`F9.02`).
+- [x] Distinctive amber gradient and border styling classes verified (`F9.03`).
+- [x] Simulated telemetry notice verified (`F9.04`).
+- [x] Contextual banner adapts across `today`, `needs-attention`, and `recovery` sections (`F9.05`).
+
+### F10: Read-Only Demo Sandbox Mutation Guard
+- [x] Mutation guard blocks `POST` requests and throws 403 `ApiRequestError` (`F10.01`).
+- [x] Mutation guard blocks `PUT` requests under demo mode (`F10.02`).
+- [x] Mutation guard blocks `DELETE` requests under demo mode (`F10.03`).
+- [x] Mutation guard blocks `PATCH` requests under demo mode (`F10.04`).
+- [x] Permitted safe read-only methods (`GET`) pass through unaffected (`F10.05`).
+- [x] Dispatches `resilai-readonly-action` event to notify UI without unhandled exceptions (`F10.01`, `Scenario 5`).
+
+### Tier 2: Boundary & Corner Cases
+- [x] Unknown vertical query (`?vertical=finance`) defaults cleanly to general (`T2.01`).
+- [x] Mixed-case queries (`HEALTHCARE`, `LeGaL`, `GeNeRaL`) are normalized properly (`T2.02`, `T2.03`).
+- [x] Precedence conflict (subdomain vs path) resolves with path winning (`T2.04`).
+- [x] Trailing slashes on paths (`/healthcare/`, `/legal/`) resolve identically (`T2.05`).
+- [x] Multiple search query parameters parsed correctly (`T2.06`).
+- [x] Invalid vertical key in config getter safely returns general default (`T2.07`).
+
+### Tier 3: Cross-Feature State & Combinations
+- [x] Subdomain detection combined with direct demo persona initialization (`T3.01`).
+- [x] Path navigation combined with multi-tenant organization switching (`T3.02`).
+- [x] Query param detection combined with contextual banner parameterization (`T3.03`).
+- [x] Demo session state persistence across simulated page reloads in `localStorage` (`T3.04`).
+- [x] Mutation guard remains 100% active following tenant switches in demo mode (`T3.05`).
+
+### Tier 4: Real-World Persona & Application Scenarios
+- [x] **Scenario 1 (Clinic Executive / Healthcare)**: Subdomain arrival -> reads headline & core question -> launches demo -> verifies `Northstar Family Health`, Dr. Evelyn Reed, Epic EHR & Veeam telemetry, sticky amber banner.
+- [x] **Scenario 2 (Law Firm Managing Partner / Legal)**: Path arrival (`/legal`) -> reads headline & question -> launches demo -> verifies `Northstar & Cole LLP`, Marcus Cole, NetDocuments vault & partner laptop telemetry, sticky amber banner.
+- [x] **Scenario 3 (Enterprise CISO / General Platform)**: Root domain arrival -> reads universal readiness headline -> launches demo -> verifies `Acme Technologies`, Alex Chen, AWS & Okta telemetry, sticky amber banner.
+- [x] **Scenario 4 (Compliance Auditor Invariant Verification)**: Confirms readiness calculation is executed purely through the shared deterministic scoring engine without client-side score computation.
+- [x] **Scenario 5 (Demo User Mutation Prevention & Integrity)**: Demo user attempts unauthorized data edit; mutation guard blocks action with 403 status, dispatches `resilai-readonly-action`, and maintains clean read-only session isolation.
 
 ---
 
-## 4. Discovered Implementation Defects (Escalated to Implementing Agent)
+## 4. Architectural Invariant R4 Verification
 
-1. **`Documents.tsx` Line 11 / Line 537 — Missing `FileCheck` Icon Import**:
-   - **Observation**: `Documents.tsx` line 537 references `<FileCheck className="w-5 h-5" />`, but `FileCheck` was not imported from `lucide-react` on line 11 (which imported `FolderCheck` and `FileCheck2` instead).
-   - **Workaround in Test Harness**: Polyfilled `(globalThis as any).FileCheck = () => null` in `frontend/src/test/setup.ts` to allow tests to run cleanly.
-   - **Action Required by Implementing Agent**: Add `FileCheck` to the `lucide-react` import statement in `frontend/src/pages/Documents.tsx`.
+- **Centralized Definition**: `calculate_readiness_delta` in `app/services/scoring.py` is the single source of truth for readiness delta calculation.
+- **AST Byte-Level Isolation**: Verified via `test_scoring_engine_ast_llm_isolation` that `scoring.py` has ZERO imports of `google.genai`, `google.generativeai`, `ai_narrative`, or `llm_narrative`.
+- **Zero Duplicate Engines**: Verified via `test_zero_duplicate_scoring_engines` that no vertical-specific scoring engines (e.g. `legal_scoring.py`, `healthcare_scoring.py`) exist in the repository.
+- **Deterministic Math**: Verified via `test_deterministic_scoring_calculation` that identical evidence inputs produce bit-exact identical readiness scores and deltas.
 
 ---
 
 ## 5. Test Integrity Declaration
 
-All 115 tests in this suite are genuine opaque-box tests interacting with rendered React components and hooks using DOM queries and user events. There are no facade tests, dummy assertions, or mocked true-positive shortcuts. All test expectations were derived authoritatively from `ORIGINAL_REQUEST.md` (Section `## Follow-up — 2026-08-31T19:17:29Z`), `PROJECT.md`, and `TEST_INFRA.md`.
+All 83 tests in this E2E test suite are genuine, requirement-driven, opaque-box tests executing against real components, pure detection routines, API routes, and browser storage mechanisms. There are zero facade tests, zero tautological assertions, and zero hardcoded test bypasses. All expected values were derived authoritatively from `PROJECT.md` and `ORIGINAL_REQUEST.md`.

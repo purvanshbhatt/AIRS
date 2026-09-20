@@ -117,3 +117,55 @@ class TestDailyGitSyncSecurity:
         assert ["git", "reset", "HEAD", ".env.local"] in calls
         assert ["git", "reset", "HEAD", "airs_dev.db"] in calls
         assert ["git", "reset", "HEAD", "scratch/notes.txt"] in calls
+
+
+class TestDailyBackupSyncWorkflow:
+    """Verifies .github/workflows/daily-backup-sync.yml against specifications."""
+
+    @pytest.fixture
+    def workflow_content(self) -> str:
+        workflow_path = Path(__file__).resolve().parent.parent / ".github" / "workflows" / "daily-backup-sync.yml"
+        assert workflow_path.exists(), f"Workflow file not found at {workflow_path}"
+        return workflow_path.read_text(encoding="utf-8")
+
+    @pytest.fixture
+    def workflow_yaml(self, workflow_content: str):
+        import yaml
+        return yaml.safe_load(workflow_content)
+
+    def test_workflow_trigger_specifications(self, workflow_yaml):
+        """Verify cron schedule 0 4 * * * and workflow_dispatch are enabled."""
+        triggers = workflow_yaml.get("on") or workflow_yaml.get(True)
+        assert triggers is not None, "Workflow triggers missing"
+
+        # Check schedule cron
+        assert "schedule" in triggers, "Workflow must have schedule trigger"
+        schedules = triggers["schedule"]
+        cron_exprs = [s.get("cron") for s in schedules if isinstance(s, dict)]
+        assert "0 4 * * *" in cron_exprs, "Cron schedule must be '0 4 * * *' (4:00 AM UTC / midnight EST)"
+
+        # Check workflow_dispatch
+        assert "workflow_dispatch" in triggers, "workflow_dispatch trigger must be enabled"
+
+    def test_workflow_branch_behavior_and_isolation(self, workflow_content: str):
+        """Verify checkout, branch sync staging -> daily-sync, and protected branch blocking."""
+        # Check checkout
+        assert "actions/checkout@v4" in workflow_content
+        assert "fetch-depth: 0" in workflow_content
+
+        # Check daily-sync and staging branches
+        assert "daily-sync" in workflow_content
+        assert "origin/staging" in workflow_content or "staging" in workflow_content
+        assert "git checkout -B daily-sync" in workflow_content
+
+        # Check protected branch blocking
+        assert "main" in workflow_content
+        assert "demo-stable" in workflow_content
+        assert "CRITICAL SECURITY BLOCK" in workflow_content or "SECURITY VIOLATION" in workflow_content
+
+    def test_workflow_audit_log(self, workflow_content: str):
+        """Verify commit hash and sync status are echoed in GITHUB_STEP_SUMMARY."""
+        assert "GITHUB_STEP_SUMMARY" in workflow_content
+        assert "COMMIT_HASH" in workflow_content
+        assert "SYNC_STATUS" in workflow_content
+

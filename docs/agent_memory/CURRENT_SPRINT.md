@@ -1,6 +1,9 @@
 # Sprint
 
 Goal:
+# Sprint
+
+Goal:
 Telemetry Pipeline Consolidation — one production path:
 Splunk MCP → Evidence Adapter → Evidence Registry → Verification
 Engine → Deterministic Scoring.
@@ -8,6 +11,37 @@ Engine → Deterministic Scoring.
 Tasks:
 
 [Done]
+- 2026-09-16 ResilAI Phase 20 Real AWS Telemetry Validation, Frontend Demo Boundary, SHA-256 Evidence Integrity & PDF HMAC:
+  - Honest AWS Telemetry Audit: Session expired on AWS CLI profile `Resilai_admin`, reported `AWS_ENVIRONMENT_STATUS=NOT_DEPLOYED` ($0.00 idle cost maintained). CloudFormation template `infra/aws-test/template.yaml`, deploy, and teardown scripts validated.
+  - AWS Security Hub Evidence Adapter: Built `app/services/evidence/adapters/aws_security_hub.py`, wired into `ConnectorManager` and `ConnectorRegistry`.
+  - Automated AWS Integration Test Suite: 39/39 passing in `tests/aws_integration/` covering auth, assume-role, normalization, dedup, tenant isolation, negative states, and AST LLM exclusion.
+  - Fail-Closed SHA-256 Evidence Integrity: Implemented `app/services/evidence/integrity.py` and wired into `EvidenceOrchestrator` to reject tampered evidence records before ledger persistence (7/7 tests passing in `tests/test_evidence_integrity.py`).
+  - Server-Side PDF HMAC Signing: Implemented `app/reports/hmac_service.py` and updated `app/reports/pdf.py` embedding HMAC-SHA256 signature and content hash with zero secret leakage (7/7 tests passing in `tests/test_pdf_hmac.py`).
+  - Frontend Demo Sandbox Boundary: Displayed `DEMO ENVIRONMENT • SIMULATED DATA` with exact disclaimer text across `ContextualDemoBanner.tsx` and `SimulatedTelemetryBanner.tsx`. Verified 0 TypeScript compile errors.
+  - Validation Matrix & Reports: Produced `tests/aws_integration/VALIDATION_REPORT.md` and `validation_report.json` classifying capabilities honestly.
+- 2026-09-13 ResilAI Phase 20 Production Evidence & Enterprise Readiness Validation:
+  - Real AWS S3 DR Bucket Provisioning & Hardening: Provisioned `s3://resilai-dr-backup-505467908065` in `us-east-1` under account `505467908065` (`Resilai_admin` profile). Enforced Block Public Access (4/4 flags true), default server-side AES-256 encryption, bucket versioning for ransomware resilience, and automated lifecycle policy (STANDARD_IA after 30 days, expiration after 90 days).
+  - Real Encrypted DR Backup Pipeline Execution: Executed `./aws/backup_dr_export.sh` exporting production-representative SQLite snapshot `resilai_db_20260913_102317.db` (53,248 bytes) with SHA-256 manifest to `s3://resilai-dr-backup-505467908065/scheduled-exports/2026/09/13/`.
+  - Live S3 Download & Cryptographic Checksum Proof: Downloaded snapshot from AWS S3 in 1.437 seconds; verified downloaded SHA-256 (`a28df4e6b9cd3951cc57ba0b9ccd520110c4bda6a10917dccd48d6bf627f9efc`) exactly matches manifest and pre-upload hash with 100% cryptographic integrity.
+  - 9-Point Restore Integrity Audit: Executed `scripts/verify_dr_restore.py` across all 9 enterprise criteria: restored 6 core database tables, organization records (`Memorial Health Hospital`), tenant ownership (`purvansh@resilai.org`), 2 telemetry events with valid SHA-256 hashes, active connector with AES-256 ciphertext credentials, audit events & immutable ledger, deterministic scoring invariance (82.5% == 82.5%, 0 LLM influence), strict cross-tenant isolation, and zero demo contamination.
+  - Empirical DR Metrics & SLA Validation: Database restore duration: 0.20 ms; verification duration: 2.12 ms; total measured Standby RTO: 1.44 s (< 15 min SLA requirement); measured RPO: 12 minutes; readiness scoring: 100% invariant.
+  - AWS Standby Runtime Verification: Built `scripts/verify_aws_standby_runtime.py` validating container runtime: `/health` responds HTTP 200 OK (23.12 ms, `provider: "aws"`, `environment: "aws_standby"`, 0 secrets leaked), stateful endpoints and `get_db()` enforce HTTP 503 (`DISASTER_RECOVERY_DATABASE_NOT_READY`), and operational unlock (`DR_DATABASE_RESTORED=true`) / re-lock cycle operates cleanly.
+  - Zero Idle Burn Maintained: Audited AWS account `505467908065`: 0 EC2, 0 RDS, 0 NAT Gateways, 0 active App Runner instances ($0.00/hr idle burn rate). Cost safeguard budget active ($50/mo).
+- 2026-09-13 ResilAI Phase 19 Multi-Cloud DR Deployment & Failure Simulation Validation:
+  - AWS Container & Standby Observability: Verified container autonomy from GCP; added `aws_standby` to `Environment` enum in `app/core/config.py` and updated `/health` in `app/api/routes/health.py` to report `provider: "aws"`, `environment: "aws_standby"` without credential leakage.
+  - DR Backup Sync Hardening: Updated `aws/backup_dr_export.sh` with strict error handling (`--require-data`), local DB snapshot support, and SHA-256 manifest generation.
+  - DR Restore 9-Point Verification: Enhanced `scripts/verify_dr_restore.py` covering schema (6 tables), organization records, tenant ownership, telemetry events with SHA-256 checksums, connector configurations with encrypted credentials, audit events, immutable ledger trail, deterministic scoring invariance, and zero demo contamination.
+  - Standby Lock & Write Protection: Verified that AWS Standby strictly locks database access behind HTTP 503 (`DISASTER_RECOVERY_DATABASE_NOT_READY`), and cannot accidentally become writable prior to explicit restoration (`DR_DATABASE_RESTORED=true`).
+  - Gated Failover & Failback Simulation: Built `tests/test_dr_failure_simulation.py` (9 tests) and `scripts/simulate_dr_failover_failback.py` verifying full lifecycle: GCP Outage -> Standby Alert -> S3 Restore -> Integrity Verification -> Operator Unlock -> Service -> GCP Primary Recovery -> State Synchronization -> Gated Failback -> Standby Re-locking.
+  - Split-Brain Prevention: Proved that manual gating prevents dual-master writable databases at all times.
+  - Verification & Testing: 89/89 automated tests passing across 7 suites with 0 failures. 0 idle compute resources on AWS ($0.00/hr burn rate).
+- 2026-09-12 ResilAI Multi-Cloud Resilience & Credit Optimization (GCP Primary + AWS Standby):
+  - Unified Container Portability: Created root `Dockerfile` using multi-stage `python:3.11-slim`, non-root user `resilai`, and `/health` probe for identical execution across GCP Cloud Run and AWS App Runner / ECR.
+  - Multi-Cloud Runtime Configuration: Extended `app/core/config.py` with `CloudProvider` (`gcp`, `aws`, `local`), `AWS_REGION`, `AWS_STANDBY`, `DR_DATABASE_RESTORED`, and cloud-aware `validate_deployment()`.
+  - Health & Observability Contract: Enhanced `GET /health` in `app/api/routes/health.py` with `provider`, `environment`, and `timestamp` fields without credential leakage.
+  - AWS Infrastructure & DR Sync: Created `aws/apprunner.yaml` (1 vCPU, 2GB standby compute), `aws/ecr_deploy.sh` (immutable Git SHA tags), `aws/backup_dr_export.sh` (Option B DR sync to encrypted S3), and `aws/README_MULTICLOUD_RUNBOOK.md`.
+  - CI/CD Deployment Workflow: Extended `.github/workflows/deploy.yml` with `workflow_dispatch` and manual-gated `publish-aws-ecr` job.
+  - Verification Suites & DR Restore Utility: Created `tests/test_multicloud_portability.py` (14 tests), `tests/test_health_multi_cloud.py` (8 tests), `tests/test_dr_restore.py` (6 tests), and `scripts/verify_dr_restore.py`. All 80 core Phase 18 and governance tests passing.
 - 2026-08-31 ResilAI Authenticated Product Experience & Product Identity Refactoring:
 - 2026-09-01 Backend Executive Capabilities & Explainability Layer:
   - Created deterministic explanation service (`app/services/explanation.py`) leveraging Gemini strictly for narrative translation (no scoring, no finding modification) with fallback mechanisms.
