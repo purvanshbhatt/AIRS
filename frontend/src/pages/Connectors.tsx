@@ -212,13 +212,81 @@ export default function ConnectorsPage() {
         return;
       }
 
+      // Determine auth_method and credentials per connector type
+      const connectorType = activeConfigDef.type;
+      let authMethod = 'api_key';
+      let credentials: Record<string, string> = {};
+
+      switch (connectorType) {
+        case 'aws':
+          authMethod = 'iam_role';
+          credentials = {
+            role_arn: formData.role_arn || '',
+            external_id: formData.external_id || '',
+          };
+          break;
+        case 'microsoft':
+          authMethod = 'oauth';
+          credentials = {
+            tenant_id: formData.tenant_id || '',
+            client_id: formData.client_id || '',
+            client_secret: formData.client_secret || '',
+          };
+          break;
+        case 'duo':
+          authMethod = 'api_key';
+          credentials = {
+            integration_key: formData.integration_key || '',
+            secret_key: formData.secret_key || '',
+            api_hostname: formData.api_hostname || '',
+          };
+          break;
+        case 'splunk':
+          authMethod = 'api_key';
+          credentials = {
+            api_key: formData.api_key || '',
+            mcp_url: formData.mcp_url || '',
+            host: formData.host || '',
+            port: formData.port || '8089',
+          };
+          break;
+        case 'wazuh':
+          authMethod = 'api_key';
+          credentials = {
+            api_key: formData.api_key || '',
+            host: formData.host || formData.manager_host || '',
+            manager_host: formData.manager_host || formData.host || '',
+            port: formData.port || '55000',
+          };
+          break;
+        case 'veeam':
+          authMethod = 'api_key';
+          credentials = {
+            api_key: formData.api_key || '',
+            server_url: formData.server_url || formData.base_url || '',
+            base_url: formData.base_url || formData.server_url || '',
+          };
+          break;
+        case 'webhook':
+          authMethod = 'webhook';
+          credentials = {
+            webhook_name: formData.webhook_name || 'Primary MSP Webhook',
+          };
+          break;
+        default:
+          // Fallback: collect all form fields as credentials
+          authMethod = 'api_key';
+          credentials = {
+            api_key: formData.api_key || formData.client_secret || formData.secret_key || 'configured',
+          };
+          break;
+      }
+
       await createConnector({
-        connector_type: activeConfigDef.type,
+        connector_type: connectorType,
         display_name: activeConfigDef.name,
-        auth_method: 'api_key',
-        credentials: {
-          api_key: formData.api_key || formData.client_secret || formData.secret_key || 'configured',
-        },
+        auth_method: authMethod,
+        credentials,
         config: formData,
         sync_interval_minutes: parseInt(formData.sync_interval_minutes || '15', 10),
       });
