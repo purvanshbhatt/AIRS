@@ -58,6 +58,15 @@ class SplunkConnector(Connector):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._mcp_url: str = self._credentials.get("mcp_url", "") or self._config.get("mcp_url", "")
+        if not self._mcp_url:
+            host = self._credentials.get("host") or self._config.get("host") or self._credentials.get("server_url") or self._config.get("server_url")
+            port = self._credentials.get("port") or self._config.get("port") or "8089"
+            if host:
+                if not host.startswith("http://") and not host.startswith("https://"):
+                    self._mcp_url = f"https://{host}:{port}"
+                else:
+                    self._mcp_url = f"{host}:{port}" if ":" not in host[8:] else host
+
         # The legacy "hec_token" credential slot is reused as the MCP bearer.
         self._api_key: str = (
             self._credentials.get("api_key", "")

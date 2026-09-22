@@ -29,6 +29,7 @@ class ConnectorType(str, enum.Enum):
     gitlab = "gitlab"
     okta = "okta"
     aws_security_hub = "aws_security_hub"
+    aws = "aws"
     gcp_scc = "gcp_scc"
     azure_security_center = "azure_security_center"
     splunk = "splunk"
@@ -39,6 +40,8 @@ class ConnectorType(str, enum.Enum):
     azure_openai = "azure_openai"
     microsoft = "microsoft"
     veeam = "veeam"
+    duo = "duo"
+    webhook = "webhook"
 
 
 class ConnectorAuthMethod(str, enum.Enum):

@@ -1,8 +1,14 @@
 .git
 .gitignore
-.venv
-venv
-env
+.venv*
+venv*
+env*
+.venv_linux
+android
+.opencode
+node_modules
+tests
+infra
 frontend
 scratch
 docs

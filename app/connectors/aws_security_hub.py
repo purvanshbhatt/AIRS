@@ -83,11 +83,15 @@ class AWSSecurityHubConnector(Connector):
                     if self._credentials.get("aws_session_token"):
                         sts_kwargs["aws_session_token"] = self._credentials["aws_session_token"]
                 sts = boto3.client("sts", **sts_kwargs)
-                assumed = sts.assume_role(
-                    RoleArn=role_arn,
-                    RoleSessionName=f"resilai-connector-{self.connector_id[:8]}",
-                    DurationSeconds=3600,
-                )
+                assume_params = {
+                    "RoleArn": role_arn,
+                    "RoleSessionName": f"resilai-connector-{self.connector_id[:8]}",
+                    "DurationSeconds": 3600,
+                }
+                external_id = self._credentials.get("external_id") or self._config.get("external_id")
+                if external_id:
+                    assume_params["ExternalId"] = external_id
+                assumed = sts.assume_role(**assume_params)
                 creds = assumed["Credentials"]
                 self._session = boto3.Session(
                     aws_access_key_id=creds["AccessKeyId"],
@@ -179,11 +183,13 @@ class AWSSecurityHubConnector(Connector):
         import time
         start = time.monotonic()
         try:
-            if not self._hub_client:
-                return ConnectorHealth(
-                    status="unreachable",
-                    message="Not authenticated",
-                )
+            if not self._authenticated:
+                ok = await self.authenticate()
+                if not ok or not self._hub_client:
+                    return ConnectorHealth(
+                        status="unreachable",
+                        message="AWS Security Hub authentication failed",
+                    )
             self._hub_client.describe_hub()
             latency = int((time.monotonic() - start) * 1000)
             return ConnectorHealth(
@@ -204,8 +210,10 @@ class AWSSecurityHubConnector(Connector):
     # ------------------------------------------------------------------
 
     async def validate_permissions(self) -> PermissionResult:
-        if not self._hub_client:
-            return PermissionResult(valid=False, message="Not authenticated")
+        if not self._authenticated:
+            ok = await self.authenticate()
+            if not ok or not self._hub_client:
+                return PermissionResult(valid=False, message="AWS Security Hub authentication failed")
 
         missing = []
         try:
