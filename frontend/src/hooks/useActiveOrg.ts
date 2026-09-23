@@ -27,12 +27,14 @@ export function useActiveOrg(): ActiveOrgState {
     return localStorage.getItem('resilai_selected_org_id') || '';
   });
 
-  const isDemo = typeof window !== 'undefined' && (
+  const isRealUser = Boolean(user && user.uid && user.uid !== 'demo-executive-uid');
+  const hasDemoParam = typeof window !== 'undefined' && window.location.search.includes('env=demo');
+
+  const isDemo = (!isRealUser && typeof window !== 'undefined' && (
     localStorage.getItem('resilai_demo_user') === 'true' ||
     localStorage.getItem('resilai_demo_session') === 'true' ||
-    window.location.search.includes('env=demo') ||
     window.location.hostname.includes('demo')
-  );
+  )) || hasDemoParam;
 
   const fetchOrgs = useCallback(async () => {
     if (isDemo) {

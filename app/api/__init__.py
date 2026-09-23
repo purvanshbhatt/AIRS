@@ -22,6 +22,7 @@ from app.api import (
     explanations,
     onboarding,
     billing,
+    agent_audits,
 )
 from app.api.v1 import router as v1_router
 from app.api.routes.sentinel import router as sentinel_router
@@ -76,3 +77,6 @@ router.include_router(onboarding.router, prefix="/orgs/{org_id}/onboarding", tag
 
 # Organization-scoped: Billing, Capabilities, & Subscription Management
 router.include_router(billing.router, tags=["billing"])
+
+# Organization-scoped: 48-Hour Live AI Agent Blast-Radius Audit
+router.include_router(agent_audits.router, tags=["Agent Audits"])

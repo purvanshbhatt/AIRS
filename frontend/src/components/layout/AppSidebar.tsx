@@ -23,6 +23,7 @@ import {
   UserCheck,
   FileBarChart,
   X,
+  Bot,
 } from 'lucide-react';
 
 interface NavItem {
@@ -67,6 +68,7 @@ export function AppSidebar({ mobile = false, onClose }: AppSidebarProps = {}) {
     label: 'L3: IT & Security',
     items: [
       { label: 'Operations Center', icon: Layers, path: '/operations' },
+      { label: '48-Hour Agent Audit', icon: Bot, path: '/agent-audit' },
       { label: 'Tech Stack & Inventory', icon: Cpu, path: '/technology/intelligence' },
       { label: 'Reports', icon: FileBarChart, path: '/reports' },
       { label: 'Connectors', icon: Plug, path: '/connectors' },

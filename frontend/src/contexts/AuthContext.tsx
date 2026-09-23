@@ -130,6 +130,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (firebaseUser) {
           console.log('[Auth] User signed in:', firebaseUser.email);
           localStorage.removeItem('resilai_demo_user');
+          localStorage.removeItem('resilai_demo_session');
           setUser(toUser(firebaseUser));
           
           // Verify workspace context and handle missing org profiles gracefully
@@ -226,6 +227,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setError(null);
+    localStorage.removeItem('resilai_demo_user');
+    localStorage.removeItem('resilai_demo_session');
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
@@ -249,6 +252,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setError(null);
+    localStorage.removeItem('resilai_demo_user');
+    localStorage.removeItem('resilai_demo_session');
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: unknown) {
@@ -267,6 +272,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setError(null);
+    localStorage.removeItem('resilai_demo_user');
+    localStorage.removeItem('resilai_demo_session');
+    localStorage.removeItem('resilai_selected_org_id');
     try {
       await createUserWithEmailAndPassword(auth, email, password);
     } catch (err: unknown) {

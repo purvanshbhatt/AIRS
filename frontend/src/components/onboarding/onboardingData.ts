@@ -22,14 +22,14 @@ export const ONBOARDING_STEPS_METADATA: StepMetadata[] = [
     shortTitle: 'Connect Systems',
     title: 'Connect Security Systems',
     subtitle: 'Link Microsoft 365, Veeam, CrowdStrike, and SentinelOne',
-    description: 'ResilAI ingests deterministic telemetry directly from your active identity, backup, and endpoint detection platforms without deploying custom kernel agents.',
+    description: 'ResilAI connects directly to the systems your IT team or MSP already manages to mathematically verify your disaster recovery and security controls without disrupting operations.',
     badge: 'Step 2 of 6',
   },
   {
     step: 3,
     shortTitle: 'Evidence Ledger',
     title: 'See What Can Be Verified',
-    subtitle: 'Explore deterministic health checks & SHA-256 evidence',
+    subtitle: 'Explore deterministic health checks & cryptographic evidence',
     description: 'Every control is mathematically proven with fresh cryptographic evidence. If telemetry is missing or unverified, readiness score drops to 0% for that control.',
     badge: 'Step 3 of 6',
   },
@@ -37,16 +37,16 @@ export const ONBOARDING_STEPS_METADATA: StepMetadata[] = [
     step: 4,
     shortTitle: 'Needs Attention',
     title: 'Understand What Matters',
-    subtitle: 'Triage active gaps by clinical risk and operational impact',
-    description: 'Instead of drowning in hundreds of raw alerts, ResilAI translates technical gaps into plain-English business impacts and prioritized executive actions.',
+    subtitle: 'Triage active gaps by clinical and operational risk',
+    description: 'Instead of drowning in hundreds of raw technical alerts, ResilAI translates security gaps into plain-English business impacts and prioritized executive actions.',
     badge: 'Step 4 of 6',
   },
   {
     step: 5,
     shortTitle: 'Recovery Assurance',
     title: 'Prepare for an Incident',
-    subtitle: 'Verify backup immutability, air-gaps, and recovery RTOs',
-    description: 'Assure uninterrupted clinical operations. Verify immutable backup snapshots, air-gapped replication locks, and realistic Recovery Time Objectives before an incident occurs.',
+    subtitle: 'Verify backup immutability, air-gaps, and recovery time',
+    description: 'Assure uninterrupted clinical and legal operations. Verify immutable backup snapshots, air-gapped replication locks, and realistic Recovery Time Objectives before an incident occurs.',
     badge: 'Step 5 of 6',
   },
   {
@@ -54,7 +54,7 @@ export const ONBOARDING_STEPS_METADATA: StepMetadata[] = [
     shortTitle: 'Executive Report',
     title: 'Generate Executive Board Report',
     subtitle: 'Preview and download your Boardroom Security Posture Story',
-    description: 'Transform verified control telemetry into an executive-ready PDF report designed for clinic managing partners, hospital boards, and cyber insurers.',
+    description: 'Transform verified control telemetry into an executive-ready PDF report designed for managing partners, boards of directors, and cyber insurers.',
     badge: 'Step 6 of 6',
   },
 ];
@@ -71,9 +71,9 @@ export const INITIAL_DEMO_PROFILE: OnboardingOrgProfile = {
 
 export const INITIAL_REAL_PROFILE: OnboardingOrgProfile = {
   name: '',
-  industry: 'Healthcare',
+  industry: 'Healthcare & Clinical Operations',
   size: '1-50',
-  country: 'US',
+  country: 'United States',
   regionState: '',
   clinicalTier: 'Standard Healthcare Operations',
   primarySystems: ['Microsoft 365', 'Veeam Backup'],
@@ -191,6 +191,15 @@ export const DEFAULT_CONNECTORS: SecurityConnectorState[] = [
     },
   },
 ];
+
+export const REAL_CONNECTORS: SecurityConnectorState[] = DEFAULT_CONNECTORS.map((c) => ({
+  ...c,
+  status: 'not_configured',
+  lastSync: undefined,
+  verifiedControls: [],
+  missingControls: [],
+  simulatedTelemetry: undefined,
+}));
 
 export const DEMO_EVIDENCE_ITEMS: EvidenceLedgerItem[] = [
   {

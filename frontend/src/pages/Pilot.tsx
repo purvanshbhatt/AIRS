@@ -273,15 +273,8 @@ export default function PilotPage() {
                             onChange={update('industry')}
                           >
                             <option value="">Select industry…</option>
-                            <option>Financial Services</option>
-                            <option>Healthcare</option>
-                            <option>Technology / SaaS</option>
-                            <option>Critical Infrastructure</option>
-                            <option>Government / Public Sector</option>
-                            <option>Retail / E-commerce</option>
-                            <option>Manufacturing</option>
-                            <option>Professional Services</option>
-                            <option>Other</option>
+                            <option>Healthcare & Clinical Operations</option>
+                            <option>Legal Practice & Client Confidentiality</option>
                           </select>
                         </div>
                       </div>

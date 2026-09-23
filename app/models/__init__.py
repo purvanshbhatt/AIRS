@@ -78,8 +78,10 @@ from app.models.lifecycle_catalog import (
     SoftwareVersion,
     LifecycleReference,
 )
+from app.models.agent_audit import AgentAudit
 
 __all__ = [
+    "AgentAudit",
     "ClinicMomentRecord",
     "MomentStatus",
     "DiscoveredAsset",

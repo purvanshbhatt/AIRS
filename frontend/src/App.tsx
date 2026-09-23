@@ -58,6 +58,10 @@ import Settings from './pages/Settings';
 // Docs pages
 import { DocsOverview, DocsMethodology, DocsFrameworks, DocsSecurity, DocsApi, DocsGovernance } from './pages/docs';
 
+// 48-Hour Live AI Agent Audit
+import AgentAuditPage from './pages/AgentAudit';
+import AgentAuditDetailPage from './pages/AgentAuditDetail';
+
 function ApiConfigBanner() {
   if (isApiConfigured) return null;
 
@@ -102,6 +106,8 @@ function MainAppRoutes() {
           <Route path="/activity/compliance-drift" element={<ComplianceDrift />} />
           <Route path="/technology/intelligence" element={<TechnologyIntelligence />} />
           <Route path="/audit" element={<AuditCalendar />} />
+          <Route path="/agent-audit" element={<AgentAuditPage />} />
+          <Route path="/agent-audit/:auditId" element={<AgentAuditDetailPage />} />
           <Route path="/settings" element={<Settings />} />
 
 

@@ -386,7 +386,10 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     # Extract message from detail, handling both string and dict formats
     detail = exc.detail
     if isinstance(detail, dict):
-        message = detail.get("message", str(detail))
+        if "error" in detail and isinstance(detail["error"], dict):
+            message = detail["error"].get("message", str(detail))
+        else:
+            message = detail.get("message", str(detail))
     elif isinstance(detail, str):
         message = detail
     else:
