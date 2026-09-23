@@ -13,7 +13,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app.core.auth import User, require_auth, get_user_org_id
+from app.core.entitlements import require_entitlement
 from app.db.database import get_db
+from app.services.billing.entitlements import Entitlement
 from app.schemas.connector import (
     ConnectorCreateRequest,
     ConnectorHealthResponse,
@@ -54,6 +56,7 @@ async def create_connector(
     body: ConnectorCreateRequest,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
+    _ent: None = Depends(require_entitlement(Entitlement.CONNECTORS_MANAGE)),
 ):
     org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)
@@ -400,6 +403,7 @@ async def trigger_sync(
     connector_id: str,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
+    _ent: None = Depends(require_entitlement(Entitlement.CONNECTORS_MANAGE)),
 ):
     org_id = _get_org_id(user, db)
     mgr = ConnectorManager(db, org_id)

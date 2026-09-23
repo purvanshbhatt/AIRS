@@ -1,8 +1,49 @@
 # Active Context
-Date: 2026-09-21
-Status: Daily Backup Sync Verified & Live Origin Push Completed (35/35 Pytest Passing)
+Date: 2026-09-22
+Status: Daily Backup Sync Verified & Staging Synchronized to daily-sync (35/35 Pytest Passing, CI/CD Protected)
 
 ## Recent Actions
+- Daily Backup Sync GitHub Actions Workflow & Remote Push (`.github/workflows/daily-backup-sync.yml`):
+  - Verified cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` manual trigger.
+  - Confirmed repository checkout with `fetch-depth: 0` and `contents: write` permissions.
+  - Confirmed branch management: checks out or creates `daily-sync` branch, fetches and merges latest commits from `staging`.
+  - Live Synchronization & Upstream Push: Verified and merged latest `staging` commits into `daily-sync`, cleanly pushed `daily-sync` to `origin`.
+  - Confirmed multi-tier branch protection: pre-push git hook and step-level validation guard explicitly blocking any push targeting `main` or `demo-stable`.
+  - Confirmed Git ref integrity: audited hierarchical ref `refs/heads/backup/dev-before-sync` preventing collisions with loose `backup` ref (`fatal: 'refs/heads/backup/dev-before-sync' exists; cannot create 'refs/heads/backup'`), keeping `daily-sync` as the canonical secure snapshot branch per specifications.
+  - Confirmed real-time audit logging: writes structured markdown audit log with commit SHA, sync status, source/target branches, run ID, and UTC timestamp to `$GITHUB_STEP_SUMMARY`.
+  - Automated test suite `TestDailyBackupSyncWorkflow` in `tests/test_daily_git_sync.py` verified green (35/35 tests passing).
+- Backend-Enforced Paywall & Entitlement Architecture:
+  - Strict Demo-vs-Paid Access Separation: Demo access is free (isolated simulated data), product access is paid (backed by active organization subscriptions). All paywall rules enforced authoritatively in the FastAPI backend via HTTP 402 Payment Required.
+  - Organization Subscription Model (`app/models/organization.py` & `app/db/firestore.py`):
+    - Added subscription fields: `subscription_plan`, `subscription_status`, `subscription_id`, `customer_id`, `current_period_end`.
+    - Attached subscription directly to Organization, ensuring tenant-level entitlement inheritance.
+    - Updated Firestore dual-write (`_org_to_doc`) and cold-start synchronization to persist billing state across Cloud Run lifecycle events.
+  - Entitlement Engine (`app/services/billing/entitlements.py`):
+    - Defined `Entitlement` enum across free, design-partner, growth, and enterprise tiers.
+    - Implemented cumulative plan mapping (`PLAN_ENTITLEMENTS`).
+    - Implemented `EntitlementService` with plan resolution, capability checks, plan activation, deactivation, and demo isolation.
+  - FastAPI Authorization Dependency (`app/core/entitlements.py`):
+    - Created `require_entitlement(capability)` dependency returning HTTP 402 Payment Required with structured error payload.
+  - Route Paywall Enforcement:
+    - Protected assessment creation (`POST /api/orgs/{org_id}/assessments` -> `EVIDENCE_COLLECTION`)
+    - Protected report generation (`POST /api/orgs/{org_id}/reports` -> `EXECUTIVE_REPORTS`)
+    - Protected connector creation & sync (`POST /api/v1/connectors` & `POST /api/v1/connectors/{id}/sync` -> `CONNECTORS_MANAGE`)
+    - Protected telemetry event ingestion (`POST /api/v1/telemetry-events/events` -> `TELEMETRY_INGESTION`)
+    - Protected API key creation (`POST /api/orgs/{org_id}/api-keys` -> `API_KEYS`)
+    - Protected webhook creation (`POST /api/orgs/{org_id}/webhooks` -> `WEBHOOKS`)
+    - Protected Splunk & Wazuh configuration (`POST /api/orgs/{org_id}/splunk-config` & `POST /api/integrations/wazuh/configure` -> `ADVANCED_INTEGRATIONS`)
+  - Billing & Webhook API (`app/api/billing.py` & `app/services/billing/checkout.py`):
+    - Implemented `GET /api/orgs/{org_id}/capabilities`, `GET /api/orgs/{org_id}/billing`, `POST /api/orgs/{org_id}/billing/activate`, and `POST /api/billing/webhook`.
+    - Registered billing router in `app/api/__init__.py`.
+  - Frontend Entitlement Integration:
+    - Added HTTP 402 interception to `frontend/src/api.ts` alongside API functions (`getCapabilities`, `getBillingStatus`, `activatePlan`).
+    - Implemented `useCapabilities` hook (`frontend/src/hooks/useCapabilities.ts`) with demo isolation and error fallback.
+    - Implemented `PaywallLockCard` (`frontend/src/components/common/PaywallLockCard.tsx`) anti-slop lock card.
+    - Integrated paywall state in `Connectors.tsx` and `Reports.tsx` with upgrade redirection.
+  - Comprehensive Automated Tests:
+    - `tests/test_entitlements_service.py` (27 tests) & `tests/test_paywall_enforcement.py` (5 tests) passing (32/32).
+    - `tests/test_production_org_lifecycle.py` & `tests/test_demo_isolation.py` verified passing (34/34). Total 66/66 tests passing.
+    - Frontend TypeScript typecheck (`tsc -b`) passing with 0 errors.
 - Daily Backup Sync GitHub Actions Workflow & Remote Push (`.github/workflows/daily-backup-sync.yml`):
   - Verified cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` manual trigger.
   - Confirmed repository checkout with `fetch-depth: 0` and `contents: write` permissions.

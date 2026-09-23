@@ -178,6 +178,16 @@ def _org_to_doc(org) -> Dict[str, Any]:
         "sla_target": org.sla_target,
         "created_at": org.created_at.isoformat() if org.created_at else datetime.now(timezone.utc).isoformat(),
         "updated_at": org.updated_at.isoformat() if org.updated_at else None,
+        # ── Subscription & Billing ───────────────────────────────────────
+        "subscription_plan": getattr(org, "subscription_plan", "free") or "free",
+        "subscription_status": getattr(org, "subscription_status", "unpaid") or "unpaid",
+        "subscription_id": getattr(org, "subscription_id", None),
+        "customer_id": getattr(org, "customer_id", None),
+        "current_period_end": (
+            org.current_period_end.isoformat()
+            if getattr(org, "current_period_end", None)
+            else None
+        ),
     }
 
     # ── Field-level encryption ────────────────────────────────────────

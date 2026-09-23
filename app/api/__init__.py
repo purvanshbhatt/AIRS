@@ -21,6 +21,7 @@ from app.api import (
     verification,
     explanations,
     onboarding,
+    billing,
 )
 from app.api.v1 import router as v1_router
 from app.api.routes.sentinel import router as sentinel_router
@@ -72,3 +73,6 @@ router.include_router(explanations.router, prefix="/orgs/{org_id}/explanations",
 
 # Organization-scoped: Onboarding Status
 router.include_router(onboarding.router, prefix="/orgs/{org_id}/onboarding", tags=["onboarding"])
+
+# Organization-scoped: Billing, Capabilities, & Subscription Management
+router.include_router(billing.router, tags=["billing"])

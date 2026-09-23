@@ -67,6 +67,18 @@ class Organization(Base):
     is_clone = Column(sa.Boolean, nullable=False, default=False, server_default="0", comment="True if org is a simulation clone.")
     source_org_id = Column(CHAR(36), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, comment="If is_clone=True, the original org id.")
 
+    # ── Subscription & Billing (Paywall Phase) ────────────────────────
+    # Billing attaches to the organization, not the individual user.
+    # All users within an organization inherit the org's entitlements.
+    subscription_plan = Column(String(50), nullable=False, default="free", server_default="free",
+                               comment="free, design-partner, growth, enterprise")
+    subscription_status = Column(String(50), nullable=False, default="unpaid", server_default="unpaid",
+                                  comment="unpaid, active, trialing, past_due, canceled")
+    subscription_id = Column(String(128), nullable=True, comment="External billing provider subscription ID")
+    customer_id = Column(String(128), nullable=True, comment="External billing provider customer ID")
+    current_period_end = Column(DateTime(timezone=True), nullable=True,
+                                comment="End of current billing period")
+
     
     # Relationships
     assessments = relationship("Assessment", back_populates="organization", cascade="all, delete-orphan")

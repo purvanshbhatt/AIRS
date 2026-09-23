@@ -17,6 +17,8 @@ from app.db.database import get_db
 from app.core.logging import event_logger
 from app.core.auth import require_auth, User
 from app.core.demo_guard import require_writable
+from app.core.entitlements import require_entitlement
+from app.services.billing.entitlements import Entitlement
 from app.schemas.organization import (
     OrganizationCreate,
     OrganizationUpdate,
@@ -196,6 +198,7 @@ async def create_organization_assessment(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.EVIDENCE_COLLECTION)),
 ):
     """Create a new append-only assessment for an organization owned by the current user."""
     service = get_assessment_service(db, user)
@@ -483,6 +486,7 @@ async def create_org_report(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.EXECUTIVE_REPORTS)),
 ):
     """Generate a new report for an organization."""
     from app.services.report import ReportService
