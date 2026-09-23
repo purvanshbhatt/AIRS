@@ -216,6 +216,20 @@ async function request<T>(
       });
     }
 
+    // Handle 402 - Payment Required (paywall)
+    if (response.status === 402) {
+      let paywallDetail: Record<string, unknown> = {};
+      try {
+        const body = await response.json();
+        paywallDetail = body?.error || body || {};
+      } catch { /* ignore */ }
+      throw new ApiRequestError({
+        message: String(paywallDetail.message || 'An active subscription is required to access this feature.'),
+        status: 402,
+        detail: JSON.stringify(paywallDetail),
+      });
+    }
+
     if (!response.ok) {
       let errorMessage = `Request failed`;
       let requestId: string | undefined;
@@ -1867,3 +1881,39 @@ export const deleteConnector = (connectorId: string) =>
     method: 'DELETE',
   });
 
+// =============================================================================
+// BILLING & CAPABILITIES
+// =============================================================================
+
+export interface CapabilitiesResponse {
+  plan: string;
+  status: string;
+  is_paid: boolean;
+  entitlements: Record<string, boolean>;
+}
+
+export interface BillingStatusResponse {
+  organization_id: string;
+  organization_name: string;
+  plan: string;
+  status: string;
+  subscription_id: string | null;
+  customer_id: string | null;
+  current_period_end: string | null;
+  available_plans: string[];
+}
+
+export async function getCapabilities(orgId: string): Promise<CapabilitiesResponse> {
+  return request<CapabilitiesResponse>(`/api/orgs/${orgId}/capabilities`);
+}
+
+export async function getBillingStatus(orgId: string): Promise<BillingStatusResponse> {
+  return request<BillingStatusResponse>(`/api/orgs/${orgId}/billing`);
+}
+
+export async function activatePlan(orgId: string, plan: string): Promise<{ success: boolean; plan: string; status: string }> {
+  return request(`/api/orgs/${orgId}/billing/activate`, {
+    method: 'POST',
+    body: JSON.stringify({ plan }),
+  });
+}

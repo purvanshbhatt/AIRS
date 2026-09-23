@@ -11,7 +11,9 @@ from sqlalchemy.orm import Session
 
 from app.core.auth import User, require_auth
 from app.core.demo_guard import require_writable
+from app.core.entitlements import require_entitlement
 from app.db.database import get_db
+from app.services.billing.entitlements import Entitlement
 from app.schemas.integrations import (
     ApiKeyCreateRequest,
     ApiKeyCreateResponse,
@@ -49,6 +51,7 @@ async def create_api_key(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.API_KEYS)),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     try:
@@ -96,6 +99,7 @@ async def create_webhook(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.WEBHOOKS)),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     try:
@@ -247,6 +251,7 @@ async def configure_splunk_hec(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.ADVANCED_INTEGRATIONS)),
 ):
     """Save Splunk HEC credentials for an organization (staging only)."""
     from app.services.organization import OrganizationService
@@ -291,6 +296,7 @@ async def configure_wazuh(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.ADVANCED_INTEGRATIONS)),
 ):
     """Save Wazuh manager credentials for the current user/org context."""
     import logging

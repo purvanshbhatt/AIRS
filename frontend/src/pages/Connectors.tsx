@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   getIntegrationStatus, 
   getEvidenceConfidence, 
@@ -9,6 +10,8 @@ import {
   deleteConnector 
 } from '../api';
 import { useActiveOrg } from '../hooks/useActiveOrg';
+import { useCapabilities } from '../hooks/useCapabilities';
+import { PaywallLockCard } from '../components/common/PaywallLockCard';
 import { useToast } from '../components/ui/Toast';
 import { 
   Activity, 
@@ -145,7 +148,9 @@ const CONNECTOR_DEFINITIONS: ConnectorCardDef[] = [
 ];
 
 export default function ConnectorsPage() {
+  const navigate = useNavigate();
   const { orgId, orgName, isDemo } = useActiveOrg();
+  const { has: hasCapability, plan } = useCapabilities(orgId);
   const { addToast } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -282,6 +287,16 @@ export default function ConnectorsPage() {
           break;
       }
 
+      if (!isDemo && !hasCapability('connectors_manage')) {
+        addToast({
+          title: 'Subscription Required',
+          message: 'An active ResilAI subscription is required to connect live infrastructure.',
+          type: 'error',
+        });
+        navigate('/pricing');
+        return;
+      }
+
       await createConnector({
         connector_type: connectorType,
         display_name: activeConfigDef.name,
@@ -301,6 +316,15 @@ export default function ConnectorsPage() {
       await loadData();
     } catch (err: any) {
       console.error('Failed to save connector:', err);
+      if (err?.status === 402) {
+        addToast({
+          title: 'Subscription Required (HTTP 402)',
+          message: err.message || 'Connecting live telemetry requires an active ResilAI subscription.',
+          type: 'error',
+        });
+        navigate('/pricing');
+        return;
+      }
       addToast({
         title: 'Configuration Error',
         message: err.message || 'Failed to save connector configuration.',
@@ -481,6 +505,17 @@ export default function ConnectorsPage() {
           </button>
         </div>
       </div>
+
+      {/* Paywall Gate Notice for Unpaid Organizations */}
+      {!isDemo && !hasCapability('connectors_manage') && (
+        <PaywallLockCard
+          feature="Live Telemetry Connector Management"
+          description="Connecting live security infrastructure (Splunk, Wazuh, Microsoft 365, AWS, Veeam) requires an active ResilAI subscription. Unpaid workspaces can preview connector schemas and evidence mappings, but live credential persistence and automated telemetry ingestion are gated."
+          requiredPlan="design-partner"
+          currentPlan={plan}
+          onUpgrade={() => navigate('/pricing')}
+        />
+      )}
 
       {/* Demo Mode Educational Notice */}
       {isDemo && (

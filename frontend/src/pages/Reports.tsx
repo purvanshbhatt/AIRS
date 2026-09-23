@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FileText,
   Download,
@@ -38,6 +38,8 @@ import {
 } from '../api';
 import { useActiveOrg } from '../hooks/useActiveOrg';
 import { useActiveOrgId } from '../hooks/useActiveOrgId';
+import { useCapabilities } from '../hooks/useCapabilities';
+import { PaywallLockCard } from '../components/common/PaywallLockCard';
 import type { Report, ReportType, ReportFormat } from '../types/reports';
 
 interface ReportTemplate {
@@ -94,8 +96,10 @@ const REPORT_TEMPLATES: ReportTemplate[] = [
 ];
 
 export default function Reports() {
+  const navigate = useNavigate();
   const { orgName, isDemo } = useActiveOrg();
   const activeOrgId = useActiveOrgId();
+  const { has: hasCapability, plan } = useCapabilities(activeOrgId);
 
   // Report Library State
   const [loading, setLoading] = useState(true);
@@ -149,6 +153,12 @@ export default function Reports() {
   // Handle Real-Time Report Generation
   const handleGenerateReport = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isDemo && !hasCapability('executive_reports')) {
+      navigate('/pricing');
+      return;
+    }
+
     setIsGenerating(true);
     setGenerationProgress(10);
     setGenerationStep('Connecting to deterministic scoring snapshot...');
@@ -199,7 +209,15 @@ export default function Reports() {
           maturity_name: 'Resilient & Managed',
           findings_count: 1,
         };
-      } catch (genErr) {
+      } catch (genErr: any) {
+        if (genErr?.status === 402) {
+          clearTimeout(progressTimer1);
+          clearTimeout(progressTimer2);
+          setIsGenerating(false);
+          setGenerationProgress(0);
+          navigate('/pricing');
+          return;
+        }
         // Fallback for demo / offline environments
         clearTimeout(progressTimer1);
         clearTimeout(progressTimer2);
@@ -450,6 +468,17 @@ export default function Reports() {
             Dismiss
           </button>
         </div>
+      )}
+
+      {/* Paywall Gate for Unpaid Workspaces */}
+      {!isDemo && !hasCapability('executive_reports') && (
+        <PaywallLockCard
+          feature="Executive & Boardroom Report Generation"
+          description="Generating signed PDF executive dossiers, HIPAA safeguards dossiers, and compliance telemetry exports requires an active Design Partner or Enterprise license. You can view sample archives below or upgrade your workspace."
+          requiredPlan="design-partner"
+          currentPlan={plan}
+          onUpgrade={() => navigate('/pricing')}
+        />
       )}
 
       {/* Section 1: Executive Report Generator Panel */}
