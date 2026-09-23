@@ -1172,7 +1172,7 @@ Task: Final Executive UX / E2E Readiness QA + Staging/Prod Pipeline & Live Demo 
 Changes Made:
 * Eliminated all executive trust violations: removed hardcoded fallback percentages (`72`, `84%`, `Elevated`) in frontend components, enforcing that missing evidence renders `Unavailable` / `Unknown` rather than a false positive state.
 * Simplified executive UI copy across `Morning Brief`, `Needs Attention`, `Recovery Readiness`, `Connectors`, `Documents`, and `Governance` to use plain-English terminology without sacrificing technical depth in the IT Workspace.
-* Resolved Firebase Web SDK API key configuration in `.env.staging` and `.env.production` (`AIzaSyC3QWQVV0FJHDveMbsD2FsdjV5pJiHIauw`).
+* Resolved Firebase Web SDK API key configuration in `.env.staging` and `.env.production` (`AIzaSy...REDACTED`).
 * Implemented persistent zero-friction Sandbox Executive Demo mode (`Dr. Evelyn Reed`, Acme Health Systems) via `AuthContext.tsx` and persistent localStorage flags, preventing 401 redirect loops.
 * Verified single staging backend API (`airs-api-staging` on Cloud Run) and single staging frontend (`resilai-staging` / `staging` on Firebase Hosting). Verified complete isolation from production.
 * Executed automated Playwright E2E testing across desktop and mobile viewports, capturing full live staging recording `staging_live_demo_recording.webm` (5.4 MB).

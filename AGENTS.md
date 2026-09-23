@@ -2,6 +2,14 @@
 
 Please follow the ResilAI Agent Governance Protocol in `.cursorrules` and `docs/agent_memory/AGENT_START.md`.
 
+## Codebase Knowledge Graph (graphify)
+
+This project has an AST knowledge graph pre-indexed at `graphify-out/`.
+- **Query the graph first**: For codebase questions, architectural structure, symbol lookups, or cross-file relationships, ALWAYS check `graphify-out/graph.json` first via `graphify` MCP tools (`query_graph`, `shortest_path`, `get_node`) or CLI `graphify query "<question>"`.
+- **Do not scan all project files**: Never traverse or brute-force grep raw files across the entire repo when answering questions. The graph provides a scoped subgraph with exact files and line numbers in milliseconds.
+- **Navigate the wiki**: If `graphify-out/wiki/index.md` exists, navigate the community articles instead of reading raw files.
+- **Keep graph synchronized**: Run `graphify update .` after modifying code files to keep AST relationships up-to-date (0 API cost).
+
 <!-- BEGIN AWS Agent Toolkit rules -->
 # AWS Guidance
 
