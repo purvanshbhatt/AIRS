@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Users, MapPin, Activity, ShieldCheck, Sparkles, Shield, Info, ArrowRight } from 'lucide-react';
+import { Building2, Users, MapPin, Activity, Scale, Sparkles, Info, ArrowRight, ShieldCheck } from 'lucide-react';
 import type { OnboardingOrgProfile, OnboardingMode } from '../../types/onboarding';
 
 interface Step1OrgProfileProps {
@@ -18,22 +18,10 @@ const INDUSTRY_PROFILES = [
     icon: Activity,
   },
   {
-    id: 'Financial Services',
-    label: 'Financial Services & Banking',
-    description: 'Prioritizes transactional integrity, audit trail persistence, and SOC 2 / GLBA controls.',
-    icon: ShieldCheck,
-  },
-  {
-    id: 'SaaS / Technology',
-    label: 'SaaS & Cloud Infrastructure',
-    description: 'Focuses on cloud configuration drifts, IAM least privilege, and API security telemetry.',
-    icon: Shield,
-  },
-  {
-    id: 'Enterprise',
-    label: 'Enterprise & Manufacturing',
-    description: 'Balanced posture covering endpoint hygiene, supply chain controls, and disaster recovery.',
-    icon: Building2,
+    id: 'Legal',
+    label: 'Legal Practice & Client Confidentiality',
+    description: 'Focuses on client privilege, matter document vault security, ABA Formal Opinion 477R, and audit protection.',
+    icon: Scale,
   },
 ];
 

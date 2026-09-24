@@ -24,6 +24,8 @@ import {
   Lock,
   Layers,
   Sparkles,
+  Activity,
+  Scale,
 } from 'lucide-react';
 import { PublicNavbar } from '../components/layout/PublicNavbar';
 import { Footer } from '../components/layout/Footer';
@@ -161,8 +163,8 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
     if (vContext?.currentVertical) {
       return vContext.currentVertical;
     }
-    // 5. Default fallback
-    return 'general';
+    // 5. Default fallback to healthcare
+    return 'healthcare';
   }, [detectedFromRoute, defaultVertical, vContext?.currentVertical]);
 
   const effectiveConfig: VerticalConfig = useMemo(() => {
@@ -330,6 +332,46 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center relative z-10">
           <div className="lg:col-span-7 space-y-6 text-left">
+            {/* Two Industry Buttons: Healthcare & Legal */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (vContext?.setVertical) vContext.setVertical('healthcare');
+                  if (navigate) navigate('/healthcare');
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
+                  currentVertical === 'healthcare'
+                    ? 'bg-ready-emerald/15 text-ready-emerald border-ready-emerald/40 shadow-sm shadow-ready-emerald/10'
+                    : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <Activity className="w-4 h-4 text-ready-emerald" />
+                <span>Healthcare & Clinical Continuity</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (vContext?.setVertical) vContext.setVertical('legal');
+                  if (navigate) navigate('/legal');
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
+                  currentVertical === 'legal'
+                    ? 'bg-blue-500/15 text-blue-500 border-blue-500/40 shadow-sm shadow-blue-500/10'
+                    : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <Scale className="w-4 h-4 text-blue-500" />
+                <span>Legal Practice & Client Vault</span>
+              </button>
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}

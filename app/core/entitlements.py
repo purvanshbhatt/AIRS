@@ -56,7 +56,7 @@ def _resolve_org_id(request: Request, user: User, db: Session) -> Optional[str]:
         return None
 
 
-def require_entitlement(capability: Entitlement) -> Callable:
+def require_entitlement(capability: Entitlement | str) -> Callable:
     """FastAPI dependency factory that gates access by entitlement.
 
     Returns HTTP 402 Payment Required if the organization does not
@@ -80,14 +80,17 @@ def require_entitlement(capability: Entitlement) -> Callable:
                 },
             )
 
+        ent = capability if isinstance(capability, Entitlement) else Entitlement(capability)
+        cap_val = ent.value
+
         svc = EntitlementService(db)
-        if svc.has(org_id, capability):
+        if svc.has(org_id, ent):
             return  # Entitlement satisfied
 
         logger.info(
             "Entitlement denied: org=%s capability=%s plan=%s",
             org_id,
-            capability.value,
+            cap_val,
             svc.get_effective_plan(org_id),
         )
         raise HTTPException(
@@ -96,7 +99,7 @@ def require_entitlement(capability: Entitlement) -> Callable:
                 "error": {
                     "code": "PAYMENT_REQUIRED",
                     "message": "An active ResilAI subscription is required to access this feature.",
-                    "required_entitlement": capability.value,
+                    "required_entitlement": cap_val,
                     "current_plan": svc.get_effective_plan(org_id),
                     "upgrade_url": "/pricing",
                 }

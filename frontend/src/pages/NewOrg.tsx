@@ -14,14 +14,8 @@ import {
 import { Building2, ArrowRight } from 'lucide-react';
 
 const industries = [
-  { value: 'technology', label: 'Technology' },
-  { value: 'healthcare', label: 'Healthcare' },
-  { value: 'financial', label: 'Financial Services' },
-  { value: 'manufacturing', label: 'Manufacturing' },
-  { value: 'retail', label: 'Retail' },
-  { value: 'government', label: 'Government' },
-  { value: 'education', label: 'Education' },
-  { value: 'other', label: 'Other' },
+  { value: 'healthcare', label: 'Healthcare & Clinical Operations' },
+  { value: 'legal', label: 'Legal Practice & Client Confidentiality' },
 ];
 
 const sizes = [

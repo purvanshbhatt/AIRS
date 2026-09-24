@@ -1917,3 +1917,120 @@ export async function activatePlan(orgId: string, plan: string): Promise<{ succe
     body: JSON.stringify({ plan }),
   });
 }
+
+// =============================================================================
+// 48-HOUR LIVE AI AGENT BLAST-RADIUS AUDIT
+// =============================================================================
+
+export interface AgentAuditFinding {
+  finding_id: string;
+  title: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  deterministic_reason: string;
+  evidence_ids: string[];
+  evidence_source: string;
+  timestamp: string;
+  affected_agent: string;
+  affected_tool: string;
+}
+
+export interface AgentAuditItem {
+  id: string;
+  org_id: string;
+  created_by?: string;
+  status: 'CREATED' | 'INGESTING' | 'EVALUATING' | 'COMPLETE' | 'EXPIRED';
+  audit_window: string;
+  source_type: string;
+  agent_name: string;
+  environment: string;
+  business_context: string;
+  created_at: string;
+  expires_at: string;
+  completed_at: string | null;
+  telemetry_event_count: number;
+  evidence_count: number;
+  agent_count: number;
+  tool_action_count: number;
+  verified_action_count: number;
+  unverified_action_count: number;
+  readiness_score: number | null;
+  evidence_confidence: string;
+  findings: AgentAuditFinding[];
+  framework_alignment: Record<string, any>;
+  deterministic_rules_evaluated: number;
+}
+
+export interface AgentAuditCreatePayload {
+  audit_window?: string;
+  source_type?: string;
+  agent_name?: string;
+  environment?: string;
+  business_context?: string;
+}
+
+export interface AgentAuditExplanationResponse {
+  audit_id: string;
+  org_id: string;
+  readiness_score: number;
+  explanation: string;
+  narrative_source: string;
+}
+
+export const getAgentAudits = (orgId: string) =>
+  request<AgentAuditItem[]>(`/api/orgs/${orgId}/agent-audits`);
+
+export const getAgentAudit = (orgId: string, auditId: string) =>
+  request<AgentAuditItem>(`/api/orgs/${orgId}/agent-audits/${auditId}`);
+
+export const createAgentAudit = (orgId: string, payload: AgentAuditCreatePayload) =>
+  request<AgentAuditItem>(`/api/orgs/${orgId}/agent-audits`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+export const ingestAgentTelemetry = (orgId: string, auditId: string, events: any[]) =>
+  request<{ audit_id: string; ingested_events: number; new_evidence_count: number; status: string }>(
+    `/api/orgs/${orgId}/agent-audits/${auditId}/telemetry`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ events }),
+    }
+  );
+
+export const runAgentAuditAnalysis = (orgId: string, auditId: string) =>
+  request<AgentAuditItem>(`/api/orgs/${orgId}/agent-audits/${auditId}/run`, {
+    method: 'POST',
+  });
+
+export const getAgentAuditExplanation = (orgId: string, auditId: string) =>
+  request<AgentAuditExplanationResponse>(`/api/orgs/${orgId}/agent-audits/${auditId}/explanation`);
+
+export const downloadAgentAuditReport = async (orgId: string, auditId: string): Promise<Blob> => {
+  const authHeaders = await getAuthHeaders();
+  const url = `${API_BASE_URL}/api/orgs/${orgId}/agent-audits/${auditId}/report`;
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: authHeaders,
+    });
+  } catch (err) {
+    throw new ApiRequestError({
+      message: 'Unable to download report. Check your connection.',
+    });
+  }
+  if (response.status === 401) {
+    handleUnauthorized();
+    throw new ApiRequestError({
+      message: 'Authentication required to download report.',
+      status: 401,
+    });
+  }
+  if (!response.ok) {
+    throw new ApiRequestError({
+      message: 'Failed to download 48-Hour Agent Audit report',
+      status: response.status,
+    });
+  }
+  return response.blob();
+};
+

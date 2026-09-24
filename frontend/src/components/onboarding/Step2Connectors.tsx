@@ -83,10 +83,10 @@ export function Step2Connectors({
           </div>
           <div>
             <h3 className="text-base font-bold text-on-surface">
-              {isDemo ? 'Live Security Connectors (Acme Health Systems Telemetry)' : 'Connect Your Security Platforms'}
+              {isDemo ? 'Live Security Connectors (Acme Health Systems Telemetry)' : 'Connect Your Core Systems'}
             </h3>
             <p className="text-xs text-on-surface-variant mt-0.5 max-w-2xl leading-relaxed">
-              ResilAI hooks directly into Microsoft 365, Veeam, CrowdStrike, and SentinelOne via read-only APIs and MCP forwarders to continuously harvest control evidence.
+              ResilAI connects directly to the systems your IT team or MSP already manages (such as Microsoft 365 and Veeam backups) to mathematically verify your disaster recovery and security controls without disrupting your daily operations.
             </p>
           </div>
         </div>
@@ -144,7 +144,7 @@ export function Step2Connectors({
                     </span>
                   ) : (
                     <span className="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase bg-surface-container-high text-on-surface-variant border border-outline-variant/40 shrink-0">
-                      Ready to Link
+                      Not Connected
                     </span>
                   )}
                 </div>
@@ -247,7 +247,7 @@ export function Step2Connectors({
               {/* Card Bottom Actions */}
               <div className="pt-4 mt-2 border-t border-outline-variant/30 flex items-center justify-between">
                 <span className="text-[11px] text-on-surface-variant">
-                  {isConnected ? `Verified ${conn.lastSync || '4m ago'}` : 'Requires API Read Scope'}
+                  {isConnected ? `Verified ${conn.lastSync || 'recently'}` : 'Not connected'}
                 </span>
 
                 {!isDemo && (
@@ -256,7 +256,7 @@ export function Step2Connectors({
                     onClick={() => setActiveConfigId(isConfiguring ? null : conn.id)}
                     className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-outline-variant/60 hover:bg-surface-container-high text-on-surface transition-all flex items-center gap-1"
                   >
-                    {isConnected ? 'Reconfigure' : 'Connect Now'}
+                    {isConnected ? 'Reconfigure' : 'Connect System'}
                   </button>
                 )}
               </div>

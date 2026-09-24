@@ -1,0 +1,60 @@
+# .graphifyignore - Explicit inclusions and exclusions for graphify knowledge graph
+# Graphify respects this file to avoid re-reading binary, media, and build artifacts.
+
+# Build and bundle artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-*/
+frontend/dist_backup/
+frontend/dist-sentinel/
+build/
+dist/
+*.egg-info/
+*.tsbuildinfo
+
+# Test videos, audio, and large binary media
+*.mp4
+*.mov
+*.webm
+*.avi
+*.mp3
+*.wav
+*.pdf
+*.webp
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.ico
+*.svg
+
+# Platform & mobile artifacts
+android/
+
+# Virtual environments & python caches
+.venv/
+.venv_linux/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Subagent scratch & ephemeral directories
+.agents/*/
+!.agents/rules/
+!.agents/workflows/
+!.agents/skills/
+.ai-memory/
+scratch/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local databases & logs
+*.db
+*.sqlite
+*.sqlite3
+*.log

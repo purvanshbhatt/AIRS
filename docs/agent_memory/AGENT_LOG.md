@@ -1,8 +1,78 @@
 Date: 2026-09-22
-Agent: ResilAI DevOps Agent
-Task: Daily Backup Sync & Remote Branch Synchronization Execution
+Agent: ResilAI Full-Stack Systems & Architecture Agent
+Task: Staging Product Integrity, Demo Isolation, Clean Onboarding Slate, and 48-Hour Live AI Agent Audit
 
 Changes Made:
+* Demo State Isolation & Auth Hardening:
+  - Updated `frontend/src/contexts/AuthContext.tsx` to purge `resilai_demo_user` and `resilai_demo_session` from `localStorage` upon authentication and state changes.
+  - Hardened `frontend/src/hooks/useActiveOrg.ts`: real authenticated users (`user.uid !== 'demo-executive-uid'`) strictly set `isDemo = false`. Real accounts never fall back to demo/synthetic state.
+* Onboarding Simplification & Clean Connectors Slate:
+  - Created `REAL_CONNECTORS` in `frontend/src/components/onboarding/onboardingData.ts` defaulting to `status: 'not_configured'`, `lastSync: undefined`, showing `0 of 4 connected` for real accounts.
+  - Rewrote technical MSP jargon into executive plain English across `Step1OrgProfile.tsx` and `Step2Connectors.tsx`.
+  - Restricted selectable industries across Onboarding Step 1, `NewOrg.tsx`, and `Pilot.tsx` to exactly two options: Healthcare & Clinical Operations and Legal Practice & Client Confidentiality.
+* Operations Center Telemetry Sanitization:
+  - Rewrote `frontend/src/pages/ITWorkspace.tsx` to remove hardcoded fake timestamps (`14:02:11.432`) and throughput metrics (`42.8 MB/s`). Real accounts now display a clean empty state with a direct CTA to connect a system.
+* Landing Page Hero Two Industry Buttons:
+  - Added `Healthcare & Clinical Continuity` and `Legal Practice & Client Vault` toggle buttons directly in `Landing.tsx` hero. Default vertical set to `'healthcare'`.
+* 48-Hour Live AI Agent Blast-Radius Audit Backend & Frontend:
+  - Backend Model (`app/models/agent_audit.py`): Time-bounded 48-hour observation session model with lifecycle states (`CREATED`, `INGESTING`, `EVALUATING`, `COMPLETE`, `EXPIRED`), automatic expiration calculation (`expires_at = created_at + 48h`), and dual-write to Firestore.
+  - Schemas (`app/schemas/agent_audit.py`): Request/response models for session creation, telemetry ingestion, and evaluation.
+  - Router (`app/api/agent_audits.py`): FastAPI endpoints for session creation, telemetry ingestion, deterministic blast-radius evaluation against NIST AI RMF and OWASP LLM Top 10, Gemini executive narrative synthesis, and ReportLab PDF downloads.
+  - Backend Paywall: Enforced HTTP 402 Payment Required for unentitled real accounts (`require_entitlement`).
+  - Frontend Pages: Implemented `frontend/src/pages/AgentAudit.tsx` and `frontend/src/pages/AgentAuditDetail.tsx`. Registered routes in `App.tsx` and added navigation link to `AppSidebar.tsx`.
+* Testing & Verification:
+  - Verified 5/5 passing tests in `tests/test_agent_audit.py`.
+  - Verified 32/32 passing tests in `tests/test_entitlements_service.py` and `tests/test_demo_isolation.py`.
+  - Frontend TypeScript build (`npm run build:staging`) built cleanly with 0 errors.
+  - Deployed to Firebase Hosting targets `resilai-staging` and `staging`. Deployed to Cloud Run service `airs-api-staging`.
+
+Files Modified:
+* `app/api/__init__.py`
+* `app/api/agent_audits.py`
+* `app/core/entitlements.py`
+* `app/core/middleware.py`
+* `app/models/__init__.py`
+* `app/models/agent_audit.py`
+* `app/schemas/agent_audit.py`
+* `frontend/src/App.tsx`
+* `frontend/src/api.ts`
+* `frontend/src/components/layout/AppSidebar.tsx`
+* `frontend/src/components/onboarding/Step1OrgProfile.tsx`
+* `frontend/src/components/onboarding/Step2Connectors.tsx`
+* `frontend/src/components/onboarding/onboardingData.ts`
+* `frontend/src/contexts/AuthContext.tsx`
+* `frontend/src/hooks/useActiveOrg.ts`
+* `frontend/src/pages/AgentAudit.tsx`
+* `frontend/src/pages/AgentAuditDetail.tsx`
+* `frontend/src/pages/ITWorkspace.tsx`
+* `frontend/src/pages/Landing.tsx`
+* `frontend/src/pages/NewOrg.tsx`
+* `frontend/src/pages/Onboarding.tsx`
+* `frontend/src/pages/Pilot.tsx`
+* `tests/test_agent_audit.py`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None.
+
+Business Impact:
+* Eliminates the risk of real users inheriting fake/synthetic demo data or gaining unentitled access to paid features.
+* Guarantees that new accounts start with a clean slate and non-technical onboarding experience.
+* Delivers complete feature parity for the 48-Hour Live AI Agent Blast-Radius Audit with active backend and Gemini narrative capabilities.
+
+Next Recommended Task:
+* Monitor live telemetry and user feedback on staging environment.
+
+Blocked By:
+* None.
+
+Affected Teams:
+* Product, Security, Compliance, Engineering.
+
+---
+
+Date: 2026-09-22
 * Audited and Verified GitHub Actions Daily Backup Sync Workflow (`.github/workflows/daily-backup-sync.yml`):
   - Confirmed Triggers: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger).
   - Confirmed Git Synchronization Behavior: Repository checkout with `fetch-depth: 0` and `contents: write` permissions, checks out or creates remote branch `daily-sync`, merges latest commits from `staging`, and pushes `daily-sync` to `origin`.
@@ -1102,7 +1172,7 @@ Task: Final Executive UX / E2E Readiness QA + Staging/Prod Pipeline & Live Demo 
 Changes Made:
 * Eliminated all executive trust violations: removed hardcoded fallback percentages (`72`, `84%`, `Elevated`) in frontend components, enforcing that missing evidence renders `Unavailable` / `Unknown` rather than a false positive state.
 * Simplified executive UI copy across `Morning Brief`, `Needs Attention`, `Recovery Readiness`, `Connectors`, `Documents`, and `Governance` to use plain-English terminology without sacrificing technical depth in the IT Workspace.
-* Resolved Firebase Web SDK API key configuration in `.env.staging` and `.env.production` (`AIzaSyC3QWQVV0FJHDveMbsD2FsdjV5pJiHIauw`).
+* Resolved Firebase Web SDK API key configuration in `.env.staging` and `.env.production` (`AIzaSy...REDACTED`).
 * Implemented persistent zero-friction Sandbox Executive Demo mode (`Dr. Evelyn Reed`, Acme Health Systems) via `AuthContext.tsx` and persistent localStorage flags, preventing 401 redirect loops.
 * Verified single staging backend API (`airs-api-staging` on Cloud Run) and single staging frontend (`resilai-staging` / `staging` on Firebase Hosting). Verified complete isolation from production.
 * Executed automated Playwright E2E testing across desktop and mobile viewports, capturing full live staging recording `staging_live_demo_recording.webm` (5.4 MB).

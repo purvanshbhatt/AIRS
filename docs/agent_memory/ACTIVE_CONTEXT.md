@@ -1,18 +1,30 @@
 # Active Context
 Date: 2026-09-22
-Status: Daily Backup Sync Verified & Staging Synchronized to daily-sync (35/35 Pytest Passing, CI/CD Protected)
+Status: Staging Product Integrity, Real-User Isolation, Telemetry Sanitization, and 48-Hour Live Agent Audit Deployed to Staging (100% Tests Passing, Clean Builds)
 
 ## Recent Actions
-- Daily Backup Sync GitHub Actions Workflow & Remote Push (`.github/workflows/daily-backup-sync.yml`):
-  - Verified cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` manual trigger.
-  - Confirmed repository checkout with `fetch-depth: 0` and `contents: write` permissions.
-  - Confirmed branch management: checks out or creates `daily-sync` branch, fetches and merges latest commits from `staging`.
-  - Live Synchronization & Upstream Push: Verified and merged latest `staging` commits into `daily-sync`, cleanly pushed `daily-sync` to `origin`.
-  - Confirmed multi-tier branch protection: pre-push git hook and step-level validation guard explicitly blocking any push targeting `main` or `demo-stable`.
-  - Confirmed Git ref integrity: audited hierarchical ref `refs/heads/backup/dev-before-sync` preventing collisions with loose `backup` ref (`fatal: 'refs/heads/backup/dev-before-sync' exists; cannot create 'refs/heads/backup'`), keeping `daily-sync` as the canonical secure snapshot branch per specifications.
-  - Confirmed real-time audit logging: writes structured markdown audit log with commit SHA, sync status, source/target branches, run ID, and UTC timestamp to `$GITHUB_STEP_SUMMARY`.
-  - Automated test suite `TestDailyBackupSyncWorkflow` in `tests/test_daily_git_sync.py` verified green (35/35 tests passing).
-- Backend-Enforced Paywall & Entitlement Architecture:
+- Staging Product Integrity, Real-User Data Isolation, Onboarding Simplification, and 48-Hour Live AI Agent Audit (`staging` branch):
+  - Strict Demo-vs-Real User Isolation:
+    - Fixed `AuthContext.tsx` to explicitly clear `resilai_demo_user` and `resilai_demo_session` flags from `localStorage` upon authentication (`signInWithGoogle`, `signInWithEmail`, `signUpWithEmail`) and within `onAuthStateChanged`.
+    - Hardened `useActiveOrg.ts`: authenticating with a real account (`user && user.uid !== 'demo-executive-uid'`) strictly sets `isDemo = false` unless explicitly forced via query param `?env=demo`. Real accounts NEVER fall back to synthetic demo datasets.
+  - Zero-Synthetic Clean Slate for Real Accounts:
+    - Onboarding Step 2 (`onboardingData.ts` & `Step2Connectors.tsx`): introduced `REAL_CONNECTORS` defaulting to `status: 'not_configured'`, `lastSync: undefined`, `0 of 4 connected`. Real accounts no longer see fake connected MSPs.
+    - Operations Center (`ITWorkspace.tsx`): eliminated hardcoded static timestamp (`14:02:11.432`) and simulated throughput metrics (`42.8 MB/s`). Real accounts now see a clean empty state: *"Nothing is connected yet. Connect your first integration to start collecting continuous operational telemetry."* Demo mode retains dynamic relative timestamps marked explicitly as `SANDBOX SIMULATION`.
+  - Non-Technical Onboarding & Two Industry Hero Buttons:
+    - Rewrote technical MSP jargon into executive plain English across Step 1 and Step 2.
+    - Restricted selectable industries to exactly two primary verticals: **Healthcare & Clinical Operations** and **Legal Practice & Client Confidentiality** (removed Finance, SaaS, and Enterprise across Onboarding Step 1, NewOrg, and Pilot).
+    - Added the two prominent industry toggle buttons (`Healthcare & Clinical Continuity` and `Legal Practice & Client Vault`) directly in the Landing page hero (`Landing.tsx`).
+  - 48-Hour Live AI Agent Blast-Radius Audit Backend & Frontend:
+    - Created `app/models/agent_audit.py`: Bounded 48-hour observation session model with lifecycle states (`CREATED`, `INGESTING`, `EVALUATING`, `COMPLETE`, `EXPIRED`), automatic expiration calculation (`expires_at = created_at + 48h`), and dual-write to Firestore.
+    - Created `app/schemas/agent_audit.py`: Request/response schemas for session creation, telemetry ingestion, and evaluation.
+    - Created `app/api/agent_audits.py`: FastAPI endpoints for creating sessions, ingesting agent execution traces, executing deterministic blast-radius evaluation (NIST AI RMF, OWASP LLM Top 10), generating Gemini executive narrative explanations, and downloading executive PDF reports.
+    - Enforced backend paywall: real organization audit operations require active subscription (`require_entitlement` returning HTTP 402 Payment Required).
+    - Created frontend pages: `frontend/src/pages/AgentAudit.tsx` (history, status badges, observation countdown timer, launch wizard) and `frontend/src/pages/AgentAuditDetail.tsx` (blast radius findings, live trace injector, Gemini explanation synthesis, PDF report download).
+    - Registered routes `/agent-audit` and `/agent-audit/:auditId` in `App.tsx` and added `48-Hour Agent Audit` to `AppSidebar.tsx` navigation.
+  - Verification & Staging Parity:
+    - Unit & Integration tests: `tests/test_agent_audit.py` (5/5 passed), `tests/test_entitlements_service.py` & `tests/test_demo_isolation.py` (32/32 passed).
+    - Frontend TypeScript build: `npm run build:staging` passed with 0 errors.
+    - Staging deployment: Firebase Hosting targets `resilai-staging` (`https://resilai-staging.web.app`) and `staging` (`https://airs-staging-0384513977.web.app`) successfully updated. Cloud Run service `airs-api-staging` deployed.
   - Strict Demo-vs-Paid Access Separation: Demo access is free (isolated simulated data), product access is paid (backed by active organization subscriptions). All paywall rules enforced authoritatively in the FastAPI backend via HTTP 402 Payment Required.
   - Organization Subscription Model (`app/models/organization.py` & `app/db/firestore.py`):
     - Added subscription fields: `subscription_plan`, `subscription_status`, `subscription_id`, `customer_id`, `current_period_end`.

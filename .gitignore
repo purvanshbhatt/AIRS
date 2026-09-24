@@ -52,6 +52,7 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/dist-*/
+frontend/dist_backup/
 frontend/build_output.txt
 frontend/*.tsbuildinfo
 frontend/.env
@@ -67,12 +68,23 @@ gcp/env.staging
 .firebase/
 
 # Agent & AI tool directories
-.agents/
+.agents/*/
+!.agents/rules/
+!.agents/rules/**
+!.agents/workflows/
+!.agents/workflows/**
+!.agents/skills/
+!.agents/skills/**
 .ai-memory/
 .claude/
 .opencode/
 scratch/
 *.zip
+
+# Graphify temporary caches
+graphify-out/cache/
+graphify-out/.*
+
 
 # Logs & Archive logs
 *.log

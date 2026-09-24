@@ -21,6 +21,7 @@ import {
   INITIAL_DEMO_PROFILE,
   INITIAL_REAL_PROFILE,
   DEFAULT_CONNECTORS,
+  REAL_CONNECTORS,
   setOnboardingCompleted,
   setOnboardingStep,
   getOnboardingStep,
@@ -49,7 +50,9 @@ export default function Onboarding() {
   const [profile, setProfile] = useState<OnboardingOrgProfile>(
     isExplicitDemo ? INITIAL_DEMO_PROFILE : INITIAL_REAL_PROFILE
   );
-  const [connectors, setConnectors] = useState<SecurityConnectorState[]>(DEFAULT_CONNECTORS);
+  const [connectors, setConnectors] = useState<SecurityConnectorState[]>(
+    isExplicitDemo ? DEFAULT_CONNECTORS : REAL_CONNECTORS
+  );
   const [createdOrgId, setCreatedOrgId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,8 +161,10 @@ export default function Onboarding() {
     setMode(nextMode);
     if (nextMode === 'demo') {
       setProfile(INITIAL_DEMO_PROFILE);
+      setConnectors(DEFAULT_CONNECTORS);
     } else {
       setProfile(INITIAL_REAL_PROFILE);
+      setConnectors(REAL_CONNECTORS);
     }
   };
 
