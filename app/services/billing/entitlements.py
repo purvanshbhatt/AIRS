@@ -110,12 +110,29 @@ class EntitlementService:
         from app.models.organization import Organization
         return self.db.query(Organization).filter(Organization.id == org_id).first()
 
+    def is_exempt_org(self, org_id: str) -> bool:
+        """Check if an organization is owned by or associated with an administrator account."""
+        from app.core.config import settings
+        org = self._get_org(org_id)
+        if not org:
+            return False
+        owner_uid = getattr(org, "owner_uid", None)
+        created_by = getattr(org, "created_by", None)
+        if isinstance(owner_uid, str) and settings.is_admin_email(owner_uid):
+            return True
+        if isinstance(created_by, str) and settings.is_admin_email(created_by):
+            return True
+        return False
+
     def get_effective_plan(self, org_id: str) -> str:
         """Return the plan the org is effectively on right now.
 
         If subscription_status is not active/trialing, falls back to 'free'
         regardless of what subscription_plan says.
         """
+        if self.is_exempt_org(org_id):
+            return "enterprise"
+
         org = self._get_org(org_id)
         if not org:
             return "free"
@@ -135,6 +152,8 @@ class EntitlementService:
 
     def has(self, org_id: str, entitlement: Entitlement) -> bool:
         """Check if the organization has a specific entitlement."""
+        if self.is_exempt_org(org_id):
+            return True
         plan = self.get_effective_plan(org_id)
         allowed = PLAN_ENTITLEMENTS.get(plan, _FREE_ENTITLEMENTS)
         return entitlement in allowed
@@ -145,6 +164,14 @@ class EntitlementService:
         This is the payload returned by GET /api/orgs/{org_id}/capabilities
         and consumed by the frontend to determine what to show/hide.
         """
+        if self.is_exempt_org(org_id):
+            return {
+                "plan": "enterprise",
+                "status": "active",
+                "is_paid": True,
+                "entitlements": {e.value: True for e in Entitlement},
+            }
+
         org = self._get_org(org_id)
         if not org:
             return {

@@ -373,6 +373,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     error_codes = {
         400: "BAD_REQUEST",
         401: "UNAUTHORIZED",
+        402: "PAYMENT_REQUIRED",
         403: "FORBIDDEN",
         404: "NOT_FOUND",
         409: "CONFLICT",
@@ -383,13 +384,25 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
     error_code = error_codes.get(exc.status_code, f"HTTP_{exc.status_code}")
 
-    # Extract message from detail, handling both string and dict formats
+    # Extract message and extra fields from detail, handling both string and dict formats
     detail = exc.detail
+    extra_error_fields = {}
     if isinstance(detail, dict):
         if "error" in detail and isinstance(detail["error"], dict):
-            message = detail["error"].get("message", str(detail))
+            inner_error = detail["error"]
+            message = inner_error.get("message", str(detail))
+            if "code" in inner_error:
+                error_code = inner_error["code"]
+            for k, v in inner_error.items():
+                if k not in ("code", "message", "request_id"):
+                    extra_error_fields[k] = v
         else:
             message = detail.get("message", str(detail))
+            if "code" in detail:
+                error_code = detail["code"]
+            for k, v in detail.items():
+                if k not in ("code", "message", "request_id"):
+                    extra_error_fields[k] = v
     elif isinstance(detail, str):
         message = detail
     else:
@@ -405,15 +418,16 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
         if "Organization ID is required" in detail:
             error_code = "ORG_ID_REQUIRED"
 
+    error_payload = {
+        "code": error_code,
+        "message": message,
+        "request_id": request_id,
+        **extra_error_fields,
+    }
+
     response = JSONResponse(
         status_code=exc.status_code,
-        content={
-            "error": {
-                "code": error_code,
-                "message": message,
-                "request_id": request_id
-            }
-        }
+        content={"error": error_payload}
     )
     response.headers["X-Request-ID"] = request_id
 

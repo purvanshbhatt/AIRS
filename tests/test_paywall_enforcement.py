@@ -150,3 +150,66 @@ class TestPaywallEnforcement:
                 headers=_auth_headers(),
             )
             assert resp.status_code == 200
+
+    def test_admin_user_bypasses_paywall(self):
+        """Administrator user (e.g. Purvansh) should bypass entitlement checks without 402."""
+        from app.core.auth import User
+        admin_user = User(uid="purvansh-admin-uid", email="purvansh95b@gmail.com", name="Purvansh Bhatt")
+
+        with patch("app.core.entitlements.require_auth", return_value=admin_user), \
+             patch("app.core.entitlements._resolve_org_id", return_value="test-paywall-org"), \
+             patch("app.api.v1.connectors.ConnectorManager") as MockMgr:
+            mock_connector = MagicMock()
+            mock_connector.id = "conn-123"
+            mock_connector.connector_type = "aws"
+            mock_connector.display_name = "AWS Security Hub"
+            mock_connector.auth_method = "iam_role"
+            mock_connector.config = {}
+            mock_connector.sync_interval_minutes = 15
+            mock_connector.is_active = True
+            mock_connector.status = "connected"
+            mock_connector.last_sync_at = None
+            mock_connector.created_at = "2026-09-24T00:00:00"
+            mock_connector.updated_at = "2026-09-24T00:00:00"
+            mock_connector.created_by = "purvansh-admin-uid"
+            mock_connector.organization_id = "test-paywall-org"
+            MockMgr.return_value.register_connector.return_value = mock_connector
+
+            # Override the dependency in app
+            from app.core.auth import require_auth
+            app.dependency_overrides[require_auth] = lambda: admin_user
+
+            try:
+                resp = client.post(
+                    "/api/v1/connectors",
+                    json={
+                        "connector_type": "aws",
+                        "display_name": "AWS Security Hub",
+                        "auth_method": "iam_role",
+                        "credentials": {"role_arn": "arn:aws:iam::123:role/ResilAI"},
+                    },
+                    headers=_auth_headers(),
+                )
+                assert resp.status_code != 402
+            finally:
+                app.dependency_overrides.pop(require_auth, None)
+
+    def test_admin_capabilities_returns_enterprise(self):
+        """GET /api/orgs/{org_id}/capabilities for admin user returns enterprise entitlements."""
+        from app.core.auth import User, require_auth
+        admin_user = User(uid="purvansh-admin-uid", email="purvansh@resilai.org", name="Purvansh Bhatt")
+
+        app.dependency_overrides[require_auth] = lambda: admin_user
+        try:
+            with patch("app.api.billing.OrganizationService") as MockOrgSvc:
+                mock_org = _mock_org(plan="free", status="unpaid")
+                MockOrgSvc.return_value.get.return_value = mock_org
+
+                resp = client.get("/api/orgs/test-paywall-org/capabilities", headers=_auth_headers())
+                assert resp.status_code == 200
+                data = resp.json()
+                assert data["plan"] == "enterprise"
+                assert data["is_paid"] is True
+                assert data["entitlements"]["connectors_manage"] is True
+        finally:
+            app.dependency_overrides.pop(require_auth, None)

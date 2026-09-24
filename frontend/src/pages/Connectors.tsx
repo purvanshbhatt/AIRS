@@ -32,7 +32,8 @@ import {
   Database,
   Cloud,
   Layers,
-  Lock
+  Lock,
+  ArrowRight
 } from 'lucide-react';
 
 type ConnectorStatus = 'CONNECTED' | 'DEGRADED' | 'NOT CONFIGURED' | 'AUTHENTICATION FAILED' | 'NO RECENT EVIDENCE';
@@ -164,6 +165,7 @@ export default function ConnectorsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [healthCheckingId, setHealthCheckingId] = useState<string | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [modalPaywallError, setModalPaywallError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -197,6 +199,7 @@ export default function ConnectorsPage() {
     });
     
     setFormData(initial);
+    setModalPaywallError(null);
     setActiveConfigDef(def);
   };
 
@@ -288,12 +291,13 @@ export default function ConnectorsPage() {
       }
 
       if (!isDemo && !hasCapability('connectors_manage')) {
+        const errorMsg = `Connecting live security infrastructure (${activeConfigDef.name}) requires an active ResilAI subscription. Unpaid workspaces can preview connector schemas, but live credential persistence and automated telemetry ingestion are gated.`;
+        setModalPaywallError(errorMsg);
         addToast({
           title: 'Subscription Required',
           message: 'An active ResilAI subscription is required to connect live infrastructure.',
           type: 'error',
         });
-        navigate('/pricing');
         return;
       }
 
@@ -313,16 +317,18 @@ export default function ConnectorsPage() {
       });
 
       setActiveConfigDef(null);
+      setModalPaywallError(null);
       await loadData();
     } catch (err: any) {
       console.error('Failed to save connector:', err);
       if (err?.status === 402) {
+        const errorMsg = err.message || 'Connecting live telemetry requires an active ResilAI subscription.';
+        setModalPaywallError(errorMsg);
         addToast({
           title: 'Subscription Required (HTTP 402)',
-          message: err.message || 'Connecting live telemetry requires an active ResilAI subscription.',
+          message: errorMsg,
           type: 'error',
         });
-        navigate('/pricing');
         return;
       }
       addToast({
@@ -596,9 +602,17 @@ export default function ConnectorsPage() {
                       </span>
                     </div>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-mono uppercase font-bold border shrink-0 ${getStatusBadge(status)}`}>
-                    {status}
-                  </span>
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-mono uppercase font-bold border shrink-0 ${getStatusBadge(status)}`}>
+                      {status}
+                    </span>
+                    {!isConnected && !isDemo && !hasCapability('connectors_manage') && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                        <Lock className="w-3 h-3" />
+                        Plan Required
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <p className="text-xs text-on-surface-variant leading-relaxed mb-4">
@@ -726,6 +740,66 @@ export default function ConnectorsPage() {
                 </div>
               )}
 
+              {/* Paywall Banner for Unpaid Workspaces */}
+              {!isDemo && !hasCapability('connectors_manage') && (
+                <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-on-surface">Active Subscription Required</h4>
+                      <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">
+                        Connecting live security infrastructure ({activeConfigDef.name}) requires an active ResilAI subscription. Unpaid workspaces can preview connector schemas and evidence mappings, but live credential persistence and automated telemetry ingestion are gated.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1 pl-11">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveConfigDef(null);
+                        navigate('/pricing');
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-primary-600 to-emerald-500 text-white font-bold text-xs rounded-xl hover:shadow-md hover:shadow-primary-500/20 active:scale-[0.98] transition-all flex items-center gap-1.5 shadow-sm"
+                    >
+                      <span>Go to Subscription & Pricing</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Inline Paywall Error Notice */}
+              {modalPaywallError && (
+                <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0 mt-0.5">
+                      <AlertCircle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400">Subscription Required</h4>
+                      <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">
+                        {modalPaywallError}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1 pl-11">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveConfigDef(null);
+                        navigate('/pricing');
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-primary-600 to-emerald-500 text-white font-bold text-xs rounded-xl hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm"
+                    >
+                      <span>View Subscription Plans</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <p className="text-xs text-on-surface-variant leading-relaxed">
                 Credentials are encrypted using AES-256-GCM at rest and never exposed to the frontend or narrative engine.
               </p>
@@ -758,21 +832,39 @@ export default function ConnectorsPage() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-outline-variant/30 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setActiveConfigDef(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-on-surface-variant hover:bg-surface-container"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 bg-ready-emerald text-on-primary-container rounded-xl text-xs font-bold hover:brightness-110 transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {submitting ? 'Saving & Encrypting...' : 'Save & Encrypt Connector'}
-                </button>
+              <div className="pt-4 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-3">
+                {!isDemo && !hasCapability('connectors_manage') ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveConfigDef(null);
+                      navigate('/pricing');
+                    }}
+                    className="px-3 py-2 text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1.5"
+                  >
+                    <span>View Subscription Plans</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <div />
+                )}
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveConfigDef(null)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-on-surface-variant hover:bg-surface-container"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 bg-ready-emerald text-on-primary-container rounded-xl text-xs font-bold hover:brightness-110 transition-all shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {submitting ? 'Saving & Encrypting...' : 'Save & Encrypt Connector'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

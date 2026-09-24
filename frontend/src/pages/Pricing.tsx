@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Check,
   Shield,
@@ -11,15 +11,55 @@ import {
   Users,
   ShieldCheck,
   Layers,
+  Lock,
 } from 'lucide-react';
 import { PublicNavbar } from '../components/layout/PublicNavbar';
 import { Footer } from '../components/layout/Footer';
+import { useAuth } from '../contexts/AuthContext';
+import { useActiveOrg } from '../hooks/useActiveOrg';
+import { useCapabilities } from '../hooks/useCapabilities';
+import { useToast } from '../components/ui/Toast';
+import { activatePlan } from '../api';
 
 export default function Pricing() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { orgId, orgName, isDemo } = useActiveOrg();
+  const { isPaid, plan, refresh: refreshCapabilities } = useCapabilities(orgId);
+  const { addToast } = useToast();
+  const [activatingTier, setActivatingTier] = useState<string | null>(null);
+
   useEffect(() => {
     document.title = 'ResilAI Pricing — Early Access & Enterprise Tiers';
     window.scrollTo(0, 0);
   }, []);
+
+  const handleActivatePlan = async (planKey: string) => {
+    if (!orgId) {
+      navigate('/login');
+      return;
+    }
+    setActivatingTier(planKey);
+    try {
+      await activatePlan(orgId, planKey);
+      await refreshCapabilities();
+      addToast({
+        title: 'Plan Activated Successfully',
+        message: `Your workspace is now active on the ${planKey} plan. Live connectors are unlocked.`,
+        type: 'ready',
+      });
+      navigate('/connectors');
+    } catch (err: any) {
+      console.error('Plan activation error:', err);
+      addToast({
+        title: 'Activation Failed',
+        message: err.message || 'Failed to activate plan. Please try again or contact support.',
+        type: 'error',
+      });
+    } finally {
+      setActivatingTier(null);
+    }
+  };
 
   const tiers = [
     {
@@ -130,6 +170,42 @@ export default function Pricing() {
         {/* Pricing Cards Grid */}
         <section className="py-16 lg:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Authenticated Workspace Status Banner */}
+            {user && !isDemo && orgId && (
+              <div className="mb-10 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-center text-primary-600 dark:text-primary-400 shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Workspace:</span>
+                      <span className="text-xs font-mono font-bold text-primary-600 dark:text-primary-400">{orgName || orgId}</span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Logged in as <span className="font-mono text-slate-800 dark:text-slate-200">{user.email}</span> · Current Status:{' '}
+                      <strong className="font-mono uppercase text-slate-900 dark:text-slate-100">
+                        {plan} ({isPaid ? 'Active' : 'Unpaid'})
+                      </strong>
+                    </p>
+                  </div>
+                </div>
+                {isPaid ? (
+                  <Link
+                    to="/connectors"
+                    className="px-4 py-2 bg-emerald-500 text-white font-bold text-xs rounded-xl hover:bg-emerald-600 transition-all flex items-center gap-1.5 shrink-0"
+                  >
+                    <span>Manage Connectors</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                ) : (
+                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0">
+                    Select a plan below to unlock live infrastructure
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
               {tiers.map((tier) => (
                 <div
@@ -178,18 +254,52 @@ export default function Pricing() {
                     </div>
                   </div>
 
-                  <div className="pt-8">
-                    <Link
-                      to={tier.ctaTo}
-                      className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm transition-all ${
-                        tier.featured
-                          ? 'bg-gradient-to-r from-primary-600 to-emerald-500 text-white hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98]'
-                          : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white active:scale-[0.98]'
-                      }`}
-                    >
-                      <span>{tier.cta}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
+                  <div className="pt-8 space-y-2">
+                    {user && !isDemo && orgId && tier.id === 'design-partner' ? (
+                      isPaid && (plan === 'design-partner' || plan === 'enterprise') ? (
+                        <Link
+                          to="/connectors"
+                          className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all"
+                        >
+                          <Check className="w-4 h-4" />
+                          <span>Active Plan — Go to Connectors</span>
+                        </Link>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleActivatePlan('design-partner')}
+                            disabled={activatingTier === 'design-partner'}
+                            className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-primary-600 to-emerald-500 text-white hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+                          >
+                            <span>
+                              {activatingTier === 'design-partner'
+                                ? 'Activating Plan...'
+                                : 'Activate Design Partner Plan (Instant Access)'}
+                            </span>
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                          <Link
+                            to={tier.ctaTo}
+                            className="block text-center text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors pt-1"
+                          >
+                            or request enterprise onboarding walkthrough &rarr;
+                          </Link>
+                        </>
+                      )
+                    ) : (
+                      <Link
+                        to={tier.ctaTo}
+                        className={`w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm transition-all ${
+                          tier.featured
+                            ? 'bg-gradient-to-r from-primary-600 to-emerald-500 text-white hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98]'
+                            : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white active:scale-[0.98]'
+                        }`}
+                      >
+                        <span>{tier.cta}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}
