@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getCapabilities, type CapabilitiesResponse } from '../api';
+import { useAuth } from '../contexts/AuthContext';
 
 export interface UseCapabilitiesResult {
   capabilities: CapabilitiesResponse | null;
@@ -16,13 +17,55 @@ export interface UseCapabilitiesResult {
 }
 
 export function useCapabilities(orgId: string): UseCapabilitiesResult {
+  const { user } = useAuth();
   const [capabilities, setCapabilities] = useState<CapabilitiesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const isAdminEmail = (email?: string | null): boolean => {
+    if (!email) return false;
+    const clean = email.toLowerCase().trim();
+    return (
+      clean === 'purvansh95b@gmail.com' ||
+      clean === 'purvansh@resilai.org' ||
+      clean.endsWith('@resilai.org') ||
+      clean.includes('purvansh')
+    );
+  };
+
   const fetchCapabilities = useCallback(async () => {
     if (!orgId) {
       setCapabilities(null);
+      setLoading(false);
+      return;
+    }
+
+    // Administrator / Testing Exemption
+    if (isAdminEmail(user?.email)) {
+      setCapabilities({
+        plan: 'enterprise',
+        status: 'active',
+        is_paid: true,
+        entitlements: {
+          demo_access: true,
+          simulated_data: true,
+          public_product_preview: true,
+          account_management: true,
+          real_organization: true,
+          telemetry_ingestion: true,
+          evidence_collection: true,
+          readiness_scoring: true,
+          connectors_manage: true,
+          executive_reports: true,
+          api_keys: true,
+          webhooks: true,
+          advanced_reporting: true,
+          additional_users: true,
+          advanced_integrations: true,
+          enterprise_controls: true,
+          custom_frameworks: true,
+        },
+      });
       setLoading(false);
       return;
     }
@@ -86,7 +129,7 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
     } finally {
       setLoading(false);
     }
-  }, [orgId]);
+  }, [orgId, user?.email]);
 
   useEffect(() => {
     fetchCapabilities();

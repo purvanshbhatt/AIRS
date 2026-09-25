@@ -69,6 +69,13 @@ def require_entitlement(capability: Entitlement | str) -> Callable:
         db: Session = Depends(get_db),
     ) -> None:
         org_id = _resolve_org_id(request, user, db)
+
+        # Administrator / testing exemption bypass
+        from app.core.config import settings
+        if user and (settings.is_admin_email(user.email) or (user.uid and "purvansh" in user.uid.lower())):
+            logger.info("Entitlement bypass granted for administrator/testing account: %s (%s)", user.email, user.uid)
+            return
+
         if not org_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

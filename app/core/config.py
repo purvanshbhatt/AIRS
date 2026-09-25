@@ -173,6 +173,7 @@ class Settings(BaseSettings):
     FIREBASE_AUTH_EMULATOR_HOST: Optional[str] = None
     DOCS_USERNAME: str = "admin"
     DOCS_PASSWORD: str = "resilai_docs_admin"
+    ADMIN_EMAILS: str = "purvansh95b@gmail.com,purvansh@resilai.org"
     
     
     # ===========================================
@@ -362,6 +363,24 @@ class Settings(BaseSettings):
         DEMO_MODE no longer bypasses auth — it only enables LLM features.
         """
         return self.AUTH_REQUIRED or self.ENV in (Environment.PROD, Environment.STAGING)
+
+    @property
+    def admin_emails_list(self) -> List[str]:
+        """Return parsed list of administrator and testing exempt emails."""
+        return [e.strip().lower() for e in self.ADMIN_EMAILS.split(",") if e.strip()]
+
+    def is_admin_email(self, email: Optional[str]) -> bool:
+        """Check if an email qualifies for administrator and paywall testing exemption."""
+        if not email or not isinstance(email, str):
+            return False
+        clean = email.strip().lower()
+        if clean in self.admin_emails_list:
+            return True
+        if clean.endswith("@resilai.org"):
+            return True
+        if clean == "purvansh" or clean.startswith("purvansh@") or clean.startswith("purvansh95b@") or "purvansh" in clean:
+            return True
+        return False
 
     @property
     def is_llm_enabled(self) -> bool:
