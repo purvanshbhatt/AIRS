@@ -33,6 +33,12 @@ class PlanActivateRequest(BaseModel):
     plan: str = Field(..., description="Plan to activate: free, design-partner, growth, enterprise")
 
 
+class CheckoutSessionRequest(BaseModel):
+    plan: str = Field(..., description="Paid plan to purchase: design-partner, growth, enterprise")
+    success_url: str = Field(..., description="Redirect URL upon successful checkout")
+    cancel_url: str = Field(..., description="Redirect URL upon checkout cancellation")
+
+
 # ── Capabilities ────────────────────────────────────────────────────
 
 @router.get(
@@ -65,8 +71,10 @@ async def get_capabilities(
         from app.services.billing.entitlements import Entitlement
         return {
             "plan": "enterprise",
-            "status": "active",
-            "is_paid": True,
+            "status": "exempt",
+            "is_paid": False,
+            "is_exempt": True,
+            "exemption_type": "admin_test",
             "entitlements": {e.value: True for e in Entitlement},
         }
 
@@ -116,6 +124,50 @@ async def get_billing_status(
     }
 
 
+# ── Stripe Checkout Session ─────────────────────────────────────────
+
+@router.post(
+    "/orgs/{org_id}/billing/checkout-session",
+    summary="Create Stripe Checkout Session",
+    description="Initializes a Stripe Checkout Session for self-serve plan subscription.",
+    responses={
+        200: {"description": "Checkout session initialized"},
+        400: {"description": "Invalid plan or parameter"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Organization not found"},
+    },
+)
+async def create_checkout_session(
+    org_id: str,
+    body: CheckoutSessionRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Create a Stripe checkout session for an organization."""
+    org_service = OrganizationService(db, owner_uid=user.uid if user else None)
+    org = org_service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "ORGANIZATION_NOT_FOUND", "message": "Organization not found."}},
+        )
+
+    checkout = CheckoutService(db)
+    result = await checkout.create_checkout_session(
+        org_id=org_id,
+        plan=body.plan,
+        success_url=body.success_url,
+        cancel_url=body.cancel_url,
+        customer_email=user.email if user else None,
+    )
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": {"code": "CHECKOUT_FAILED", "message": result.get("error", "Failed to create checkout session")}},
+        )
+    return result
+
+
 # ── Plan Activation (Staging / Design Partner) ──────────────────────
 
 @router.post(
@@ -126,6 +178,7 @@ async def get_billing_status(
         200: {"description": "Plan activated"},
         400: {"description": "Invalid plan"},
         401: {"description": "Authentication required"},
+        403: {"description": "Direct activation disabled in production"},
         404: {"description": "Organization not found"},
     },
 )
@@ -136,6 +189,20 @@ async def activate_plan(
     user: User = Depends(require_auth),
 ):
     """Directly activate a plan for the organization."""
+    from app.core.config import settings, Environment
+    is_prod = (settings.ENV == Environment.PROD) or (settings.ENVIRONMENT == "production")
+    is_admin = user and (settings.is_admin_email(user.email) or (user.uid and "purvansh" in user.uid.lower()))
+    if is_prod and not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": {
+                    "code": "DIRECT_ACTIVATION_DISABLED",
+                    "message": "Direct plan activation is disabled in production. Use Stripe checkout.",
+                }
+            },
+        )
+
     # Verify org ownership
     org_service = OrganizationService(db, owner_uid=user.uid if user else None)
     org = org_service.get(org_id)
@@ -169,13 +236,28 @@ async def billing_webhook(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    """Handle Stripe webhook events.
+    """Handle Stripe webhook events with signature verification."""
+    from app.core.config import settings, Environment
+    import json
 
-    In production, this should verify the Stripe webhook signature.
-    For staging, we accept the payload directly.
-    """
+    raw_body = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+    is_prod = (settings.ENV == Environment.PROD) or (settings.ENVIRONMENT == "production")
+
+    if settings.STRIPE_WEBHOOK_SECRET or is_prod:
+        if not CheckoutService.verify_stripe_signature(
+            raw_body,
+            sig_header,
+            settings.STRIPE_WEBHOOK_SECRET or "",
+        ):
+            logger.warning("Rejected Stripe webhook with invalid signature")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Stripe signature",
+            )
+
     try:
-        payload = await request.json()
+        payload = json.loads(raw_body.decode("utf-8"))
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

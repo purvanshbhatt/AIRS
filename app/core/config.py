@@ -225,6 +225,16 @@ class Settings(BaseSettings):
     #   python -c "from app.core.security.encryption import generate_encryption_key; print(generate_encryption_key())"
     ENCRYPTION_SECRET: Optional[str] = None
 
+    # ===========================================
+    # Stripe Billing Configuration
+    # ===========================================
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_PRICE_DESIGN_PARTNER: Optional[str] = None
+    STRIPE_PRICE_GROWTH: Optional[str] = None
+    STRIPE_PRICE_ENTERPRISE: Optional[str] = None
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         # env_file is set dynamically in settings_customise_sources

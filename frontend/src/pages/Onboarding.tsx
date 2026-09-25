@@ -38,11 +38,12 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading, refreshAuth, signInAsDemo } = useAuth();
 
-  const isExplicitDemo =
+  const isRealUser = Boolean(user && user.uid && user.uid !== 'demo-executive-uid');
+  const isExplicitDemo = !isRealUser &&
     typeof window !== 'undefined' &&
-    (localStorage.getItem('resilai_demo_user') === 'true' ||
-      window.location.search.includes('mode=demo') ||
-      window.location.search.includes('env=demo'));
+    (window.location.search.includes('mode=demo') ||
+      window.location.search.includes('env=demo') ||
+      localStorage.getItem('resilai_demo_user') === 'true');
 
   const [mode, setMode] = useState<OnboardingMode>(isExplicitDemo ? 'demo' : 'real');
   const [currentStep, setCurrentStep] = useState<OnboardingStepNumber>(1);
@@ -56,6 +57,14 @@ export default function Onboarding() {
   const [createdOrgId, setCreatedOrgId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // If a real user signs in after mount, synchronize to real mode
+  useEffect(() => {
+    if (user && user.uid && user.uid !== 'demo-executive-uid') {
+      setMode('real');
+      setConnectors(REAL_CONNECTORS);
+    }
+  }, [user]);
 
   // Check if organization already exists on load
   useEffect(() => {

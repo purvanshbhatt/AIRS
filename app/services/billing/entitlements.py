@@ -167,8 +167,10 @@ class EntitlementService:
         if self.is_exempt_org(org_id):
             return {
                 "plan": "enterprise",
-                "status": "active",
-                "is_paid": True,
+                "status": "exempt",
+                "is_paid": False,
+                "is_exempt": True,
+                "exemption_type": "admin_test",
                 "entitlements": {e.value: True for e in Entitlement},
             }
 
@@ -178,6 +180,8 @@ class EntitlementService:
                 "plan": "free",
                 "status": "unpaid",
                 "is_paid": False,
+                "is_exempt": False,
+                "exemption_type": None,
                 "entitlements": {e.value: (e in _FREE_ENTITLEMENTS) for e in Entitlement},
             }
 
@@ -189,6 +193,8 @@ class EntitlementService:
             "plan": plan,
             "status": status,
             "is_paid": status in _ACTIVE_STATUSES,
+            "is_exempt": False,
+            "exemption_type": None,
             "entitlements": {e.value: (e in allowed) for e in Entitlement},
         }
 

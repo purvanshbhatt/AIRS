@@ -34,8 +34,16 @@ class CheckoutService:
         """Directly activate a plan for an organization.
 
         Used in staging/development and for design partner manual activation.
-        In production, plan activation flows through billing webhooks.
+        In production, direct activation is disabled to enforce Stripe checkout.
         """
+        from app.core.config import settings, Environment
+        is_prod = (settings.ENV == Environment.PROD) or (settings.ENVIRONMENT == "production")
+        if is_prod and not settings.is_admin_email(activated_by):
+            return {
+                "success": False,
+                "error": "Direct activation is disabled in production. Checkout must be completed through Stripe.",
+            }
+
         if plan not in PLAN_ENTITLEMENTS:
             return {
                 "success": False,
@@ -73,6 +81,169 @@ class CheckoutService:
 
         return {"success": False, "error": "Organization not found"}
 
+    async def create_checkout_session(
+        self,
+        org_id: str,
+        plan: str,
+        success_url: str,
+        cancel_url: str,
+        customer_email: Optional[str] = None,
+    ) -> dict:
+        """Create a Stripe Checkout Session for subscription purchase.
+
+        In production with STRIPE_SECRET_KEY, creates an authentic Stripe checkout session.
+        In staging/local without keys, returns a mock checkout session structure for testing.
+        """
+        from app.core.config import settings, Environment
+        import httpx
+
+        if plan not in PLAN_ENTITLEMENTS or plan == "free":
+            return {
+                "success": False,
+                "error": f"Invalid plan for checkout: {plan}. Valid paid plans: design-partner, growth, enterprise",
+            }
+
+        price_map = {
+            "design-partner": settings.STRIPE_PRICE_DESIGN_PARTNER,
+            "growth": settings.STRIPE_PRICE_GROWTH,
+            "enterprise": settings.STRIPE_PRICE_ENTERPRISE,
+        }
+        price_id = price_map.get(plan)
+
+        # Production with Stripe Secret Key
+        if settings.STRIPE_SECRET_KEY:
+            try:
+                payload = {
+                    "mode": "subscription",
+                    "success_url": success_url if "{CHECKOUT_SESSION_ID}" in success_url else f"{success_url}?session_id={{CHECKOUT_SESSION_ID}}",
+                    "cancel_url": cancel_url,
+                    "client_reference_id": org_id,
+                    "metadata[org_id]": org_id,
+                    "metadata[plan]": plan,
+                }
+                if customer_email:
+                    payload["customer_email"] = customer_email
+
+                if price_id:
+                    payload["line_items[0][price]"] = price_id
+                    payload["line_items[0][quantity]"] = "1"
+                else:
+                    # Dynamic line item for fallback or test pricing
+                    unit_amount = 49900 if plan == "design-partner" else (149900 if plan == "growth" else 499900)
+                    payload["line_items[0][price_data][currency]"] = "usd"
+                    payload["line_items[0][price_data][product_data][name]"] = f"ResilAI {plan.replace('-', ' ').title()} Subscription"
+                    payload["line_items[0][price_data][unit_amount]"] = str(unit_amount)
+                    payload["line_items[0][price_data][recurring][interval]"] = "month"
+                    payload["line_items[0][quantity]"] = "1"
+
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    resp = await client.post(
+                        "https://api.stripe.com/v1/checkout/sessions",
+                        data=payload,
+                        headers={
+                            "Authorization": f"Bearer {settings.STRIPE_SECRET_KEY}",
+                        },
+                    )
+
+                if resp.status_code not in (200, 201):
+                    err_json = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+                    err_msg = err_json.get("error", {}).get("message", resp.text)
+                    logger.error("Stripe Checkout creation failed: %s", err_msg)
+                    return {"success": False, "error": f"Stripe checkout creation failed: {err_msg}"}
+
+                session_data = resp.json()
+                return {
+                    "success": True,
+                    "checkout_url": session_data.get("url"),
+                    "session_id": session_data.get("id"),
+                    "plan": plan,
+                    "org_id": org_id,
+                }
+            except Exception as exc:
+                logger.exception("Error calling Stripe Checkout API: %s", exc)
+                return {"success": False, "error": f"Failed to contact Stripe: {str(exc)}"}
+
+        # Staging / Local fallback when STRIPE_SECRET_KEY is not configured
+        is_prod = (settings.ENV == Environment.PROD) or (settings.ENVIRONMENT == "production")
+        if is_prod:
+            return {
+                "success": False,
+                "error": "STRIPE_SECRET_KEY is not configured in production environment.",
+            }
+
+        mock_session_id = f"mock-cs-{org_id}-{plan}-{int(datetime.now(timezone.utc).timestamp())}"
+        mock_checkout_url = f"{success_url}?session_id={mock_session_id}&plan={plan}&mock=true"
+        return {
+            "success": True,
+            "checkout_url": mock_checkout_url,
+            "session_id": mock_session_id,
+            "plan": plan,
+            "org_id": org_id,
+            "mock": True,
+        }
+
+    @staticmethod
+    def verify_stripe_signature(
+        payload_bytes: bytes,
+        sig_header: str,
+        secret: str,
+        tolerance: int = 300,
+    ) -> bool:
+        """Verify Stripe webhook signature according to Stripe's HMAC-SHA256 specification.
+
+        Header format: t=timestamp,v1=signature[,v0=signature]
+        Payload: f"{timestamp}.{payload_str}"
+        """
+        import hmac
+        import hashlib
+        import time
+
+        if not sig_header or not secret:
+            return False
+
+        try:
+            elements = sig_header.split(",")
+            timestamp = None
+            signatures = []
+            for item in elements:
+                parts = item.strip().split("=", 1)
+                if len(parts) == 2:
+                    k, v = parts[0].strip(), parts[1].strip()
+                    if k == "t":
+                        timestamp = v
+                    elif k == "v1":
+                        signatures.append(v)
+
+            if not timestamp or not signatures:
+                logger.warning("Stripe signature header missing timestamp or v1 signatures")
+                return False
+
+            # Check timestamp freshness to prevent replay attacks
+            ts_int = int(timestamp)
+            current_time = int(time.time())
+            if abs(current_time - ts_int) > tolerance:
+                logger.warning("Stripe signature timestamp outside tolerance window: %s vs %s", ts_int, current_time)
+                return False
+
+            # Compute expected HMAC-SHA256 signature
+            signed_payload = f"{timestamp}.".encode("utf-8") + payload_bytes
+            expected_sig = hmac.new(
+                secret.encode("utf-8"),
+                signed_payload,
+                hashlib.sha256,
+            ).hexdigest()
+
+            # Compare against all v1 signatures in header
+            for sig in signatures:
+                if hmac.compare_digest(sig, expected_sig):
+                    return True
+
+            logger.warning("Stripe signature verification failed: no signature matched expected digest")
+            return False
+        except Exception as exc:
+            logger.error("Exception during Stripe signature verification: %s", exc)
+            return False
+
     def handle_stripe_event(self, event_type: str, event_data: dict) -> dict:
         """Process Stripe webhook events to synchronize subscription state.
 
@@ -100,7 +271,7 @@ class CheckoutService:
 
     def _handle_checkout_completed(self, data: dict) -> dict:
         """Handle successful checkout — activate the subscription."""
-        org_id = data.get("metadata", {}).get("org_id")
+        org_id = data.get("metadata", {}).get("org_id") or data.get("client_reference_id")
         plan = data.get("metadata", {}).get("plan", "design-partner")
         subscription_id = data.get("subscription")
         customer_id = data.get("customer")

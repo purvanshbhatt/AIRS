@@ -19,7 +19,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useActiveOrg } from '../hooks/useActiveOrg';
 import { useCapabilities } from '../hooks/useCapabilities';
 import { useToast } from '../components/ui/Toast';
-import { activatePlan } from '../api';
+import { activatePlan, createCheckoutSession } from '../api';
 
 export default function Pricing() {
   const navigate = useNavigate();
@@ -34,30 +34,65 @@ export default function Pricing() {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleActivatePlan = async (planKey: string) => {
+  const isStaging = import.meta.env.MODE === 'staging' || 
+                    import.meta.env.VITE_APP_ENV === 'staging' || 
+                    (typeof window !== 'undefined' && (
+                      window.location.hostname.includes('staging') || 
+                      window.location.hostname.includes('localhost') || 
+                      window.location.hostname.includes('127.0.0.1')
+                    ));
+
+  const handleStartPlan = async (planKey: string) => {
     if (!orgId) {
       navigate('/login');
       return;
     }
     setActivatingTier(planKey);
-    try {
-      await activatePlan(orgId, planKey);
-      await refreshCapabilities();
-      addToast({
-        title: 'Plan Activated Successfully',
-        message: `Your workspace is now active on the ${planKey} plan. Live connectors are unlocked.`,
-        type: 'ready',
-      });
-      navigate('/connectors');
-    } catch (err: any) {
-      console.error('Plan activation error:', err);
-      addToast({
-        title: 'Activation Failed',
-        message: err.message || 'Failed to activate plan. Please try again or contact support.',
-        type: 'error',
-      });
-    } finally {
-      setActivatingTier(null);
+
+    if (isStaging) {
+      // Staging evaluation flow
+      try {
+        await activatePlan(orgId, planKey);
+        await refreshCapabilities();
+        addToast({
+          title: 'Design Partner Access Granted',
+          message: `Staging evaluation access activated for ${orgName || 'your organization'}. Connectors unlocked.`,
+          type: 'ready',
+        });
+        navigate('/connectors');
+      } catch (err: any) {
+        console.error('Plan activation error:', err);
+        addToast({
+          title: 'Activation Failed',
+          message: err.message || 'Failed to activate evaluation access.',
+          type: 'error',
+        });
+      } finally {
+        setActivatingTier(null);
+      }
+    } else {
+      // Production commercial Stripe checkout flow
+      try {
+        const origin = window.location.origin;
+        const res = await createCheckoutSession(orgId, {
+          plan: planKey,
+          success_url: `${origin}/connectors?session_id={CHECKOUT_SESSION_ID}&checkout=success`,
+          cancel_url: `${origin}/pricing?checkout=cancelled`,
+        });
+        if (res.checkout_url) {
+          window.location.href = res.checkout_url;
+        } else {
+          throw new Error('No checkout URL returned from payment provider');
+        }
+      } catch (err: any) {
+        console.error('Checkout error:', err);
+        addToast({
+          title: 'Checkout Initialization Failed',
+          message: err.message || 'Unable to redirect to Stripe checkout. Please contact billing support.',
+          type: 'error',
+        });
+        setActivatingTier(null);
+      }
     }
   };
 
@@ -266,19 +301,45 @@ export default function Pricing() {
                         </Link>
                       ) : (
                         <>
-                          <button
-                            type="button"
-                            onClick={() => handleActivatePlan('design-partner')}
-                            disabled={activatingTier === 'design-partner'}
-                            className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-primary-600 to-emerald-500 text-white hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
-                          >
-                            <span>
-                              {activatingTier === 'design-partner'
-                                ? 'Activating Plan...'
-                                : 'Activate Design Partner Plan (Instant Access)'}
-                            </span>
-                            <ArrowRight className="w-4 h-4" />
-                          </button>
+                          {isStaging ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleStartPlan('design-partner')}
+                                disabled={activatingTier === 'design-partner'}
+                                className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-primary-600 to-emerald-500 text-white hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+                              >
+                                <span>
+                                  {activatingTier === 'design-partner'
+                                    ? 'Activating Access...'
+                                    : 'Activate Design Partner Access'}
+                                </span>
+                                <ArrowRight className="w-4 h-4" />
+                              </button>
+                              <p className="text-center text-[11px] text-amber-500/90 font-medium pt-1">
+                                Staging-only access for ResilAI evaluation. No payment required.
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleStartPlan('design-partner')}
+                                disabled={activatingTier === 'design-partner'}
+                                className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-primary-600 to-emerald-500 text-white hover:shadow-lg hover:shadow-primary-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+                              >
+                                <span>
+                                  {activatingTier === 'design-partner'
+                                    ? 'Redirecting to Checkout...'
+                                    : 'Start your ResilAI plan'}
+                                </span>
+                                <ArrowRight className="w-4 h-4" />
+                              </button>
+                              <p className="text-center text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-1">
+                                Billed securely through Stripe. Connectors unlock instantly after checkout.
+                              </p>
+                            </>
+                          )}
                           <Link
                             to={tier.ctaTo}
                             className="block text-center text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors pt-1"
