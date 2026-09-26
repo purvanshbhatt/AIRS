@@ -57,18 +57,29 @@ export function Step2Connectors({
   const handleTestConnection = (connector: SecurityConnectorState) => {
     setTestingId(connector.id);
     setTestResult(null);
-    setTimeout(() => {
-      setTestingId(null);
-      setTestResult({
-        id: connector.id,
-        success: true,
-        message: `Successfully established secure TLS handshake with ${connector.name}. Telemetry stream active.`,
-      });
-      onUpdateConnector(connector.id, {
-        status: 'connected',
-        lastSync: 'Just now',
-      });
-    }, 900);
+    if (isDemo) {
+      setTimeout(() => {
+        setTestingId(null);
+        setTestResult({
+          id: connector.id,
+          success: true,
+          message: `Simulated connection active for ${connector.name}.`,
+        });
+        onUpdateConnector(connector.id, {
+          status: 'connected',
+          lastSync: 'Just now',
+        });
+      }, 500);
+    } else {
+      setTimeout(() => {
+        setTestingId(null);
+        setTestResult({
+          id: connector.id,
+          success: false,
+          message: `Real telemetry integration with ${connector.name} requires an active subscription plan and verified cloud credentials. You can configure live credentials in the Connectors workspace.`,
+        });
+      }, 500);
+    }
   };
 
   const connectedCount = connectors.filter((c) => c.status === 'connected').length;

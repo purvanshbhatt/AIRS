@@ -324,8 +324,21 @@ export const createOrganization = (data: { name: string; industry?: string; size
     body: JSON.stringify(data),
   });
 
+export const createCheckoutSession = (
+  orgId: string,
+  data: { plan: string; success_url: string; cancel_url: string }
+) =>
+  request<{ success: boolean; checkout_url: string; session_id: string }>(
+    `/api/orgs/${orgId}/billing/checkout-session`,
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  );
+
 export const getOrganizations = async (): Promise<import('./types').Organization[]> => {
-  const isDemo = typeof window !== 'undefined' && (
+  const hasAuth = Boolean(tokenProvider);
+  const isDemo = !hasAuth && typeof window !== 'undefined' && (
     localStorage.getItem('resilai_demo_user') === 'true' ||
     window.location.search.includes('env=demo') ||
     window.location.hostname.includes('demo')
@@ -1743,16 +1756,28 @@ export const MOCK_ACME_DAILY_READINESS: DailyReadinessReport = {
 };
 
 export const getDailyReadinessReport = async (orgId: string): Promise<DailyReadinessReport> => {
+  const isExplicitDemoOrg = orgId === 'acme-health-systems' || 
+                            orgId === 'default-org' || 
+                            orgId === 'demo-health-org' ||
+                            orgId === 'demo-northstar-health' ||
+                            orgId === 'demo-northstar-cole' ||
+                            orgId === 'demo-acme-technologies';
+
   const host = typeof window !== 'undefined' ? window.location.hostname : '';
   const search = typeof window !== 'undefined' ? window.location.search : '';
-  const isDemo = host === 'demo.resilai.org' || 
-                 host.includes('demo') || 
-                 search.includes('env=demo') ||
-                 import.meta.env.VITE_APP_ENV === 'demo' || 
-                 import.meta.env.MODE === 'demo' ||
-                 (typeof window !== 'undefined' && (localStorage.getItem('resilai_demo_user') === 'true' || localStorage.getItem('resilai_demo_session') === 'true'));
+  const hasAuthToken = Boolean(tokenProvider);
+  const isDemoEnv = !hasAuthToken && (
+    host === 'demo.resilai.org' || 
+    host.includes('demo') || 
+    search.includes('env=demo') ||
+    import.meta.env.VITE_APP_ENV === 'demo' || 
+    import.meta.env.MODE === 'demo' ||
+    (typeof window !== 'undefined' && (localStorage.getItem('resilai_demo_user') === 'true' || localStorage.getItem('resilai_demo_session') === 'true'))
+  );
 
-  if (isDemo || orgId === 'acme-health-systems' || orgId === 'default-org' || orgId === 'demo-health-org') {
+  // Invariant: Demo data is ONLY returned for explicit demo organization IDs in demo mode.
+  // Real organizations with real IDs MUST ALWAYS call the backend API to reflect real verification status.
+  if (isExplicitDemoOrg && (isDemoEnv || !hasAuthToken)) {
     console.log('[API] Returning Acme Health Systems demo readiness report');
     return MOCK_ACME_DAILY_READINESS;
   }
@@ -1889,6 +1914,8 @@ export interface CapabilitiesResponse {
   plan: string;
   status: string;
   is_paid: boolean;
+  is_exempt?: boolean;
+  exemption_type?: string | null;
   entitlements: Record<string, boolean>;
 }
 

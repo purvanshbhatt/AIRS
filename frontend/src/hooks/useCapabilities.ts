@@ -10,6 +10,8 @@ export interface UseCapabilitiesResult {
   has: (entitlement: string) => boolean;
   /** True when org has an active paid plan */
   isPaid: boolean;
+  /** True when org has an active admin/test exemption */
+  isExempt: boolean;
   /** Current plan name */
   plan: string;
   /** Refresh capabilities from backend */
@@ -22,17 +24,6 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const isAdminEmail = (email?: string | null): boolean => {
-    if (!email) return false;
-    const clean = email.toLowerCase().trim();
-    return (
-      clean === 'purvansh95b@gmail.com' ||
-      clean === 'purvansh@resilai.org' ||
-      clean.endsWith('@resilai.org') ||
-      clean.includes('purvansh')
-    );
-  };
-
   const fetchCapabilities = useCallback(async () => {
     if (!orgId) {
       setCapabilities(null);
@@ -40,38 +31,9 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
       return;
     }
 
-    // Administrator / Testing Exemption
-    if (isAdminEmail(user?.email)) {
-      setCapabilities({
-        plan: 'enterprise',
-        status: 'active',
-        is_paid: true,
-        entitlements: {
-          demo_access: true,
-          simulated_data: true,
-          public_product_preview: true,
-          account_management: true,
-          real_organization: true,
-          telemetry_ingestion: true,
-          evidence_collection: true,
-          readiness_scoring: true,
-          connectors_manage: true,
-          executive_reports: true,
-          api_keys: true,
-          webhooks: true,
-          advanced_reporting: true,
-          additional_users: true,
-          advanced_integrations: true,
-          enterprise_controls: true,
-          custom_frameworks: true,
-        },
-      });
-      setLoading(false);
-      return;
-    }
-
     // Skip for demo sessions
-    const isDemo = typeof window !== 'undefined' && (
+    const hasAuthToken = Boolean(user && user.uid && user.uid !== 'demo-executive-uid');
+    const isDemo = !hasAuthToken && typeof window !== 'undefined' && (
       localStorage.getItem('resilai_demo_user') === 'true' ||
       window.location.search.includes('env=demo') ||
       window.location.hostname.includes('demo')
@@ -82,6 +44,8 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
         plan: 'demo',
         status: 'active',
         is_paid: false,
+        is_exempt: false,
+        exemption_type: null,
         entitlements: {
           demo_access: true,
           simulated_data: true,
@@ -109,6 +73,7 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
     try {
       setLoading(true);
       setError(null);
+      // Backend is authoritative: it checks organization state and user admin tokens
       const data = await getCapabilities(orgId);
       setCapabilities(data);
     } catch (err) {
@@ -119,6 +84,8 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
         plan: 'free',
         status: 'unpaid',
         is_paid: false,
+        is_exempt: false,
+        exemption_type: null,
         entitlements: {
           demo_access: true,
           simulated_data: true,
@@ -129,7 +96,7 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
     } finally {
       setLoading(false);
     }
-  }, [orgId, user?.email]);
+  }, [orgId, user?.uid]);
 
   useEffect(() => {
     fetchCapabilities();
@@ -149,6 +116,7 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
     error,
     has,
     isPaid: capabilities?.is_paid ?? false,
+    isExempt: capabilities?.is_exempt ?? false,
     plan: capabilities?.plan ?? 'free',
     refresh: fetchCapabilities,
   };

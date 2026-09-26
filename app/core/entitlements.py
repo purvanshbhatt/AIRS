@@ -73,7 +73,7 @@ def require_entitlement(capability: Entitlement | str) -> Callable:
         # Administrator / testing exemption bypass
         from app.core.config import settings
         if user and (settings.is_admin_email(user.email) or (user.uid and "purvansh" in user.uid.lower())):
-            logger.info("Entitlement bypass granted for administrator/testing account: %s (%s)", user.email, user.uid)
+            logger.info("ADMIN_TEST_EXEMPTION: user %s (%s) bypassed paywall for org %s (entitlement: %s)", user.uid, user.email, org_id, getattr(capability, 'value', capability))
             return
 
         if not org_id:

@@ -116,6 +116,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!isMounted) return;
         if (auth.currentUser) {
           localStorage.removeItem('resilai_demo_user');
+          localStorage.removeItem('resilai_demo_session');
+          localStorage.removeItem('resilai_demo_mode');
+          const currentSavedOrg = localStorage.getItem('resilai_selected_org_id');
+          if (currentSavedOrg && currentSavedOrg.startsWith('demo-')) {
+            localStorage.removeItem('resilai_selected_org_id');
+          }
           setUser(toUser(auth.currentUser));
         }
       })
@@ -131,6 +137,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.log('[Auth] User signed in:', firebaseUser.email);
           localStorage.removeItem('resilai_demo_user');
           localStorage.removeItem('resilai_demo_session');
+          localStorage.removeItem('resilai_demo_mode');
+          const currentSavedOrg = localStorage.getItem('resilai_selected_org_id');
+          if (currentSavedOrg && currentSavedOrg.startsWith('demo-')) {
+            localStorage.removeItem('resilai_selected_org_id');
+          }
           setUser(toUser(firebaseUser));
           
           // Verify workspace context and handle missing org profiles gracefully
