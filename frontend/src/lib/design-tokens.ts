@@ -72,7 +72,7 @@ export const tokens = {
 
   // Button Variants
   button: {
-    primary: 'inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg bg-ready-emerald text-surface-container-lowest hover:bg-ready-emerald/90 transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
+    primary: 'inline-flex items-center justify-center px-4 py-2 text-sm font-bold rounded-lg bg-ready-emerald text-slate-950 hover:bg-ready-emerald/90 transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
     secondary: 'inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-surface-container-high border border-outline-variant/40 text-on-surface hover:bg-surface-bright transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
     ghost: 'inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer',
     aiExplain: 'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-ready-emerald/10 text-ready-emerald border border-ready-emerald/30 hover:bg-ready-emerald/20 hover:border-ready-emerald/50 transition-all hover:scale-105 cursor-pointer shadow-xs',

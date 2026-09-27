@@ -182,7 +182,7 @@ export default function TodayPage() {
           <div>
             <Link
               to="/onboarding?new=true"
-              className="inline-flex items-center gap-2 px-7 py-3.5 bg-ready-emerald text-surface-container-lowest text-sm font-bold rounded-xl hover:bg-ready-emerald/90 transition-all active:scale-[0.98] shadow-sm"
+              className="inline-flex items-center gap-2 px-7 py-3.5 bg-ready-emerald text-slate-950 text-sm font-bold rounded-xl hover:bg-ready-emerald/90 transition-all active:scale-[0.98] shadow-sm"
             >
               <Building className="w-4 h-4" />
               <span>Create Organization</span>
@@ -228,7 +228,7 @@ export default function TodayPage() {
           <div className="flex flex-wrap items-center justify-center gap-3.5">
             <Link
               to="/connectors"
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-ready-emerald hover:bg-ready-emerald/90 text-surface-container-lowest text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-ready-emerald/25 transition-all duration-300 active:scale-[0.98]"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 text-sm font-bold rounded-xl hover:shadow-lg hover:shadow-ready-emerald/25 transition-all duration-300 active:scale-[0.98]"
             >
               <Plug className="w-4 h-4" />
               <span>Connect Security System</span>
@@ -642,7 +642,7 @@ export default function TodayPage() {
                         <button
                           onClick={() => handleFix(action.id)}
                           disabled={fixingId === action.id}
-                          className="px-5 py-2.5 rounded-xl bg-ready-emerald text-surface-container-lowest font-bold text-sm hover:bg-ready-emerald/90 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                          className="px-5 py-2.5 rounded-xl bg-ready-emerald text-slate-950 font-bold text-sm hover:bg-ready-emerald/90 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
                         >
                           {fixingId === action.id ? 'Executing...' : 'Fix Now'}
                         </button>
@@ -885,7 +885,7 @@ export default function TodayPage() {
                   onClick={() => setExplainViewMode('executive')}
                   className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                     explainViewMode === 'executive' 
-                      ? 'bg-ready-emerald text-surface-container-lowest shadow-sm' 
+                      ? 'bg-ready-emerald text-slate-950 shadow-sm' 
                       : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >
@@ -895,7 +895,7 @@ export default function TodayPage() {
                   onClick={() => setExplainViewMode('technical')}
                   className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                     explainViewMode === 'technical' 
-                      ? 'bg-ready-emerald text-surface-container-lowest shadow-sm' 
+                      ? 'bg-ready-emerald text-slate-950 shadow-sm' 
                       : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                 >

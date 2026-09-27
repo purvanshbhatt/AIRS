@@ -43,7 +43,7 @@ export default function ActivityPage() {
   if (!hasOrg && !isDemo) {
     return (
       <div className="space-y-8 animate-fade-up max-w-2xl mx-auto py-12">
-        <div className="bg-slate-900/60 dark:bg-slate-900/60 rounded-3xl border border-slate-800 p-8 sm:p-10 text-center space-y-6">
+        <div className="bg-white dark:bg-slate-900/60 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 sm:p-10 text-center space-y-6">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
             <Building className="w-8 h-8 text-emerald-500" />
           </div>
@@ -95,13 +95,13 @@ export default function ActivityPage() {
       {/* Contextual Demo Mode Amber Guidance Banner */}
       <ContextualDemoBanner section="activity" />
       
-      <div className="flex items-center gap-4 border-b border-slate-200 pb-6">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+      <div className="flex items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
           <ActivityIcon className="w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Activity</h1>
-          <p className="text-slate-500 mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Activity</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
             Recent changes and their impact on your readiness.
           </p>
         </div>
@@ -114,7 +114,7 @@ export default function ActivityPage() {
           
           return (
             <div key={category} className="space-y-4">
-              <h2 className="text-sm font-bold tracking-wider text-slate-400 uppercase border-b border-slate-100 pb-2">
+              <h2 className="text-sm font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-800 pb-2">
                 {category.replace('_', ' ')}
               </h2>
               <div className="space-y-6 pl-2">
@@ -124,13 +124,13 @@ export default function ActivityPage() {
                       {renderIcon(event.type)}
                     </div>
                     <div>
-                      <h4 className="text-base font-semibold text-slate-900">{event.event}</h4>
+                      <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100">{event.event}</h4>
                       {event.impact && (
-                        <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
                           {event.impact}
                         </p>
                       )}
-                      <p className="text-xs text-slate-400 mt-2 font-medium">{event.time}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">{event.time}</p>
                     </div>
                   </div>
                 ))}

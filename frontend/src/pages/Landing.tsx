@@ -704,7 +704,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="group p-8 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-[24px] hover:border-primary-450 hover:bg-white dark:hover:bg-slate-900/80 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
+                className="group p-8 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-[24px] hover:border-primary-500 hover:bg-white dark:hover:bg-slate-900/80 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
               >
                 <div className="w-12 h-12 bg-primary-100 dark:bg-primary-950/40 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-105 transition-all duration-300">
                   <persona.icon className="w-6 h-6 text-primary-600 dark:text-primary-400 group-hover:text-white transition-colors" />
@@ -809,7 +809,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                   </div>
 
                   {/* Sample Alert Card */}
-                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-250/50 dark:border-amber-900/50">
+                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/50">
                     <div className="flex gap-3">
                       <div className="w-5 h-5 bg-amber-500 rounded-lg text-white flex items-center justify-center text-xs font-bold shrink-0">
                         !

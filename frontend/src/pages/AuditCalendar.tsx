@@ -465,7 +465,7 @@ export default function AuditCalendar() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-lg">Schedule New Audit</CardTitle>
-              <button onClick={() => setShowAddForm(false)} className="p-1 hover:bg-slate-105 dark:hover:bg-slate-800/60 rounded-xl transition-all">
+              <button onClick={() => setShowAddForm(false)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-xl transition-all">
                 <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
             </div>

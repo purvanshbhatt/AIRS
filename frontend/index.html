@@ -60,8 +60,7 @@
     <script>
       (function () {
         try {
-          const storageKey = 'airs-theme';
-          const savedTheme = localStorage.getItem(storageKey);
+          const savedTheme = localStorage.getItem('resilai-theme') || localStorage.getItem('airs-theme');
           const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           const shouldUseDark =
             savedTheme === 'dark' ||
@@ -78,7 +77,7 @@
       })();
     </script>
   </head>
-  <body class="bg-slate-50 dark:bg-slate-950">
+  <body class="bg-background text-on-surface">
     <div id="root">
       <footer style="display: none;">
         <a href="https://maidensail.com/startup/resilai" rel="dofollow"><img src="https://maidensail.com/badge/resilai.svg?theme=dark" alt="Featured on Maidensail" height="44"></a>

@@ -431,7 +431,7 @@ export default function GovernancePage() {
       </aside>
 
       {/* Overview Alignment Banner */}
-      <section className="bg-surface-container-low border border-slate-700/40 rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between shadow-sm relative overflow-hidden">
+      <section className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between shadow-sm relative overflow-hidden">
         <div className="flex-1 space-y-3 relative z-10">
           <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-ready-emerald">
             <Sparkles className="w-4 h-4" />
@@ -463,7 +463,7 @@ export default function GovernancePage() {
           </div>
         </div>
 
-        <div className="shrink-0 flex flex-col items-center justify-center p-6 bg-surface-container rounded-2xl border border-slate-700/50 min-w-[200px] text-center shadow-lg relative z-10">
+        <div className="shrink-0 flex flex-col items-center justify-center p-6 bg-surface-container rounded-2xl border border-outline-variant/60 min-w-[200px] text-center shadow-lg relative z-10">
           <span className="text-5xl font-bold tracking-tight text-ready-emerald font-mono">
             {overallAlignmentScore}%
           </span>
@@ -495,7 +495,7 @@ export default function GovernancePage() {
               <div
                 key={fw.id}
                 onClick={() => setSelectedFramework(fw)}
-                className="bg-surface-container-low border border-slate-700/50 hover:border-ready-emerald/50 rounded-2xl p-6 flex flex-col justify-between hover:shadow-xl hover:shadow-black/25 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer relative overflow-hidden"
+                className="bg-surface-container-low border border-outline-variant/60 hover:border-ready-emerald/50 rounded-2xl p-6 flex flex-col justify-between hover:shadow-xl hover:shadow-black/25 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer relative overflow-hidden"
               >
                 <div
                   className={`absolute right-0 top-0 w-28 h-28 rounded-full -mr-14 -mt-14 transition-transform group-hover:scale-150 duration-500 pointer-events-none ${
@@ -547,7 +547,7 @@ export default function GovernancePage() {
                 </div>
 
                 {/* Bottom Metadata */}
-                <div className="mt-6 pt-4 border-t border-slate-700/40 flex items-center justify-between text-xs">
+                <div className="mt-6 pt-4 border-t border-outline-variant/60 flex items-center justify-between text-xs">
                   <div className="space-y-0.5">
                     <span className="font-mono text-[11px] text-on-surface-variant block">
                       Last Scan: {fw.lastScan}
@@ -584,11 +584,11 @@ export default function GovernancePage() {
           </span>
         </div>
 
-        <div className="bg-surface-container-low border border-slate-700/40 rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-surface-container-low border border-outline-variant/60 rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-surface-container border-b border-slate-700/40 text-xs font-mono uppercase text-on-surface-variant">
+                <tr className="bg-surface-container border-b border-outline-variant/60 text-xs font-mono uppercase text-on-surface-variant">
                   <th className="py-4 px-6">Policy Domain</th>
                   <th className="py-4 px-6">Required Baseline</th>
                   <th className="py-4 px-6">Current Telemetry State</th>
@@ -596,7 +596,7 @@ export default function GovernancePage() {
                   <th className="py-4 px-6 text-right">Evidence Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-700/30">
+              <tbody className="divide-y divide-outline-variant/40">
                 {driftRows.map((drift, i) => (
                   <tr key={i} className="hover:bg-surface-container/40 transition-colors group">
                     <td className="py-4 px-6 font-medium text-on-surface">
@@ -679,11 +679,11 @@ export default function GovernancePage() {
           onClick={() => setSelectedFramework(null)}
         >
           <div
-            className="bg-surface-container-low border border-slate-700/60 rounded-2xl max-w-3xl w-full p-6 md:p-8 space-y-6 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto"
+            className="bg-surface-container-low border border-outline-variant/60 rounded-2xl max-w-3xl w-full p-6 md:p-8 space-y-6 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-start justify-between border-b border-slate-700/40 pb-5">
+            <div className="flex items-start justify-between border-b border-outline-variant/60 pb-5">
               <div className="flex items-center gap-3.5">
                 <div className="p-3 bg-ready-emerald/10 text-ready-emerald rounded-xl border border-ready-emerald/30">
                   <Gavel className="w-6 h-6" />
@@ -705,26 +705,26 @@ export default function GovernancePage() {
 
             {/* Modal Body */}
             <div className="space-y-6 text-xs text-on-surface leading-relaxed">
-              <div className="p-4 bg-surface-container rounded-xl border border-slate-700/40 space-y-2">
+              <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/60 space-y-2">
                 <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">Framework Overview</h4>
                 <p className="text-on-surface-variant">{selectedFramework.description}</p>
               </div>
 
               {/* Status and Metrics Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-4 bg-surface-container rounded-xl border border-slate-700/30">
+                <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/50">
                   <span className="text-[10px] font-mono uppercase text-on-surface-variant block">Alignment Score</span>
                   <span className="text-2xl font-bold font-mono text-ready-emerald mt-1 block">
                     {selectedFramework.score}%
                   </span>
                 </div>
-                <div className="p-4 bg-surface-container rounded-xl border border-slate-700/30">
+                <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/50">
                   <span className="text-[10px] font-mono uppercase text-on-surface-variant block">Verified Controls</span>
                   <span className="text-xl font-bold text-on-surface mt-1 block">
                     {selectedFramework.coveredControls} / {selectedFramework.totalControls}
                   </span>
                 </div>
-                <div className="p-4 bg-surface-container rounded-xl border border-slate-700/30">
+                <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/50">
                   <span className="text-[10px] font-mono uppercase text-on-surface-variant block">Last Automated Scan</span>
                   <span className="text-xs font-mono font-semibold text-on-surface mt-2 block">
                     {selectedFramework.lastScan}
@@ -755,7 +755,7 @@ export default function GovernancePage() {
                 <h4 className="text-xs font-mono uppercase text-on-surface-variant">
                   Sample Mapped Controls & Telemetry Proofs
                 </h4>
-                <div className="divide-y divide-slate-700/40 border border-slate-700/40 rounded-xl overflow-hidden bg-surface-container/50">
+                <div className="divide-y divide-outline-variant/40 border border-outline-variant/60 rounded-xl overflow-hidden bg-surface-container/50">
                   {selectedFramework.sampleControls.map((ctl) => (
                     <div key={ctl.id} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface-container transition-colors">
                       <div>
@@ -791,7 +791,7 @@ export default function GovernancePage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-4 border-t border-slate-700/40 flex items-center justify-between text-xs font-mono text-on-surface-variant">
+            <div className="pt-4 border-t border-outline-variant/60 flex items-center justify-between text-xs font-mono text-on-surface-variant">
               <span>All evidence verified by ResilAI Deterministic Moat</span>
               <button
                 onClick={() => setSelectedFramework(null)}

@@ -525,7 +525,7 @@ export default function DocumentsPage() {
                     <div
                       key={folder.id}
                       onClick={() => setSelectedFolder(folder)}
-                      className="group bg-surface-container-low border border-slate-700/50 hover:border-ready-emerald/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-black/25 hover:-translate-y-0.5 relative overflow-hidden"
+                      className="group bg-surface-container-low border border-outline-variant/60 hover:border-ready-emerald/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-black/25 hover:-translate-y-0.5 relative overflow-hidden"
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div
@@ -582,9 +582,9 @@ export default function DocumentsPage() {
                 </div>
               </div>
 
-              <div className="bg-surface-container-low border border-slate-700/40 rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm">
                 {/* Table Header */}
-                <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-700/40 text-xs font-mono uppercase text-on-surface-variant bg-surface-container/60">
+                <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-outline-variant/60 text-xs font-mono uppercase text-on-surface-variant bg-surface-container/60">
                   <div className="col-span-8 md:col-span-6">Document Name</div>
                   <div className="hidden md:block col-span-3">Generated</div>
                   <div className="hidden md:block col-span-1">Size</div>
@@ -592,7 +592,7 @@ export default function DocumentsPage() {
                 </div>
 
                 {/* Table Rows */}
-                <div className="divide-y divide-slate-700/30">
+                <div className="divide-y divide-outline-variant/40">
                   {filteredReports.map((report) => (
                     <div
                       key={report.id}
@@ -691,7 +691,7 @@ export default function DocumentsPage() {
                     return (
                       <div
                         key={summary.id}
-                        className={`bg-surface-container-low border border-slate-700/50 rounded-xl p-5 relative overflow-hidden group border-l-4 ${
+                        className={`bg-surface-container-low border border-outline-variant/60 rounded-xl p-5 relative overflow-hidden group border-l-4 ${
                           isEmerald ? 'border-l-ready-emerald' : 'border-l-drift-amber'
                         }`}
                       >
@@ -729,7 +729,7 @@ export default function DocumentsPage() {
                           {summary.narrative}
                         </p>
 
-                        <div className="pt-3 border-t border-slate-700/40 flex items-center justify-between">
+                        <div className="pt-3 border-t border-outline-variant/60 flex items-center justify-between">
                           <span className="text-[10px] font-mono text-on-surface-variant">
                             {summary.lastVerified}
                           </span>
@@ -772,8 +772,8 @@ export default function DocumentsPage() {
       ) : (
         /* Tab 2: Cryptographic Audit Ledger & Sync Logs */
         <div className="space-y-6">
-          <div className="bg-surface-container-low border border-slate-700/40 rounded-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-700/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container/60">
+          <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-outline-variant/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container/60">
               <div>
                 <h3 className="text-base font-bold text-on-surface flex items-center gap-2">
                   <History className="w-4 h-4 text-ready-emerald" />
@@ -802,7 +802,7 @@ export default function DocumentsPage() {
             ) : ledger && ledger.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="bg-surface-container text-xs font-mono uppercase text-on-surface-variant border-b border-slate-700/30">
+                  <thead className="bg-surface-container text-xs font-mono uppercase text-on-surface-variant border-b border-outline-variant/50">
                     <tr>
                       <th className="px-6 py-3">Timestamp (UTC)</th>
                       <th className="px-6 py-3">Source Integration</th>
@@ -812,7 +812,7 @@ export default function DocumentsPage() {
                       <th className="px-6 py-3 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-700/30">
+                  <tbody className="divide-y divide-outline-variant/40">
                     {ledger.map((item) => (
                       <tr key={item.id} className="hover:bg-surface-container/40 transition-colors">
                         <td className="px-6 py-3.5 font-mono text-on-surface-variant">
@@ -888,7 +888,7 @@ export default function DocumentsPage() {
           onClick={() => setSelectedFolder(null)}
         >
           <div
-            className="bg-surface-container-low border border-slate-700/60 rounded-2xl max-w-2xl w-full p-6 space-y-6 shadow-2xl animate-in zoom-in-95"
+            className="bg-surface-container-low border border-outline-variant/60 rounded-2xl max-w-2xl w-full p-6 space-y-6 shadow-2xl animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
@@ -911,7 +911,7 @@ export default function DocumentsPage() {
 
             <div className="space-y-3">
               <h4 className="text-xs font-mono uppercase text-on-surface-variant">Verified Files in Category</h4>
-              <div className="divide-y divide-slate-700/40 border border-slate-700/40 rounded-xl overflow-hidden bg-surface-container/50">
+              <div className="divide-y divide-outline-variant/40 border border-outline-variant/60 rounded-xl overflow-hidden bg-surface-container/50">
                 {selectedFolder.files.map((file) => (
                   <div key={file.id} className="p-4 flex items-center justify-between gap-4 hover:bg-surface-container transition-colors">
                     <div className="min-w-0">
@@ -935,7 +935,7 @@ export default function DocumentsPage() {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-700/40 flex items-center justify-between text-xs font-mono text-on-surface-variant">
+            <div className="pt-4 border-t border-outline-variant/60 flex items-center justify-between text-xs font-mono text-on-surface-variant">
               <span>All artifacts verified by ResilAI Cryptographic Ledger</span>
               <button
                 onClick={() => setSelectedFolder(null)}
@@ -955,7 +955,7 @@ export default function DocumentsPage() {
           onClick={() => setSelectedSummary(null)}
         >
           <div
-            className="bg-surface-container-low border border-slate-700/60 rounded-2xl max-w-2xl w-full p-6 space-y-6 shadow-2xl animate-in zoom-in-95"
+            className="bg-surface-container-low border border-outline-variant/60 rounded-2xl max-w-2xl w-full p-6 space-y-6 shadow-2xl animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
@@ -979,24 +979,24 @@ export default function DocumentsPage() {
             </div>
 
             <div className="space-y-4 text-xs text-on-surface leading-relaxed">
-              <div className="p-4 bg-surface-container rounded-xl border border-slate-700/40 space-y-2">
+              <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/60 space-y-2">
                 <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">Executive Overview</h4>
                 <p className="text-on-surface-variant">{selectedSummary.narrative}</p>
               </div>
 
-              <div className="p-4 bg-surface-container rounded-xl border border-slate-700/40 space-y-2">
+              <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/60 space-y-2">
                 <h4 className="font-bold text-on-surface text-xs uppercase tracking-wider">Clinical & Business Impact</h4>
                 <p className="text-on-surface-variant">{selectedSummary.impact}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 bg-surface-container rounded-lg border border-slate-700/30">
+                <div className="p-3 bg-surface-container rounded-lg border border-outline-variant/50">
                   <span className="text-[10px] font-mono text-on-surface-variant uppercase block">Safeguards Passed</span>
                   <span className="text-lg font-bold text-ready-emerald">
                     {selectedSummary.safeguardsPassed} / {selectedSummary.totalSafeguards}
                   </span>
                 </div>
-                <div className="p-3 bg-surface-container rounded-lg border border-slate-700/30">
+                <div className="p-3 bg-surface-container rounded-lg border border-outline-variant/50">
                   <span className="text-[10px] font-mono text-on-surface-variant uppercase block">Verification Timestamp</span>
                   <span className="text-xs font-mono font-semibold text-on-surface mt-1 block">
                     {selectedSummary.lastVerified}
@@ -1005,7 +1005,7 @@ export default function DocumentsPage() {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-700/40 flex items-center justify-between">
+            <div className="pt-4 border-t border-outline-variant/60 flex items-center justify-between">
               <span className="text-[11px] font-mono text-on-surface-variant">
                 100% Deterministic Engine Evidence
               </span>

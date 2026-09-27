@@ -214,7 +214,7 @@ export function StatusCard({ variant, action, onFix, onViewEvidence }: StatusCar
                     disabled={isFixing || isFixed}
                     className={cn(
                       tokens.button.primary,
-                      isFixed ? "bg-ready-emerald/80 border-none" : "bg-ready-emerald text-surface-container-lowest font-semibold"
+                      isFixed ? "bg-ready-emerald/80 border-none" : "bg-ready-emerald text-slate-950 font-semibold"
                     )}
                   >
                     {isFixed ? (

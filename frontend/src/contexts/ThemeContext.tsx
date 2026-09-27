@@ -109,7 +109,11 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
 export function useTheme() {
     const context = useContext(ThemeContext);
     if (!context) {
-        throw new Error('useTheme must be used within a ThemeProvider');
+        return {
+            theme: 'system' as Theme,
+            setTheme: () => {},
+            resolvedTheme: 'dark' as ResolvedTheme,
+        };
     }
     return context;
 }

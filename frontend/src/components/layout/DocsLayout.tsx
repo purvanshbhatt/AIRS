@@ -167,7 +167,7 @@ export default function DocsLayout() {
                                 className={clsx(
                                     'flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all relative overflow-hidden group',
                                     isActive
-                                        ? 'bg-blue-600/10 dark:bg-blue-400/5 text-blue-700 dark:text-blue-450 border border-blue-500/20'
+                                        ? 'bg-blue-600/10 dark:bg-blue-400/5 text-blue-700 dark:text-blue-400 border border-blue-500/20'
                                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/60 hover:text-slate-900 dark:hover:text-slate-200'
                                 )}
                             >

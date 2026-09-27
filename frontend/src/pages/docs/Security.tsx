@@ -12,7 +12,7 @@ export default function DocsSecurity() {
                 <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
                     Security & Privacy
                 </h1>
-                <p className="text-xl text-slate-605 dark:text-slate-400 max-w-2xl leading-relaxed">
+                <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
                     Learn how ResilAI protects your data, handles authentication,
                     and ensures tenant isolation.
                 </p>
@@ -22,7 +22,7 @@ export default function DocsSecurity() {
             <section id="authentication">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/40">
-                        <Shield className="w-6 h-6 text-blue-655 dark:text-blue-400" />
+                        <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         Authentication
@@ -45,7 +45,7 @@ export default function DocsSecurity() {
                             <li key={item.title} className="flex items-start gap-3">
                                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                                 <div>
-                                    <span className="font-semibold text-slate-900 dark:text-slate-105 text-base leading-tight">{item.title}</span>
+                                    <span className="font-semibold text-slate-900 dark:text-slate-100 text-base leading-tight">{item.title}</span>
                                     <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">{item.desc}</p>
                                 </div>
                             </li>
@@ -58,7 +58,7 @@ export default function DocsSecurity() {
             <section id="isolation">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-purple-50 dark:bg-purple-950/40 rounded-2xl border border-purple-100 dark:border-purple-900/40">
-                        <Database className="w-6 h-6 text-purple-655 dark:text-purple-400" />
+                        <Database className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         Tenant Isolation
@@ -103,7 +103,7 @@ export default function DocsSecurity() {
             <section id="storage">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-green-50 dark:bg-green-950/40 rounded-2xl border border-green-100 dark:border-green-900/40">
-                        <Database className="w-6 h-6 text-green-655 dark:text-green-400" />
+                        <Database className="w-6 h-6 text-green-600 dark:text-green-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         Data Storage
@@ -149,7 +149,7 @@ export default function DocsSecurity() {
             <section id="retention">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-orange-50 dark:bg-orange-950/40 rounded-2xl border border-orange-100 dark:border-orange-900/40">
-                        <Clock className="w-6 h-6 text-orange-655 dark:text-orange-400" />
+                        <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         Data Retention

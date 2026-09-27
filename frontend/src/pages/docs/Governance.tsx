@@ -19,7 +19,7 @@ export default function DocsGovernance() {
                 <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
                     The Governance Engine
                 </h1>
-                <p className="text-xl text-slate-605 dark:text-slate-400 max-w-3xl leading-relaxed">
+                <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
                     ResilAI replaces point-in-time compliance audits and self-assessments with a deterministic, configuration-driven Governance Engine that maps organizational context to real-time technical evidence.
                 </p>
             </div>
