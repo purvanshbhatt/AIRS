@@ -1,0 +1,105 @@
+# ==============================================================================
+# ResilAI Robots.txt — Search Engines & AI Crawlers Policy
+# Host: https://resilai.org
+# ==============================================================================
+
+# Search Engine Crawlers (Google, Bing, DuckDuckGo, Yahoo, etc.)
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: Slurp
+User-agent: DuckDuckBot
+User-agent: Baiduspider
+User-agent: YandexBot
+Allow: /
+Allow: /healthcare
+Allow: /legal
+Allow: /general
+Allow: /solutions/
+Allow: /about
+Allow: /pricing
+Allow: /results
+Allow: /ai
+Allow: /security
+Allow: /contact
+Allow: /docs/
+Allow: /status
+Allow: /login
+Disallow: /morning-brief
+Disallow: /needs-attention
+Disallow: /recovery
+Disallow: /operations
+Disallow: /operations/*
+Disallow: /documents
+Disallow: /governance
+Disallow: /connectors
+Disallow: /yesterday
+Disallow: /identity
+Disallow: /devices
+Disallow: /backups
+Disallow: /email
+Disallow: /network
+Disallow: /cloud
+Disallow: /reports
+Disallow: /activity
+Disallow: /audit
+Disallow: /settings
+Disallow: /agent-audit
+Disallow: /onboarding
+
+# Generative AI & LLM Search Crawlers (ChatGPT Search, Perplexity, Claude, Gemini, SearchGPT)
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: Claude-Web
+User-agent: Google-Extended
+User-agent: GoogleOther
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Cohere-ai
+User-agent: Bytespider
+User-agent: CCBot
+User-agent: Meta-ExternalAgent
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /healthcare
+Allow: /legal
+Allow: /general
+Allow: /solutions/
+Allow: /about
+Allow: /pricing
+Allow: /results
+Allow: /ai
+Allow: /security
+Allow: /docs/
+
+# Default for all other crawlers
+User-agent: *
+Allow: /
+Allow: /healthcare
+Allow: /legal
+Allow: /general
+Allow: /solutions/
+Allow: /about
+Allow: /pricing
+Allow: /results
+Allow: /ai
+Allow: /security
+Allow: /contact
+Allow: /docs/
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /morning-brief
+Disallow: /needs-attention
+Disallow: /recovery
+Disallow: /operations
+Disallow: /documents
+Disallow: /governance
+Disallow: /connectors
+Disallow: /settings
+Disallow: /agent-audit
+
+# Sitemaps and LLM Index Reference
+Sitemap: https://resilai.org/sitemap.xml
+Sitemap: https://resilai.org/llms.txt

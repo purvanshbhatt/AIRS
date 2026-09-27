@@ -108,6 +108,10 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
 
   const navLinks = [
     { label: 'Product', to: currentVertical === 'general' ? '/#how-it-works' : `/${currentVertical}#how-it-works` },
+    {
+      label: currentVertical === 'healthcare' ? 'Healthcare Playbook' : currentVertical === 'legal' ? 'Legal Playbook' : 'Solutions',
+      to: currentVertical === 'healthcare' ? '/solutions/healthcare-cyber-attacks' : '/solutions/legal-firm-cyber-attacks'
+    },
     { label: 'Results', to: currentVertical === 'general' ? '/results' : `/results?vertical=${currentVertical}` },
     { label: 'AI Architecture', to: currentVertical === 'general' ? '/ai' : `/ai?vertical=${currentVertical}` },
     { label: 'Pricing', to: currentVertical === 'general' ? '/pricing' : `/pricing?vertical=${currentVertical}` },

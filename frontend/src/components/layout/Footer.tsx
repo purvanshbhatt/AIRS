@@ -70,8 +70,8 @@ export function Footer() {
           </div>
         )}
 
-        {/* Main 4-Column Startup Navigation Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 pb-12 border-b border-slate-200 dark:border-slate-800/80">
+        {/* Main 5-Column Startup Navigation Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 pb-12 border-b border-slate-200 dark:border-slate-800/80">
           {/* Brand & Mission Column (Spans 2 cols on desktop) */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="inline-block">
@@ -82,7 +82,7 @@ export function Footer() {
               />
             </Link>
             <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm leading-relaxed">
-              Continuous AI & cybersecurity incident readiness for healthcare and enterprise organizations. Transform fragmented telemetry into verifiable executive understanding and operational resilience.
+              Continuous AI & cybersecurity incident readiness for healthcare and legal organizations. Transform fragmented telemetry into verifiable executive understanding and operational resilience.
             </p>
             <div className="pt-2 flex items-center gap-3">
               <a
@@ -109,6 +109,35 @@ export function Footer() {
                 <Github className="w-5 h-5" />
               </a>
             </div>
+          </div>
+
+          {/* Solutions Column */}
+          <div className="space-y-3">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
+              Solutions
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/solutions/legal-firm-cyber-attacks" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors font-medium text-primary-600 dark:text-primary-400">
+                  Stop Legal Attacks
+                </Link>
+              </li>
+              <li>
+                <Link to="/solutions/healthcare-cyber-attacks" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors font-medium text-emerald-600 dark:text-emerald-400">
+                  Stop Healthcare Attacks
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Legal Firms Portal
+                </Link>
+              </li>
+              <li>
+                <Link to="/healthcare" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Healthcare Portal
+                </Link>
+              </li>
+            </ul>
           </div>
 
           {/* Product Column */}
