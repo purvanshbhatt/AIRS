@@ -5788,5 +5788,11 @@
     "seen": 1790382257.782988,
     "ast_hash": "fcb389e36dd8adbf19eee3f836b8e99a",
     "semantic_hash": ""
+  },
+  "tests/test_fresh_account_isolation.py": {
+    "mtime": 1790381752.007096,
+    "seen": 1790467965.9850297,
+    "ast_hash": "5d16eefbbc853a2d5abb5f58bed88126",
+    "semantic_hash": ""
   }
 }
