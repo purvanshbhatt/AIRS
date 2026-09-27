@@ -1,3 +1,55 @@
+Date: 2026-09-27
+Agent: ResilAI Frontend & Fullstack Agent
+Task: Light Mode Visibility & Consistency Fix, Authenticated Dashboard Theme Unlocking, and SEO / AI Discoverability
+
+Changes Made:
+* Fixed Light Mode Visibility & Text Invisibility across Landing and Docs:
+  - Addressed white-on-white text and low-contrast UI elements on light background (`#f8f9ff`).
+  - Audited and updated all documentation pages (`Overview.tsx`, `Methodology.tsx`, `Frameworks.tsx`, `Security.tsx`, `Governance.tsx`, `Api.tsx`) to use robust theme classes (`text-slate-900 dark:text-slate-100`, `text-slate-600 dark:text-slate-300`, `bg-white dark:bg-slate-900`, `border-slate-200 dark:border-slate-800`).
+  - Fixed action button text inversion: Replaced `text-surface-container-lowest` with `text-slate-950` across `TodayPage.tsx`, `StatusCard.tsx`, `AIDrawer.tsx`, and `Button.tsx` so bright emerald and amber buttons have legible black text in both light and dark modes instead of inverting to white.
+  - Replaced hardcoded dark table borders (`border-slate-700`, `divide-slate-700`) in `Governance.tsx` and `Documents.tsx` with theme-aware tokens (`border-outline-variant/60`, `divide-outline-variant/40`).
+* Unlocked Light Mode in Authenticated Workspace & Dashboard:
+  - Mapped Tailwind v4 color tokens in `frontend/src/index.css` to dynamic CSS variables (`var(--color-*)`) under `:root` (light mode) and `html.dark, [data-theme="dark"]` (dark mode).
+  - Maintained strict Dark Mode Invariant: 100% of exact dark hex values (`#0b1326`, `#131b2e`, `#dae2fd`, `#31394d`, etc.) remain identical and unaltered.
+  - Authenticated pages (`/morning-brief`, `/needs-attention`, `/recovery`, `/documents`, `/governance`, `/connectors`, `/operations`) now dynamically respond to the light/dark theme selection.
+* Enhanced SEO & AI Search Engine Discoverability (GEO):
+  - Created structured AI reference documents: `frontend/public/llms.txt` and `frontend/public/llms-full.txt` outlining playbooks for "How to Stop Cyber Attacks on Legal Firms" and "How to Stop Cyber Attacks & Ransomware on Healthcare Businesses", deterministic SHA-256 evidence integrity, and zero hallucinations in scoring.
+  - Created search-crawler policy `frontend/public/robots.txt` granting explicit crawler permissions to Googlebot, Bingbot, GPTBot, ChatGPT-User, PerplexityBot, ClaudeBot, Claude-Web, and Applebot.
+  - Created comprehensive `frontend/public/sitemap.xml` with canonical URLs.
+  - Created dedicated playbook pages `/solutions/legal-firm-cyber-attacks` and `/solutions/healthcare-cyber-attacks` with Schema.org `Article` and `HowTo` structured data.
+  - Added Schema.org `Organization` and `SoftwareApplication` JSON-LD to `frontend/index.html`.
+* Validation & Multi-Environment Deployments:
+  - TypeScript build (`npx tsc -b`) completed with 0 errors.
+  - Vitest test suite (`npm test`) completed with 15/15 test files passing (334/334 tests).
+  - Deployed to Staging (`https://resilai-staging.web.app`), Demo (`https://gen-lang-client-0384513977.web.app`), and Production/Marketing (`https://resilai.org` / `https://resilai-marketing.web.app`).
+
+Files Modified:
+* `frontend/index.html`
+* `frontend/src/index.css`
+* `frontend/tailwind.config.js`
+* `frontend/src/contexts/ThemeContext.tsx`
+* `frontend/src/lib/design-tokens.ts`
+* `frontend/src/components/ui/Button.tsx`
+* `frontend/src/components/readiness/StatusCard.tsx`
+* `frontend/src/components/readiness/AIDrawer.tsx`
+* `frontend/src/components/readiness/ReadinessHeader.tsx`
+* `frontend/src/components/evidence/ExecutiveExplanation.tsx`
+* `frontend/src/components/layout/DocsLayout.tsx`
+* `frontend/src/features/readiness/TodayPage.tsx`
+* `frontend/src/features/readiness/NeedsAttentionPage.tsx`
+* `frontend/src/features/readiness/RecoveryReadinessPage.tsx`
+* `frontend/src/features/readiness/ActivityPage.tsx`
+* `frontend/src/pages/Landing.tsx`
+* `frontend/src/pages/Documents.tsx`
+* `frontend/src/pages/Governance.tsx`
+* `frontend/src/pages/AuditCalendar.tsx`
+* `frontend/src/pages/ComplianceDrift.tsx`
+* `frontend/src/pages/EvidenceNetwork.tsx`
+* `frontend/src/pages/TechnologyIntelligence.tsx`
+* `frontend/src/pages/docs/*.tsx`
+
+---
+
 Date: 2026-09-26
 Agent: ResilAI DevOps Agent
 Task: GitHub Actions Daily Snapshot & Backup Sync Workflow Audit & Remote Execution
