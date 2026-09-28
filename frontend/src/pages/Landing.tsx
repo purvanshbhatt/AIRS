@@ -26,11 +26,13 @@ import {
   Sparkles,
   Activity,
   Scale,
+  BookOpen,
 } from 'lucide-react';
 import { PublicNavbar } from '../components/layout/PublicNavbar';
 import { Footer } from '../components/layout/Footer';
+import { SEOHead } from '../components/common/SEOHead';
 import { useVertical, detectVerticalFromLocation } from '../contexts/VerticalContext';
-import { getVerticalConfig, isVerticalKey } from '../config/verticals';
+import { DEFAULT_VERTICAL, getVerticalConfig, isVerticalKey } from '../config/verticals';
 import type { VerticalKey, VerticalConfig } from '../types/vertical';
 
 export interface LandingProps {
@@ -163,8 +165,8 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
     if (vContext?.currentVertical) {
       return vContext.currentVertical;
     }
-    // 5. Default fallback to healthcare
-    return 'healthcare';
+    // 5. Default fallback
+    return DEFAULT_VERTICAL;
   }, [detectedFromRoute, defaultVertical, vContext?.currentVertical]);
 
   const effectiveConfig: VerticalConfig = useMemo(() => {
@@ -320,8 +322,61 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const seoConfig = useMemo(() => {
+    if (currentVertical === 'healthcare') {
+      return {
+        title: 'Incident Readiness for Healthcare Organizations | ResilAI',
+        description: 'Deterministic incident readiness and ransomware defense for healthcare clinics. Protect clinical EHR systems, guarantee 4-hour RTO, and verify continuous HIPAA compliance.',
+        keywords: 'how to stop attacks on healthcare businesses, healthcare ransomware protection, clinical continuity, protect clinic EHR, HIPAA Security Rule, ResilAI',
+        canonicalUrl: 'https://resilai.org/healthcare',
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          name: 'ResilAI Healthcare Incident Readiness Platform',
+          applicationCategory: 'SecurityApplication',
+          operatingSystem: 'Cloud, Web',
+          description: 'Deterministic continuous incident readiness and ransomware defense for healthcare clinics.',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+        }
+      };
+    }
+    if (currentVertical === 'legal') {
+      return {
+        title: 'Incident Readiness for Legal Firms & Law Practices | ResilAI',
+        description: 'Deterministic incident readiness and client confidentiality verification for law practices. Protect document vaults, prevent ransomware, and comply with ABA Formal Opinion 477R.',
+        keywords: 'how to stop attacks on legal firms, law firm cybersecurity, protect client confidentiality, law firm ransomware, ABA Formal Opinion 477R, ResilAI',
+        canonicalUrl: 'https://resilai.org/legal',
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          name: 'ResilAI Legal Incident Readiness Platform',
+          applicationCategory: 'SecurityApplication',
+          operatingSystem: 'Cloud, Web',
+          description: 'Deterministic continuous incident readiness and client confidentiality verification for law practices.',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+        }
+      };
+    }
+    return {
+      title: 'ResilAI — Continuous Incident Readiness & Cybersecurity Verification Platform',
+      description: 'Transform fragmented security telemetry into deterministic readiness scoring, continuous compliance verification, and plain-English executive impact translation.',
+      keywords: 'how to stop attacks on legal firms, how to stop attacks on healthcare businesses, AI incident readiness, cybersecurity verification, continuous security audit, NIST CSF 2.0, ResilAI',
+      canonicalUrl: 'https://resilai.org/',
+      schema: {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'ResilAI Incident Readiness Platform',
+        applicationCategory: 'SecurityApplication',
+        operatingSystem: 'Cloud, Web',
+        description: 'Continuous incident readiness and deterministic cybersecurity verification platform.',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+      }
+    };
+  }, [currentVertical]);
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 transition-colors duration-300 flex flex-col">
+      <SEOHead {...seoConfig} />
       {/* Unified Public Navigation */}
       <PublicNavbar transparent currentVertical={effectiveVertical} />
 
@@ -649,7 +704,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="group p-8 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-[24px] hover:border-primary-450 hover:bg-white dark:hover:bg-slate-900/80 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
+                className="group p-8 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-[24px] hover:border-primary-500 hover:bg-white dark:hover:bg-slate-900/80 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
               >
                 <div className="w-12 h-12 bg-primary-100 dark:bg-primary-950/40 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-105 transition-all duration-300">
                   <persona.icon className="w-6 h-6 text-primary-600 dark:text-primary-400 group-hover:text-white transition-colors" />
@@ -754,7 +809,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                   </div>
 
                   {/* Sample Alert Card */}
-                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-250/50 dark:border-amber-900/50">
+                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/50">
                     <div className="flex gap-3">
                       <div className="w-5 h-5 bg-amber-500 rounded-lg text-white flex items-center justify-center text-xs font-bold shrink-0">
                         !
@@ -778,6 +833,108 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Industry Cyber Defense Playbooks & Solutions Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-slate-200/60 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 dark:bg-primary-950/60 text-primary-800 dark:text-primary-300 rounded-full text-xs font-semibold border border-primary-200 dark:border-primary-800/60">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Cyber Defense Guides & Solutions</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              How to Stop Attacks on High-Risk Organizations
+            </h2>
+            <p className="text-base text-slate-600 dark:text-slate-300">
+              Battle-tested operational playbooks designed specifically for legal firms and healthcare practices facing targeted ransomware and sophisticated threat actors.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Legal Guide Card */}
+            <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-primary-500/40 dark:hover:border-primary-500/40 transition-all flex flex-col justify-between group">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                    Legal Sector Playbook
+                  </span>
+                  <Scale className="w-5 h-5 text-indigo-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                  How to Stop Attacks on Legal Firms
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Protect confidential client matters, satisfy ABA Formal Opinion 477R, enforce FIDO2 hardware MFA, and secure document vaults (NetDocuments/iManage) against double-extortion ransomware.
+                </p>
+                <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 pt-2">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Ethical wall & matter-level Zero Trust access segregation</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Immutable air-gapped backups (WORM storage) for case files</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Continuous automated telemetry verification vs annual checklists</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-6">
+                <Link
+                  to="/solutions/legal-firm-cyber-attacks"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-primary-600 dark:text-primary-400 group-hover:translate-x-1 transition-transform"
+                >
+                  <span>Read Complete Legal Defense Guide</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Healthcare Guide Card */}
+            <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500/40 dark:hover:border-emerald-500/40 transition-all flex flex-col justify-between group">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    Healthcare Playbook
+                  </span>
+                  <Activity className="w-5 h-5 text-emerald-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  How to Stop Attacks on Healthcare Businesses
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Prevent clinical EHR shutdowns, isolate vulnerable medical IoT & diagnostic imaging systems, guarantee 4-hour RTO, and enforce continuous HIPAA Security Rule compliance.
+                </p>
+                <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 pt-2">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Clinical EHR micro-segmentation & Zero Trust network isolation</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>3-2-1-1-0 Veeam & AWS S3 immutable backups ransomware cannot delete</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Daily executive "Morning Brief" answering: "Can we safely treat patients?"</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-6">
+                <Link
+                  to="/solutions/healthcare-cyber-attacks"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform"
+                >
+                  <span>Read Complete Healthcare Defense Guide</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
             </div>
           </div>

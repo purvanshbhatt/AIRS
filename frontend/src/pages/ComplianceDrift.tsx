@@ -625,7 +625,7 @@ function ComplianceDriftContent() {
           <Card className="shadow-sm bg-white/60 dark:bg-slate-950/20 transition-all duration-300 hover:scale-[1.005] hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-100 text-lg font-bold">
-                <BarChart3 className="h-5 w-5 text-indigo-605" />
+                <BarChart3 className="h-5 w-5 text-indigo-600" />
                 Drift Timeline
               </CardTitle>
             </CardHeader>

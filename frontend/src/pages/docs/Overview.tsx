@@ -20,7 +20,7 @@ export default function DocsOverview() {
                 <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 tracking-tight">
                     ResilAI Documentation
                 </h1>
-                <p className="text-xl text-slate-605 dark:text-slate-400 max-w-3xl leading-relaxed">
+                <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
                     ResilAI is a Continuous Readiness Operating System. We connect to your existing security, infrastructure, and IT tools to deterministically verify your resilience against disruptions.
                 </p>
             </div>
@@ -128,10 +128,10 @@ export default function DocsOverview() {
                         <Link
                             key={section.title}
                             to={section.href}
-                            className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01] hover:border-primary-250 dark:hover:border-primary-800"
+                            className="group flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01] hover:border-primary-300 dark:hover:border-primary-800"
                         >
                             <div>
-                                <h3 className="font-bold text-slate-900 dark:text-slate-105 group-hover:text-primary-600 dark:group-hover:text-primary-400 text-base transition-colors duration-200">
+                                <h3 className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 text-base transition-colors duration-200">
                                     {section.title}
                                 </h3>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{section.description}</p>

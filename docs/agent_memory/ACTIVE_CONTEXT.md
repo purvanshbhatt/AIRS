@@ -1,15 +1,29 @@
 # Active Context
-Date: 2026-09-26
-Status: Daily Backup Sync & Workflow Audit Verified; staging synchronized to daily-sync, backup-sync, and backup/daily-sync and pushed to origin (100% Tests Passing)
+Date: 2026-09-27
+Status: Light Mode Visibility, Authenticated Theme Unlocking, and SEO/AI-Search Discoverability Completed & Deployed (100% Tests Passing)
 
 ## Recent Actions
-- Daily Backup Sync & Branch Isolation Execution (`daily-sync` / `backup-sync` / `backup/daily-sync`):
-  - Audited `.github/workflows/daily-backup-sync.yml` ensuring full compliance with schedule cron `0 4 * * *`, manual `workflow_dispatch`, `daily-sync` tracking/merge from `staging`, push to `origin`, pre-push and step-level branch protection blocking pushes to `main` and `demo-stable`, and `$GITHUB_STEP_SUMMARY` audit logging.
-  - Synchronized and verified latest commits from `staging` into `daily-sync`, `backup-sync`, and hierarchical backup branch `backup/daily-sync`.
-  - Pushed `staging`, `daily-sync`, `backup-sync`, and hierarchical backup branch `backup/daily-sync` cleanly to `origin`.
-  - Audited Git ref integrity: confirmed hierarchical refs `refs/heads/backup/dev-before-sync` and `refs/heads/backup/daily-sync` prevent creation of loose `backup` branch on both local and remote origin (`fatal: cannot lock ref 'refs/heads/backup'`), validating `daily-sync`, `backup-sync`, and `backup/daily-sync` as canonical secure snapshot branches per specifications.
-  - Safely returned developer working tree to `staging`.
-  - Ran `pytest tests/test_daily_git_sync.py` with 35/35 tests passing.
+- Light Mode Visibility, Contrast, and Theme Consistency Overhaul (`staging` branch):
+  - Fixed Landing & Docs Low-Contrast / White-on-White Text:
+    - Root cause: Elements using `text-surface-container-lowest` or hardcoded white text disappeared against light backgrounds (`#f8f9ff`).
+    - Standardized on high-contrast CSS variable tokens and theme classes (`text-slate-900 dark:text-slate-100`, `text-slate-600 dark:text-slate-300`, `border-outline-variant/60`).
+    - Updated buttons (`TodayPage.tsx`, `StatusCard.tsx`, `AIDrawer.tsx`, `Button.tsx`): Replaced `text-surface-container-lowest` with `text-slate-950` on emerald/amber action buttons so text remains legible and does not invert to white.
+    - Updated documentation suite (`Overview.tsx`, `Methodology.tsx`, `Frameworks.tsx`, `Security.tsx`, `Governance.tsx`, `Api.tsx`): High contrast badges, cards, code blocks, and tables.
+  - Authenticated Workspace & Dashboard Light Mode Unlocking:
+    - Root cause: Tailwind tokens and theme classes hardcoded dark hex codes rather than using CSS variables.
+    - Mapped all Tailwind v4 tokens in `index.css` to dynamic CSS variables (`var(--color-*)`) supporting both light mode `:root` and dark mode `html.dark, [data-theme="dark"]`.
+    - Maintained strict Dark Mode Invariant: 100% of exact dark hex values (`#0b1326`, `#131b2e`, `#dae2fd`, `#31394d`, etc.) remain identical and unaltered.
+    - Authenticated pages (`/morning-brief`, `/needs-attention`, `/recovery`, `/documents`, `/governance`, `/connectors`, `/operations`) now cleanly reflect the user's selected light mode or dark mode.
+- SEO & AI-Friendly Search Discoverability (GEO):
+  - Added structured AI-crawler documentation (`frontend/public/llms.txt` and `llms-full.txt`) detailing the 5-step operational playbooks for Legal Firms and Healthcare Clinics, deterministic SHA-256 evidence integrity, and zero-hallucination scoring.
+  - Added comprehensive `robots.txt` granting explicit crawler permissions to Googlebot, Bingbot, GPTBot, ChatGPT-User, PerplexityBot, ClaudeBot, Claude-Web, and Applebot, referencing sitemap and `llms.txt`.
+  - Added dedicated landing solution pages: `/solutions/legal-firm-cyber-attacks` and `/solutions/healthcare-cyber-attacks` with Schema.org `Article` and `HowTo` structured data.
+  - Added Schema.org `Organization` and `SoftwareApplication` JSON-LD to `frontend/index.html`.
+- Verification & Multi-Environment Deployments:
+  - TypeScript build (`npx tsc -b`): Passed with exit code 0.
+  - Vitest test suite (`npm test`): 15 test files, 334 tests passed with 0 failures.
+  - Deployed to Staging (`https://resilai-staging.web.app`), Demo (`https://gen-lang-client-0384513977.web.app`), and Production/Marketing (`https://resilai.org` / `https://resilai-marketing.web.app`).
+  - Verified live endpoints via curl: `https://resilai.org/llms.txt`, `https://resilai.org/robots.txt`, `https://resilai.org/sitemap.xml`.
 
 - Staging Product Integrity, Real-User Data Isolation, Onboarding Simplification, and 48-Hour Live AI Agent Audit (`staging` branch):
   - Strict Demo-vs-Real User Isolation:

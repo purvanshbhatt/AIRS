@@ -6,6 +6,7 @@ import { GettingStartedModal } from '../onboarding/GettingStartedModal';
 import { getOnboardingCompleted, getOnboardingStep } from '../onboarding/onboardingData';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveOrg } from '../../hooks/useActiveOrg';
+import ThemeToggle from '../ui/ThemeToggle';
 
 interface ReadinessHeaderProps {
   onMenuClick: () => void;
@@ -170,6 +171,11 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
           <span className="hidden md:inline">Guide</span>
         </button>
 
+        {/* Theme Toggle (Light / Dark / System) */}
+        <div className="hidden sm:block">
+          <ThemeToggle />
+        </div>
+
         {/* User Profile & Account Dropdown */}
         <div className="relative" ref={userMenuRef}>
           <button
@@ -184,7 +190,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
                 className="w-8 h-8 rounded-full object-cover border border-ready-emerald/40"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container font-bold text-xs flex items-center justify-center shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-ready-emerald/20 border border-ready-emerald/40 text-ready-emerald font-bold text-xs flex items-center justify-center shadow-sm">
                 {user?.displayName
                   ? user.displayName.charAt(0).toUpperCase()
                   : user?.email
@@ -296,6 +302,13 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
                     <span>Explore Demo Sandbox</span>
                   </button>
                 )}
+
+                <div className="my-1 border-t border-outline-variant/30" />
+
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="text-on-surface-variant text-[11px] font-medium">Theme</span>
+                  <ThemeToggle />
+                </div>
 
                 <div className="my-1 border-t border-outline-variant/30" />
 

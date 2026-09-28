@@ -25,9 +25,31 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Custom theme configuration */
-@theme {
-  /* Stitch Healthcare Design System Variables */
+/* Stitch Healthcare Design System Variables */
+:root {
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-dim: #f1f5f9;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #ffffff;
+  --color-surface-container: #f8fafc;
+  --color-surface-container-high: #f1f5f9;
+  --color-surface-container-highest: #e2e8f0;
+  --color-surface-bright: #e2e8f0;
+  --color-ready-emerald: #10B981;
+  --color-drift-amber: #F59E0B;
+  --color-critical-red: #EF4444;
+  --color-on-surface: #0f172a;
+  --color-on-background: #0f172a;
+  --color-on-surface-variant: #475569;
+  --color-outline: #94a3b8;
+  --color-outline-variant: #e2e8f0;
+  --color-primary-container: #d1fae5;
+  --color-on-primary-container: #022c22;
+}
+
+html.dark,
+[data-theme="dark"] {
   --color-background: #0b1326;
   --color-surface: #0b1326;
   --color-surface-dim: #0b1326;
@@ -41,9 +63,35 @@
   --color-drift-amber: #F59E0B;
   --color-critical-red: #EF4444;
   --color-on-surface: #dae2fd;
+  --color-on-background: #dae2fd;
   --color-on-surface-variant: #bbcabf;
   --color-outline: #86948a;
   --color-outline-variant: #3c4a42;
+  --color-primary-container: #064e3b;
+  --color-on-primary-container: #022c22;
+}
+
+/* Custom theme configuration */
+@theme {
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-dim: var(--color-surface-dim);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container: var(--color-surface-container);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-container-highest: var(--color-surface-container-highest);
+  --color-surface-bright: var(--color-surface-bright);
+  --color-ready-emerald: var(--color-ready-emerald);
+  --color-drift-amber: var(--color-drift-amber);
+  --color-critical-red: var(--color-critical-red);
+  --color-on-surface: var(--color-on-surface);
+  --color-on-background: var(--color-on-background);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+  --color-outline: var(--color-outline);
+  --color-outline-variant: var(--color-outline-variant);
+  --color-primary-container: var(--color-primary-container);
+  --color-on-primary-container: var(--color-on-primary-container);
 
   --font-family-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   
@@ -62,8 +110,8 @@ html {
 
 body {
   font-family: var(--font-family-sans);
-  background-color: var(--color-background, #0b1326);
-  color: var(--color-on-surface, #dae2fd);
+  background-color: var(--color-background, #f8fafc);
+  color: var(--color-on-surface, #0f172a);
   transition: background-color 200ms ease, color 200ms ease;
   max-width: 100vw;
   overflow-x: hidden;

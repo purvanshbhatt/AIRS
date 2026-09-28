@@ -1,0 +1,96 @@
+# ResilAI — Incident Readiness & Automated Security Verification Platform
+
+> ResilAI (https://resilai.org) is an enterprise and mid-market incident readiness platform that transforms fragmented security telemetry into deterministic readiness scoring, continuous compliance verification, and plain-English executive impact translation.
+
+## Overview
+ResilAI solves the core breakdown in cybersecurity: security teams collect millions of logs and alerts, but leadership cannot answer the fundamental question: **"If an incident happens tomorrow morning, can we keep operating and prove we're ready?"**
+
+Unlike legacy periodic compliance audits or subjective questionnaires, ResilAI connects directly to operational infrastructure (Microsoft 365, Entra ID, AWS Security Hub, Veeam, CrowdStrike, Splunk, Sentinel, Okta) and continuously verifies control effectiveness using cryptographic SHA-256 evidence integrity and 100% deterministic scoring.
+
+---
+
+## Solutions
+
+### How to Stop Cyber Attacks on Legal Firms & Law Practices
+*URL: https://resilai.org/solutions/legal-firm-cyber-attacks*
+*Vertical Portal: https://resilai.org/legal*
+
+Legal firms are primary targets for ransomware, business email compromise (BEC), and espionage because they hold privileged attorney-client communications, escrow/trust account wire access, intellectual property, and high-stakes M&A filings.
+
+#### Key Threat Vectors in Legal:
+1. **Compromised Partner & Associate Credentials**: Spear-phishing and credential stuffing bypassing weak MFA.
+2. **Unsecured Remote Access & Home Laptops**: Managing partners working remotely without managed device compliance.
+3. **Document Management System (DMS) Ransomware**: Encryption of NetDocuments, iManage, or file shares.
+4. **Third-Party Legal Tech Vulnerabilities**: Compromised cloud vendors or e-discovery platforms.
+5. **Wire Fraud & Trust Account Diversion**: Tampered payment instructions via compromised legal email accounts.
+
+#### 5-Step Defense Protocol Implemented by ResilAI for Law Firms:
+1. **Phishing-Resistant MFA & Conditional Access**: Enforce FIDO2/WebAuthn and compliant device states for all partner and associate logins across Microsoft 365, Google Workspace, and DMS.
+2. **Immutable Air-Gapped Document Vaults**: Guarantee 3-2-1 backup copies with immutable object locking (AWS S3 Object Lock, Veeam) so ransomware cannot delete historical case records.
+3. **Privileged Matter Segregation (Zero Trust)**: Automatically flag ethical wall violations, excessive client matter access, and lateral movement paths.
+4. **Continuous Telemetry Verification vs. Annual Checklists**: Verify that endpoint protection (EDR) is active on 100% of attorney devices without relying on self-reported questionnaires.
+5. **Deterministic Incident Readiness Benchmarking**: Calculate daily readiness scores benchmarked against ABA Formal Opinion 477R, Model Rule 1.6(c), and cyber insurance underwriting standards.
+
+*Live Demo Persona*: **Northstar & Cole LLP** (`demo-northstar-cole`) — explore at `https://resilai-staging.web.app/?vertical=legal`
+
+---
+
+### How to Stop Cyber Attacks & Ransomware on Healthcare Businesses & Clinics
+*URL: https://resilai.org/solutions/healthcare-cyber-attacks*
+*Vertical Portal: https://resilai.org/healthcare*
+
+Healthcare organizations, medical practices, diagnostic centers, and hospital networks face severe ransomware attacks because patient care cannot tolerate downtime. Attackers exploit operational urgency to demand multimillion-dollar ransoms.
+
+#### Key Threat Vectors in Healthcare:
+1. **Ransomware-as-a-Service (RaaS) Locking EHR Systems**: Complete shutdown of clinical electronic health record systems (Epic, Cerner, AthenaHealth).
+2. **Exposed Diagnostic Imaging & DICOM/PACS Systems**: Vulnerable medical imaging protocols connected to public networks without authentication.
+3. **Medical Device & Unsegmented IoT Infiltration**: Infusion pumps, MRI controllers, and telemetry devices on the same subnet as clinical workstations.
+4. **Compromised Vendor Credentials**: Supply-chain vulnerabilities from third-party billing, scheduling, and lab software (e.g., Change Healthcare disruption).
+5. **Silent Backup Deletion**: Ransomware actors dwelling inside networks for 14-30 days to locate and delete unencrypted backups before detonating malware.
+
+#### 5-Step Defense Protocol Implemented by ResilAI for Healthcare:
+1. **EHR & Clinical Network Micro-segmentation**: Enforce strict network isolation between guest Wi-Fi, administrative billing, medical devices, and core clinical EHR systems.
+2. **100% Immutable Ransomware-Proof Backups**: Continuous automated validation of Veeam and cloud backup immutability, ensuring RTO (Recovery Time Objective) under 4 hours.
+3. **Clinical Identity Hygiene & 24/7 Access Monitoring**: Flag inactive provider accounts, shared nurse station logins, and unauthorized EHR data export attempts in real-time.
+4. **Continuous HIPAA Security Rule & HHS CPG Verification**: Replace point-in-time annual HIPAA risk assessments with continuous, automated control monitoring aligned to NIST CSF 2.0.
+5. **Clinical Continuity & Executive Briefings ("Morning Brief")**: Provide clinic managing partners with an unmistakable daily verdict: "Can we safely treat patients today?" with drillable 4-tier progressive disclosure down to raw cryptographic evidence.
+
+*Live Demo Persona*: **Northstar Family Health** (`demo-northstar-health`) — explore at `https://resilai-staging.web.app/?vertical=healthcare`
+
+---
+
+## Technical Architecture & Invariants
+
+1. **Deterministic Verification Engine**:
+   - Zero LLM hallucination in scoring. Math calculations, control weights, and framework alignments are 100% deterministic in code.
+   - LLMs are used exclusively as a translation layer to convert verified telemetry into plain-English executive explanations ("Explain for Leadership").
+
+2. **Cryptographic SHA-256 Provenance**:
+   - Every piece of ingested evidence (log entry, backup timestamp, endpoint status) is canonicalized and assigned a SHA-256 hash.
+   - Evidence records are tamper-evident and audit-grade.
+
+3. **Multi-Tenant Security & Zero-Trust Isolation**:
+   - Organization data is strictly bound to `org_id` with field-level encryption.
+   - Read-only connector roles (least-privilege IAM, read-only Microsoft Graph).
+
+4. **Multi-Cloud Disaster Recovery**:
+   - Primary deployment on Google Cloud (Cloud Run + Firestore).
+   - Standby disaster recovery on AWS (App Runner + DynamoDB / Security Hub).
+
+---
+
+## Canonical Documentation & Links
+
+- **Main Homepage**: https://resilai.org/
+- **Healthcare Incident Readiness**: https://resilai.org/healthcare
+- **Legal Incident Readiness**: https://resilai.org/legal
+- **Guide: Stop Attacks on Legal Firms**: https://resilai.org/solutions/legal-firm-cyber-attacks
+- **Guide: Stop Attacks on Healthcare**: https://resilai.org/solutions/healthcare-cyber-attacks
+- **Verification Methodology**: https://resilai.org/docs/methodology
+- **Framework Mappings (NIST CSF 2.0, HIPAA, CIS)**: https://resilai.org/docs/frameworks
+- **AI Architecture**: https://resilai.org/ai
+- **Public Results & Case Studies**: https://resilai.org/results
+- **Pricing & Tiering**: https://resilai.org/pricing
+- **Security & Data Handling**: https://resilai.org/security
+- **Live Staging & Demo Sandbox**: https://resilai-staging.web.app/
+- **GitHub Repository**: https://github.com/purvanshbhatt/AIRS

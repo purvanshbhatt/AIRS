@@ -26,6 +26,8 @@ import PilotPage from './pages/Pilot';
 import StatusPage from './pages/Status';
 import AuditorView from './pages/AuditorView';
 import Onboarding from './pages/Onboarding';
+import LegalDefenseGuide from './pages/solutions/LegalDefenseGuide';
+import HealthcareDefenseGuide from './pages/solutions/HealthcareDefenseGuide';
 
 // MORNING OPERATIONS
 import TodayPage from './features/readiness/TodayPage';
@@ -225,6 +227,13 @@ export default function App() {
                   <Route path="/pilot" element={<PilotPage />} />
                   <Route path="/status" element={<StatusPage />} />
                   <Route path="/auditor" element={<AuditorView />} />
+
+                  {/* Solutions & Attack Prevention Guides (SEO & AI Search Targets) */}
+                  <Route path="/solutions/legal-firm-cyber-attacks" element={<LegalDefenseGuide />} />
+                  <Route path="/solutions/legal-cyber-attacks" element={<Navigate to="/solutions/legal-firm-cyber-attacks" replace />} />
+                  <Route path="/solutions/legal" element={<Navigate to="/solutions/legal-firm-cyber-attacks" replace />} />
+                  <Route path="/solutions/healthcare-cyber-attacks" element={<HealthcareDefenseGuide />} />
+                  <Route path="/solutions/healthcare" element={<Navigate to="/solutions/healthcare-cyber-attacks" replace />} />
 
                   {/* Main Application Routes */}
                   <Route path="/*" element={<MainAppRoutes />} />

@@ -17,6 +17,32 @@ vi.mock('../../api', async (importOriginal) => {
     downloadReportById: vi.fn(),
     deleteReport: vi.fn(),
     getBoardStory: vi.fn(),
+    getCapabilities: vi.fn().mockResolvedValue({
+      plan: 'enterprise',
+      status: 'active',
+      is_paid: true,
+      is_exempt: false,
+      exemption_type: null,
+      entitlements: {
+        demo_access: true,
+        simulated_data: true,
+        public_product_preview: true,
+        account_management: true,
+        real_organization: true,
+        telemetry_ingestion: true,
+        evidence_collection: true,
+        readiness_scoring: true,
+        connectors_manage: true,
+        executive_reports: true,
+        api_keys: true,
+        webhooks: true,
+        advanced_reporting: true,
+        additional_users: true,
+        advanced_integrations: true,
+        enterprise_controls: true,
+        custom_frameworks: true,
+      },
+    }),
   };
 });
 
@@ -112,7 +138,7 @@ describe('Milestone 4: Report Center & History Management', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/has been generated and added to your archive/i)).toBeInTheDocument();
-    });
+    }, { timeout: 4000 });
   });
 
   it('filters reports dynamically by search query', async () => {

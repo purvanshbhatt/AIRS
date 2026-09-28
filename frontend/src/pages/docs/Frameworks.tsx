@@ -28,13 +28,13 @@ export default function DocsFrameworks() {
                             onClick={() => setShowFuture(!showFuture)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 border shadow-sm hover:shadow-md ${
                                 showFuture
-                                    ? 'bg-purple-50 text-purple-750 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/60'
+                                    ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/60'
                                     : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
                             }`}
                         >
                             {showFuture ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             <span>{showFuture ? 'Hide' : 'Show'} Future Regulations</span>
-                            <span className="px-2 py-0.5 text-xs bg-purple-100 dark:bg-purple-900 text-purple-750 dark:text-purple-300 rounded-full font-bold">
+                            <span className="px-2 py-0.5 text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-full font-bold">
                                 STAGING
                             </span>
                         </button>
@@ -91,7 +91,7 @@ export default function DocsFrameworks() {
             <section>
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/40">
-                        <Shield className="w-6 h-6 text-blue-655 dark:text-blue-400" />
+                        <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         CIS Controls v8
@@ -107,15 +107,15 @@ export default function DocsFrameworks() {
                     <div className="grid md:grid-cols-3 gap-4 mb-6">
                         <div className="p-4 bg-green-50/50 dark:bg-green-950/30 rounded-2xl border border-green-200/80 dark:border-green-900/60 shadow-sm hover:shadow transition-shadow duration-300">
                             <h4 className="font-semibold text-green-900 dark:text-green-300 mb-1">IG1 - Basic Cyber Hygiene</h4>
-                            <p className="text-xs text-green-805 dark:text-green-400 leading-relaxed">Essential controls for all organizations. Minimum baseline for security.</p>
+                            <p className="text-xs text-green-800 dark:text-green-400 leading-relaxed">Essential controls for all organizations. Minimum baseline for security.</p>
                         </div>
                         <div className="p-4 bg-yellow-50/50 dark:bg-yellow-950/30 rounded-2xl border border-yellow-200/80 dark:border-yellow-900/60 shadow-sm hover:shadow transition-shadow duration-300">
                             <h4 className="font-semibold text-yellow-900 dark:text-yellow-300 mb-1">IG2 - Enhanced Controls</h4>
-                            <p className="text-xs text-yellow-805 dark:text-yellow-400 leading-relaxed">For organizations handling sensitive data. Builds on IG1.</p>
+                            <p className="text-xs text-yellow-800 dark:text-yellow-400 leading-relaxed">For organizations handling sensitive data. Builds on IG1.</p>
                         </div>
                         <div className="p-4 bg-red-50/50 dark:bg-red-950/30 rounded-2xl border border-red-200/80 dark:border-red-900/60 shadow-sm hover:shadow transition-shadow duration-300">
                             <h4 className="font-semibold text-red-900 dark:text-red-300 mb-1">IG3 - Advanced Controls</h4>
-                            <p className="text-xs text-red-805 dark:text-red-400 leading-relaxed">For high-value targets facing sophisticated adversaries.</p>
+                            <p className="text-xs text-red-800 dark:text-red-400 leading-relaxed">For high-value targets facing sophisticated adversaries.</p>
                         </div>
                     </div>
 
@@ -153,7 +153,7 @@ export default function DocsFrameworks() {
             <section>
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-purple-50 dark:bg-purple-950/40 rounded-2xl border border-purple-100 dark:border-purple-900/40">
-                        <Shield className="w-6 h-6 text-purple-655 dark:text-purple-400" />
+                        <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         OWASP Top 10
@@ -177,14 +177,14 @@ export default function DocsFrameworks() {
                                 key={item.id}
                                 className={`p-4 rounded-2xl border transition-all duration-300 hover:scale-[1.01] ${
                                     item.relevant
-                                        ? 'bg-purple-50/50 dark:bg-purple-950/30 border-purple-205 dark:border-purple-900/60 shadow-sm'
+                                        ? 'bg-purple-50/50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-900/60 shadow-sm'
                                         : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm'
                                 }`}
                             >
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">{item.id}</span>
                                     {item.relevant && (
-                                        <span className="text-xs px-2 py-0.5 bg-purple-200 dark:bg-purple-800 text-purple-750 dark:text-purple-300 rounded-full font-semibold">
+                                        <span className="text-xs px-2 py-0.5 bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-300 rounded-full font-semibold">
                                             Mapped
                                         </span>
                                     )}
@@ -210,7 +210,7 @@ export default function DocsFrameworks() {
             <section>
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2.5 bg-teal-50 dark:bg-teal-950/40 rounded-2xl border border-teal-100 dark:border-teal-900/40">
-                        <Shield className="w-6 h-6 text-teal-655 dark:text-teal-400" />
+                        <Shield className="w-6 h-6 text-teal-600 dark:text-teal-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         NIST Cybersecurity Framework 2.0
@@ -229,12 +229,12 @@ export default function DocsFrameworks() {
                         <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4 text-base">CSF 2.0 Lifecycle Functions:</h3>
                         <div className="flex flex-wrap items-center justify-center gap-3 mb-6 bg-slate-50 dark:bg-slate-950 p-6 rounded-3xl border border-slate-100 dark:border-slate-900/50">
                             {[
-                                { code: 'GV', name: 'Govern', color: 'bg-slate-105 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800', description: 'Establish and monitor cybersecurity risk management strategy, expectations, and policy' },
-                                { code: 'ID', name: 'Identify', color: 'bg-blue-50 dark:bg-blue-950/40 text-blue-750 dark:text-blue-300 border-blue-205 dark:border-blue-900/60', description: 'Understand organizational context, assets, and risk to prioritize efforts' },
-                                { code: 'PR', name: 'Protect', color: 'bg-green-50 dark:bg-green-950/40 text-green-755 dark:text-green-300 border-green-205 dark:border-green-900/60', description: 'Implement safeguards to ensure delivery of critical services' },
-                                { code: 'DE', name: 'Detect', color: 'bg-amber-50 dark:bg-amber-950/40 text-amber-755 dark:text-amber-300 border-amber-200 dark:border-amber-900/60', description: 'Identify the occurrence of cybersecurity events in a timely manner' },
-                                { code: 'RS', name: 'Respond', color: 'bg-orange-50 dark:bg-orange-950/40 text-orange-755 dark:text-orange-300 border-orange-205 dark:border-orange-900/60', description: 'Take action regarding a detected cybersecurity incident' },
-                                { code: 'RC', name: 'Recover', color: 'bg-purple-50 dark:bg-purple-950/40 text-purple-755 dark:text-purple-300 border-purple-205 dark:border-purple-900/60', description: 'Restore capabilities or services impaired by a cybersecurity incident' },
+                                { code: 'GV', name: 'Govern', color: 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800', description: 'Establish and monitor cybersecurity risk management strategy, expectations, and policy' },
+                                { code: 'ID', name: 'Identify', color: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900/60', description: 'Understand organizational context, assets, and risk to prioritize efforts' },
+                                { code: 'PR', name: 'Protect', color: 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-200 dark:border-green-900/60', description: 'Implement safeguards to ensure delivery of critical services' },
+                                { code: 'DE', name: 'Detect', color: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/60', description: 'Identify the occurrence of cybersecurity events in a timely manner' },
+                                { code: 'RS', name: 'Respond', color: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-900/60', description: 'Take action regarding a detected cybersecurity incident' },
+                                { code: 'RC', name: 'Recover', color: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-900/60', description: 'Restore capabilities or services impaired by a cybersecurity incident' },
                             ].map((func, index) => (
                                 <React.Fragment key={func.code}>
                                     <div className={`px-4 py-3 rounded-2xl border ${func.color} text-center min-w-[105px] shadow-sm transition-all duration-300 hover:scale-105`}>
@@ -276,23 +276,23 @@ export default function DocsFrameworks() {
                         </h4>
                         <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400 font-medium">
                             <div className="flex items-center gap-2">
-                                <span className="inline-block w-8 text-xs font-mono font-bold text-amber-705 dark:text-amber-300">DE</span>
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-amber-700 dark:text-amber-300">DE</span>
                                 <span>Telemetry &amp; Logging — Detect: Continuous Monitoring (DE.CM)</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="inline-block w-8 text-xs font-mono font-bold text-amber-705 dark:text-amber-300">DE</span>
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-amber-700 dark:text-amber-300">DE</span>
                                 <span>Detection Coverage — Detect: Adverse Event Analysis (DE.AE)</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="inline-block w-8 text-xs font-mono font-bold text-green-705 dark:text-green-300">PR</span>
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-green-700 dark:text-green-300">PR</span>
                                 <span>Identity Visibility — Protect: Identity Management &amp; Access Control (PR.AA)</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="inline-block w-8 text-xs font-mono font-bold text-orange-705 dark:text-orange-300">RS</span>
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-orange-700 dark:text-orange-300">RS</span>
                                 <span>IR Playbooks &amp; Process — Respond: Incident Management (RS.MA)</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="inline-block w-8 text-xs font-mono font-bold text-purple-755 dark:text-purple-300">RC</span>
+                                <span className="inline-block w-8 text-xs font-mono font-bold text-purple-700 dark:text-purple-300">RC</span>
                                 <span>Backup/Recovery &amp; Resilience — Recover: Incident Recovery Plan Execution (RC.RP)</span>
                             </div>
                         </div>
@@ -320,7 +320,7 @@ export default function DocsFrameworks() {
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                             Future Regulations
                         </h2>
-                        <span className="px-2.5 py-0.5 text-xs bg-purple-200 dark:bg-purple-800 text-purple-755 dark:text-purple-300 rounded-full font-bold">
+                        <span className="px-2.5 py-0.5 text-xs bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-300 rounded-full font-bold">
                             PREVIEW
                         </span>
                     </div>
@@ -335,9 +335,9 @@ export default function DocsFrameworks() {
                         {/* EU AI Act */}
                         <div className="mb-6 p-4 bg-purple-50/50 dark:bg-purple-950/30 rounded-2xl border border-purple-200/80 dark:border-purple-900/60 shadow-sm">
                             <div className="flex flex-wrap items-center gap-3 mb-3">
-                                <Brain className="w-5 h-5 text-purple-605 dark:text-purple-400" />
+                                <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">EU Artificial Intelligence Act</h3>
-                                <span className="text-xs px-2.5 py-0.5 bg-yellow-100 dark:bg-yellow-950/50 text-yellow-805 dark:text-yellow-300 rounded-full font-bold">
+                                <span className="text-xs px-2.5 py-0.5 bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300 rounded-full font-bold">
                                     Effective Aug 2025
                                 </span>
                             </div>
@@ -384,9 +384,9 @@ export default function DocsFrameworks() {
                         {/* DORA */}
                         <div className="mb-6 p-4 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl border border-blue-200/80 dark:border-blue-900/60 shadow-sm">
                             <div className="flex flex-wrap items-center gap-3 mb-3">
-                                <Scale className="w-5 h-5 text-blue-605 dark:text-blue-400" />
+                                <Scale className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">DORA — Digital Operational Resilience Act</h3>
-                                <span className="text-xs px-2.5 py-0.5 bg-green-100 dark:bg-green-950/50 text-green-805 dark:text-green-300 rounded-full font-bold">
+                                <span className="text-xs px-2.5 py-0.5 bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-300 rounded-full font-bold">
                                     Effective Jan 2025
                                 </span>
                             </div>
@@ -415,9 +415,9 @@ export default function DocsFrameworks() {
                         {/* NIS2 Directive */}
                         <div className="p-4 bg-teal-50/50 dark:bg-teal-950/30 rounded-2xl border border-teal-200/80 dark:border-teal-900/60 shadow-sm">
                             <div className="flex flex-wrap items-center gap-3 mb-3">
-                                <Shield className="w-5 h-5 text-teal-605 dark:text-teal-400" />
+                                <Shield className="w-5 h-5 text-teal-600 dark:text-teal-400" />
                                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">NIS2 Directive</h3>
-                                <span className="text-xs px-2.5 py-0.5 bg-green-100 dark:bg-green-950/50 text-green-805 dark:text-green-300 rounded-full font-bold">
+                                <span className="text-xs px-2.5 py-0.5 bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-300 rounded-full font-bold">
                                     Effective Oct 2024
                                 </span>
                             </div>

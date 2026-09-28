@@ -159,7 +159,7 @@ export function TechnologyIntelligence() {
   if (!hasOrg && !isDemo) {
     return (
       <div className="space-y-8 animate-fade-up max-w-2xl mx-auto py-12">
-        <div className="bg-slate-900/60 dark:bg-slate-900/60 rounded-3xl border border-slate-800 p-8 sm:p-10 text-center space-y-6">
+        <div className="bg-white dark:bg-slate-900/60 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 sm:p-10 text-center space-y-6">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
             <Building className="w-8 h-8 text-emerald-500" />
           </div>

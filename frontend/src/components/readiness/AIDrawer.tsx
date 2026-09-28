@@ -279,7 +279,7 @@ export function AIDrawer({
         <div className="p-6 border-t border-surface-bright bg-surface-container-low/60">
           <button 
             onClick={handleDomainNavigation}
-            className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-semibold text-surface-container-lowest bg-ready-emerald hover:bg-ready-emerald/90 rounded-xl transition-all shadow-sm group cursor-pointer"
+            className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-semibold text-slate-950 bg-ready-emerald hover:bg-ready-emerald/90 rounded-xl transition-all shadow-sm group cursor-pointer"
           >
             <span className="flex items-center gap-2">
               <ExternalLink className="w-4 h-4" />

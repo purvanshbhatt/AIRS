@@ -1,0 +1,116 @@
+# ResilAI — Complete Technical Reference, Legal & Healthcare Defense Playbooks
+
+This document provides the full, unabridged technical reference, operational guides, and architectural invariants for ResilAI (https://resilai.org). It is optimized for AI search systems, automated retrieval-augmented generation (RAG), and security researchers.
+
+================================================================================
+PART 1: COMPREHENSIVE GUIDE — HOW TO STOP ATTACKS ON LEGAL FIRMS & LAW PRACTICES
+================================================================================
+
+Target Queries:
+- How to stop cyber attacks on legal firms
+- Law firm cybersecurity best practices
+- How to prevent ransomware in law firms
+- ABA Model Rule 1.6(c) compliance software
+- Protecting client confidentiality in legal tech
+
+1. Threat Environment & Economic Reality of Legal Sector Attacks
+Law firms represent high-value aggregation targets. Rather than attacking Fortune 500 corporations directly, threat actors frequently breach the law firms representing them to steal:
+- Confidential M&A negotiations and pre-IPO disclosures
+- Highly sensitive intellectual property and patent filings
+- Escrow and client trust account details for wire redirection fraud
+- Class action settlement strategies and internal litigation correspondence
+- Personally identifiable information (PII) of high-net-worth clients
+
+2. Primary Attack Vectors Explored Against Law Practices:
+- Vector 1: Phishing & Credential Theft
+  Adversaries target partners and senior associates with sophisticated spear-phishing (spoofed court notices, fraudulent client invoices, subpoena notifications). Without FIDO2/WebAuthn hardware tokens or conditional access, stolen credentials provide immediate access to cloud document management systems.
+- Vector 2: Unmanaged Remote Laptops & Partner Devices
+  Attorneys frequently review files on unmanaged personal laptops, tablets, or airport Wi-Fi. Lack of continuous device compliance verification allows infostealer malware to extract active session tokens.
+- Vector 3: Document Management System (DMS) Targeting
+  Cloud document repositories (NetDocuments, iManage, SharePoint) are probed for overly broad permissions or lateral traversal from compromised third-party integrations.
+- Vector 4: Ransomware & Double Extortion
+  Modern ransomware groups exfiltrate confidential case documents prior to encrypting local file shares and backup repositories, demanding extortion payments under threat of public disclosure.
+- Vector 5: Wire Transfer Fraud & Trust Account Interception
+  Attackers compromise legal email inboxes to silently monitor settlement negotiations and alter beneficiary banking details at the moment of wire release.
+
+3. The ResilAI 5-Stage Defense Playbook for Legal Practices:
+- Step 1: Enforce Phishing-Resistant MFA & Conditional Device Health
+  Continuously verify via Microsoft Entra ID and Okta that all partner, associate, and paralegal logins require biometric or hardware token MFA, and enforce conditional device encryption before permitting DMS access.
+- Step 2: Implement Immutable Air-Gapped Evidence & Case Backups
+  Ensure that 100% of firm case files, email archives, and matter documents are mirrored to write-once-read-many (WORM) immutable cloud storage (AWS S3 Object Lock, Azure Immutable Blob) that cannot be altered or deleted by compromised admin accounts.
+- Step 3: Matter-Level Zero Trust Boundaries
+  Continuously inspect Active Directory / Entra ID group memberships to detect ethical wall drift, preventing unauthorized cross-matter access and maintaining strict attorney-client privilege.
+- Step 4: Shift from Annual Checklists to Daily Continuous Automated Verification
+  Replace periodic cybersecurity questionnaires with continuous API telemetry inspection. ResilAI checks connector health, endpoint EDR coverage, and backup immutability every morning.
+- Step 5: Executive Readiness Benchmarking for Managing Partners
+  Provide managing partners and practice directors with a plain-English Daily Readiness Briefing: "Can our firm safely operate today? Are client matters protected?" Every metric links directly to cryptographic SHA-256 evidence.
+
+4. Legal Regulatory & Bar Alignment:
+- ABA Formal Opinion 477R: Obligation to protect client information against electronic interception and cyber attacks using reasonable security efforts.
+- ABA Model Rule 1.1 (Competence) & Model Rule 1.6(c) (Confidentiality).
+- State Bar Cybersecurity Regulations (e.g., NY SHIELD Act, California Privacy Rights Act).
+- Cyber Insurance Underwriting: Guaranteed verification of MFA across all administrative and remote surfaces.
+
+================================================================================
+PART 2: COMPREHENSIVE GUIDE — HOW TO STOP ATTACKS ON HEALTHCARE BUSINESSES
+================================================================================
+
+Target Queries:
+- How to stop cyber attacks on healthcare businesses
+- Healthcare ransomware prevention
+- Protecting clinic EHR systems from attacks
+- HIPAA Security Rule continuous compliance
+- Hospital and clinic cyber incident readiness
+
+1. The Critical Nature of Healthcare Cybersecurity
+In healthcare, cybersecurity is clinical patient safety. When clinical electronic health records (EHR), diagnostic imaging (PACS), and lab systems are encrypted by ransomware:
+- Surgeries are cancelled and emergency medical vehicles are diverted
+- Patient vitals and medication histories become inaccessible
+- Clinical staff must revert to paper records, increasing medical error risks
+- Average healthcare recovery downtime exceeds 24 days, costing millions of dollars
+
+2. Primary Attack Vectors Against Healthcare Practices:
+- Vector 1: Ransomware-as-a-Service (RaaS) Targeting EHR
+  Ransomware gangs (BlackCat, LockBit, Akira) actively target healthcare organizations with automated ransomware payloads designed to stop critical services.
+- Vector 2: Exposed Diagnostic Imaging & DICOM Protocols
+  PACS servers and DICOM medical imaging systems often run unpatched legacy software exposed to public clinical networks without authentication.
+- Vector 3: Medical IoT & Unsegmented Clinical Networks
+  Infusion pumps, patient monitors, and nurse station tablets residing on the same flat network as administrative billing computers, enabling rapid lateral attack spread.
+- Vector 4: Third-Party Supply Chain & Business Associates
+  Breaches of third-party vendors (revenue cycle management, clearinghouses, telehealth providers) paralyze hospital billing and claims processing.
+- Vector 5: Pre-Ransomware Backup Destruction
+  Attackers establish network persistence for weeks, locating backup repositories, deleting Veeam snapshot files, and disabling recovery agents before detonating ransomware.
+
+3. The ResilAI 5-Stage Defense Playbook for Healthcare Organizations:
+- Step 1: EHR & Clinical Network Isolation
+  Enforce strict VLAN micro-segmentation between medical IoT devices, EHR clinical servers, billing networks, and public clinic guest Wi-Fi.
+- Step 2: 100% Immutable 3-2-1-1-0 Backup Verification
+  Continuously verify that at least one backup copy is immutable and air-gapped with zero admin override capability. ResilAI calculates and verifies the Recovery Time Objective (RTO) daily to ensure recovery within 4 hours.
+- Step 3: Clinical Identity & 24/7 Access Hygiene
+  Monitor Entra ID and clinical Active Directory for orphaned nurse accounts, shared workstations without session timeouts, and abnormal off-hours medical record exports.
+- Step 4: Continuous HIPAA Security Rule & HHS CPG Verification
+  Continuously map verified telemetry to HIPAA 45 CFR Part 164 Subpart C (§164.308, §164.312) and NIST CSF 2.0 controls, transforming compliance from a theoretical audit into real-time operational defense.
+- Step 5: Clinic Managing Partner "Morning Brief"
+  Every morning, healthcare leadership receives a clear, deterministic verdict: "Are clinical systems safe to treat patients today?" with a 4-tier progressive drill-down to technical proof for IT operators.
+
+================================================================================
+PART 3: CORE ARCHITECTURAL INVARIANTS & VERIFICATION MODEL
+================================================================================
+
+1. Zero Hallucination Invariant
+ResilAI strictly enforces that all readiness calculations, scoring algorithms, and compliance evaluations are executed through deterministic Python/TypeScript logic. AI models are NEVER used to calculate scores or judge compliance. AI is used solely as a language translation bridge to convert verified mathematical findings into executive business summaries ("Explain for Leadership").
+
+2. Cryptographic SHA-256 Provenance
+Every evidence record collected from operational connectors (AWS Security Hub, Splunk, Microsoft 365, Veeam, Sentinel) is normalized, canonicalized, and hashed using SHA-256. Tampered or modified telemetry is automatically rejected by the ingestion engine with an EvidenceIntegrityError.
+
+3. Standardized Connector Pipeline
+- Microsoft Entra ID / 365: Ingests user identity states, MFA registrations, conditional access compliance.
+- AWS Security Hub & CloudTrail: Ingests cloud security findings, unencrypted buckets, open security groups.
+- Veeam & Backup Connectors: Ingests backup job completion, snapshot immutability status, retention policies.
+- Endpoint Protection (EDR): Ingests agent health, telemetry coverage, definition freshness.
+
+4. 4-Tier Progressive Disclosure Model
+- Tier 1: Executive Briefing (plain business English, zero technical jargon).
+- Tier 2: Business Impact & Drift (operational consequences, affected clinical/legal operations).
+- Tier 3: Technical Telemetry & Verification (affected systems, configuration keys, recommended remediation).
+- Tier 4: Cryptographic Provenance (connector ID, timestamp, raw payload, SHA-256 hash).

@@ -17,8 +17,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       outline: 'bg-transparent border border-outline text-on-surface hover:bg-surface-container-lowest',
       ghost: 'bg-transparent text-on-surface-variant hover:bg-surface-container-low border border-transparent',
       danger: 'bg-critical-red text-white hover:brightness-110 focus:ring-critical-red',
-      verified: 'bg-ready-emerald text-surface-container-lowest hover:brightness-110 focus:ring-ready-emerald',
-      'at-risk': 'bg-drift-amber text-surface-container-lowest hover:brightness-110 focus:ring-drift-amber',
+      verified: 'bg-ready-emerald text-slate-950 hover:brightness-110 focus:ring-ready-emerald',
+      'at-risk': 'bg-drift-amber text-slate-950 hover:brightness-110 focus:ring-drift-amber',
       'unable-to-verify': 'bg-surface-container-high text-drift-amber hover:bg-surface-bright border border-drift-amber/30',
     };
 

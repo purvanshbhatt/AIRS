@@ -488,7 +488,7 @@ export function EvidenceNetwork() {
 
               {/* Factors Card */}
               <Card className="lg:col-span-2 rounded-3xl border border-slate-200 dark:border-slate-800/60 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md p-6">
-                <h3 className="text-xs font-bold text-slate-405 uppercase tracking-wider mb-4 text-left">Confidence Composition Factors</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 text-left">Confidence Composition Factors</h3>
                 <div className="space-y-4">
                   {confidenceData?.connectors.map((conn) => (
                     <div key={conn.connector_name} className="border-b border-slate-200/50 dark:border-slate-800/40 last:border-0 pb-3 last:pb-0">
@@ -568,7 +568,7 @@ export function EvidenceNetwork() {
             ) : (
               <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md">
                 <CardHeader>
-                  <CardTitle className="text-slate-900 dark:text-slate-105 font-extrabold text-base flex items-center gap-2">
+                  <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-base flex items-center gap-2">
                     <PlugZap className="h-5 w-5 text-indigo-500" />
                     Wazuh Manager Integration
                   </CardTitle>
@@ -642,7 +642,7 @@ export function EvidenceNetwork() {
           <div className="space-y-6">
             <Card className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/20 backdrop-blur-md">
               <CardHeader>
-                <CardTitle className="text-slate-900 dark:text-slate-105 font-extrabold text-base flex items-center gap-2">
+                <CardTitle className="text-slate-900 dark:text-slate-100 font-extrabold text-base flex items-center gap-2">
                   <Database className="h-5 w-5 text-indigo-500" />
                   Splunk MCP Connector
                 </CardTitle>
@@ -784,18 +784,18 @@ export function EvidenceNetwork() {
                     <tbody className="font-mono">
                       {externalFindings.length === 0 && (
                         <tr>
-                          <td className="px-4 py-6 text-slate-500 dark:text-slate-450 italic font-semibold text-center font-sans" colSpan={4}>
+                          <td className="px-4 py-6 text-slate-500 dark:text-slate-400 italic font-semibold text-center font-sans" colSpan={4}>
                             No ingested findings yet.
                           </td>
                         </tr>
                       )}
                       {externalFindings.map((finding) => (
-                        <tr key={finding.id} className="border-b border-slate-105 dark:border-slate-800/65 hover:bg-slate-50/60 dark:hover:bg-slate-900/20 transition-colors">
-                          <td className="px-4 py-3 text-slate-650 dark:text-slate-400 font-semibold">{new Date(finding.created_at).toLocaleString()}</td>
+                        <tr key={finding.id} className="border-b border-slate-200 dark:border-slate-800/65 hover:bg-slate-50/60 dark:hover:bg-slate-900/20 transition-colors">
+                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400 font-semibold">{new Date(finding.created_at).toLocaleString()}</td>
                           <td className="px-4 py-3">
                             <Badge variant="outline" className="rounded-xl px-2 py-0.5 font-bold border-slate-300 dark:border-slate-700">{finding.severity}</Badge>
                           </td>
-                          <td className="px-4 py-3 text-slate-905 dark:text-slate-100 font-extrabold font-sans">{finding.title}</td>
+                          <td className="px-4 py-3 text-slate-900 dark:text-slate-100 font-extrabold font-sans">{finding.title}</td>
                           <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                             <span className="inline-flex items-center gap-1.5 font-sans font-semibold">
                               <Database className="w-3.5 h-3.5" />

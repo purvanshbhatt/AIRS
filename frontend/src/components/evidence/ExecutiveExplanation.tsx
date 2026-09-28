@@ -158,10 +158,10 @@ export function ExecutiveExplanation({
                     disabled={actionState === 'executing' || actionState === 'verifying' || actionState === 'verified'}
                     className={`${
                       actionState === 'verified' 
-                        ? 'bg-ready-emerald text-surface-container-lowest hover:bg-ready-emerald/90' 
+                        ? 'bg-ready-emerald text-slate-950 font-bold hover:bg-ready-emerald/90' 
                         : isCritical 
                           ? 'bg-critical-red hover:bg-critical-red/90 text-white font-semibold' 
-                          : 'bg-ready-emerald text-surface-container-lowest hover:bg-ready-emerald/90 font-semibold'
+                          : 'bg-ready-emerald text-slate-950 font-bold hover:bg-ready-emerald/90'
                     }`}
                   >
                     {actionState === 'executing' && 'Applying Fix...'}
