@@ -9,11 +9,17 @@ export function Footer() {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
 
   useEffect(() => {
+    let mounted = true;
     getSystemStatus()
-      .then(setSystemStatus)
+      .then((status) => {
+        if (mounted) setSystemStatus(status);
+      })
       .catch(() => {
-        setSystemStatus(null);
+        if (mounted) setSystemStatus(null);
       });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const host = typeof window !== 'undefined' ? window.location.hostname : '';

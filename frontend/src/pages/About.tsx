@@ -44,7 +44,7 @@ export default function About() {
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]">
               Bridging the Gap Between Cybersecurity Telemetry and{' '}
-              <span className="bg-gradient-to-r from-primary-600 to-emerald-500 bg-clip-text text-transparent">
+              <span className="heading-gradient-general">
                 Executive Decision-Making
               </span>
             </h1>

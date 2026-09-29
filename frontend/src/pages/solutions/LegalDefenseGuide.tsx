@@ -147,7 +147,7 @@ export default function LegalDefenseGuide() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.15]">
-            How to Stop Cyber Attacks on <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-indigo-600 dark:from-primary-400 dark:to-indigo-300">Legal Firms</span>
+            How to Stop Cyber Attacks on <span className="heading-gradient-legal">Legal Firms</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">

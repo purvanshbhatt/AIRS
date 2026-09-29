@@ -42,7 +42,7 @@ export default function Results() {
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]">
               From Security Telemetry to{' '}
-              <span className="bg-gradient-to-r from-primary-600 to-emerald-500 bg-clip-text text-transparent">
+              <span className="heading-gradient-general">
                 Executive Readiness
               </span>
             </h1>

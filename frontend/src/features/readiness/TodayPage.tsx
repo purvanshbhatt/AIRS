@@ -376,7 +376,7 @@ export default function TodayPage() {
       {/* ========================================================================= */}
       {/* STAGE 1: CURRENT READINESS (North Star Hero)                               */}
       {/* ========================================================================= */}
-      <section className="flex flex-col items-center justify-center text-center py-10 px-6 bg-surface-container-low rounded-2xl border border-surface-bright relative overflow-hidden shadow-xl group hover:border-ready-emerald/30 transition-all duration-300">
+      <section className="flex flex-col items-center justify-center text-center py-10 px-4 sm:px-6 bg-surface-container-low rounded-2xl border border-surface-bright border-t-2 border-t-ready-emerald/40 relative overflow-hidden shadow-xl group hover:border-ready-emerald/40 transition-all duration-300">
         <div className="absolute inset-0 bg-gradient-to-b from-ready-emerald/5 via-transparent to-transparent pointer-events-none" />
         
         {/* Instant Status Badge */}
@@ -385,40 +385,49 @@ export default function TodayPage() {
           <span>Stage 1 • {heroStatusText}</span>
         </div>
 
-        {/* Circular Hero Arc Gauge & Score */}
-        <div className="relative w-48 h-48 mb-6 flex items-center justify-center">
+        {/* Circular Hero Arc Gauge & Score - Stitch Obsidian Brand Design */}
+        <div className="relative w-52 h-52 sm:w-60 sm:h-60 mb-6 flex items-center justify-center ambient-glow rounded-full">
+          {/* Subtle Outer Pulsing Ring */}
+          <div className={`absolute inset-0 rounded-full border-2 ${isReady ? 'border-ready-emerald/20 animate-pulse-ring' : 'border-drift-amber/20'} pointer-events-none`} />
+          <div className={`absolute inset-2 rounded-full border ${isReady ? 'border-ready-emerald/30' : 'border-drift-amber/30'} pointer-events-none`} />
+
+          {/* SVG Progress Ring */}
           <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-            <circle className="text-surface-container-high" cx="50" cy="50" fill="none" r="44" stroke="currentColor" strokeWidth="4" />
+            <circle className="text-surface-container-highest" cx="50" cy="50" fill="none" r="42" stroke="currentColor" strokeWidth="4.5" />
             <circle 
               className={`transition-all duration-1000 ease-out ${ringColor}`} 
               cx="50" 
               cy="50" 
               fill="none" 
-              r="44" 
+              r="42" 
               stroke="currentColor" 
               strokeWidth="6" 
-              strokeDasharray="276" 
-              strokeDashoffset={276 - (276 * (isUnknown ? 0 : (report.clinic_health_pct || 0))) / 100}
-              strokeLinecap="round"
+              strokeDasharray="264" 
+              strokeDashoffset={264 - (264 * (isUnknown ? 0 : (report.clinic_health_pct || 0))) / 100} 
+              strokeLinecap="round" 
             />
           </svg>
-          <div className="w-32 h-32 bg-surface-container-highest rounded-full flex flex-col items-center justify-center shadow-inner border border-surface-bright relative z-10">
-            <HeroIconComponent className={`w-10 h-10 mb-1 ${isUnknown ? 'text-on-surface-variant' : (isReady ? 'text-ready-emerald' : 'text-drift-amber')}`} />
+
+          {/* Inner Content Disc */}
+          <div className="w-36 h-36 sm:w-44 sm:h-44 glass-panel rounded-full flex flex-col items-center justify-center shadow-lg border border-surface-bright relative z-10">
+            <HeroIconComponent className={`w-8 h-8 sm:w-10 sm:h-10 mb-1 ${isUnknown ? 'text-on-surface-variant' : (isReady ? 'text-ready-emerald' : 'text-drift-amber')}`} />
             <div className="flex items-baseline justify-center">
-              <span className="text-3xl font-extrabold text-on-surface tracking-tight leading-none">
+              <span className="text-4xl sm:text-5xl font-extrabold text-on-surface tracking-tight leading-none">
                 {isUnknown ? '--' : report.clinic_health_pct}
               </span>
-              {!isUnknown && <span className="text-xs font-mono text-on-surface-variant ml-0.5">%</span>}
+              {!isUnknown && <span className="text-sm font-mono text-ready-emerald font-bold ml-1">%</span>}
             </div>
-            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-on-surface-variant mt-0.5">Readiness</span>
+            <span className="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-on-surface-variant mt-1">
+              {isUnknown ? 'UNVERIFIED' : isReady ? 'SYSTEM NOMINAL' : 'ATTENTION REQ.'}
+            </span>
           </div>
         </div>
 
         {/* 1-Sentence Executive Verdict */}
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface mb-2 max-w-2xl">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface mb-2 max-w-2xl px-2">
           {heroStatusText === 'READY FOR TODAY' ? 'READY FOR TODAY' : heroStatusText}
         </h2>
-        <p className="text-base md:text-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed font-medium">
+        <p className="text-base md:text-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed font-medium px-2">
           <VerifiedValue 
             value={executiveVerdict}
             state={overallState}
@@ -450,7 +459,7 @@ export default function TodayPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Morning Brief Card (8 cols) */}
-          <div className="md:col-span-8 bg-surface-container-low rounded-2xl border border-surface-bright p-6 flex flex-col justify-between hover:bg-surface-container transition-colors duration-200 shadow-sm relative overflow-hidden">
+          <div className="md:col-span-8 bg-surface-container-low rounded-2xl border border-surface-bright border-t-2 border-t-ready-emerald/40 p-5 sm:p-6 flex flex-col justify-between hover:bg-surface-container transition-colors duration-200 shadow-sm relative overflow-hidden">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
@@ -511,7 +520,7 @@ export default function TodayPage() {
           </div>
 
           {/* Regional Peer & Benchmark Card (4 cols) */}
-          <div className="md:col-span-4 bg-surface-container-low rounded-2xl border border-surface-bright p-6 flex flex-col justify-between hover:bg-surface-container transition-colors duration-200 shadow-sm">
+          <div className="md:col-span-4 bg-surface-container-low rounded-2xl border border-surface-bright border-t-2 border-t-primary/40 p-5 sm:p-6 flex flex-col justify-between hover:bg-surface-container transition-colors duration-200 shadow-sm">
             <div className="w-full flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-ready-emerald" />
@@ -593,7 +602,7 @@ export default function TodayPage() {
           </Link>
         </div>
 
-        <div className="bg-surface-container-low rounded-2xl border border-surface-bright p-6 space-y-4 shadow-sm">
+        <div className="bg-surface-container-low rounded-2xl border border-surface-bright border-t-2 border-t-drift-amber/40 p-4 sm:p-6 space-y-4 shadow-sm">
           <DataState state={overallState}>
             {actionsList.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 border border-dashed border-surface-bright rounded-xl text-center bg-surface-container/40">
@@ -667,7 +676,7 @@ export default function TodayPage() {
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="bg-surface-container-low rounded-2xl border border-surface-bright p-5 flex flex-col justify-between hover:bg-surface-container transition-colors shadow-sm">
             <div>
               <div className="flex items-center gap-2 mb-2 text-ready-emerald">
