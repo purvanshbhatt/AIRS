@@ -67,7 +67,7 @@ export default function PublicAi() {
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.15]">
               AI That Explains Security Risk.{' '}
-              <span className="bg-gradient-to-r from-purple-600 to-primary-600 bg-clip-text text-transparent">
+              <span className="heading-gradient-legal">
                 Not AI That Invents It.
               </span>
             </h1>

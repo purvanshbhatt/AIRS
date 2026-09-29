@@ -145,7 +145,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
             {currentVertical !== 'general' && (
               <span
                 data-testid="navbar-vertical-badge"
-                className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-100 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800/60"
+                className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold bg-primary-100 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800/60"
               >
                 {config.industryLabel}
               </span>

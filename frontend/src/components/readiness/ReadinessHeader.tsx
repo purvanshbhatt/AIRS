@@ -70,29 +70,31 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="md:hidden p-2 text-on-surface-variant hover:text-on-surface rounded-lg"
+          className="md:hidden p-2 text-on-surface-variant hover:text-on-surface rounded-xl min-touch-target flex items-center justify-center cursor-pointer m3-state-layer"
           aria-label="Toggle menu"
         >
           <Menu className="w-6 h-6" />
         </button>
 
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald font-bold text-sm shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald font-bold text-sm shadow-sm shrink-0">
             {orgName ? orgName.charAt(0).toUpperCase() : 'R'}
           </div>
-          <div>
-            <h2 className="text-sm font-bold text-on-surface flex items-center gap-2">
-              <span className="truncate max-w-[200px] sm:max-w-[280px]">{orgName || 'Workspace'}</span>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-on-surface flex items-center gap-1.5 sm:gap-2">
+              <span className="truncate max-w-[120px] xs:max-w-[160px] sm:max-w-[280px]">{orgName || 'Workspace'}</span>
               
               {isDemo ? (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  DEMO WORKSPACE (SIMULATED DATA)
+                <span className="px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold font-mono uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  <span className="hidden sm:inline">DEMO WORKSPACE (SIMULATED DATA)</span>
+                  <span className="sm:hidden">DEMO</span>
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  LIVE WORKSPACE
+                <span className="px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold font-mono uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="hidden sm:inline">LIVE WORKSPACE</span>
+                  <span className="sm:hidden">LIVE</span>
                 </span>
               )}
 
@@ -102,7 +104,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
                 </span>
               )}
             </h2>
-            <p className="text-[11px] text-on-surface-variant hidden sm:block">
+            <p className="text-[11px] text-on-surface-variant hidden sm:block truncate">
               {isDemo ? 'This workspace uses synthetic security data to demonstrate ResilAI.' : 'Continuous mathematical evidence verification'}
             </p>
           </div>
@@ -120,11 +122,11 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
       </div>
 
       {/* Header Actions & User Profile Menu */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
         {/* Persistent Getting Started 6-Step Guide Launcher */}
         <button
           onClick={() => setIsGettingStartedOpen(true)}
-          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm ${
+          className={`px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm m3-state-layer cursor-pointer ${
             !isOnboardingDone
               ? 'bg-ready-emerald/20 border-ready-emerald/50 text-ready-emerald hover:bg-ready-emerald hover:text-slate-950 animate-pulse'
               : 'bg-surface-container-high hover:bg-surface-container-highest border-outline-variant/60 text-on-surface'
@@ -143,7 +145,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
         {isDemo && (
           <button
             onClick={handleExitDemoAndLogin}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-ready-emerald/15 border border-ready-emerald/30 text-ready-emerald hover:bg-ready-emerald hover:text-on-primary-container text-xs font-semibold rounded-xl transition-all shadow-sm"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-ready-emerald/15 border border-ready-emerald/30 text-ready-emerald hover:bg-ready-emerald hover:text-on-primary-container text-xs font-semibold rounded-xl transition-all shadow-sm m3-state-layer cursor-pointer"
           >
             <UserCheck className="w-3.5 h-3.5" />
             <span>Sign In / Real Mode</span>
@@ -153,7 +155,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
         {/* Scoring Methodology Docs Link */}
         <Link
           to="/docs/methodology"
-          className="p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-1.5 text-xs font-medium"
+          className="p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-1.5 text-xs font-medium m3-state-layer"
           title="Scoring Methodology & Trust Contract"
         >
           <BookOpen className="w-4 h-4" />
@@ -163,7 +165,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
         {/* Product Guide Modal Trigger */}
         <button 
           onClick={() => setIsGuideOpen(true)}
-          className="p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-1.5 text-xs font-medium"
+          className="p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-1.5 text-xs font-medium m3-state-layer cursor-pointer"
           aria-label="Product Guide"
           title="How ResilAI Works"
         >
@@ -171,8 +173,8 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
           <span className="hidden md:inline">Guide</span>
         </button>
 
-        {/* Theme Toggle (Light / Dark / System) */}
-        <div className="hidden sm:block">
+        {/* Theme Toggle (Light / Dark / System) - Visible on Mobile and Desktop */}
+        <div className="flex items-center">
           <ThemeToggle />
         </div>
 

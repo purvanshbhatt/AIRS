@@ -25,7 +25,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Stitch Healthcare Design System Variables */
+/* Stitch & Material Design 3 System Variables */
 :root {
   --color-background: #f8fafc;
   --color-surface: #ffffff;
@@ -44,8 +44,18 @@
   --color-on-surface-variant: #475569;
   --color-outline: #94a3b8;
   --color-outline-variant: #e2e8f0;
-  --color-primary-container: #d1fae5;
-  --color-on-primary-container: #022c22;
+  --color-primary: #1d4ed8;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #dbeafe;
+  --color-on-primary-container: #1e3a8a;
+  --color-secondary: #475569;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #f1f5f9;
+  --color-on-secondary-container: #0f172a;
+  --color-tertiary: #0d9488;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #ccfbf1;
+  --color-on-tertiary-container: #134e4a;
 }
 
 html.dark,
@@ -67,8 +77,18 @@ html.dark,
   --color-on-surface-variant: #bbcabf;
   --color-outline: #86948a;
   --color-outline-variant: #3c4a42;
-  --color-primary-container: #064e3b;
-  --color-on-primary-container: #022c22;
+  --color-primary: #60a5fa;
+  --color-on-primary: #0b1326;
+  --color-primary-container: #1e3a8a;
+  --color-on-primary-container: #dbeafe;
+  --color-secondary: #94a3b8;
+  --color-on-secondary: #0b1326;
+  --color-secondary-container: #1e293b;
+  --color-on-secondary-container: #f1f5f9;
+  --color-tertiary: #2dd4bf;
+  --color-on-tertiary: #042f2e;
+  --color-tertiary-container: #115e59;
+  --color-on-tertiary-container: #ccfbf1;
 }
 
 /* Custom theme configuration */
@@ -90,14 +110,43 @@ html.dark,
   --color-on-surface-variant: var(--color-on-surface-variant);
   --color-outline: var(--color-outline);
   --color-outline-variant: var(--color-outline-variant);
+  --color-primary: var(--color-primary);
+  --color-on-primary: var(--color-on-primary);
   --color-primary-container: var(--color-primary-container);
   --color-on-primary-container: var(--color-on-primary-container);
+  --color-secondary: var(--color-secondary);
+  --color-on-secondary: var(--color-on-secondary);
+  --color-secondary-container: var(--color-secondary-container);
+  --color-on-secondary-container: var(--color-on-secondary-container);
+  --color-tertiary: var(--color-tertiary);
+  --color-on-tertiary: var(--color-on-tertiary);
+  --color-tertiary-container: var(--color-tertiary-container);
+  --color-on-tertiary-container: var(--color-on-tertiary-container);
+
+  /* Primary color palette for Tailwind v4 compatibility */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
 
   --font-family-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   
   --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
   --shadow-medium: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+  /* Material Design 3 Elevation Shadows */
+  --shadow-m3-1: 0 1px 3px 1px rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-m3-2: 0 2px 6px 2px rgba(0, 0, 0, 0.12), 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  --shadow-m3-3: 0 4px 8px 3px rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-m3-4: 0 6px 10px 4px rgba(0, 0, 0, 0.14), 0 2px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* Base styles */
@@ -222,5 +271,118 @@ header.sticky, nav.fixed {
   animation: roi-flash 1.2s ease-out;
   display: inline-block;
   transition: all 0.3s ease;
+}
+
+/* Material Design 3 Utilities */
+.m3-elevation-0 { box-shadow: none; }
+.m3-elevation-1 { box-shadow: var(--shadow-m3-1); }
+.m3-elevation-2 { box-shadow: var(--shadow-m3-2); }
+.m3-elevation-3 { box-shadow: var(--shadow-m3-3); }
+.m3-elevation-4 { box-shadow: var(--shadow-m3-4); }
+
+/* Material 3 State Layer Transitions */
+.m3-state-layer {
+  position: relative;
+  overflow: hidden;
+  transition: background-color 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms cubic-bezier(0.2, 0, 0, 1), transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+.m3-state-layer:hover {
+  filter: brightness(1.03);
+}
+.m3-state-layer:active {
+  transform: scale(0.98);
+}
+
+/* Mobile & Foldable Safe Area & Touch Ergonomics */
+.min-touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+.pb-safe {
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+/* ========================================================================= */
+/* Material 3 & ResilAI Heading Gradient Textures                           */
+/* In light mode: High-contrast rich tones (#020617 -> #1e3a8a -> #065f46). */
+/* ZERO white or pale stops against light backgrounds.                      */
+/* In dark mode: High-contrast luminous tones (#ffffff -> #93c5fd -> #5eead4). */
+/* ========================================================================= */
+.heading-gradient-general {
+  background-image: linear-gradient(135deg, #020617 0%, #1e3a8a 50%, #065f46 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #020617;
+}
+html.dark .heading-gradient-general,
+[data-theme="dark"] .heading-gradient-general {
+  background-image: linear-gradient(135deg, #ffffff 0%, #93c5fd 50%, #5eead4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+}
+
+.heading-gradient-healthcare {
+  background-image: linear-gradient(135deg, #020617 0%, #065f46 50%, #0d9488 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #020617;
+}
+html.dark .heading-gradient-healthcare,
+[data-theme="dark"] .heading-gradient-healthcare {
+  background-image: linear-gradient(135deg, #ffffff 0%, #6ee7b7 50%, #2dd4bf 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+}
+
+.heading-gradient-legal {
+  background-image: linear-gradient(135deg, #020617 0%, #312e81 50%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #020617;
+}
+html.dark .heading-gradient-legal,
+[data-theme="dark"] .heading-gradient-legal {
+  background-image: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+}
+
+/* Ambient Glow & Pulse Animations (Stitch M3 Design System) */
+.ambient-glow {
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.18);
+}
+
+.ambient-glow-amber {
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.18);
+}
+
+.glass-panel {
+  background: var(--color-surface-container-low);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.96); opacity: 0.4; }
+  50% { transform: scale(1.04); opacity: 0.8; }
+  100% { transform: scale(0.96); opacity: 0.4; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
