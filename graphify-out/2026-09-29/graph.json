@@ -108317,7 +108317,7 @@
       "node_kind": "heading",
       "norm_label": "2026-09-01 - backend executive capabilities & explainability layer",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L909"
+      "source_location": "L951"
     },
     {
       "id": "docs_agent_memory_agent_log_agent_log_md",
@@ -108329,7 +108329,7 @@
       "node_kind": "heading",
       "norm_label": "agent_log.md",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L919"
+      "source_location": "L961"
     },
     {
       "id": "product",
@@ -297059,7 +297059,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L909",
+      "source_location": "L951",
       "weight": 1.0
     },
     {
@@ -297070,7 +297070,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L919",
+      "source_location": "L961",
       "weight": 1.0
     },
     {
@@ -402406,5 +402406,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "6558340f8d93a16adfe34ba9760f4c37fd7cbdf0"
+  "built_at_commit": "908ec197fe07f3020a5403892f3ccfe6b8728d0c"
 }

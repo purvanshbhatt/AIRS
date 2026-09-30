@@ -112,6 +112,10 @@ jobs:
           echo "Pushing verified branch 'daily-sync' to origin..."
           git push -u origin daily-sync
 
+          echo "Pushing backup branch mirrors to origin..."
+          git push origin daily-sync:refs/heads/backup/daily-sync
+          git push origin daily-sync:refs/heads/backup-sync
+
       - name: Publish Audit Log to GitHub Summary
         if: always()
         run: |
