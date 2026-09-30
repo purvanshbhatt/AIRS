@@ -4536,9 +4536,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/daily-backup-sync.yml": {
-    "mtime": 1789107347.777439,
-    "seen": 1790179987.8804464,
-    "ast_hash": "7ef487d31917bfd10f984ee658fb421e",
+    "mtime": 1790727055.1963668,
+    "seen": 1790727125.1397798,
+    "ast_hash": "0b0f736e83d18f17210d838653409f11",
     "semantic_hash": ""
   },
   ".github/workflows/deploy.yml": {
@@ -4944,15 +4944,15 @@
     "semantic_hash": ""
   },
   "docs/agent_memory/ACTIVE_CONTEXT.md": {
-    "mtime": 1790640584.8598683,
-    "seen": 1790640612.1419559,
-    "ast_hash": "adc84d14e1246d81f79ff47603f5f0ea",
+    "mtime": 1790727123.1961946,
+    "seen": 1790727125.1398919,
+    "ast_hash": "a9de2cec76a1b248a16aa00c85ca8264",
     "semantic_hash": ""
   },
   "docs/agent_memory/AGENT_LOG.md": {
-    "mtime": 1790640584.8633788,
-    "seen": 1790640612.1419606,
-    "ast_hash": "e754d9db56e1a8ad632bb9e5ae70bd19",
+    "mtime": 1790727123.1982977,
+    "seen": 1790727125.1398938,
+    "ast_hash": "916f95cda0c0f558a7b77f86eb50d370",
     "semantic_hash": ""
   },
   "docs/agent_memory/AGENT_START.md": {
@@ -5829,6 +5829,36 @@
     "mtime": 1790554131.15928,
     "seen": 1790554195.1934457,
     "ast_hash": "f91f33868396a467d364719d85154dd0",
+    "semantic_hash": ""
+  },
+  "application.yml": {
+    "mtime": 1790727122.7601085,
+    "seen": 1790727125.1398504,
+    "ast_hash": "8e97c7dec6366987e20a0e4e3cf4c7d2",
+    "semantic_hash": ""
+  },
+  "essays/anything_else.md": {
+    "mtime": 1790727122.7660966,
+    "seen": 1790727125.1400323,
+    "ast_hash": "acf3a9d9f12ecaf38c8c28a104c37468",
+    "semantic_hash": ""
+  },
+  "essays/building_now.md": {
+    "mtime": 1790727122.7668009,
+    "seen": 1790727125.1400337,
+    "ast_hash": "183c147050a8e9213951dfc84f8191a5",
+    "semantic_hash": ""
+  },
+  "essays/most_impressive_thing.md": {
+    "mtime": 1790727122.7675333,
+    "seen": 1790727125.1400352,
+    "ast_hash": "35441a310a76285f51fa9ab7c0c9c932",
+    "semantic_hash": ""
+  },
+  "essays/started_building_software.md": {
+    "mtime": 1790727122.7687829,
+    "seen": 1790727125.1400363,
+    "ast_hash": "87da2a40c3bef6b2e75a470197a940d7",
     "semantic_hash": ""
   }
 }
