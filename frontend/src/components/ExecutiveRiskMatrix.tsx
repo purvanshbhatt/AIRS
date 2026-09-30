@@ -23,35 +23,35 @@ interface RiskCell {
 const RISK_MATRIX_DATA: Record<string, Record<string, RiskCell[]>> = {
   High: {
     High: [
-      { title: 'Tech Stack Version Drift', category: 'Lifecycle Health', desc: 'Outdated Node.js runtime and database major versions behind.', severity: 'Critical' },
+      { title: 'Outdated Critical Software', category: 'Software Health', desc: 'Outdated server runtimes and databases expose systems to known security vulnerabilities.', severity: 'Critical' },
     ],
     Medium: [
-      { title: 'Wazuh Agent Disconnections', category: 'SIEM Connectivity', desc: 'Temporary loss of SOC agent heartbeat logs.', severity: 'High' },
+      { title: 'Security Monitoring Interruption', category: 'Monitoring Reliability', desc: 'Temporary loss of telemetry heartbeat from security monitoring agents.', severity: 'High' },
     ],
     Low: [
-      { title: 'Shadow AI Ingestion Gaps', category: 'Shadow AI Governance', desc: 'Unsanctioned LLM prompt requests detected in local staging.', severity: 'High' },
+      { title: 'Unmonitored AI Tool Usage', category: 'AI Risk Governance', desc: 'Staff using unapproved external AI tools with potential data exposure.', severity: 'High' },
     ],
   },
   Medium: {
     High: [
-      { title: 'SLA Uptime Drift', category: 'Service SLA', desc: 'SLA target below Tier 1 threshold in staging telemetry.', severity: 'High' },
+      { title: 'System Uptime Below Target', category: 'Service Availability', desc: 'Core business services are falling below 99.9% availability targets.', severity: 'High' },
     ],
     Medium: [
-      { title: 'MFA Enforcement Audits', category: 'Identity Visibility', desc: 'Partially verified MFA rules on staging developer environments.', severity: 'Medium' },
+      { title: 'Incomplete Two-Step Verification', category: 'Login Security', desc: 'Some staff accounts have not turned on two-step login verification.', severity: 'Medium' },
     ],
     Low: [
-      { title: 'Drift Assessment Overdue', category: 'Audit Readiness', desc: 'Baseline compliance check pending active verification.', severity: 'Medium' },
+      { title: 'Security Review Overdue', category: 'Audit Readiness', desc: 'Baseline compliance check pending active verification.', severity: 'Medium' },
     ],
   },
   Low: {
     High: [
-      { title: 'Dev Database Unencrypted', category: 'Encryption Standards', desc: 'SQLite backup logs not explicitly rotated or encrypted.', severity: 'Medium' },
+      { title: 'Unencrypted Database Backups', category: 'Data Protection', desc: 'Database backups must have full encryption enabled at rest.', severity: 'Medium' },
     ],
     Medium: [
-      { title: 'API Key Lifecycle Drift', category: 'API Security', desc: 'Multiple staging keys older than 90 days.', severity: 'Low' },
+      { title: 'Old API Keys Need Rotation', category: 'Access Credentials', desc: 'Multiple API connection keys are older than 90 days and should be rotated.', severity: 'Low' },
     ],
     Low: [
-      { title: 'Documentation Outdated', category: 'Audit Compliance', desc: 'Documentation of NIST framework coverage matches baseline v1 only.', severity: 'Low' },
+      { title: 'Policy Documentation Outdated', category: 'Compliance Records', desc: 'Documentation of security framework coverage matches baseline v1 only.', severity: 'Low' },
     ],
   },
 };

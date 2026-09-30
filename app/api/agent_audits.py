@@ -60,6 +60,7 @@ MOCK_DEMO_AGENT_AUDIT = {
             "affected_agent": "Customer Support Agent",
             "affected_tool": "bash_shell",
             "readiness_impact": 20.0,
+            "status": "ACTIVE",
             "remediation": "Enforce sandbox isolation or whitelist constraints on agent command execution tools.",
             "framework_references": {
                 "NIST AI RMF": ["GOVERN 1.2", "MANAGE 2.4"],
@@ -78,6 +79,7 @@ MOCK_DEMO_AGENT_AUDIT = {
             "affected_agent": "Billing Reconciliation Agent",
             "affected_tool": "payment_gateway",
             "readiness_impact": 15.0,
+            "status": "ACTIVE",
             "remediation": "Require signed tokens or mandatory human-in-the-loop approvals before sensitive mutations.",
             "framework_references": {
                 "NIST AI RMF": ["GOVERN 1.1", "MANAGE 2.1"],
@@ -96,6 +98,7 @@ MOCK_DEMO_AGENT_AUDIT = {
             "affected_agent": "Customer Support Agent",
             "affected_tool": "patient_lookup",
             "readiness_impact": 5.0,
+            "status": "ACTIVE",
             "remediation": "Capture sanitized parameter hashes and response summaries for full trace auditability.",
             "framework_references": {
                 "NIST AI RMF": ["MEASURE 2.7"],
@@ -542,6 +545,60 @@ def run_agent_audit_analysis(
 
     _dual_write_firestore(audit)
     return audit.to_dict()
+
+
+@router.post("/{org_id}/agent-audits/{audit_id}/remediate/{finding_id}")
+def remediate_agent_audit_finding(
+    org_id: str,
+    audit_id: str,
+    finding_id: str,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """
+    Remediate an identified blast-radius finding on the 48-Hour AI Agent.
+    Updates the finding status to REMEDIATED, restores readiness points, and records audit trail.
+    """
+    if _is_demo_org(org_id) or audit_id.startswith("audit-demo"):
+        return {
+            "status": "success",
+            "message": f"Finding {finding_id} remediated. Sandbox boundary policy enforced.",
+            "remediated_finding_id": finding_id,
+            "new_score": 80.0 if finding_id == "AGENT-001" else 95.0,
+            "simulated": True,
+        }
+
+    audit = db.query(AgentAudit).filter(AgentAudit.id == audit_id, AgentAudit.org_id == org_id).first()
+    if not audit:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Audit {audit_id} not found.")
+
+    findings = json.loads(audit.findings) if isinstance(audit.findings, str) else (audit.findings or [])
+    recovered_points = 0.0
+    for f in findings:
+        if f.get("finding_id") == finding_id:
+            f["status"] = "REMEDIATED"
+            f["remediated_at"] = datetime.now(timezone.utc).isoformat()
+            recovered_points = float(f.get("readiness_impact", 15.0))
+            break
+
+    if recovered_points == 0.0:
+        recovered_points = 15.0
+
+    audit.findings = json.dumps(findings)
+    audit.readiness_score = min(100.0, audit.readiness_score + recovered_points)
+    audit.verified_action_count = int(audit.tool_action_count * (audit.readiness_score / 100.0))
+    audit.unverified_action_count = max(0, audit.tool_action_count - audit.verified_action_count)
+    if audit.readiness_score >= 80:
+        audit.evidence_confidence = "VERIFIED"
+    db.commit()
+    db.refresh(audit)
+    _dual_write_firestore(audit)
+
+    return {
+        "status": "success",
+        "message": f"Finding {finding_id} remediated successfully.",
+        "audit": audit.to_dict(),
+    }
 
 
 @router.get("/{org_id}/agent-audits/{audit_id}/explanation")

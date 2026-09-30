@@ -3,9 +3,8 @@ import { useEffect } from 'react';
 import { Wrench } from 'lucide-react';
 import AppLayout from './components/layout/AppLayout';
 import DocsLayout from './components/layout/DocsLayout';
-import { EnvironmentHeader } from './components/layout/EnvironmentHeader';
 import { ToastProvider } from './components/ui';
-import { AuthProvider, DemoModeProvider, useDemoMode, PersonaProvider, VerticalProvider } from './contexts';
+import { AuthProvider, useAuth, DemoModeProvider, useDemoMode, PersonaProvider, VerticalProvider } from './contexts';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useVertical, detectVerticalFromLocation } from './contexts/VerticalContext';
 import { ProtectedRoute, RequireOrganization } from './components/ProtectedRoute';
@@ -197,6 +196,26 @@ function VerticalRouteSync() {
   return null;
 }
 
+function DemoEntry() {
+  const { signInAsDemo } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    signInAsDemo().then(() => {
+      navigate('/morning-brief', { replace: true });
+    });
+  }, [signInAsDemo, navigate]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-medium text-slate-300">Launching ResilAI Interactive Sandbox...</p>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -212,6 +231,7 @@ export default function App() {
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Landing />} />
+                  <Route path="/demo" element={<DemoEntry />} />
                   <Route path="/healthcare" element={<Landing defaultVertical="healthcare" />} />
                   <Route path="/legal" element={<Landing defaultVertical="legal" />} />
                   <Route path="/general" element={<Landing defaultVertical="general" />} />

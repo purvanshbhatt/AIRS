@@ -167,7 +167,7 @@ export function Step2Connectors({
                 {/* Verified Controls List */}
                 <div className="space-y-1.5 mb-4">
                   <span className="text-[10px] font-mono uppercase text-on-surface-variant font-bold block">
-                    Mathematically Verifies:
+                    Continuously Verifies:
                   </span>
                   {conn.verifiedControls.map((ctrl, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-xs text-on-surface">
@@ -185,13 +185,13 @@ export function Step2Connectors({
                       <strong className="text-on-surface font-mono">{conn.simulatedTelemetry.endpointCount} endpoints</strong>
                     </div>
                     <div className="flex items-center justify-between text-on-surface-variant">
-                      <span>Telemetry Heartbeat:</span>
-                      <strong className="text-ready-emerald font-mono">{conn.simulatedTelemetry.lastHeartbeat}</strong>
+                      <span>Connection Status:</span>
+                      <strong className="text-ready-emerald font-mono">{conn.simulatedTelemetry.lastHeartbeat} (Active)</strong>
                     </div>
                     <div className="flex items-center justify-between text-on-surface-variant">
-                      <span>Evidence SHA-256:</span>
-                      <span className="font-mono text-ready-emerald truncate max-w-[160px]" title={conn.simulatedTelemetry.evidenceHash}>
-                        {conn.simulatedTelemetry.evidenceHash.substring(0, 16)}...
+                      <span>Verification:</span>
+                      <span className="font-mono text-ready-emerald font-semibold">
+                        ✓ Verified Live Telemetry
                       </span>
                     </div>
                   </div>

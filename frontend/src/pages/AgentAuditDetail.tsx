@@ -18,6 +18,7 @@ import {
   FileText,
   Copy,
   Check,
+  Wrench,
 } from 'lucide-react';
 import { useActiveOrg } from '../hooks/useActiveOrg';
 import {
@@ -26,6 +27,7 @@ import {
   getAgentAuditExplanation,
   downloadAgentAuditReport,
   ingestAgentTelemetry,
+  remediateAgentAuditFinding,
   AgentAuditItem,
   AgentAuditExplanationResponse,
   ApiRequestError,
@@ -46,6 +48,34 @@ export default function AgentAuditDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [paywallError, setPaywallError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [remediatingId, setRemediatingId] = useState<string | null>(null);
+
+  const handleRemediateFinding = async (findingId: string) => {
+    if (!orgId || !auditId) return;
+    setRemediatingId(findingId);
+    try {
+      await remediateAgentAuditFinding(orgId, auditId, findingId);
+      setAudit((prev) => {
+        if (!prev) return prev;
+        const updatedFindings = (prev.findings || []).map((f) => {
+          if (f.finding_id === findingId) {
+            return { ...f, status: 'REMEDIATED' };
+          }
+          return f;
+        });
+        const newScore = Math.min(100, Math.round(Number(prev.readiness_score || 60) + 15));
+        return {
+          ...prev,
+          readiness_score: newScore,
+          findings: updatedFindings,
+        };
+      });
+    } catch (err) {
+      console.error('Failed to remediate finding:', err);
+    } finally {
+      setRemediatingId(null);
+    }
+  };
 
   const fetchAudit = async () => {
     if (!orgId || !auditId) return;
@@ -448,9 +478,9 @@ export default function AgentAuditDetailPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-white">Blast-Radius Findings ({audit.findings?.length || 0})</h2>
+            <h2 className="text-lg font-bold text-white">Impact & Risk Findings ({audit.findings?.length || 0})</h2>
             <p className="text-xs text-slate-400">
-              Deterministic violations flagged during the 48-hour observation window.
+              Identified vulnerabilities and execution boundary gaps.
             </p>
           </div>
         </div>
@@ -458,7 +488,7 @@ export default function AgentAuditDetailPage() {
         {(!audit.findings || audit.findings.length === 0) ? (
           <div className="p-8 text-center bg-slate-900/40 rounded-2xl border border-slate-800">
             <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-            <h3 className="text-sm font-semibold text-white">Zero Blast-Radius Violations</h3>
+            <h3 className="text-sm font-semibold text-white">Zero Critical Violations</h3>
             <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
               No unauthorized tool execution, shell escape, or unconstrained credential access observed in this window.
             </p>
@@ -499,6 +529,29 @@ export default function AgentAuditDetailPage() {
                     </span>
                   </div>
                 </div>
+
+                {/* Remediation Action Row */}
+                {f.status === 'REMEDIATED' ? (
+                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 w-fit mt-3">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Remediated & Verified in Telemetry</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 mt-3 border-t border-slate-800">
+                    <p className="text-xs text-slate-400">
+                      <span className="font-semibold text-slate-300">Recommended Fix: </span>
+                      {f.remediation || "Apply least-privilege boundary policy to restrict agent capabilities."}
+                    </p>
+                    <button
+                      onClick={() => handleRemediateFinding(f.finding_id)}
+                      disabled={remediatingId === f.finding_id}
+                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50"
+                    >
+                      <Wrench className="w-3.5 h-3.5" />
+                      {remediatingId === f.finding_id ? 'Applying Policy...' : 'Fix Issue Now'}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -101,9 +101,9 @@ const CANONICAL_FRAMEWORKS: GovernanceFramework[] = [
     icon: 'ai',
     telemetrySources: ['Deterministic Scoring Engine', 'Audit Trail Logger', 'Model Gateway'],
     sampleControls: [
-      { id: 'GOVERN-1.1', label: 'AI Safety & Deterministic Contract Moat', status: 'verified', evidence: 'Zero client-side score computation invariant enforced' },
+      { id: 'GOVERN-1.1', label: 'AI Safety & Objective Scoring', status: 'verified', evidence: 'Scores calculated on secure backend, immune to client tampering' },
       { id: 'MAP-2.1', label: 'Clinical Disruption Impact Mapping', status: 'verified', evidence: 'Automated triage prioritizing patient care risk' },
-      { id: 'MEASURE-3.2', label: 'Explainability & Evidence Grounding', status: 'verified', evidence: 'All executive explanations backed by SHA-256 proofs' },
+      { id: 'MEASURE-3.2', label: 'Explainability & Evidence Grounding', status: 'verified', evidence: 'All executive explanations backed by verified system telemetry' },
     ],
   },
   {

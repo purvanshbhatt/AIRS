@@ -150,3 +150,50 @@ def test_expired_audit_cannot_ingest_or_run(client, test_org, db_session):
     assert res.status_code == 400
     err_msg = res.json().get("error", {}).get("message", "") or res.json().get("detail", "")
     assert "expired" in err_msg.lower()
+
+
+def test_remediate_finding_demo_org(client):
+    """Remediating a finding on a demo org audit updates finding status and recalculates score."""
+    res = client.post(
+        "/api/orgs/demo-health-org/agent-audits/audit-demo-48h/remediate/AGENT-001"
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert data["remediated_finding_id"] == "AGENT-001"
+    assert data["new_score"] == 80.0
+
+
+def test_remediate_finding_real_org(client, test_org):
+    """Remediating a finding on a real org audit persists to database and increases readiness score."""
+    # Create, ingest, run
+    create_res = client.post(
+        f"/api/orgs/{test_org.id}/agent-audits",
+        json={"audit_window": "48h", "source_type": "trace", "agent_name": "Ops Agent"},
+    )
+    audit_id = create_res.json()["id"]
+
+    # Ingest telemetry so audit has evidence
+    client.post(
+        f"/api/orgs/{test_org.id}/agent-audits/{audit_id}/telemetry",
+        json={"events": [{"agent_id": "Ops Agent", "tool": "payment_gateway", "action": "pay"}]},
+    )
+    client.post(f"/api/orgs/{test_org.id}/agent-audits/{audit_id}/run")
+
+    # Remediate finding AGENT-003 (severity high, +15 points: 60 -> 75)
+    rem_res = client.post(
+        f"/api/orgs/{test_org.id}/agent-audits/{audit_id}/remediate/AGENT-003"
+    )
+    assert rem_res.status_code == 200
+    rem_data = rem_res.json()
+    assert rem_data["status"] == "success"
+    assert rem_data["audit"]["readiness_score"] == 75.0
+
+    # Verify audit get reflects the remediation
+    get_res = client.get(f"/api/orgs/{test_org.id}/agent-audits/{audit_id}")
+    assert get_res.status_code == 200
+    audit_data = get_res.json()
+    assert audit_data["readiness_score"] == 75.0
+    finding3 = next(f for f in audit_data["findings"] if f["finding_id"] == "AGENT-003")
+    assert finding3["status"] == "REMEDIATED"
+
