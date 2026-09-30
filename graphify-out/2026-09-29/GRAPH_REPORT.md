@@ -1,7 +1,7 @@
 # Graph Report - AIRS  (2026-09-28)
 
 ## Corpus Check
-- 928 files · ~634,822 words
+- 928 files · ~636,098 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6558340f`
+- Built from commit: `908ec197`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
