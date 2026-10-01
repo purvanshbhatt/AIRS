@@ -232,8 +232,15 @@ async def get_clinic_readiness(
 
     # --- Phase 7: Organization Isolation Guard ---
     # When auth is enforced: verify the caller is authorized to read this org.
-    # We intentionally do not leak whether the org exists — return 403 either way.
-    if settings.is_auth_required and current_user is None:
+    # Explicit demo organizations are accessible without authentication for demonstration.
+    pilot = PilotService(db)
+    is_explicit_demo = (
+        pilot.get_mode(org_id) == OrgMode.DEMO
+        or org_id.startswith("demo-")
+        or org_id in {"acme-health-systems", "default-org"}
+    )
+
+    if settings.is_auth_required and current_user is None and not is_explicit_demo:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required"
@@ -242,18 +249,15 @@ async def get_clinic_readiness(
         from app.services.organization import OrganizationService
         try:
             org = OrganizationService(db, owner_uid=current_user.uid).get(org_id)
-            if not org:
-                # Permit access if it is an explicit demo organization
-                pilot = PilotService(db)
-                if pilot.get_mode(org_id) != OrgMode.DEMO:
-                    raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail={
-                            "code": "ORGANIZATION_NOT_FOUND",
-                            "message": f"Organization '{org_id}' not found or access not authorized.",
-                            "organization_id": org_id,
-                        }
-                    )
+            if not org and not is_explicit_demo:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail={
+                        "code": "ORGANIZATION_NOT_FOUND",
+                        "message": f"Organization '{org_id}' not found or access not authorized.",
+                        "organization_id": org_id,
+                    }
+                )
         except HTTPException:
             raise
         except Exception as e:

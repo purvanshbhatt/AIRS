@@ -1636,8 +1636,30 @@ export const getFrameworkCoverage = (orgId: string) =>
 export const getEvidenceConfidence = (orgId: string) =>
   request<OrgConfidenceResponse>(`/api/v1/connectors/confidence?org_id=${orgId}`);
 
-export const getBoardStory = (orgId: string) =>
-  request<BoardStory>(`/api/v1/reports/board-story?org_id=${orgId}`);
+export const getBoardStory = (orgId: string): Promise<BoardStory> => {
+  if (orgId.startsWith('demo-') || orgId === 'acme-health-systems' || orgId === 'default-org') {
+    return Promise.resolve({
+      sections: [
+        {
+          section_id: "sec-exec-summary",
+          title: "Executive Summary",
+          content: "Acme Health Systems operational readiness is verified at 74%. 3 priority security boundary gaps were identified in AWS cloud infrastructure."
+        },
+        {
+          section_id: "sec-cloud-risk",
+          title: "Cloud & Infrastructure Risk",
+          content: "AWS GuardDuty and Security Hub telemetry detected unauthorized root account API access and public S3 bucket exposure."
+        },
+        {
+          section_id: "sec-backup-continuity",
+          title: "Continuity & Backup Verification",
+          content: "AWS Backup and Veeam immutable recovery point objective met (<15m RTO)."
+        }
+      ]
+    });
+  }
+  return request<BoardStory>(`/api/v1/reports/board-story?org_id=${orgId}`);
+};
 
 /**
  * S1.8-AUDIT-FIX-A01: Returns the backend PDF URL for the Board Story.
@@ -1889,55 +1911,17 @@ export const getDailyReadinessReport = async (orgId: string): Promise<DailyReadi
                             orgId === 'demo-health-org' ||
                             orgId === 'demo-northstar-health' ||
                             orgId === 'demo-northstar-cole' ||
-                            orgId === 'demo-acme-technologies';
+                            orgId === 'demo-acme-technologies' ||
+                            orgId.startsWith('demo-');
 
-  const host = typeof window !== 'undefined' ? window.location.hostname : '';
-  const search = typeof window !== 'undefined' ? window.location.search : '';
-  const isDemoSession = typeof window !== 'undefined' && (
-    localStorage.getItem('resilai_demo_user') === 'true' ||
-    localStorage.getItem('resilai_demo_session') === 'true' ||
-    host === 'demo.resilai.org' ||
-    host.includes('demo') ||
-    search.includes('env=demo') ||
-    import.meta.env.VITE_APP_ENV === 'demo' ||
-    import.meta.env.MODE === 'demo'
-  );
-
-  // Invariant: Demo data is ONLY returned for explicit demo organization IDs.
+  // Invariant: Demo data is ALWAYS returned for explicit demo organization IDs.
   // Real organizations with real IDs MUST ALWAYS call the backend API to reflect real verification status.
-  // Note: on staging, tokenProvider may be set even for demo users who lack a valid Firebase token,
-  // so we check the org ID + demo session signals — NOT the presence of tokenProvider.
-  if (isExplicitDemoOrg && isDemoSession) {
-    console.log('[API] Returning Acme Health Systems demo readiness report');
+  if (isExplicitDemoOrg) {
+    console.log('[API] Returning Acme Health Systems demo readiness report for demo org:', orgId);
     return MOCK_ACME_DAILY_READINESS;
   }
 
-  // Fallback: even without an explicit demo session flag, if the org ID is a known
-  // demo org and the user has no valid auth token, serve mock data to avoid 401.
-  if (isExplicitDemoOrg) {
-    try {
-      const headers = await getAuthHeaders();
-      if (!headers.Authorization) {
-        console.log('[API] No auth token for demo org — returning mock readiness report');
-        return MOCK_ACME_DAILY_READINESS;
-      }
-    } catch {
-      console.log('[API] Auth error for demo org — returning mock readiness report');
-      return MOCK_ACME_DAILY_READINESS;
-    }
-  }
-
-  try {
-    const report = await request<DailyReadinessReport>(`/api/clinic/readiness/${orgId}`);
-    return report;
-  } catch (err) {
-    // If the backend returns 401 for a demo org, gracefully fall back to mock data
-    if (isExplicitDemoOrg && err instanceof ApiRequestError && err.status === 401) {
-      console.log('[API] 401 for demo org — falling back to mock readiness report');
-      return MOCK_ACME_DAILY_READINESS;
-    }
-    throw err;
-  }
+  return await request<DailyReadinessReport>(`/api/clinic/readiness/${orgId}`);
 };
 
 export const triggerProblemFix = async (problemId: string): Promise<{ status: string; message: string; simulated?: boolean }> => {
@@ -2199,11 +2183,88 @@ export interface AgentAuditExplanationResponse {
   narrative_source: string;
 }
 
-export const getAgentAudits = (orgId: string) =>
-  request<AgentAuditItem[]>(`/api/orgs/${orgId}/agent-audits`);
+export const MOCK_DEMO_AGENT_AUDIT: AgentAuditItem = {
+  id: "audit-demo-48h",
+  org_id: "demo-health-org",
+  status: "COMPLETE",
+  audit_window: "48h",
+  source_type: "splunk",
+  agent_name: "Customer Support Agent",
+  environment: "Production",
+  business_context: "Evaluates production AI customer service agent across AWS Cloud and API boundaries.",
+  created_at: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
+  expires_at: new Date(Date.now() + 12 * 3600 * 1000).toISOString(),
+  completed_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+  telemetry_event_count: 1420,
+  evidence_count: 890,
+  agent_count: 3,
+  tool_action_count: 312,
+  verified_action_count: 248,
+  unverified_action_count: 64,
+  readiness_score: 60.0,
+  evidence_confidence: "PARTIALLY_VERIFIED",
+  findings: [
+    {
+      finding_id: "AGENT-001",
+      title: "Unrestricted Tool Execution",
+      severity: "critical",
+      deterministic_reason: "Agent 'Customer Support Agent' invoked un-sandboxed command execution tool 'bash_shell'.",
+      evidence_ids: ["ev-trace-8921", "ev-trace-8922"],
+      evidence_source: "splunk",
+      timestamp: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
+      affected_agent: "Customer Support Agent",
+      affected_tool: "bash_shell",
+      status: "ACTIVE",
+      remediation: "Enforce sandbox isolation or whitelist constraints on agent command execution tools."
+    },
+    {
+      finding_id: "AGENT-003",
+      title: "Sensitive Action Without Verified Authorization",
+      severity: "high",
+      deterministic_reason: "Action 'db_write' by agent 'Billing Reconciliation Agent' lacks cryptographic or approval authorization token.",
+      evidence_ids: ["ev-trace-9041"],
+      evidence_source: "splunk",
+      timestamp: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
+      affected_agent: "Billing Reconciliation Agent",
+      affected_tool: "payment_gateway",
+      status: "ACTIVE",
+      remediation: "Require signed tokens or mandatory human-in-the-loop approvals before sensitive mutations."
+    },
+    {
+      finding_id: "AGENT-005",
+      title: "Incomplete Agent Activity Logging",
+      severity: "low",
+      deterministic_reason: "Tool call 'patient_lookup' lacks complete I/O parameter trace for incident forensic replay.",
+      evidence_ids: ["ev-trace-9118"],
+      evidence_source: "splunk",
+      timestamp: new Date(Date.now() - 18 * 3600 * 1000).toISOString(),
+      affected_agent: "Customer Support Agent",
+      affected_tool: "patient_lookup",
+      status: "ACTIVE",
+      remediation: "Capture sanitized parameter hashes and response summaries for full trace auditability."
+    }
+  ],
+  framework_alignment: {
+    "NIST AI RMF": { status: "AT_RISK" },
+    "OWASP LLM Top 10": { status: "AT_RISK" },
+    "NIST CSF 2.0": { status: "AT_RISK" }
+  },
+  deterministic_rules_evaluated: 12
+};
 
-export const getAgentAudit = (orgId: string, auditId: string) =>
-  request<AgentAuditItem>(`/api/orgs/${orgId}/agent-audits/${auditId}`);
+export const getAgentAudits = (orgId: string): Promise<AgentAuditItem[]> => {
+  if (orgId.startsWith('demo-') || orgId === 'acme-health-systems' || orgId === 'default-org') {
+    return Promise.resolve([MOCK_DEMO_AGENT_AUDIT]);
+  }
+  return request<AgentAuditItem[]>(`/api/orgs/${orgId}/agent-audits`);
+};
+
+export const getAgentAudit = (orgId: string, auditId: string): Promise<AgentAuditItem> => {
+  if (orgId.startsWith('demo-') || orgId === 'acme-health-systems' || orgId === 'default-org' || auditId.startsWith('audit-demo')) {
+    return Promise.resolve({ ...MOCK_DEMO_AGENT_AUDIT, id: auditId, org_id: orgId });
+  }
+  return request<AgentAuditItem>(`/api/orgs/${orgId}/agent-audits/${auditId}`);
+};
 
 export const createAgentAudit = (orgId: string, payload: AgentAuditCreatePayload) =>
   request<AgentAuditItem>(`/api/orgs/${orgId}/agent-audits`, {

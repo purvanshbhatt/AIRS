@@ -1,39 +1,39 @@
-# Graph Report - AIRS  (2026-10-01)
+# Graph Report - AIRS  (2026-09-29)
 
 ## Corpus Check
-- 930 files · ~638,363 words
+- 930 files · ~638,141 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 11161 nodes · 24682 edges · 564 communities (502 shown, 62 thin omitted)
+- 11161 nodes · 24681 edges · 559 communities (496 shown, 63 thin omitted)
 - Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 2343 edges (avg confidence: 0.94)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `23890068`
+- Built from commit: `f183f0c7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- Assessment
-- ConnectorHealth
+- Organization
+- SplunkConnector
 - types.ts
 - policies.py
 - _get_org
 - 6. Exhaustive Shared Component Catalog (All 63 Component Files)
 - api.ts
-- firestore.py
+- BackupsPage.tsx
 - ClinicMoment
-- react
+- Reports.tsx
 - schema.py
 - test_connector_progress.py
 - create_test_org
 - TicketSyncService
-- BaseModel
+- api/integrations.py
 - get_org_service
 - Status.tsx
 - User
-- App.tsx
+- react
 - EvidenceRecord
 - TechStackService
 - Evidence
@@ -43,18 +43,18 @@
 - _make_org
 - get_readiness_actions
 - Onboarding.tsx
-- schemas/assessment.py
+- BaseModel
 - runtimeConfig.ts
 - TestSecurityHubIngestion
 - NormalizedEvent
-- organizations.py
+- sqlalchemy_orm
 - PDFReportGenerator
-- discovery/orchestrator.py
+- TechStackItem
 - simulations.py
 - compute_audit_readiness
 - ClinicMoment
 - generate_findings
-- run_antigravity_scheduler
+- daily_git_sync.py
 - VerificationService
 - ConnectorSyncResult
 - _make_org
@@ -69,7 +69,7 @@
 - AWSSecurityHubConnector
 - api/logic_firewall.py
 - WazuhClient
-- engine
+- test_explainability.py
 - get_rubric
 - Real-World Evidence Module: Wazuh & Splunk Integration
 - test_evidence_integrity.py
@@ -81,13 +81,13 @@
 - strip_dangerous
 - lucide-react
 - _is_demo_org
-- Dashboard.tsx
+- BaseSchema
 - fixture
 - test_siem_integrations.py
 - TestLifecycleEngine
 - extract_drivers
 - FindingsEngine
-- external.py
+- services/integrations.py
 - test_agent_audit.py
 - api/scoring.py
 - EventLogger
@@ -100,7 +100,7 @@
 - test_policies.py
 - TestRRIv2Integration
 - _get_org
-- _OkAdapter
+- EvidenceRegistry
 - WhitepaperPDF
 - narratives.py
 - receive_telemetry_webhook
@@ -116,7 +116,7 @@
 - calculate_readiness_delta
 - pdf.py
 - .org_id
-- api/verification.py
+- calculate_scores
 - TestPaywallEnforcement
 - TestAWSConnection
 - docs/CLOUD_SQL_SETUP.md
@@ -142,36 +142,36 @@
 - test_concurrency_precedence_conflict_stress
 - api/reports.py
 - resolve_eol_status
-- IntelligenceService
+- SplunkAdapter
 - TestUptimeTierEnhancements
 - get_encryption_service
 - compilerOptions
 - _make_org
-- create_enterprise_pilot_lead
+- PilotRequest
 - test_simulation.py
-- test_scoring.py
+- calculate_domain_score
 - Audit Summary & Categorization
-- Organization
-- test_governance.py
+- pytest
+- FrameworkRegistry
 - WazuhConnector
 - test_explanation_service.py
 - SplunkMCPClient
 - ResilAI V2 — Design Partner Product Stabilization Plan
 - _get_org
-- auditor_view
+- generate_auditor_link
 - TestFullValidation
 - API Reference
 - apiCache
 - TestRRIv2API
 - test_frameworks.py
 - EntitlementService
-- SafeJsonFormatter
+- FrameworkMappingRegistry
 - test_public_config.py
 - SIEMEventWebhookPayload
-- AuditEvent
-- ExecutiveReportGenerator
+- record_score_change
+- report_generator.py
 - TestReliabilityAPI
-- Backend State
+- ResilAI Current State
 - Report
 - compilerOptions
 - list_items
@@ -179,7 +179,7 @@
 - get_evidence_ledger
 - TelemetryEvidence
 - app/db/database.py
-- remediations.py
+- patch_remediation
 - IntegrationService
 - validate_origin
 - .generate_explanation
@@ -188,28 +188,28 @@
 - dependencies
 - Audit-Generated Fix Tasks (per `docs/agent_memory/AUDIT_REPORT.md`)
 - TestAuditForecast
-- RawEvent
+- EvidenceKind
 - get_mobile_dashboard
 - FindingContext
 - _verify_org
 - test_pilot_enterprise.py
-- ContinuousScoringEngine
-- VerificationService
+- TelemetryEvent
+- api/verification.py
 - dev_stack.py
 - MorningCheckGeneratorV2
-- daily_git_sync.py
-- billing_webhook
+- run_cmd
+- aws_integration/test_tenant_isolation.py
 - docs/index.md
-- test_moment_lifecycle.py
+- run_igvf_validation
 - TelemetryIngestionService
-- _build_suggestions
+- test_suggestions.py
 - TestAdversarialPublicConfigQuery
 - TestDowntimeBudget
 - ResilAI AWS Telemetry Integration Validation Report
 - TestRiskBands
 - test_llm_narrative.py
 - TestPublicConfigBoundaries
-- TestCertificationMatrix
+- WazuhDiscoveryService
 - take_score_snapshot
 - .calculate_continuous_score
 - _resolve_org_id
@@ -218,7 +218,7 @@
 - test_analytics_toggle.py
 - TestUptimeTierLogic
 - docs/frameworks.md
-- get_suggestions_from_answers
+- BaseReport
 - services/readiness_ledger.py
 - 3. Findings
 - TestMultiCloudHealthCheck
@@ -247,8 +247,8 @@
 - MITRERef
 - scripts
 - TestDailyGitSyncSecurity
-- 3. Implementation Specification
-- global_exception_handler
+- download_board_story_pdf
+- TestDailyBackupSyncWorkflow
 - test_integrations.py
 - OWASPRef
 - client_with_org
@@ -259,7 +259,7 @@
 - _validate_numeric_trace
 - SentinelTelemetryEvent
 - MockSplunkMCPHandler
-- Core Service Map
+- EvidenceAdapter
 - TestHealthEndpoints
 - ResilAI Design System Specification
 - test_db
@@ -268,7 +268,7 @@
 - TestFeatureFlag
 - verify_staging.py
 - get_framework_coverage_data
-- list_suggested_questions
+- TestAssessments
 - test_api_endpoints_flow
 - TestRuleCount
 - override_get_db
@@ -298,9 +298,9 @@
 - governance_forecast.py
 - Requirements
 - test_main.py
-- ScoreAuditLog
+- .recompute_ghi_for_assessment
 - verify_restore
-- Toast.tsx
+- TestReports
 - 0011_merge_heads.py
 - 7aa6efe4bb79_add_governance_engine_provenance_and_.py
 - _make_org
@@ -308,7 +308,7 @@
 - test_cors.py
 - ExecutiveNarrativePromptBuilder
 - SimulationNarrativePromptBuilder
-- Audit Results
+- Product Reality Audit
 - verify-deploy.js
 - package.json
 - AirsApiClient
@@ -317,13 +317,13 @@
 - Hackathon Submission Guide
 - TestPlanEntitlements
 - Sentinel Isolation Final Audit
-- ConnectorRegistry
+- trigger_sync
 - SystemAuditor
 - TestReportCreation
 - 0002_add_owner_uid.py
 - docs/AUTH_INTEGRATION.md
-- TestProviderRegistry
-- _org_maturity_label
+- AWSSecurityHubAdapter
+- RESILAI — PRODUCT INTEGRITY RECOVERY & STAGING E2E REPORT
 - get_environment_config
 - setup.ts
 - generate_report
@@ -335,10 +335,10 @@
 - Deterministic Governance Inference & Validation Architecture for Continuous Compliance Intelligence
 - tasteskill: Anti-Slop Frontend Skill
 - Appendix B - Canonical Sources (read these before reinventing)
-- test_suggestions.py
+- TestCatalog
 - ForensicTrailAgent
 - TestPlanActivation
-- test_all_connectors_health_check_non_blocking
+- test_all_connectors_e2e.py
 - TestBreachExposureConstants
 - Session
 - .authenticate
@@ -350,14 +350,14 @@
 - get_telemetry_roi_metrics
 - ast
 - PersonaSwitcher
-- SplunkConnector
-- validate_deployment
+- RawEvent
+- TestDeploymentValidationPortability
 - TestDeterministicScoringIndependence
-- splunk_hec_injector.py
+- get_heatmap_color
 - .check_lifecycle_status
 - .normalize_cloud_and_env
 - AuditCalendarResponse
-- TestTenantAndConnectorIsolation
+- get_remediation_agent
 - ADR-009: Evidence Adapters are Vendor-Agnostic
 - 1. THE THREE DIALS (Core Configuration)
 - get_settings
@@ -373,7 +373,7 @@
 - .validate_cors_origins
 - tsconfig.json
 - db_session
-- board_story.py
+- .__init__
 - deploy_frontend.sh script
 - generate_readiness_inputs
 - pull_daily_sync.sh script
@@ -398,7 +398,7 @@
 - config.ts
 - EnrichmentResult
 - phase4_deterministic.py
-- ResilAI Design System Audit
+- .get_content_type
 - test_adversarial_vertical.py
 - TestAdversarialPublicConfigHeaders
 - test_intelligence_packet.py
@@ -415,14 +415,7 @@
 - aws_integration/__init__.py
 - make_auth_override
 - fixture
-- check_igvf_gate.py
-- TestSuggestionsEndpoint
-- ResilAI Feature Migration Map (`FEATURE_MAP.md`)
-- TestDeterministicScoring
-- TestLLMIsolation
 - { apiBaseUrl, appName, isDevelopment, isProduction, isApiConfigured }
-- .__init__
-- GitSyncError
 - ResilAI: Application Pages
 - ResilAI: Application Pages
 - deterministic_clinical_assurance/DESIGN.md
@@ -440,6 +433,7 @@
 - .test_delete_report_success
 - webhook_health
 - .analyze_lifecycle
+- TestCORSErrorSafetyMiddleware
 - docs/privacy.md
 - .get_technology_inventory
 - 2. Dependency Chain & Source Mapping
@@ -508,7 +502,7 @@
 - AGENT_LOG.md
 - ResilAI — Design Partner Guide
 - TestExplanationLLMIsolation
-- ConnectorStatus
+- Connector
 - ADR-010: Evidence Confidence is Deterministic
 - ADR-011: Board Story is Narrative-Only
 - ResilAI — Executive Overview
@@ -516,6 +510,7 @@
 - pull_request_template.md
 - Product Specification Map — ResilAI (AIRS)
 - ResilAI — Deterministic Readiness Engine Core
+- ROADMAP.md
 - ResilAI Route Inventory & Navigation Map (`ROUTE_MAP.md`)
 - 7. DIAL DEFINITIONS (Technical Reference)
 - ResilAI — REST API Overview
@@ -568,29 +563,29 @@
   TEST_READY.md → frontend/src/api.ts
 - `F-012 · Mock/seed Splunk call retained in production UX` --references--> `seedMockSplunkFindings()`  [INFERRED]
   docs/agent_memory/AUDIT_REPORT.md → frontend/src/api.ts
-- ``frontend/src/pages/Connectors.tsx` (Integrations)` --references--> `getEvidenceConfidence()`  [INFERRED]
-  docs/UI_INVENTORY.md → frontend/src/api.ts
 - `7. Documents Repository` --references--> `getBoardStoryPdfUrl()`  [INFERRED]
   docs/agent_memory/STITCH_INTEGRATION_AUDIT.md → frontend/src/api.ts
 - ``frontend/src/features/readiness/TodayPage.tsx` (Morning Brief)` --references--> `getDailyReadinessReport()`  [INFERRED]
   docs/UI_INVENTORY.md → frontend/src/api.ts
+- `2. Narrative vs Implementation Mismatches` --references--> `TodayPage()`  [INFERRED]
+  docs/PRODUCT_NARRATIVE_AUDIT.md → frontend/src/features/readiness/TodayPage.tsx
 
 ## Import Cycles
 - None detected.
 
-## Communities (564 total, 62 thin omitted)
+## Communities (559 total, 63 thin omitted)
 
-### Community 0 - "Assessment"
-Cohesion: 0.02
-Nodes (177): Alembic migrations environment configuration. This file configures Alembic to…, Run migrations in 'offline' mode. This configures the context with just a URL…, Run migrations in 'online' mode. Creates an Engine and associates a connection…, run_migrations_offline(), run_migrations_online(), ingest_siem_event(), get, post (+169 more)
+### Community 0 - "Organization"
+Cohesion: 0.01
+Nodes (311): auditor_view(), GET /api/governance/auditor-view?token=..., ingest_siem_event(), post, Process a single SIEM telemetry event., _decrypt_org_doc(), firestore_delete_assessment(), firestore_delete_org() (+303 more)
 
-### Community 1 - "ConnectorHealth"
+### Community 1 - "SplunkConnector"
 Cohesion: 0.06
-Nodes (53): AWS Security Hub Connector — Cloud Security Posture Telemetry. Ingests findings…, AzureSecurityCenterConnector, Azure Security Center Connector — Stub/Mock Microsoft Connector., Mock Microsoft Connector for Azure Security Center. Simulates pulling software…, Simulate authentication validation., Return connectivity health status., Validate API permissions/scopes., BaseConnector (+45 more)
+Nodes (49): AWS Security Hub Connector — Cloud Security Posture Telemetry. Ingests findings…, AzureSecurityCenterConnector, Azure Security Center Connector — Stub/Mock Microsoft Connector., Mock Microsoft Connector for Azure Security Center. Simulates pulling software…, Simulate authentication validation., Return connectivity health status., Validate API permissions/scopes., BaseConnector (+41 more)
 
 ### Community 2 - "types.ts"
 Cohesion: 0.02
-Nodes (136): Dependency Map, acceptRecommendation(), checkShadowAI(), createDriftBaseline(), deleteAssessment(), deleteOrganization(), enrichOrganization(), exportAssessmentForSiem() (+128 more)
+Nodes (128): acceptRecommendation(), checkShadowAI(), createDriftBaseline(), enrichOrganization(), exportAssessmentForSiem(), getAssessmentSummary(), getDowntimeBudget(), getDriftAnalysis() (+120 more)
 
 ### Community 3 - "policies.py"
 Cohesion: 0.05
@@ -601,24 +596,24 @@ Cohesion: 0.20
 Nodes (17): check_shadow_ai(), create_drift_baseline(), get_drift_analysis(), get_drift_timeline(), _get_org(), get_regulatory_forecast(), get_sustainability_index(), get (+9 more)
 
 ### Community 5 - "6. Exhaustive Shared Component Catalog (All 63 Component Files)"
-Cohesion: 0.03
-Nodes (123): 1. Executive Summary & Component Architecture, 2. Component Hierarchy Tree, 3.1 `DualWorkspaceLayout` (`src/components/layout/DualWorkspaceLayout.tsx`), 3.2 `UnifiedSidebar` (`src/components/layout/UnifiedSidebar.tsx`), 3.3 `WorkspaceToggle` (`src/components/layout/WorkspaceToggle.tsx`), 3.4 `DocsLayout` (`src/components/layout/DocsLayout.tsx`), 3. Layout Component Breakdown, 4. Component Variant Specification Matrix (R3) (+115 more)
+Cohesion: 0.04
+Nodes (101): 1. Executive Summary & Component Architecture, 2. Component Hierarchy Tree, 3.1 `DualWorkspaceLayout` (`src/components/layout/DualWorkspaceLayout.tsx`), 3.2 `UnifiedSidebar` (`src/components/layout/UnifiedSidebar.tsx`), 3.3 `WorkspaceToggle` (`src/components/layout/WorkspaceToggle.tsx`), 3.4 `DocsLayout` (`src/components/layout/DocsLayout.tsx`), 3. Layout Component Breakdown, 4. Component Variant Specification Matrix (R3) (+93 more)
 
 ### Community 6 - "api.ts"
 Cohesion: 0.02
-Nodes (161): F-007 · `getEvidenceConfidence()` ignores `org_id` — required by spec, T-F01 — Pass `org_id` to `getEvidenceConfidence()` · MEDIUM, TASK S1.8-AUDIT-FIX-F01, 7. What data reaches the dashboard?, activatePilot(), AgentAuditCreatePayload, AgentAuditExplanationResponse, AgentAuditFinding (+153 more)
+Nodes (190): F-007 · `getEvidenceConfidence()` ignores `org_id` — required by spec, T-F01 — Pass `org_id` to `getEvidenceConfidence()` · MEDIUM, Dependency Map, Recommended Priority Fixes, TASK S1.8-AUDIT-FIX-F01, 7. What data reaches the dashboard?, 1. Routes & Pages Inventory, 2. Hardcoded Assertion Audit (+182 more)
 
-### Community 7 - "firestore.py"
-Cohesion: 0.03
-Nodes (109): _decrypt_org_doc(), firestore_delete_assessment(), firestore_delete_org(), firestore_delete_wazuh_config(), firestore_get_all_assessments(), firestore_get_all_orgs(), firestore_get_all_wazuh_configs(), firestore_get_finding_tracking_map() (+101 more)
+### Community 7 - "BackupsPage.tsx"
+Cohesion: 0.05
+Nodes (58): MetricItem, SummaryCard(), SummaryCardProps, EvidenceTimelineProps, JourneyStep, ReadinessJourney(), RecoveryReadinessBannerProps, StatusCard() (+50 more)
 
 ### Community 8 - "ClinicMoment"
-Cohesion: 0.04
-Nodes (94): app_models_critical_system, app_models_msp_relationship, ActionEngine, Action Engine Converts raw ActionIntent (from capabilities) into customer-…, Builds customer-facing action cards from capability ActionIntents.…, Convert moment's ActionIntents to rich ActionCards., Match on intent.action_id or moment.capability_id to pick template., ActionCard (+86 more)
+Cohesion: 0.05
+Nodes (73): app_models_critical_system, app_models_msp_relationship, ActionEngine, Action Engine Converts raw ActionIntent (from capabilities) into customer-…, Builds customer-facing action cards from capability ActionIntents.…, Convert moment's ActionIntents to rich ActionCards., Match on intent.action_id or moment.capability_id to pick template., BusinessContinuity (+65 more)
 
-### Community 9 - "react"
-Cohesion: 0.04
-Nodes (112): 1. Firebase Google Authentication, 11. Authentication & Multi-Tenant Organization Resolution, getBoardStory(), getBoardStoryPdfUrl(), getDailyReadinessReport(), getEvidenceLedger(), setTokenProvider(), triggerProblemFix() (+104 more)
+### Community 9 - "Reports.tsx"
+Cohesion: 0.03
+Nodes (121): 11. Authentication & Multi-Tenant Organization Resolution, 1. Top 10 Technical/UI Inconsistencies, 2. Design System Directives (For Refactor), 3. Implementation Sequence, ResilAI Design System Audit, 1. Executive Summary, 2. Feature Migration Matrix (R9 Audit), 3. Preserved Legacy Features Verification (R3 Guarantee) (+113 more)
 
 ### Community 10 - "schema.py"
 Cohesion: 0.05
@@ -630,35 +625,35 @@ Nodes (24): WebSocket, Broadcasts a connector progress event to all connected cl
 
 ### Community 12 - "create_test_org"
 Cohesion: 0.05
-Nodes (28): create_test_org(), create_test_telemetry(), Insert test telemetry events into the database., Tests 6-7: New real org gets honest unknown state, no demo contamination., Test 6: New real organization has UNKNOWN / NOT VERIFIED state., Test 7: New real organization receives no demo telemetry., Test 8: Explicit demo organization receives demo telemetry., Test 8: Explicit demo organization receives demo telemetry. (+20 more)
+Nodes (31): create_test_org(), create_test_telemetry(), Insert test telemetry events into the database., Tests 6-7: New real org gets honest unknown state, no demo contamination., Test 6: New real organization has UNKNOWN / NOT VERIFIED state., Test 7: New real organization receives no demo telemetry., Test 8: Explicit demo organization receives demo telemetry., Test 8: Explicit demo organization receives demo telemetry. (+23 more)
 
 ### Community 13 - "TicketSyncService"
 Cohesion: 0.10
 Nodes (17): Validate a webhook URL is safe to call (anti-SSRF). Rules: - Must use https://…, _validate_webhook_url(), Any, Manages ticket creation and webhook synchronization for findings., Syncs the finding to the external tracking system., TicketSyncService, asyncio, Test suite for ElasticService SIEM connector. (+9 more)
 
-### Community 14 - "BaseModel"
-Cohesion: 0.03
-Nodes (124): configure_splunk_hec(), create_api_key(), create_webhook(), delete_api_key(), delete_webhook(), get_integration_status(), get_splunk_config(), get_wazuh_agent_status() (+116 more)
+### Community 14 - "api/integrations.py"
+Cohesion: 0.05
+Nodes (73): configure_splunk_hec(), configure_wazuh(), create_api_key(), create_webhook(), delete_api_key(), delete_webhook(), get_integration_status(), get_splunk_config() (+65 more)
 
 ### Community 15 - "get_org_service"
 Cohesion: 0.07
 Nodes (44): AnalyticsToggleRequest, create_org_report(), create_organization(), create_organization_assessment(), delete_organization(), download_org_report(), export_audit_trail(), get_assessment_service() (+36 more)
 
 ### Community 16 - "Status.tsx"
-Cohesion: 0.08
-Nodes (19): checkCors(), checkHealth(), ApiDiagnosticsPanelProps, DiagnosticsState, DocsApi(), Endpoint, ENDPOINTS_BY_GROUP, GROUPS (+11 more)
+Cohesion: 0.05
+Nodes (37): F-013 · `EvidenceNetwork.tsx` org select panel duplicates the existing `DashboardLayout` header org selector, checkCors(), checkHealth(), frontend_src_api_getapibaseurl, AppLayout(), ApiDiagnosticsPanelProps, DiagnosticsState, ToastContainer() (+29 more)
 
 ### Community 17 - "User"
-Cohesion: 0.06
-Nodes (82): add_finding(), annotate_findings(), _build_siem_export_payload(), compute_score(), create_assessment(), create_report(), create_roadmap_item(), delete_assessment() (+74 more)
+Cohesion: 0.05
+Nodes (86): add_finding(), annotate_findings(), _build_siem_export_payload(), compute_score(), create_assessment(), create_report(), create_roadmap_item(), delete_assessment() (+78 more)
 
-### Community 18 - "App.tsx"
-Cohesion: 0.04
-Nodes (93): activatePlan(), ContactInquiryInput, createCheckoutSession(), getSystemStatus(), setUnauthorizedHandler(), submitContactInquiry(), App(), AuthRedirectHandler() (+85 more)
+### Community 18 - "react"
+Cohesion: 0.03
+Nodes (113): 1. Firebase Google Authentication, activatePlan(), createCheckoutSession(), setTokenProvider(), setUnauthorizedHandler(), submitContactInquiry(), App(), AuthRedirectHandler() (+105 more)
 
 ### Community 19 - "EvidenceRecord"
-Cohesion: 0.03
-Nodes (61): Register the appropriate ``EvidenceAdapter`` for the connector. The registry is…, AWSSecurityHubAdapter, Any, datetime, EvidenceAdapter implementation for AWS Security Hub. The adapter delegates to a…, Bind the AWSSecurityHubConnector that owns this adapter's telemetry., Fetch all evidence checks from AWS Security Hub. This is a thin shim —…, AWS Security Hub payloads have already been normalised by the… (+53 more)
+Cohesion: 0.08
+Nodes (23): Any, Splunk payloads have already been normalised by the ``SplunkConnector`` +…, EvidenceRecord, ManualUploadAdapter, Any, Translate vendor-specific payloads to canonical records. Used by tests and…, Conceptual interface for ingesting generic JSON webhooks. Allows the pipeline…, JSON Schema definition of the expected webhook payload. (+15 more)
 
 ### Community 20 - "TechStackService"
 Cohesion: 0.11
@@ -666,7 +661,7 @@ Nodes (15): Config, Schema for creating a tech stack item., Response schema for 
 
 ### Community 21 - "Evidence"
 Cohesion: 0.06
-Nodes (34): ClinicEvaluationEngine, Evidence, A single piece of vendor-agnostic evidence., Phase 4: Expired evidence must never generate moments., Sequence of Events, Splunk Hackathon Demo Flow, _iso(), _now() (+26 more)
+Nodes (33): ClinicEvaluationEngine, Evidence, A single piece of vendor-agnostic evidence., Phase 4: Expired evidence must never generate moments., Sequence of Events, Splunk Hackathon Demo Flow, _iso(), _now() (+25 more)
 
 ### Community 22 - "override_get_db"
 Cohesion: 0.09
@@ -689,12 +684,12 @@ Cohesion: 0.14
 Nodes (20): _entry_to_response(), get_readiness_actions(), get_readiness_drivers(), get_readiness_ledger(), get_readiness_timeline(), _placeholder_scoring_inputs(), get, Organization (+12 more)
 
 ### Community 27 - "Onboarding.tsx"
-Cohesion: 0.11
-Nodes (44): GettingStartedModal(), GettingStartedModalProps, GettingStartedStepper(), GettingStartedStepperProps, GettingStartedTour(), GettingStartedTourProps, TOUR_STOPS, TourStop (+36 more)
+Cohesion: 0.09
+Nodes (51): createOrganization(), ProductGuideModal(), ProductGuideModalProps, GettingStartedModal(), GettingStartedModalProps, GettingStartedStepper(), GettingStartedStepperProps, GettingStartedTour() (+43 more)
 
-### Community 28 - "schemas/assessment.py"
-Cohesion: 0.04
-Nodes (64): AnalyticsSummary, AnswerResponse, AssessmentDetail, AssessmentResponse, AssessmentStatus, AssessmentSubmitResponse, AssessmentSummary, AssessmentSummaryResponse (+56 more)
+### Community 28 - "BaseModel"
+Cohesion: 0.03
+Nodes (114): Catalog entry representing a monitored package's version drift status., SoftwareCatalogResponse, BaseModel, Base, Base model with common fields., AgentAuditCreateRequest, AgentAuditExplanationResponse, AgentTelemetryIngestRequest (+106 more)
 
 ### Community 29 - "runtimeConfig.ts"
 Cohesion: 0.22
@@ -708,17 +703,17 @@ Nodes (12): Normalized finding contains all expected payload keys., Resource ARN
 Cohesion: 0.04
 Nodes (67): NormalizedEvent, Connector-agnostic normalized telemetry event., Deterministic SHA-256 hash of the payload for deduplication., DefenderService, EntraIDService, IntuneService, load_secret_if_gcp(), MicrosoftConnector (+59 more)
 
-### Community 32 - "organizations.py"
-Cohesion: 0.04
-Nodes (66): Organization API routes. All endpoints enforce tenant isolation using Firebase…, # NOTE: ensure_demo_seed_data was removed from this endpoint., determine_regulatory_profile(), Deterministic regulatory and configuration engine. Maps organization profiles…, Deterministically computes the applicable regulatory frameworks. Returns a…, firestore_save_org(), Save/update an organization to Firestore. IMPORTANT: This function MUST succeed…, Base (+58 more)
+### Community 32 - "sqlalchemy_orm"
+Cohesion: 0.03
+Nodes (139): FastAPI Router for 48-Hour Live AI Agent Blast-Radius Audit sessions., Audit Calendar API routes. CRUD for audit calendar entries + pre-audit risk…, Auditor View API – read-only access endpoints for external auditors.…, activate_plan(), CheckoutSessionRequest, create_checkout_session(), get_billing_status(), get_capabilities() (+131 more)
 
 ### Community 33 - "PDFReportGenerator"
 Cohesion: 0.12
 Nodes (12): PDFReportGenerator, Any, Build executive summary section., Build domain scores section., Generate PDF assessment reports., Build findings section., Add custom paragraph styles., Build Reliability Risk Index section with RRI dial + downtime budget. (+4 more)
 
-### Community 34 - "discovery/orchestrator.py"
-Cohesion: 0.05
-Nodes (52): AssetType, EvidenceSource, HostAsset, InstalledProduct, Base, str, Technology Stack Discovery Models., Snapshot of the technology inventory for an organization. (+44 more)
+### Community 34 - "TechStackItem"
+Cohesion: 0.04
+Nodes (73): get_technology_exposure(), get_technology_inventory(), get_technology_lifecycle(), get, Session, Returns the enriched technology inventory for a given organization, including…, Returns detailed lifecycle analysis for all tech stack items in the org., Returns a flattened list of all exposures (vulnerabilities) linked to the tech… (+65 more)
 
 ### Community 35 - "simulations.py"
 Cohesion: 0.08
@@ -736,9 +731,9 @@ Nodes (26): ClinicEngine, Any, Takes raw enterprise findings and converts them i
 Cohesion: 0.04
 Nodes (44): generate_findings(), Enum, str, Finding severity levels., Convenience function to generate findings from answers and scores. Args:…, Severity, TL-001: Log retention >= 30 days should not trigger., TL-002: No centralized SIEM should trigger. (+36 more)
 
-### Community 39 - "run_antigravity_scheduler"
-Cohesion: 0.33
-Nodes (5): antigravity_trigger_handler(), Antigravity periodic trigger callback., Start the Google Antigravity SDK Agent with a periodic trigger. Runs every…, run_antigravity_scheduler(), _fallback_scheduler()
+### Community 39 - "daily_git_sync.py"
+Cohesion: 0.19
+Nodes (13): fnmatch, antigravity_trigger_handler(), GitSyncError, main(), perform_daily_git_sync(), Exception, Core automated synchronization routine: 1. Records original working branch. 2.…, ResilAI - Automated Daily Git Synchronization & Branch Isolation Runner.… (+5 more)
 
 ### Community 40 - "VerificationService"
 Cohesion: 0.16
@@ -753,8 +748,8 @@ Cohesion: 0.09
 Nodes (20): get_applicable_frameworks(), Determine which compliance frameworks apply to an organization based on its…, _make_org(), Verify each deterministic rule fires exactly when expected., Industry=technology → SOC 2 recommended only., No flags + non-tech industry → zero frameworks., Direct import from compliance_engine submodule., PII without EU → NIST Privacy Framework (recommended). (+12 more)
 
 ### Community 43 - "typing"
-Cohesion: 0.02
-Nodes (188): get_current_org(), Mock auth for the hackathon demo., Environment Config Endpoint — GET /api/v1/config Exposes a public,…, Governance Webhook Ingestion — POST /api/v1/telemetry/webhook/event Canonical…, ResilAI Configuration Module Uses pydantic-settings for type-safe configuration…, Google Cloud Storage integration for AIRS. Handles uploading PDFs and…, get_request_id(), AIRS Production Logging Module Provides structured logging with request ID… (+180 more)
+Cohesion: 0.01
+Nodes (176): Environment Config Endpoint — GET /api/v1/config Exposes a public,…, ResilAI Configuration Module Uses pydantic-settings for type-safe configuration…, Google Cloud Storage integration for AIRS. Handles uploading PDFs and…, AIRS Production Logging Module Provides structured logging with request ID…, Deterministic regulatory and configuration engine. Maps organization profiles…, Input sanitization utilities for user-supplied text fields. Strips HTML/script…, Connector Credential Encryption — AES-256-GCM with Secret Manager Key.…, Field-Level Encryption Service — AES-256-GCM. Encrypts sensitive organization… (+168 more)
 
 ### Community 44 - "TestStructuredErrorStates"
 Cohesion: 0.33
@@ -778,31 +773,31 @@ Nodes (6): Any, Check if current version is older than latest available version.
 
 ### Community 49 - "v1/integrations.py"
 Cohesion: 0.05
-Nodes (69): configure_wazuh(), BackgroundTasks, Save Wazuh manager credentials for the current user/org context., check_elastic_logging_health(), check_splunk_logging_health(), configure_elastic(), configure_splunk(), configure_wazuh() (+61 more)
+Nodes (73): check_elastic_logging_health(), check_splunk_logging_health(), configure_elastic(), configure_splunk(), configure_wazuh(), get_siem_integration_status(), get_wazuh_agent_status(), get_wazuh_vulnerabilities() (+65 more)
 
 ### Community 50 - "_get_connector_encryption_service"
 Cohesion: 0.25
 Nodes (8): decrypt_value(), encrypt_value(), _get_connector_encryption_service(), _load_key_from_secret_manager(), Attempt to load CONNECTOR_ENCRYPTION_KEY from GCP Secret Manager. Falls back to…, Return a dedicated EncryptionService for connector credentials., Encrypt a string value (typically JSON credentials). Returns a base64-encoded…, Decrypt a previously-encrypted credential string. Returns the original…
 
 ### Community 51 - "AWSSecurityHubConnector"
-Cohesion: 0.05
-Nodes (28): AWSSecurityHubConnector, Any, Convert an AWS Security Hub finding to a RawEvent., AWS Security Hub connector for cloud security posture telemetry. Credentials: -…, aws_integration, inspect, Verify the AWS connector module does not import any LLM/AI modules., Verify the connector source has no scoring logic. (+20 more)
+Cohesion: 0.06
+Nodes (26): AWSSecurityHubConnector, AWS Security Hub connector for cloud security posture telemetry. Credentials: -…, aws_integration, inspect, Verify the AWS connector module does not import any LLM/AI modules., Verify the connector source has no scoring logic., Verify the connector never creates Finding model objects., Verify findings are stored as-is, not modified. (+18 more)
 
 ### Community 52 - "api/logic_firewall.py"
 Cohesion: 0.09
 Nodes (27): get_logic_firewall_trace(), get, post, API routes for Logic Firewall deterministic prompt-injection defense., Return deterministic logic trace for a simulation request ID., Run deterministic prompt-injection simulation for the AI Attack Simulation Lab., run_logic_firewall_simulation(), LogicFirewallSimulationRequest (+19 more)
 
 ### Community 53 - "WazuhClient"
-Cohesion: 0.07
-Nodes (28): Any, Session, Runs discovery jobs against Wazuh to populate inventory., Service to discover technology assets via Wazuh syscollector., Fallback mock discovery for environments without a real Wazuh connection., WazuhDiscoveryService, Any, datetime (+20 more)
+Cohesion: 0.09
+Nodes (22): Any, datetime, EvidenceAdapter implementation for Wazuh., Fetch all evidence checks from Wazuh., Convert Wazuh dictionaries to canonical EvidenceRecords., Report live adapter health., WazuhAdapter, AgentStatus (+14 more)
 
-### Community 54 - "engine"
-Cohesion: 0.13
-Nodes (15): _auto_create_sqlite_tables(), Create all tables for SQLite databases (ephemeral filesystem on Cloud Run)., main(), Configure, validate, and test AWS Security Hub connector., client(), db_session(), fixture, setup_db() (+7 more)
+### Community 54 - "test_explainability.py"
+Cohesion: 0.07
+Nodes (37): _auto_create_sqlite_tables(), Create all tables for SQLite databases (ephemeral filesystem on Cloud Run)., ActionCard, ExecutiveExplanation, Customer-facing action. Replaces raw ActionIntent at the product boundary., Plain-English explanation of a security finding for non-technical executives., Per-item verification metadata. Answers 'Why are you telling me this?, VerificationContext (+29 more)
 
 ### Community 55 - "get_rubric"
-Cohesion: 0.05
-Nodes (32): _default_help_text(), get_all_question_ids(), get_domain(), get_domain_nist_function(), get_nist_functions(), get_question(), get_rubric(), AIRS Readiness Scoring Rubric Defines 5 domains with 6 questions each, scoring… (+24 more)
+Cohesion: 0.06
+Nodes (29): _default_help_text(), get_domain(), get_domain_nist_function(), get_nist_functions(), get_question(), get_rubric(), AIRS Readiness Scoring Rubric Defines 5 domains with 6 questions each, scoring…, Return the complete rubric definition. (+21 more)
 
 ### Community 56 - "Real-World Evidence Module: Wazuh & Splunk Integration"
 Cohesion: 0.04
@@ -810,15 +805,15 @@ Nodes (48): Agent Disconnection Auto-Detection, Alert Rules (Example), API Refer
 
 ### Community 57 - "test_evidence_integrity.py"
 Cohesion: 0.06
-Nodes (50): EvidenceLedger, NormalizedEvidenceRecord, Base, The active state representation of Evidence, used by the Verification Engine.…, Immutable Evidence Ledger. Every piece of evidence collected by any adapter is…, EvidenceCollectionResult, EvidenceConfidence, EvidenceSeverity (+42 more)
+Nodes (53): Validate that the deployment environment matches expected project. Must be…, validate_deployment(), EvidenceLedger, NormalizedEvidenceRecord, Base, The active state representation of Evidence, used by the Verification Engine.…, Immutable Evidence Ledger. Every piece of evidence collected by any adapter is…, EvidenceCollectionResult (+45 more)
 
 ### Community 58 - "ConnectorManager"
-Cohesion: 0.04
-Nodes (74): check_health(), check_microsoft_health(), connect_wazuh(), create_connector(), deactivate_connector(), get_confidence(), get_connector(), _get_org_id() (+66 more)
+Cohesion: 0.05
+Nodes (65): check_health(), check_microsoft_health(), connect_wazuh(), create_connector(), deactivate_connector(), get_confidence(), get_connector(), _get_org_id() (+57 more)
 
 ### Community 59 - "CORSErrorSafetyMiddleware"
-Cohesion: 0.12
-Nodes (16): generate_request_id(), Generate a new unique request ID., CORSErrorSafetyMiddleware, Request, Response, Inject standard security response headers on every response., Safety-net middleware that guarantees CORS headers are present on EVERY…, Return the request Origin if it's in our allowed list or matches trusted… (+8 more)
+Cohesion: 0.06
+Nodes (35): generate_request_id(), Generate a new unique request ID., CORSErrorSafetyMiddleware, global_exception_handler(), http_exception_handler(), Exception, HTTPException, Request (+27 more)
 
 ### Community 60 - "_create_service"
 Cohesion: 0.19
@@ -833,20 +828,20 @@ Cohesion: 0.06
 Nodes (35): ✅ 1.2x GHI Multiplier for Real Security, 1. **Setup** (org_admin), 2. **Enhanced Splunk Client** (`app/services/splunk.py`), 2. **Fetch Live Evidence** (on-demand), 3. **Auto-Findings Created**, 3. **FastAPI Integration Router** (`app/api/v1/integrations.py`), 4. **GHI Recalculated**, 4. **GHI Scoring V2** (`app/services/governance/scoring_v2.py`) (+27 more)
 
 ### Community 63 - "strip_dangerous"
-Cohesion: 0.13
-Nodes (10): Remove script/style blocks, HTML tags, event handlers, and javascript: URIs…, strip_dangerous(), field_validator, Config, OrganizationBase, OrganizationResponse, field_validator, Base schema for organization data. (+2 more)
+Cohesion: 0.10
+Nodes (15): create_pilot_request(), post, Session, Remove script/style blocks, HTML tags, event handlers, and javascript: URIs…, strip_dangerous(), AnswerInput, AssessmentUpdate, FindingCreate (+7 more)
 
 ### Community 64 - "lucide-react"
-Cohesion: 0.02
-Nodes (171): ApiRequestError, computeScore(), createAssessment(), ExecutiveAction, FrameworkCoverageItem, frontend_src_api_getapibaseurl, getAssessment(), getRubric() (+163 more)
+Cohesion: 0.03
+Nodes (134): ApiRequestError, computeScore(), createAssessment(), ExecutiveAction, FrameworkCoverageItem, getAssessment(), getRubric(), ReadinessDriver (+126 more)
 
 ### Community 65 - "_is_demo_org"
 Cohesion: 0.14
 Nodes (24): AgentAudit, AgentAuditCreateRequest, AgentTelemetryIngestRequest, create_agent_audit(), download_agent_audit_report(), _dual_write_firestore(), get_agent_audit(), get_agent_audit_explanation() (+16 more)
 
-### Community 66 - "Dashboard.tsx"
-Cohesion: 0.04
-Nodes (59): F-013 · `EvidenceNetwork.tsx` org select panel duplicates the existing `DashboardLayout` header org selector, Recommended Priority Fixes, 1. Routes & Pages Inventory, 2. Hardcoded Assertion Audit, `frontend/src/components/ResultsTabs.tsx` (Assessment Results), `frontend/src/features/readiness/TodayPage.tsx` (Morning Brief), `frontend/src/pages/Connectors.tsx` (Integrations), `frontend/src/pages/Dashboard.tsx` (Legacy Dashboard) (+51 more)
+### Community 66 - "BaseSchema"
+Cohesion: 0.11
+Nodes (22): BaseSchema, Config, Schema with timestamp fields., Base schema with common configuration., TimestampSchema, DomainScore, QuestionScore, Pydantic schemas for scoring API requests and responses. (+14 more)
 
 ### Community 67 - "fixture"
 Cohesion: 0.11
@@ -861,16 +856,16 @@ Cohesion: 0.06
 Nodes (17): Test the static lifecycle intelligence engine., Python 3.12 is active., nodejs alias resolves to node., postgres alias resolves to postgresql., Unknown technology returns None., Unknown version returns None., Python 3.12 is not EOL., Get EOL date for a version. (+9 more)
 
 ### Community 70 - "extract_drivers"
-Cohesion: 0.15
-Nodes (16): _derive_evidence_source(), _driver_from_reason(), extract_action_items(), extract_drivers(), _extract_impact(), Any, Readiness Driver Extraction. Consumes the ``reasons`` block produced by…, Render negative drivers as 'Executive Actions' (Mon-morning list). Each item is… (+8 more)
+Cohesion: 0.16
+Nodes (15): _derive_evidence_source(), _driver_from_reason(), extract_action_items(), extract_drivers(), _extract_impact(), Any, Readiness Driver Extraction. Consumes the ``reasons`` block produced by…, Render negative drivers as 'Executive Actions' (Mon-morning list). Each item is… (+7 more)
 
 ### Community 71 - "FindingsEngine"
 Cohesion: 0.07
 Nodes (24): Finding, FindingRule, FindingsEngine, FrameworkRefs, Framework references for a finding., Definition of a finding rule., Generated finding from a rule., Deterministic rule-based findings engine. Evaluates assessment answers and… (+16 more)
 
-### Community 72 - "external.py"
-Cohesion: 0.09
-Nodes (25): External integration endpoints (API key secured, rate-limited)., ingest_webhook_event(), post, Request, Session, Process a single SIEM webhook event via the Governance Engine., Dual-path M2M authentication: HMAC signature OR API key., _verify_auth() (+17 more)
+### Community 72 - "services/integrations.py"
+Cohesion: 0.03
+Nodes (73): Alembic migrations environment configuration. This file configures Alembic to…, Run migrations in 'offline' mode. This configures the context with just a URL…, Run migrations in 'online' mode. Creates an Engine and associates a connection…, run_migrations_offline(), run_migrations_online(), External integration endpoints (API key secured, rate-limited)., ingest_webhook_event(), post (+65 more)
 
 ### Community 73 - "test_agent_audit.py"
 Cohesion: 0.12
@@ -878,19 +873,19 @@ Nodes (16): fixture, Tests for 48-Hour Live AI Agent Blast-Radius Audit lifecycl
 
 ### Community 74 - "api/scoring.py"
 Cohesion: 0.06
-Nodes (45): calculate_assessment_scores(), get_assessment_recommendations(), get_scoring_methodology(), get_scoring_rubric(), list_all_questions(), get, post, Scoring API endpoints. (+37 more)
+Nodes (34): calculate_assessment_scores(), get_assessment_recommendations(), get_scoring_methodology(), get_scoring_rubric(), list_all_questions(), get, post, Scoring API endpoints. (+26 more)
 
 ### Community 75 - "EventLogger"
-Cohesion: 0.17
-Nodes (8): EventLogger, Structured event logger for key business events. All events are logged with…, Log an event with structured data., Log assessment creation., Log answers submission., Log scoring execution., Log report generation., Log organization creation.
+Cohesion: 0.07
+Nodes (22): EventLogger, get_safe_error_response(), Any, Exception, Structured event logger for key business events. All events are logged with…, Log an event with structured data., Format event data as readable message., Log assessment creation. (+14 more)
 
 ### Community 76 - "ProfessionalPDFGenerator"
-Cohesion: 0.09
-Nodes (28): generate_pdf_report(), get_attr(), ProfessionalPDFGenerator, get_severity_rank(), Any, Return compact comma-separated framework IDs from dict/object/list refs., Build domain scores as heatmap table., Build top findings section with severity badges. (+20 more)
+Cohesion: 0.11
+Nodes (24): get_attr(), ProfessionalPDFGenerator, get_severity_rank(), Any, Return compact comma-separated framework IDs from dict/object/list refs., Build domain scores as heatmap table., Build top findings section with severity badges., Build a single finding card with severity badge. (+16 more)
 
 ### Community 77 - "AdapterHealth"
-Cohesion: 0.12
-Nodes (16): Report live adapter health via the bound SplunkConnector. Returns a clean…, AdapterHealth, Report live adapter health for the Evidence Confidence engine., Health snapshot used by Evidence Confidence (ADR-010)., calculate_evidence_confidence(), Any, datetime, Calculate Evidence Confidence score (0-100) based on four deterministic… (+8 more)
+Cohesion: 0.13
+Nodes (15): AdapterHealth, EvidenceAdapter base class — vendor-agnostic telemetry ingestion. Per ADR-009,…, Health snapshot used by Evidence Confidence (ADR-010)., calculate_evidence_confidence(), Any, datetime, Calculate Evidence Confidence score (0-100) based on four deterministic…, MockAdapter (+7 more)
 
 ### Community 78 - "compute_ghi"
 Cohesion: 0.09
@@ -917,12 +912,12 @@ Cohesion: 0.12
 Nodes (9): Verify calculate_rri returns all v2 fields wired correctly., calculate_rri result includes breach_exposure badge., calculate_rri result includes advisories list., calculate_rri result includes reliability_confidence., calculate_rri returns auto_recommendation when tier/SLA missing., calculate_rri returns None auto_recommendation when configured., to_dict() includes all v2 serialized fields., calculate_rri writes an audit event. (+1 more)
 
 ### Community 84 - "_get_org"
-Cohesion: 0.16
-Nodes (20): applicable_frameworks(), get_governance_forecast(), get_governance_health_index(), _get_org(), get_profile(), BackgroundTasks, get, put (+12 more)
+Cohesion: 0.12
+Nodes (25): applicable_frameworks(), get_governance_forecast(), get_governance_health_index(), _get_org(), get_profile(), BackgroundTasks, get, put (+17 more)
 
-### Community 85 - "_OkAdapter"
-Cohesion: 0.10
-Nodes (6): _OkAdapter, EvidenceAdapter, A minimal valid adapter used by the tests., TestRegistryLookup, health(), health()
+### Community 85 - "EvidenceRegistry"
+Cohesion: 0.07
+Nodes (12): EvidenceRegistry, In-memory registry of ``EvidenceAdapter`` instances. Singleton-style access via…, 8. Splunk Connector (SIEM Telemetry), _MissingMethodsAdapter, _OkAdapter, EvidenceAdapter, A minimal valid adapter used by the tests., Missing abstract methods — should fail ``register``. (+4 more)
 
 ### Community 86 - "WhitepaperPDF"
 Cohesion: 0.10
@@ -942,7 +937,7 @@ Nodes (34): 1. Organization Profile Module, 2. Compliance Applicability Engine, 
 
 ### Community 90 - "ResultsTabs.tsx"
 Cohesion: 0.07
-Nodes (43): Analytics Contracts, Core Assessment Contracts, Framework Mapping (MITRE/CIS/OWASP), Integration Contracts (New), Narrative Contracts, Report Contracts, ResilAI Frontend/Backend Contract Map, Roadmap Contracts (+35 more)
+Nodes (38): Analytics Contracts, Core Assessment Contracts, Framework Mapping (MITRE/CIS/OWASP), Integration Contracts (New), Narrative Contracts, Report Contracts, ResilAI Frontend/Backend Contract Map, Roadmap Contracts (+30 more)
 
 ### Community 91 - "get_sla_advisor"
 Cohesion: 0.18
@@ -965,28 +960,28 @@ Cohesion: 0.06
 Nodes (48): AdvisoryItem, BreachSimulation, calculate_downtime_budget(), calculate_rcs(), calculate_rri(), _detect_advisories(), DowntimeBudget, _format_minutes() (+40 more)
 
 ### Community 96 - "AGENT_LOG.md"
-Cohesion: 0.07
-Nodes (38): _org_to_doc(), Convert a SQLAlchemy Organization to a Firestore document dict. When the…, build_audit_metadata(), compute_content_sha256(), get_hmac_secret(), datetime, Server-Side HMAC Integrity Validation Service for ResilAI Reports. Enforces…, Retrieve the authoritative server-side HMAC secret. Priority: 1.… (+30 more)
+Cohesion: 0.09
+Nodes (33): _org_to_doc(), Convert a SQLAlchemy Organization to a Firestore document dict. When the…, build_audit_metadata(), compute_content_sha256(), get_hmac_secret(), datetime, Server-Side HMAC Integrity Validation Service for ResilAI Reports. Enforces…, Retrieve the authoritative server-side HMAC secret. Priority: 1.… (+25 more)
 
 ### Community 97 - "TestReliabilityConfidenceScore"
 Cohesion: 0.08
 Nodes (13): Verify RCS 5-dimensional scoring and bands., Full positive answers → high RCS., No answers → Unvalidated band., High scoring → Verified band (≥75)., Mid-range scores → Moderate band (50-74)., DR test True → 18 points, False → 3 points., Backup doc + restore → max 20., Tech items in HA categories boost architecture score. (+5 more)
 
 ### Community 98 - "calculate_readiness_delta"
-Cohesion: 0.07
-Nodes (22): project_readiness(), Any, Project readiness score based on proposed actions using deterministic scoring.…, calculate_readiness_delta(), Readiness Impact Engine. Single source of readiness delta computation per…, copy, Architecture Decisions, ADR-007: Deterministic Scoring Invariant (+14 more)
+Cohesion: 0.05
+Nodes (32): project_readiness(), Any, Project readiness score based on proposed actions using deterministic scoring.…, calculate_readiness_delta(), Readiness Impact Engine. Single source of readiness delta computation per…, 1. Architecture Review & Technical Debt Analysis, 2. Alignment with PRODUCT_MOAT, 3. Implementation Specification (+24 more)
 
 ### Community 99 - "pdf.py"
-Cohesion: 0.07
-Nodes (29): BaseReport, ABC, Any, Generate report from data., Return the MIME content type of the report., Abstract base class for report generation., Colors, create_score_donut() (+21 more)
+Cohesion: 0.12
+Nodes (20): Colors, create_score_donut(), generate_pdf_report(), Professional PDF Report Generator for ResilAI Assessments. Generates…, Create a donut chart showing overall score. Args: score: Score from 0-100 size:…, Generate a professional PDF report from assessment data. Args: data: Assessment…, Professional color palette., PDF Report generation service. (+12 more)
 
 ### Community 100 - ".org_id"
-Cohesion: 0.04
-Nodes (42): 10. AWS CloudTrail Connector, 11. Governance / HIPAA Compliance, 12. NIST CSF 2.0 Framework, 13. CIS Controls v8, 16. Documents / PDF Generation, 17. IT Workspace Telemetry, 18. Search, 19. Notifications (+34 more)
+Cohesion: 0.11
+Nodes (24): 10. AWS CloudTrail Connector, 11. Governance / HIPAA Compliance, 12. NIST CSF 2.0 Framework, 13. CIS Controls v8, 16. Documents / PDF Generation, 17. IT Workspace Telemetry, 18. Search, 19. Notifications (+16 more)
 
-### Community 101 - "api/verification.py"
-Cohesion: 0.09
-Nodes (40): _build_siem_clients(), calculate_assessment_roi(), ForensicTrailRequest, generate_forensic_trail(), _get_assessment_or_404(), get_audit_trail(), get_finding_verification_status(), get_mttr_summary() (+32 more)
+### Community 101 - "calculate_scores"
+Cohesion: 0.19
+Nodes (21): _build_siem_clients(), calculate_assessment_roi(), ForensicTrailRequest, generate_forensic_trail(), _get_assessment_or_404(), get_audit_trail(), get_finding_verification_status(), get_mttr_summary() (+13 more)
 
 ### Community 102 - "TestPaywallEnforcement"
 Cohesion: 0.11
@@ -1005,8 +1000,8 @@ Cohesion: 0.20
 Nodes (10): cors_health(), CORSHealthResponse, llm_health(), LLMHealthResponse, get, Request, LLM status endpoint. Returns the current LLM configuration for verification and…, CORS diagnostic endpoint. Returns the current CORS configuration for… (+2 more)
 
 ### Community 106 - "telemetry_events.py"
-Cohesion: 0.14
-Nodes (25): batch_ingest(), get_event(), _get_org_id(), get_stats(), list_events(), get, post, Session (+17 more)
+Cohesion: 0.16
+Nodes (22): batch_ingest(), get_event(), _get_org_id(), get_stats(), list_events(), get, post, Session (+14 more)
 
 ### Community 107 - "_calculate_breach_exposure"
 Cohesion: 0.10
@@ -1026,7 +1021,7 @@ Nodes (17): AWS Integration Tests, Running Tests, Security Rules, Structure, _cr
 
 ### Community 111 - "ReadinessLedgerEntry"
 Cohesion: 0.08
-Nodes (17): Base, Immutable readiness score-change ledger. Design Rationale: - previous_score /…, ReadinessLedgerEntry, Phase A — Readiness Drivers & Readiness Ledger (Feature A), TASK S1.8-A1, TASK S1.8-A2, TASK S1.8-A5, TASK S1.8-A6 (+9 more)
+Nodes (18): Base, Immutable readiness score-change ledger. Design Rationale: - previous_score /…, ReadinessLedgerEntry, Phase A — Readiness Drivers & Readiness Ledger (Feature A), TASK S1.8-A1, TASK S1.8-A2, TASK S1.8-A3, TASK S1.8-A5 (+10 more)
 
 ### Community 112 - "devDependencies"
 Cohesion: 0.09
@@ -1037,8 +1032,8 @@ Cohesion: 0.13
 Nodes (8): AuditCalendarUpdate, Schema for updating an audit calendar entry., Schema for updating a tech stack item., TechStackItemUpdate, Test CRUD operations on AuditCalendarService., Test CRUD operations on TechStackService., TestAuditCalendarCRUD, TestTechStackCRUD
 
 ### Community 114 - "TestNegativeCases"
-Cohesion: 0.16
-Nodes (12): When boto3 is missing, authenticate returns False without crash., Run an async coroutine., Permissions check on unauthenticated connector returns valid=False., Tests that ResilAI handles AWS failure states correctly. Expected behaviors: -…, Invalid AWS credentials cause authentication to fail gracefully., Missing GetFindings permission is reported in PermissionResult., When Security Hub is not enabled, health returns unreachable., Finding with minimal/missing fields does not crash normalization. (+4 more)
+Cohesion: 0.14
+Nodes (13): Tests that ResilAI handles AWS failure states correctly., When boto3 is missing, authenticate returns False without crash., Run an async coroutine., Permissions check on unauthenticated connector returns valid=False., Tests that ResilAI handles AWS failure states correctly. Expected behaviors: -…, Invalid AWS credentials cause authentication to fail gracefully., Missing GetFindings permission is reported in PermissionResult., When Security Hub is not enabled, health returns unreachable. (+5 more)
 
 ### Community 115 - "get_allowed_origins"
 Cohesion: 0.13
@@ -1058,7 +1053,7 @@ Nodes (14): Application settings with validation. Environment variables take pre
 
 ### Community 119 - "AssessmentService"
 Cohesion: 0.05
-Nodes (35): firestore_save_assessment(), Save/update an assessment payload to Firestore. Stores assessment metadata plus…, AnswerInput, AssessmentUpdate, FindingCreate, Finding creation (manual)., AssessmentService, Any (+27 more)
+Nodes (36): firestore_save_assessment(), Save/update an assessment payload to Firestore. Stores assessment metadata plus…, Base, Event-sourced audit log for GHI score changes. Provides 'forensic proof' of…, ScoreAuditLog, AssessmentService, Any, Session (+28 more)
 
 ### Community 120 - "TestInternalAssuranceAPI"
 Cohesion: 0.11
@@ -1088,9 +1083,9 @@ Nodes (23): delete_report(), download_report(), get_report(), get_report_service
 Cohesion: 0.06
 Nodes (34): AWSConfigPoller, Poller for AWS Systems Manager Inventory (SSM). Demonstrates real staging…, AWSConfigPoller, DirectDiscoveryPoller, KubernetesInventoryPoller, MicrosoftGraphPoller, Any, Abstract base class for direct technology discovery pollers. (+26 more)
 
-### Community 127 - "IntelligenceService"
-Cohesion: 0.12
-Nodes (19): DriftEvent, Base, Governance drift signal detected by the monitoring pipeline. Design Rationale:…, IntelligenceService, Session, Service to ingest global version intelligence and run version drift audits., Retrieve latest version catalog for the organization., asyncio (+11 more)
+### Community 127 - "SplunkAdapter"
+Cohesion: 0.13
+Nodes (16): datetime, EvidenceAdapter implementation for Splunk. The adapter delegates to a…, Bind the SplunkConnector that owns this adapter's telemetry., Fetch all evidence checks from Splunk. This is a thin shim — production code…, Report live adapter health via the bound SplunkConnector. Returns a clean…, SplunkAdapter, asyncio, fixture (+8 more)
 
 ### Community 128 - "TestUptimeTierEnhancements"
 Cohesion: 0.09
@@ -1108,29 +1103,29 @@ Nodes (18): compilerOptions, allowImportingTsExtensions, isolatedModules, jsx, l
 Cohesion: 0.12
 Nodes (14): _make_org(), Test compliance scoring within IGVF validation engine., Technology company → SOC 2 recommended → score = 100., PHI → HIPAA mandatory → score = 100., Cardholder data → PCI-DSS mandatory., DoD data → CMMC mandatory., AI in production → AI RMF recommended., Blank profile, non-tech industry → score = 0. (+6 more)
 
-### Community 132 - "create_enterprise_pilot_lead"
-Cohesion: 0.14
-Nodes (12): create_pilot_request(), post, Session, create_enterprise_pilot_lead(), post, Session, POST /api/v1/pilot-leads Public endpoint — no authentication required. Rate-…, EnterprisePilotLeadCreate (+4 more)
+### Community 132 - "PilotRequest"
+Cohesion: 0.20
+Nodes (9): create_enterprise_pilot_lead(), post, Session, POST /api/v1/pilot-leads Public endpoint — no authentication required. Rate-…, PilotRequest, Base, Inbound pilot request submission., EnterprisePilotLeadCreate (+1 more)
 
 ### Community 133 - "test_simulation.py"
 Cohesion: 0.15
 Nodes (22): _create_test_asset(), TestClient, Tests for the Threat Simulation Engine and API. Validates: - Single-category…, Test retrieving simulation history., Test filtering simulation history by category., Test that blast radius scales with asset criticality., Test that remediation hooks are properly populated., Helper to create a test AI asset. (+14 more)
 
-### Community 134 - "test_scoring.py"
-Cohesion: 0.05
-Nodes (34): _calc_scores_internal(), calculate_domain_score(), _calculate_threshold_score(), _get_maturity_level(), _is_unknown_answer(), Any, Exception, Score a single question based on its type and the provided answer. Supports an… (+26 more)
+### Community 134 - "calculate_domain_score"
+Cohesion: 0.08
+Nodes (25): _calc_scores_internal(), calculate_domain_score(), _calculate_threshold_score(), _get_maturity_level(), _is_unknown_answer(), Any, Exception, Score a single question based on its type and the provided answer. Supports an… (+17 more)
 
 ### Community 135 - "Audit Summary & Categorization"
 Cohesion: 0.18
 Nodes (10): 1. PASS (18/20), 2. FAIL (0/20), 3. BLOCKED (0/20), 4. MOCKED / DEMO (2/20), 5. SECURITY RISKS, 6. REQUIRED BACKEND WORK, 7. REQUIRED FRONTEND WORK, 8. PRODUCTION READINESS ASSESSMENT (+2 more)
 
-### Community 136 - "Organization"
+### Community 136 - "pytest"
 Cohesion: 0.02
-Nodes (190): FastAPI Router for 48-Hour Live AI Agent Blast-Radius Audit sessions., Audit Calendar API routes. CRUD for audit calendar entries + pre-audit risk…, Auditor View API – read-only access endpoints for external auditors.…, activate_plan(), PlanActivateRequest, Billing API — Plan capabilities, subscription status, and checkout. Endpoints:…, Directly activate a plan for the organization., Compliance Drift Detection API routes. Staging-only endpoints for drift… (+182 more)
+Nodes (124): billing_webhook(), Request, Handle Stripe webhook events with signature verification., Block all drift endpoints unless ENV=staging., _require_staging(), Gate: return 404 if not running in staging environment., _require_staging(), Block all reliability endpoints unless ENV=staging. (+116 more)
 
-### Community 137 - "test_governance.py"
-Cohesion: 0.02
-Nodes (124): get, Session, Execute the full Internal Governance Validation Framework check for a single…, Run IGVF validation for ALL organizations and return summary. Only available…, run_igvf_validation(), run_igvf_validation_all(), get_technology_exposure(), get_technology_inventory() (+116 more)
+### Community 137 - "FrameworkRegistry"
+Cohesion: 0.11
+Nodes (15): FrameworkCategory, FrameworkRegistry, Base, str, Framework classification category., Canonical compliance framework registry., Test framework registry model and seed data., Can create a FrameworkRegistry entry. (+7 more)
 
 ### Community 138 - "WazuhConnector"
 Cohesion: 0.15
@@ -1141,8 +1136,8 @@ Cohesion: 0.17
 Nodes (18): Audience, ExplanationContent, ExplanationRequest, ExplanationResponse, Enum, str, Pydantic schemas for the Explanation (Business Language) API. Gemini transforms…, Types of subjects that can be explained. (+10 more)
 
 ### Community 140 - "SplunkMCPClient"
-Cohesion: 0.05
-Nodes (36): Response, Async client for Splunk MCP Server., Get the health status of the Splunk MCP server., Execute a search query on the Splunk MCP server., SplunkMCPClient, Schemas for Splunk MCP Integration., SplunkEvent, SplunkHealthResponse (+28 more)
+Cohesion: 0.08
+Nodes (24): Response, Async client for Splunk MCP Server., Get the health status of the Splunk MCP server., Execute a search query on the Splunk MCP server., SplunkMCPClient, Schemas for Splunk MCP Integration., SplunkEvent, SplunkHealthResponse (+16 more)
 
 ### Community 141 - "ResilAI V2 — Design Partner Product Stabilization Plan"
 Cohesion: 0.08
@@ -1152,9 +1147,9 @@ Nodes (25): 1. Acme Health & Tenancy Purge, 2. Crash Fixes & Route Restoration, 
 Cohesion: 0.15
 Nodes (21): accept_recommendation(), _check_rate_limit(), get_downtime_budget(), _get_org(), get_reliability_confidence(), get_reliability_history(), get_reliability_index(), get_sla_advisor() (+13 more)
 
-### Community 143 - "auditor_view"
-Cohesion: 0.10
-Nodes (22): auditor_view(), generate_auditor_link(), get_auditor_links(), delete, get, post, Session, GET /api/governance/auditor-view?token=... (+14 more)
+### Community 143 - "generate_auditor_link"
+Cohesion: 0.11
+Nodes (20): generate_auditor_link(), get_auditor_links(), delete, get, post, Session, POST /api/governance/orgs/{org_id}/auditor-link, GET /api/governance/orgs/{org_id}/auditor-links (+12 more)
 
 ### Community 144 - "TestFullValidation"
 Cohesion: 0.10
@@ -1180,9 +1175,9 @@ Nodes (38): CISRef, get_all_unique_techniques(), get_framework_refs(), Any, AIRS
 Cohesion: 0.14
 Nodes (11): Session, EntitlementService, Any, Session, Check if an organization is owned by or associated with an administrator…, Return the plan the org is effectively on right now. If subscription_status is…, Check if the organization has a specific entitlement., Return the full capability map for an organization. This is the payload… (+3 more)
 
-### Community 150 - "SafeJsonFormatter"
-Cohesion: 0.16
-Nodes (11): Any, Format event data as readable message., Logging filter that adds request_id to log records., JSON-style log formatter that's safe for production. Does not include sensitive…, Format a value for logging., Remove sensitive keys from data., Configure application logging., RequestIdFilter (+3 more)
+### Community 150 - "FrameworkMappingRegistry"
+Cohesion: 0.19
+Nodes (14): FrameworkMappingRegistry, FrameworkType, Base, str, Supported compliance and governance frameworks., Static registry linking findings to compliance framework control IDs. Design…, calculate_ai_framework_coverage(), Any (+6 more)
 
 ### Community 151 - "test_public_config.py"
 Cohesion: 0.11
@@ -1192,21 +1187,21 @@ Nodes (17): Tests for Public Product Configuration API (M1: Host- and Route-Awar
 Cohesion: 0.29
 Nodes (6): Any, field_validator, Inbound webhook payload from a Wazuh or Splunk SIEM integration. This is the…, Enforce non-empty telemetry payload. An empty dict provides no forensic…, Strip whitespace and reject blank strings., SIEMEventWebhookPayload
 
-### Community 153 - "AuditEvent"
-Cohesion: 0.15
-Nodes (14): AuditEvent, Base, Organization-scoped immutable audit log event., generate_signature(), fixture, Test 4: Trigger a configuration mutation and verify AuditEvent obfuscation., Test 1: Send a POST request with an invalid X-Hub-Signature-256 header., Test 2: Send a POST request with a valid signature but include an undocumented… (+6 more)
+### Community 153 - "record_score_change"
+Cohesion: 0.17
+Nodes (13): attach_to_scoring(), wrapped(), Any, datetime, Insert a single immutable ledger row. Idempotent on ``(org_id, timestamp,…, Wrap ``calculate_readiness_delta`` with a ledger write. Behavior: - The wrapped…, Convenience scoring entrypoint that also writes a ledger row. Combines scoring…, record_score_change() (+5 more)
 
-### Community 154 - "ExecutiveReportGenerator"
-Cohesion: 0.28
-Nodes (6): ExecutiveReportGenerator, Any, Generates executive reports with guaranteed deterministic framework alignment., Generate the report bytes. This interceptor enriches the assessment data with…, Inject deterministic framework mappings into the report data., 2026-09-01 - Backend Executive Capabilities & Explainability Layer
+### Community 154 - "report_generator.py"
+Cohesion: 0.22
+Nodes (7): ExecutiveReportGenerator, Any, Executive Report Generator — Framework Alignment. Wraps the existing…, Generates executive reports with guaranteed deterministic framework alignment., Generate the report bytes. This interceptor enriches the assessment data with…, Inject deterministic framework mappings into the report data., 2026-09-01 - Backend Executive Capabilities & Explainability Layer
 
 ### Community 155 - "TestReliabilityAPI"
 Cohesion: 0.11
 Nodes (10): Test the RRI API endpoints (staging-gated)., Non-staging environment → 404 (invisible)., Staging env → 200 with full RRI result., Simulation endpoint → 404 outside staging., Simulation endpoint → 200 in staging., SLA Advisor → 200 in staging., Downtime budget → 200 in staging., Downtime budget without SLA → 400. (+2 more)
 
-### Community 156 - "Backend State"
-Cohesion: 0.08
-Nodes (27): get_instance(), Return the process-wide ``EvidenceRegistry`` singleton., Discard the singleton (used by tests)., reset_instance(), attach_to_scoring(), wrapped(), Any, datetime (+19 more)
+### Community 156 - "ResilAI Current State"
+Cohesion: 0.13
+Nodes (15): Transport-Agnostic Evidence Collection Layer. Public symbols re-exported so…, get_instance(), EvidenceRegistry — vendor-agnostic connector resolution. Adapters register…, Return the process-wide ``EvidenceRegistry`` singleton., Discard the singleton (used by tests)., reset_instance(), ResilAI Current State, auth_override() (+7 more)
 
 ### Community 157 - "Report"
 Cohesion: 0.12
@@ -1234,15 +1229,15 @@ Nodes (11): EvidenceAdapter, ABC, Any, Parses the raw transport data into a list
 
 ### Community 163 - "app/db/database.py"
 Cohesion: 0.02
-Nodes (93): add_framework_registry Revision ID: 0013_framework_registry Revises:…, get_engine_args(), Get SQLAlchemy engine configuration based on database type. - SQLite: Uses…, SQLAlchemy custom types for security and data integrity., Agent Audit model for 48-Hour Live AI Agent Blast-Radius Audit sessions., AIAssetType, BusinessCriticality, ExposureLevel (+85 more)
+Nodes (90): add_framework_registry Revision ID: 0013_framework_registry Revises:…, get_engine_args(), Get SQLAlchemy engine configuration based on database type. - SQLite: Uses…, SQLAlchemy custom types for security and data integrity., Agent Audit model for 48-Hour Live AI Agent Blast-Radius Audit sessions., AIAssetType, BusinessCriticality, ExposureLevel (+82 more)
 
-### Community 164 - "remediations.py"
-Cohesion: 0.11
-Nodes (22): _from_remediation_status(), _normalize_priority(), _normalize_remediation_status(), patch_remediation(), patch, post, Session, Remediation endpoints backed by roadmap tracker items. (+14 more)
+### Community 164 - "patch_remediation"
+Cohesion: 0.15
+Nodes (14): _from_remediation_status(), _normalize_priority(), _normalize_remediation_status(), patch_remediation(), patch, post, Session, Executes the Google Antigravity SDK agent to propose technical remediation… (+6 more)
 
 ### Community 165 - "IntegrationService"
-Cohesion: 0.12
-Nodes (16): Base, Organization-scoped webhook destinations., Webhook, deliver_webhook(), deliver_webhook_url_test(), dispatch_assessment_scored_webhooks(), generate_api_key_plaintext(), IntegrationService (+8 more)
+Cohesion: 0.19
+Nodes (7): generate_api_key_plaintext(), IntegrationService, _json_dump_list(), _json_load_list(), Any, Org-scoped integration operations., Resolve org by explicit id or fallback to caller's most recent org.
 
 ### Community 166 - "validate_origin"
 Cohesion: 0.21
@@ -1272,9 +1267,9 @@ Nodes (23): Audit-Generated Fix Tasks (per `docs/agent_memory/AUDIT_REPORT.md`),
 Cohesion: 0.17
 Nodes (9): Test forecast engine logic., findings_spec: list of (title, severity) tuples. Returns (entry, svc)., 3+ critical/high related findings → critical risk., 1-2 critical/high related findings → high risk., 2+ related findings but no critical/high → medium., No related findings → low risk., Verify recommendation strings are set per risk level., Verify all mapped frameworks have keywords. (+1 more)
 
-### Community 173 - "RawEvent"
-Cohesion: 0.08
-Nodes (16): AWSProvider, RawEvent, Evidence provider for AWS Security Hub, GuardDuty, IAM, and AWS Backup…, EvidenceProvider, ABC, VeeamProvider, WazuhProvider, Phase 7: Raw Events from Connectors before Evidence Providers normalize them. (+8 more)
+### Community 173 - "EvidenceKind"
+Cohesion: 0.06
+Nodes (26): What evidence kinds this capability needs to evaluate., AWSProvider, RawEvent, Evidence provider for AWS Security Hub, GuardDuty, IAM, and AWS Backup…, EvidenceProvider, ABC, Return all providers that can produce a given evidence kind., VeeamProvider (+18 more)
 
 ### Community 174 - "get_mobile_dashboard"
 Cohesion: 0.31
@@ -1292,13 +1287,13 @@ Nodes (14): audit_forecast(), delete_entry(), list_entries(), delete, get, put, 
 Cohesion: 0.12
 Nodes (15): Tests for POST /api/v1/pilot-leads — enterprise pilot programme intake endpoint., POST with full payload should return HTTP 201., contact_name should be present in the response payload., Minimal payload (contact_name + company_name + email) should succeed., Created record should include an id field., Created record should include a created_at timestamp., Pilot leads endpoint is public — no auth token should be needed., ai_usage_description optional field should round-trip correctly. (+7 more)
 
-### Community 178 - "ContinuousScoringEngine"
-Cohesion: 0.09
-Nodes (23): Answer, Base, Answer entity - stores a single answer to a rubric question., Convert string value to appropriate Python type., Base, str, What triggered the score snapshot., Point-in-time governance readiness snapshot. Design Rationale: - overall_score… (+15 more)
+### Community 178 - "TelemetryEvent"
+Cohesion: 0.04
+Nodes (69): get_current_org(), Mock auth for the hackathon demo., Exception, SplunkMCPClientError, ingest_splunk_telemetry(), Session, Splunk MCP telemetry ingestion service. Provides ``ingest_splunk_telemetry`` —…, Run the canonical SplunkConnector sync for an org. Looks up the active Splunk… (+61 more)
 
-### Community 179 - "VerificationService"
-Cohesion: 0.09
-Nodes (30): AuditTrailFindingSchema, AuditTrailSchema, MTTRChartDataPoint, MTTRExecutiveSummarySchema, MTTRMetadata, Enum, str, Pydantic schemas for the Verification & Audit Trail API. Defines… (+22 more)
+### Community 179 - "api/verification.py"
+Cohesion: 0.06
+Nodes (49): Verification & Audit Trail API — SIEM-corroborated finding verification.…, AuditTrailFindingSchema, AuditTrailResponse, AuditTrailSchema, MTTRChartDataPoint, MTTRExecutiveSummarySchema, MTTRMetadata, PortfolioROISchema (+41 more)
 
 ### Community 180 - "dev_stack.py"
 Cohesion: 0.24
@@ -1308,29 +1303,29 @@ Nodes (9): Popen, main(), shutdown(), Path, Run the full local AIRS development 
 Cohesion: 0.19
 Nodes (9): MorningCheckGeneratorV2, MorningCheckV2, QuestionSummary, Summary of how one customer question was answered., The Morning Safety Check a clinic owner sees., Generates the Morning Safety Check from V2 ClinicMoments., Build the morning check from evaluated moments., Tests for the Morning Safety Check generator. (+1 more)
 
-### Community 182 - "daily_git_sync.py"
-Cohesion: 0.19
-Nodes (19): CompletedProcess, fnmatch, check_remote_branch_exists(), get_current_branch(), get_repo_root(), get_staged_files(), main(), perform_daily_git_sync() (+11 more)
+### Community 182 - "run_cmd"
+Cohesion: 0.21
+Nodes (14): CompletedProcess, check_remote_branch_exists(), get_current_branch(), get_repo_root(), get_staged_files(), Path, Find the root directory of the git repository., Get the name of the currently checked out branch. (+6 more)
 
-### Community 183 - "billing_webhook"
-Cohesion: 0.15
-Nodes (14): billing_webhook(), CheckoutSessionRequest, create_checkout_session(), get_billing_status(), get_capabilities(), get, post, Request (+6 more)
+### Community 183 - "aws_integration/test_tenant_isolation.py"
+Cohesion: 0.22
+Nodes (10): _create_test_connector(), _create_test_org(), Verify that AWS telemetry is org-scoped and cross-tenant access is denied., Run an async coroutine., Verify that AWS telemetry is org-scoped and cross-tenant access is denied., Events ingested for Org A are invisible to Org B queries., ConnectorManager for Org B raises ConnectorNotFoundError for Org A's connector., Org A can access its connector; Org B is denied. (+2 more)
 
 ### Community 184 - "docs/index.md"
 Cohesion: 0.08
 Nodes (19): Assessments, Health and Diagnostics, Integrations, Public Beta API Docs, Reports, Data Flow, Stack, Trust Boundaries (+11 more)
 
-### Community 185 - "test_moment_lifecycle.py"
-Cohesion: 0.26
-Nodes (11): ClinicMomentRecord, MomentStatus, Base, str, Persistent storage for Clinic Moments. This acts as the backend repository,…, SessionLocal, create_mock_moment_record(), Proves a resolved moment cannot be fixed again. (+3 more)
+### Community 185 - "run_igvf_validation"
+Cohesion: 0.40
+Nodes (6): get, Session, Execute the full Internal Governance Validation Framework check for a single…, Run IGVF validation for ALL organizations and return summary. Only available…, run_igvf_validation(), run_igvf_validation_all()
 
 ### Community 186 - "TelemetryIngestionService"
 Cohesion: 0.16
 Nodes (9): Any, Session, Fetch unprocessed events for consumption by the scoring engine. Args: limit:…, Mark events as processed after consumption by the scoring engine. Returns:…, Compute evidence freshness metrics across all source systems. Freshness is…, Get aggregated telemetry statistics for this organization. Returns: Dict with…, Organization-scoped telemetry event processing pipeline. Responsibilities: 1.…, Batch-ingest telemetry events with idempotent deduplication. Args: events: List… (+1 more)
 
-### Community 187 - "_build_suggestions"
-Cohesion: 0.26
-Nodes (5): _build_suggestions(), Core suggestion builder (pure function, no I/O)., Test the core pure-function builder with fabricated scores., Suggestions should focus on the weakest control function., TestBuildSuggestions
+### Community 187 - "test_suggestions.py"
+Cohesion: 0.07
+Nodes (28): list_suggested_questions(), GET /api/orgs/{org_id}/suggested-questions, _build_suggestions(), _compute_function_scores_from_answers(), _compute_function_scores_from_db(), _domain_to_function(), get_suggestions(), get_suggestions_from_answers() (+20 more)
 
 ### Community 188 - "TestAdversarialPublicConfigQuery"
 Cohesion: 0.13
@@ -1341,8 +1336,8 @@ Cohesion: 0.14
 Nodes (8): Verify downtime budget calculation from SLA percentage., 99.9% SLA → ~525.96 minutes/year., 99.99% SLA → ~52.6 minutes/year., 99.999% SLA (five nines) → ~5.26 minutes/year., 99.0% SLA → ~5259 minutes/year., Invalid SLA (0 or negative) defaults to 99.0%., to_dict() returns serializable dict., TestDowntimeBudget
 
 ### Community 190 - "ResilAI AWS Telemetry Integration Validation Report"
-Cohesion: 0.07
-Nodes (26): Encrypt credentials for database storage. Currently stores as JSON string.…, Mock discovery representing AWS EC2 and RDS instances., Runs discovery jobs against AWS to populate inventory., Next Tasks, 10. Recommended Next Steps, 1. Test Environment, 2. AWS APIs Tested, 3. Evidence Pipeline Validation (+18 more)
+Cohesion: 0.06
+Nodes (29): Any, Update a connector's configuration. Returns: Updated Connector ORM instance., Encrypt credentials for database storage. Currently stores as JSON string.…, Register a new connector for this organization. Args: connector_type: One of…, Mock discovery representing AWS EC2 and RDS instances., Runs discovery jobs against AWS to populate inventory., Next Tasks, 10. Recommended Next Steps (+21 more)
 
 ### Community 191 - "TestRiskBands"
 Cohesion: 0.21
@@ -1356,9 +1351,9 @@ Nodes (10): NarrativeType, Enum, str, AIRS LLM Narrative Generator AI-assisted n
 Cohesion: 0.14
 Nodes (8): Validate edge cases, unknown inputs, subdomains, and normalization., Test T2.01: Unknown vertical string safely defaults to general., Test T2.02: Mixed-case query parameters are normalized., Test T2.03: Whitespace in query param is trimmed., Test T2.04: Subdomains in Host header resolve correctly., Test T2.05: Query parameter takes precedence over Host subdomain., Test T2.06: Empty and malformed queries safely default to general., TestPublicConfigBoundaries
 
-### Community 194 - "TestCertificationMatrix"
-Cohesion: 0.18
-Nodes (5): Return all providers that can produce a given evidence kind., Verify the certification matrix — which providers produce which evidence., Q1 needs USER_ACCOUNT_STATUS → Microsoft provides it, Wazuh does not., Q3 needs DEVICE_SECURITY_STATUS → both Microsoft and Wazuh provide it., TestCertificationMatrix
+### Community 194 - "WazuhDiscoveryService"
+Cohesion: 0.25
+Nodes (6): Any, Session, Runs discovery jobs against Wazuh to populate inventory., Service to discover technology assets via Wazuh syscollector., Fallback mock discovery for environments without a real Wazuh connection., WazuhDiscoveryService
 
 ### Community 195 - "take_score_snapshot"
 Cohesion: 0.19
@@ -1392,9 +1387,9 @@ Nodes (3): Test uptime gap analysis logic., Tier 3 org targeting 99.99% is on_tr
 Cohesion: 0.08
 Nodes (22): CIS Controls v8, Coverage Calculations, Example Structure, Limitations, Mapping Approach, MITRE ATT&CK, Overview, OWASP (+14 more)
 
-### Community 203 - "get_suggestions_from_answers"
-Cohesion: 0.23
-Nodes (8): _compute_function_scores_from_answers(), get_suggestions_from_answers(), Any, Compute per-function scores from raw answers dict (no DB needed). Useful for…, Stateless variant: compute suggestions from raw answers without DB., Same input MUST produce identical output every time., Empty answers dict should not crash., TestGetSuggestionsFromAnswers
+### Community 203 - "BaseReport"
+Cohesion: 0.25
+Nodes (6): BaseReport, ABC, Any, Generate report from data., Return the MIME content type of the report., Abstract base class for report generation.
 
 ### Community 204 - "services/readiness_ledger.py"
 Cohesion: 0.19
@@ -1493,8 +1488,8 @@ Cohesion: 0.60
 Nodes (6): generate_board_story(), _generate_fallback_board_story(), _generate_llm_board_story(), generate_with_retry(), Any, Generate 10 structured narrative sections for the Board Story.
 
 ### Community 228 - "MomentRepository"
-Cohesion: 0.05
-Nodes (40): _fetch_persisted_telemetry(), fix_problem(), get_clinic_readiness(), get_demo_telemetry(), get_morning_summary(), get, post, RawEvent (+32 more)
+Cohesion: 0.06
+Nodes (36): _fetch_persisted_telemetry(), fix_problem(), get_clinic_readiness(), get_demo_telemetry(), get_morning_summary(), get, post, RawEvent (+28 more)
 
 ### Community 230 - "scripts"
 Cohesion: 0.20
@@ -1504,13 +1499,13 @@ Nodes (10): scripts, build, build:demo, build:production, build:staging, deploy:
 Cohesion: 0.14
 Nodes (11): is_forbidden_file(), Check if a staged file path matches forbidden/sensitive patterns., parametrize, patch, Tests for file exclusion, governance rules, and sensitive pattern protection., Verify that secret and ignored files are detected as forbidden., Verify that benign files and example templates are permitted., Enforce that TARGET_SYNC_BRANCH is isolated and not in protected branches. (+3 more)
 
-### Community 232 - "3. Implementation Specification"
-Cohesion: 0.18
-Nodes (10): 1. Architecture Review & Technical Debt Analysis, 2. Alignment with PRODUCT_MOAT, 3. Implementation Specification, Current Architecture State, Feature A: Readiness Intelligence (Readiness Drivers & Ledger), Feature B: Technology Intelligence & AI Estate, Feature C: Evidence Network & Evidence Confidence, Feature D: Executive Intelligence (Board Story & Decision Engine) (+2 more)
+### Community 232 - "download_board_story_pdf"
+Cohesion: 0.32
+Nodes (8): _build_summary_payload(), download_board_story_pdf(), get_board_story(), get, Session, Build a scoring-snapshot-sourced payload. All numbers trace to the DB record., Get the Board Story (Executive Narrative + Roadmap) as structured JSON for an…, Server-side PDF generation for the Board Story. All numbers embedded in the PDF…
 
-### Community 233 - "global_exception_handler"
+### Community 233 - "TestDailyBackupSyncWorkflow"
 Cohesion: 0.20
-Nodes (10): get_safe_error_response(), Exception, Create a safe error response that doesn't expose internal details. Logs the…, global_exception_handler(), Exception, Global exception handler that returns safe JSON errors. - Logs full stack trace…, Handler for request validation errors with consistent format., validation_exception_handler() (+2 more)
+Nodes (6): fixture, Verifies .github/workflows/daily-backup-sync.yml against specifications., Verify cron schedule 0 4 * * * and workflow_dispatch are enabled., Verify checkout, branch sync staging -> daily-sync, and protected branch…, Verify commit hash and sync status are echoed in GITHUB_STEP_SUMMARY., TestDailyBackupSyncWorkflow
 
 ### Community 234 - "test_integrations.py"
 Cohesion: 0.26
@@ -1529,8 +1524,8 @@ Cohesion: 0.22
 Nodes (5): Host header with port split correctly., Uppercase host normalizes correctly., IPv4 and IPv6 hosts do not throw index errors or unhandled exceptions., Dashed preview domains resolve correctly., TestAdversarialPublicConfigHost
 
 ### Community 240 - "Audit of the 12 Key Operational Areas"
-Cohesion: 0.14
-Nodes (13): 10. Search and Notifications, 12. Brand Identity, 2. Governance, 3. Connectors, 4. Readiness Engine Pipeline, 5. Gemini Business Impact Layer, 6. Fix Now & Remediation Flow, 7. Documents Repository (+5 more)
+Cohesion: 0.09
+Nodes (18): ProviderRegistry, Reset registry. Only for testing., 10. Search and Notifications, 12. Brand Identity, 1. Today / Morning Brief, 2. Governance, 3. Connectors, 4. Readiness Engine Pipeline (+10 more)
 
 ### Community 241 - "_validate_numeric_trace"
 Cohesion: 0.60
@@ -1544,9 +1539,9 @@ Nodes (9): Execute a search and map the results into deterministic TelemetryEven
 Cohesion: 0.39
 Nodes (3): MockSplunkMCPHandler, Any, BaseHTTPRequestHandler
 
-### Community 244 - "Core Service Map"
-Cohesion: 0.20
-Nodes (9): Application Entry Point, Assessment Lifecycle, Core Service Map, CORS Configuration, Deterministic Scoring, Narrative Generation, Technology Intelligence (Auto-Discovery), Trust Dashboard (+1 more)
+### Community 244 - "EvidenceAdapter"
+Cohesion: 0.18
+Nodes (6): EvidenceAdapter, datetime, Stable identifier (e.g. 'splunk', 'wazuh', 'aws_ssminventory')., Fetch evidence from the underlying vendor. Implementations must return…, Report live adapter health for the Evidence Confidence engine., Base class for vendor-agnostic telemetry adapters. Subclasses MUST override all…
 
 ### Community 245 - "TestHealthEndpoints"
 Cohesion: 0.25
@@ -1573,16 +1568,12 @@ Cohesion: 0.25
 Nodes (5): Tests for AIRS_USE_LLM feature flag., LLM should be disabled by default., Generator should not be available when disabled., Generator should require API key even when enabled., TestFeatureFlag
 
 ### Community 251 - "verify_staging.py"
-Cohesion: 0.21
-Nodes (16): make_request(), print_banner(), print_gate(), Any, ResilAI Staging Customer Smoke Test Script…, run_staging_smoke_test(), log_result(), Live Staging Verification Script for ResilAI (AIRS) Performs live E2E… (+8 more)
+Cohesion: 0.12
+Nodes (19): Infrastructure Recovery Sprint — Live Deployment Audit Script. Fetches HTML and…, make_request(), print_banner(), print_gate(), Any, ResilAI Staging Customer Smoke Test Script…, run_staging_smoke_test(), log_result() (+11 more)
 
 ### Community 252 - "get_framework_coverage_data"
 Cohesion: 0.38
 Nodes (7): get_framework_coverage_data(), get_framework_mappings(), Any, get, Session, Returns all findings mapped by framework. Used by the React FrameworkTab to…, Returns the AI framework coverage for a specific organization.
-
-### Community 253 - "list_suggested_questions"
-Cohesion: 0.28
-Nodes (9): list_suggested_questions(), GET /api/orgs/{org_id}/suggested-questions, _compute_function_scores_from_db(), _domain_to_function(), get_suggestions(), Session, Return deterministic question suggestions for an organization. Algorithm: 1.…, Map a rubric domain_id to its NIST control function name. (+1 more)
 
 ### Community 254 - "test_api_endpoints_flow"
 Cohesion: 0.20
@@ -1633,8 +1624,8 @@ Cohesion: 0.11
 Nodes (18): 1. Architectural Surface Area, 2. Environment Variables & External Dependencies, 3. Deployment Procedure, 4. Rollback Procedure, 5. Monitoring & SLAs, Alerting Triggers, Code Rollback, Database Rollback (If Necessary) (+10 more)
 
 ### Community 267 - ".authenticate"
-Cohesion: 0.33
-Nodes (4): Any, Fetch MFA authentication logs from Duo Admin API., Generate Duo API HMAC-SHA1 signature., Validate Duo API credentials via /admin/v1/ping.
+Cohesion: 0.25
+Nodes (5): Any, Fetch MFA authentication logs from Duo Admin API., Validate Duo Admin credentials., Generate Duo API HMAC-SHA1 signature., Validate Duo API credentials via /admin/v1/ping.
 
 ### Community 268 - "_auto_recommend"
 Cohesion: 0.11
@@ -1692,17 +1683,17 @@ Nodes (17): R0. Product Audit, R10. Route Inventory, R11. State Management Audit
 Cohesion: 0.33
 Nodes (4): Test the root endpoint., Test the health check endpoint., test_health_check(), test_root()
 
-### Community 283 - "ScoreAuditLog"
-Cohesion: 0.17
-Nodes (9): Base, Event-sourced audit log for GHI score changes. Provides 'forensic proof' of…, ScoreAuditLog, Any, Ingest a SIEM webhook event with org-scoped idempotency. Steps: 1. Idempotency…, Recompute GHI score for an assessment after provenance update. Weighting…, Calculate dynamic ROI metrics for the organization. Base Manual Audit Hours =…, Structured log entry emitted on every GHI score change. (+1 more)
+### Community 283 - ".recompute_ghi_for_assessment"
+Cohesion: 0.25
+Nodes (6): Any, Ingest a SIEM webhook event with org-scoped idempotency. Steps: 1. Idempotency…, Recompute GHI score for an assessment after provenance update. Weighting…, Calculate dynamic ROI metrics for the organization. Base Manual Audit Hours =…, Structured log entry emitted on every GHI score change., ScoreChangeLog
 
 ### Community 284 - "verify_restore"
 Cohesion: 0.40
 Nodes (6): create_mock_s3_snapshot(), main(), Path, Verify restored database integrity across all 9 DR validation criteria., Create a realistic mock database backup representing an S3 export bundle., verify_restore()
 
-### Community 285 - "Toast.tsx"
-Cohesion: 0.36
-Nodes (6): ToastContainer(), ToastContext, ToastContextValue, ToastItem(), ToastProvider(), useToast()
+### Community 285 - "TestReports"
+Cohesion: 0.25
+Nodes (3): fixture, Tests for report generation., TestReports
 
 ### Community 286 - "0011_merge_heads.py"
 Cohesion: 0.40
@@ -1721,8 +1712,8 @@ Cohesion: 0.36
 Nodes (8): generate_finding_from_cve(), generate_remediation_task_from_cve(), process_wazuh_vulnerabilities(), Any, Session, Create a Remediation Ledger task for a critical CVE. This is the mechanism for…, Process all vulnerabilities from Wazuh and auto-generate findings. Args: db:…, Automatically generate a finding from a Wazuh CVE detection. Args: db: Database…
 
 ### Community 290 - "test_cors.py"
-Cohesion: 0.17
-Nodes (7): is_trusted_origin(), Check if an origin matches trusted production/staging domain patterns., Tests for CORS configuration helper., Tests for is_trusted_origin function., Tests for CORSErrorSafetyMiddleware preflight and headers., TestCORSErrorSafetyMiddleware, TestIsTrustedOrigin
+Cohesion: 0.27
+Nodes (5): is_trusted_origin(), Check if an origin matches trusted production/staging domain patterns., Tests for CORS configuration helper., Tests for is_trusted_origin function., TestIsTrustedOrigin
 
 ### Community 291 - "ExecutiveNarrativePromptBuilder"
 Cohesion: 0.50
@@ -1732,9 +1723,9 @@ Nodes (3): ExecutiveNarrativePromptBuilder, Forces user input to strictly accept
 Cohesion: 0.50
 Nodes (3): Forces strict type-bound inputs., Groundwork for the Deterministic Threat Simulator narrative., SimulationNarrativePromptBuilder
 
-### Community 293 - "Audit Results"
-Cohesion: 0.29
-Nodes (6): 1. Hardcoded Credentials & Secrets, 3. Stale Documentation, Audit Results, Audit Scope, Public Repository Security Audit, Sign-Off
+### Community 293 - "Product Reality Audit"
+Cohesion: 0.13
+Nodes (14): 10. What is tenant-scoped?, 11. What is not tenant-scoped?, 12. Which integrations actually ingest evidence?, 13. Which integrations are UI-only?, 14. What is the current billing state?, 15. What is the actual deployment topology?, 2. What is simulated?, 3. What is hardcoded? (+6 more)
 
 ### Community 294 - "verify-deploy.js"
 Cohesion: 0.14
@@ -1749,8 +1740,8 @@ Cohesion: 0.18
 Nodes (9): AirsApiClient, Any, Sends a simulation payload to AIRS Core to determine the score impact. Returns…, Retrieves the domain and framework mapping for a question ID from AIRS Core.…, HTTP Client to communicate with the core AIRS platform. Ensures Sentinel does…, Control Status Report, Sentinel Isolation Audit (Final Verification), Splunk Query Inventory (+1 more)
 
 ### Community 297 - "validate_ui_colors.py"
-Cohesion: 0.27
-Nodes (9): get_added_files(), main(), UI Color Variable Compliance Checker. This script scans newly added TypeScript…, Remove single-line and multi-line comments from file content., Scan a single file for color compliance violations., Retrieve list of files added in git diff compared to parent/base., scan_file(), strip_comments() (+1 more)
+Cohesion: 0.17
+Nodes (13): get_modified_files(), main(), IGVF Merge Gate Check — Environment-Locked Policy Guard. This script checks if…, Retrieve the list of modified files compared to the target base ref., get_added_files(), main(), UI Color Variable Compliance Checker. This script scans newly added TypeScript…, Remove single-line and multi-line comments from file content. (+5 more)
 
 ### Community 298 - "deploy_cloud_run.sh"
 Cohesion: 0.80
@@ -1768,13 +1759,13 @@ Nodes (3): Each higher plan is a strict superset of the lower plan., Verify enti
 Cohesion: 0.25
 Nodes (7): 2. Environment Variable Inventory, 3. Route Inventory, 4. Toggle Feature Verification, 5. Dependency Graph, 6. Final Assessment, Overview, Sentinel Isolation Final Audit
 
-### Community 302 - "ConnectorRegistry"
-Cohesion: 0.40
-Nodes (5): ConnectorRegistry, Central registry that maps connector type strings to their classes., Return sorted list of registered connector type identifiers., Verify all 7 connector platforms are recognized in ConnectorType enums., test_connector_type_enum_completeness()
+### Community 302 - "trigger_sync"
+Cohesion: 0.29
+Nodes (7): get_latest_versions(), get, post, Session, Response returned after executing an on-demand drift audit sweep., SyncResponse, trigger_sync()
 
 ### Community 303 - "SystemAuditor"
-Cohesion: 0.25
-Nodes (6): Call this on application startup to enforce the auditing trace., Automated system auditing trace class that listens to SQLAlchemy session…, Bind the after_flush listener to the Session context., Intercepts all changes before commit and generates AuditEvents., register_system_auditor(), SystemAuditor
+Cohesion: 0.33
+Nodes (4): Automated system auditing trace class that listens to SQLAlchemy session…, Bind the after_flush listener to the Session context., Intercepts all changes before commit and generates AuditEvents., SystemAuditor
 
 ### Community 304 - "TestReportCreation"
 Cohesion: 0.18
@@ -1788,9 +1779,13 @@ Nodes (4): downgrade(), Add owner_uid columns with indexes., Remove owner_uid co
 Cohesion: 0.12
 Nodes (15): 1. Install Firebase Admin, 1. Install Firebase SDK, 2. Configure client initialization, 2. Verify tokens in auth dependency, 3. Apply route protection, 3. Auth context wiring, Architecture, Backend Integration (+7 more)
 
-### Community 308 - "_org_maturity_label"
-Cohesion: 0.47
-Nodes (3): _org_maturity_label(), Convert a 0-100 average score into a maturity label., TestMaturityLabel
+### Community 307 - "AWSSecurityHubAdapter"
+Cohesion: 0.14
+Nodes (8): AWSSecurityHubAdapter, Any, datetime, EvidenceAdapter implementation for AWS Security Hub. The adapter delegates to a…, Bind the AWSSecurityHubConnector that owns this adapter's telemetry., Fetch all evidence checks from AWS Security Hub. This is a thin shim —…, AWS Security Hub payloads have already been normalised by the…, Report live adapter health via the bound AWSSecurityHubConnector. Returns a…
+
+### Community 308 - "RESILAI — PRODUCT INTEGRITY RECOVERY & STAGING E2E REPORT"
+Cohesion: 0.17
+Nodes (11): 1. Executive Summary, 2. Real Customer Architecture vs. Demo Architecture, 3. Authentication & Tenant Isolation Flow, 4. Splunk Connector & Telemetry Ingestion Flow, 5. Deterministic Scoring & Telemetry Causality, 6. UI/UX Consistency & "How We Know" Provenance, 7. Verification Test Suite Results, 8. Staging Validation Runbook (+3 more)
 
 ### Community 309 - "get_environment_config"
 Cohesion: 0.29
@@ -1828,9 +1823,9 @@ Nodes (11): 0.A Read these signals first, 0.B Output a one-line "Design Read" be
 Cohesion: 0.13
 Nodes (15): Appendix B - Canonical Sources (read these before reinventing), Apple Liquid Glass (Apple platforms only), Atlassian, Bootstrap, Carbon, Fluent UI, GOV.UK, Material Web (+7 more)
 
-### Community 320 - "test_suggestions.py"
-Cohesion: 0.13
-Nodes (13): get_all_question_metadata(), get_question_metadata(), get_questions_by_control_function(), get_questions_by_maturity(), Any, Question Suggestion Catalog Static, config-driven metadata for every rubric…, Return enrichment metadata for a single question, or None., Return the full catalog. (+5 more)
+### Community 320 - "TestCatalog"
+Cohesion: 0.12
+Nodes (12): get_all_question_metadata(), get_question_metadata(), get_questions_by_control_function(), get_questions_by_maturity(), Any, Question Suggestion Catalog Static, config-driven metadata for every rubric…, Return enrichment metadata for a single question, or None., Return the full catalog. (+4 more)
 
 ### Community 321 - "ForensicTrailAgent"
 Cohesion: 0.08
@@ -1840,9 +1835,9 @@ Nodes (25): AntigravityAgent, Lazy-load Google Gemini client., Executes the agen
 Cohesion: 0.33
 Nodes (3): patch, Verify plan activation and deactivation., TestPlanActivation
 
-### Community 323 - "test_all_connectors_health_check_non_blocking"
-Cohesion: 0.29
-Nodes (7): asyncio, Verify AWSSecurityHubConnector includes ExternalId when assuming cross-account…, Verify WebhookConnector authenticate, sync, and health_check work without…, Verify health_check on all 7 connectors returns clean ConnectorHealth objects…, test_all_connectors_health_check_non_blocking(), test_aws_connector_passes_external_id_to_sts(), test_webhook_connector_lifecycle()
+### Community 323 - "test_all_connectors_e2e.py"
+Cohesion: 0.07
+Nodes (28): ConnectorRegistry, get_connector_class(), Look up a connector class by type string., Central registry that maps connector type strings to their classes., Register a connector class by its ``CONNECTOR_TYPE``. Intended to be used as a…, Look up a connector class by type string. Raises ``KeyError`` if the type is…, Return sorted list of registered connector type identifiers., db_session() (+20 more)
 
 ### Community 325 - "Session"
 Cohesion: 0.29
@@ -1884,21 +1879,21 @@ Nodes (5): ast, check_file_for_forbidden_imports(), parametrize, Enforce determi
 Cohesion: 0.33
 Nodes (6): 2. Verdict per SESSION_HANDOFF milestone, F-006 · Dead-code inheritance: PersonaSwitcher lives in `components/dashboard/PersonaContext.tsx`, F-008 · `PersonaSwitcher` toggle has **no effect on widget visibility**, T-E01 — Rename `PersonaSwitcher` file · LOW, TASK S1.8-AUDIT-FIX-E01, PersonaSwitcher()
 
-### Community 335 - "SplunkConnector"
+### Community 335 - "RawEvent"
 Cohesion: 0.12
-Nodes (11): Return simulated client software inventory events., V2 alias for NormalizedEvent., RawEvent, GitHubConnector, AsyncClient, Fetch all security alert types for a single repository., Verify X-Hub-Signature-256 from GitHub webhook. Enterprise requirement: all…, GitHub security telemetry connector. Supports: - Personal Access Token (PAT)… (+3 more)
+Nodes (10): Any, Convert an AWS Security Hub finding to a RawEvent., Return simulated client software inventory events., V2 alias for NormalizedEvent., RawEvent, GitHubConnector, AsyncClient, Fetch all security alert types for a single repository. (+2 more)
 
-### Community 336 - "validate_deployment"
-Cohesion: 0.29
-Nodes (6): Validate that the deployment environment matches expected project. Must be…, validate_deployment(), Validate deployment safety guards across clouds., When CLOUD_PROVIDER=aws, validate_deployment passes without requiring…, When ENV=staging on GCP, mismatched project ID raises an error., TestDeploymentValidationPortability
+### Community 336 - "TestDeploymentValidationPortability"
+Cohesion: 0.33
+Nodes (4): Validate deployment safety guards across clouds., When CLOUD_PROVIDER=aws, validate_deployment passes without requiring…, When ENV=staging on GCP, mismatched project ID raises an error., TestDeploymentValidationPortability
 
 ### Community 337 - "TestDeterministicScoringIndependence"
 Cohesion: 0.33
 Nodes (4): Verify scoring logic is 100% cloud-provider independent., Scoring algorithms produce identical results regardless of CLOUD_PROVIDER., Gemini explanation service is strictly narrative-only under both clouds., TestDeterministicScoringIndependence
 
-### Community 338 - "splunk_hec_injector.py"
-Cohesion: 0.47
-Nodes (5): argparse, requests, get_payloads(), main(), send_event()
+### Community 338 - "get_heatmap_color"
+Cohesion: 0.40
+Nodes (5): get_heatmap_color(), get_severity_color(), Get color for severity level., Get heatmap color based on score (0-5 scale)., Color
 
 ### Community 339 - ".check_lifecycle_status"
 Cohesion: 0.24
@@ -1912,9 +1907,9 @@ Nodes (4): Any, Normalize CLOUD_PROVIDER and ENVIRONMENT aliases., Validate that
 Cohesion: 0.40
 Nodes (4): AuditCalendarResponse, Config, Response schema for an audit calendar entry., Convert model to response with computed fields.
 
-### Community 343 - "TestTenantAndConnectorIsolation"
-Cohesion: 0.33
-Nodes (4): Verify tenant isolation and connector scoping., AWSSecurityHubConnector is registered in the connector registry., Real organizations never receive synthetic demo telemetry, even in AWS mode., TestTenantAndConnectorIsolation
+### Community 343 - "get_remediation_agent"
+Cohesion: 0.40
+Nodes (4): get_remediation_agent(), Test suite for the Google Antigravity Agent., Verify that any agent execution appends the required math vs speech disclaimer., TestAntigravityAgent
 
 ### Community 345 - "ADR-009: Evidence Adapters are Vendor-Agnostic"
 Cohesion: 0.40
@@ -1964,10 +1959,6 @@ Nodes (3): field_validator, Validate CORS origins format., Validate database URL
 Cohesion: 0.67
 Nodes (3): db_session(), fixture, Create an in-memory SQLite database for each test.
 
-### Community 361 - "board_story.py"
-Cohesion: 0.80
-Nodes (3): BoardStory, BoardStorySection, test_board_story_schema_validation()
-
 ### Community 363 - "generate_readiness_inputs"
 Cohesion: 0.67
 Nodes (3): generate_readiness_inputs(), Session, Fetches active TelemetryEvidence and maps it to verification_statuses and…
@@ -1996,10 +1987,6 @@ Nodes (5): EnrichmentResult, Enrich a batch of normalized software records. Args
 Cohesion: 0.60
 Nodes (5): normalize_payload(), sort_lists(), Removes dynamic UUIDs and Timestamps before comparison., recursive_remove(), run_deterministic()
 
-### Community 387 - "ResilAI Design System Audit"
-Cohesion: 0.40
-Nodes (4): 1. Top 10 Technical/UI Inconsistencies, 2. Design System Directives (For Refactor), 3. Implementation Sequence, ResilAI Design System Audit
-
 ### Community 388 - "test_adversarial_vertical.py"
 Cohesion: 0.29
 Nodes (4): Adversarial Stress & Robustness Tests for Public Product Config API (Milestone…, Endpoint only accepts GET. POST, PUT, DELETE must return 405., Repeated identical requests return bit-exact JSON structures., TestAdversarialMethodsAndImmutability
@@ -2023,26 +2010,6 @@ Nodes (32): create_entry(), post, POST /api/governance/{org_id}/audit-calendar, 
 ### Community 407 - "make_auth_override"
 Cohesion: 0.18
 Nodes (8): make_auth_override(), Create an auth override for the given user., client_user_a(), client_user_b(), fixture, Create a test client authenticated as User A., Create a test client authenticated as User B., Created organization should have owner_uid set.
-
-### Community 416 - "check_igvf_gate.py"
-Cohesion: 0.50
-Nodes (4): get_modified_files(), main(), IGVF Merge Gate Check — Environment-Locked Policy Guard. This script checks if…, Retrieve the list of modified files compared to the target base ref.
-
-### Community 418 - "ResilAI Feature Migration Map (`FEATURE_MAP.md`)"
-Cohesion: 0.50
-Nodes (3): 1. Executive Summary, 3. Preserved Legacy Features Verification (R3 Guarantee), ResilAI Feature Migration Map (`FEATURE_MAP.md`)
-
-### Community 420 - "TestDeterministicScoring"
-Cohesion: 0.50
-Nodes (3): Test 14: Scoring is deterministic and evidence-based., Test 14: Same input produces same output., TestDeterministicScoring
-
-### Community 421 - "TestLLMIsolation"
-Cohesion: 0.50
-Nodes (3): Test 17: LLM has zero influence over deterministic scoring., Test 17: Scoring must be identical regardless of LLM state., TestLLMIsolation
-
-### Community 427 - "GitSyncError"
-Cohesion: 0.67
-Nodes (3): GitSyncError, Exception, Custom exception for daily git synchronization errors.
 
 ### Community 437 - "ResilAI: Application Pages"
 Cohesion: 0.14
@@ -2233,8 +2200,8 @@ Cohesion: 0.25
 Nodes (7): Architecture Snapshot, Audience, Core Capabilities, Links, Public Beta Flow, ResilAI Overview, What Differentiates ResilAI
 
 ### Community 507 - "PilotService"
-Cohesion: 0.07
-Nodes (40): CriticalSystem, HostingType, Base, str, Clinic critical system model., SystemType, ClinicDevice, DeviceType (+32 more)
+Cohesion: 0.06
+Nodes (46): CriticalSystem, HostingType, Base, str, Clinic critical system model., SystemType, ClinicDevice, DeviceType (+38 more)
 
 ### Community 508 - "ResilAI - Quick Walkthrough"
 Cohesion: 0.25
@@ -2361,8 +2328,8 @@ Cohesion: 0.40
 Nodes (5): 8.A Token Strategy (pick one, stick to it), 8.B Do Not Prescribe Specific Colors Here, 8.C Default Mode, 8.D Test in Both Modes Before Finishing, 8. DARK MODE PROTOCOL
 
 ### Community 546 - "AGENT_LOG.md"
-Cohesion: 0.09
-Nodes (25): http_exception_handler(), HTTPException, Handler for HTTP exceptions with consistent error format. Produces structured…, ElasticService, Any, Query Elastic endpoint indexes for EDR agent telemetry., Heartbeat check verifying ResilAI security logs are received in Elastic., Client for querying an Elasticsearch SIEM instance via REST API. (+17 more)
+Cohesion: 0.10
+Nodes (22): ElasticService, Any, Query Elastic endpoint indexes for EDR agent telemetry., Heartbeat check verifying ResilAI security logs are received in Elastic., Client for querying an Elasticsearch SIEM instance via REST API., Return higher-level heartbeat dictionary., Provides high-fidelity mock events for demo environment validation., Executes a search query against Elasticsearch using the Query DSL. (+14 more)
 
 ### Community 547 - "ResilAI — Design Partner Guide"
 Cohesion: 0.40
@@ -2372,9 +2339,9 @@ Nodes (4): 📅 Pilot Timeline, 🎯 Program Goals, ResilAI — Design Partner G
 Cohesion: 0.33
 Nodes (4): Verify Gemini cannot modify deterministic data., The prompt sent to Gemini contains only pre-extracted facts., Every explanation must include the source facts for auditability., TestExplanationLLMIsolation
 
-### Community 550 - "ConnectorStatus"
+### Community 550 - "Connector"
 Cohesion: 0.07
-Nodes (24): initialize_splunk_connector(), Session, Splunk Connector implementation for health monitoring and setup., Initialize or update a Splunk connector for an organization., ConnectorStatus, str, Lifecycle status of a connector., CoverageArea (+16 more)
+Nodes (27): initialize_splunk_connector(), Session, Splunk Connector implementation for health monitoring and setup., Initialize or update a Splunk connector for an organization., Connector, ConnectorStatus, Lifecycle status of a connector., External integration connector belonging to an organization. Design Rationale:… (+19 more)
 
 ### Community 552 - "ADR-010: Evidence Confidence is Deterministic"
 Cohesion: 0.40
@@ -2403,6 +2370,10 @@ Nodes (4): 1. Executive Vision & Core Question, 2. Target Personas & Workspace A
 ### Community 564 - "ResilAI — Deterministic Readiness Engine Core"
 Cohesion: 0.40
 Nodes (4): 🧮 Core Scoring Formulation, 📐 Product Invariant: Non-LLM Mathematical Math, ResilAI — Deterministic Readiness Engine Core, 🔒 Verification & Anti-Hallucination Guardrails
+
+### Community 565 - "ROADMAP.md"
+Cohesion: 0.50
+Nodes (3): Enterprise Features, Integrations Roadmap, Next 90 Days
 
 ### Community 566 - "ResilAI Route Inventory & Navigation Map (`ROUTE_MAP.md`)"
 Cohesion: 0.40
@@ -2475,22 +2446,22 @@ Nodes (3): Validate explanation service requires tenant credentials., Explanatio
 ## Knowledge Gaps
 - **1574 isolated node(s):** `API_BASE_URL`, `ApiError`, `apiClient`, `SplunkEvidenceResult`, `PilotMilestone` (+1569 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **62 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **63 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Organization` connect `Organization` to `Assessment`, `_make_org`, `_get_org`, `firestore.py`, `ClinicMoment`, `test_governance.py`, `test_connector_progress.py`, `_auto_recommend`, `create_test_org`, `_get_org`, `auditor_view`, `EntitlementService`, `_make_org`, `AuditEvent`, `Backend State`, `Report`, `NormalizedEvent`, `organizations.py`, `_make_org`, `app/db/database.py`, `IntegrationService`, `_make_org`, `typing`, `get_mobile_dashboard`, `ReportService`, `v1/integrations.py`, `ContinuousScoringEngine`, `AWSSecurityHubConnector`, `engine`, `test_evidence_integrity.py`, `ConnectorManager`, `external.py`, `test_agent_audit.py`, `get_telemetry_roi_metrics`, `services/readiness_ledger.py`, `_make_org`, `_get_org`, `TestTenantAndConnectorIsolation`, `main.py`, `test_decisions_api.py`, `test_reliability.py`, `calculate_readiness_delta`, `api/verification.py`, `test_integrations.py`, `client_with_org`, `TestEvidencePipeline`, `ReadinessLedgerEntry`, `AssessmentService`, `PilotService`, `IntelligenceService`, `test_api_endpoints_flow`, `create_explanation`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
-- **Why does `Sprint` connect `test_evidence_integrity.py` to `organizations.py`, `AGENT_LOG.md`, `.org_id`, `firestore.py`, `Organization`, `ExecutiveReportGenerator`, `react`, `typing`, `SplunkMCPClient`, `ConnectorRegistry`, `SplunkConnector`, `get_org_service`, `User`, `validate_deployment`, `App.tsx`, `ConnectorManager`, `PilotService`?**
-  _High betweenness centrality (0.051) - this node is a cross-community bridge._
-- **Why does `User` connect `User` to `policies.py`, `_get_org`, `Organization`, `require_entitlement`, `test_connector_progress.py`, `_get_org`, `BaseModel`, `auditor_view`, `AuditCalendarService`, `get_org_service`, `make_auth_override`, `get_readiness_actions`, `Backend State`, `Report`, `list_items`, `organizations.py`, `get_evidence_ledger`, `simulations.py`, `remediations.py`, `inventory.py`, `get_mobile_dashboard`, `_verify_org`, `v1/integrations.py`, `api/logic_firewall.py`, `billing_webhook`, `ConnectorManager`, `_resolve_org_id`, `get_telemetry_roi_metrics`, `_make_org`, `_get_org`, `narratives.py`, `main.py`, `ingest_intelligence_packet`, `start_pilot`, `v1/control_verification.py`, `api/verification.py`, `TestPaywallEnforcement`, `telemetry_events.py`, `api/reports.py`, `list_suggested_questions`, `create_explanation`?**
-  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+- **Why does `Organization` connect `Organization` to `_make_org`, `_get_org`, `pytest`, `ClinicMoment`, `test_connector_progress.py`, `_auto_recommend`, `create_test_org`, `_get_org`, `EntitlementService`, `record_score_change`, `_make_org`, `ResilAI Current State`, `Report`, `NormalizedEvent`, `sqlalchemy_orm`, `_make_org`, `app/db/database.py`, `IntegrationService`, `Connector`, `_make_org`, `typing`, `get_mobile_dashboard`, `ReportService`, `v1/integrations.py`, `TelemetryEvent`, `api/verification.py`, `AWSSecurityHubConnector`, `aws_integration/test_tenant_isolation.py`, `run_igvf_validation`, `test_evidence_integrity.py`, `test_all_connectors_e2e.py`, `services/integrations.py`, `test_agent_audit.py`, `get_telemetry_roi_metrics`, `services/readiness_ledger.py`, `_make_org`, `_get_org`, `main.py`, `test_decisions_api.py`, `test_reliability.py`, `calculate_readiness_delta`, `calculate_scores`, `download_board_story_pdf`, `test_integrations.py`, `client_with_org`, `TestEvidencePipeline`, `ReadinessLedgerEntry`, `AssessmentService`, `PilotService`, `test_api_endpoints_flow`, `create_explanation`?**
+  _High betweenness centrality (0.073) - this node is a cross-community bridge._
+- **Why does `Sprint` connect `test_evidence_integrity.py` to `sqlalchemy_orm`, `SplunkConnector`, `Organization`, `test_all_connectors_e2e.py`, `AGENT_LOG.md`, `.org_id`, `report_generator.py`, `pytest`, `Reports.tsx`, `SplunkMCPClient`, `get_org_service`, `User`, `TelemetryEvent`, `react`, `PilotService`, `ConnectorManager`, `CORSErrorSafetyMiddleware`?**
+  _High betweenness centrality (0.053) - this node is a cross-community bridge._
+- **Why does `User` connect `User` to `policies.py`, `_get_org`, `require_entitlement`, `pytest`, `test_connector_progress.py`, `api/integrations.py`, `generate_auditor_link`, `AuditCalendarService`, `get_org_service`, `_get_org`, `make_auth_override`, `get_readiness_actions`, `ResilAI Current State`, `Report`, `list_items`, `sqlalchemy_orm`, `get_evidence_ledger`, `simulations.py`, `patch_remediation`, `trigger_sync`, `inventory.py`, `_verify_org`, `v1/integrations.py`, `get_mobile_dashboard`, `api/verification.py`, `api/logic_firewall.py`, `ConnectorManager`, `test_suggestions.py`, `_resolve_org_id`, `get_telemetry_roi_metrics`, `_make_org`, `_get_org`, `narratives.py`, `ingest_intelligence_packet`, `start_pilot`, `v1/control_verification.py`, `calculate_scores`, `TestPaywallEnforcement`, `telemetry_events.py`, `api/reports.py`, `create_explanation`?**
+  _High betweenness centrality (0.050) - this node is a cross-community bridge._
 - **Are the 216 inferred relationships involving `User` (e.g. with `add_finding()` and `annotate_findings()`) actually correct?**
   _`User` has 216 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 75 inferred relationships involving `Organization` (e.g. with `auditor_view()` and `_get_org()`) actually correct?**
   _`Organization` has 75 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `API_BASE_URL`, `ApiError`, `apiClient` to the rest of the system?**
   _1574 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Assessment` be split into smaller, more focused modules?**
-  _Cohesion score 0.01822268326417704 - nodes in this community are weakly interconnected._
+- **Should `Organization` be split into smaller, more focused modules?**
+  _Cohesion score 0.0108921431167887 - nodes in this community are weakly interconnected._
