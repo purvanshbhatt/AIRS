@@ -337,9 +337,9 @@ export const createCheckoutSession = (
   );
 
 export const getOrganizations = async (): Promise<import('./types').Organization[]> => {
-  const hasAuth = Boolean(tokenProvider);
-  const isDemo = !hasAuth && typeof window !== 'undefined' && (
+  const isDemo = typeof window !== 'undefined' && (
     localStorage.getItem('resilai_demo_user') === 'true' ||
+    localStorage.getItem('resilai_demo_session') === 'true' ||
     window.location.search.includes('env=demo') ||
     window.location.hostname.includes('demo')
   );
@@ -352,7 +352,27 @@ export const getOrganizations = async (): Promise<import('./types').Organization
       created_at: new Date().toISOString(),
     }];
   }
-  return request<import('./types').Organization[]>('/api/orgs');
+  try {
+    return await request<import('./types').Organization[]>('/api/orgs');
+  } catch (err) {
+    // If the user has no valid auth but has a demo session flag, fall back to demo org
+    if (err instanceof ApiRequestError && err.status === 401) {
+      const isDemoFallback = typeof window !== 'undefined' && (
+        localStorage.getItem('resilai_demo_user') === 'true' ||
+        localStorage.getItem('resilai_demo_session') === 'true'
+      );
+      if (isDemoFallback) {
+        return [{
+          id: 'demo-health-org',
+          name: 'Acme Health Systems (Regional Clinic Network)',
+          industry: 'healthcare',
+          size: '50-250',
+          created_at: new Date().toISOString(),
+        }];
+      }
+    }
+    throw err;
+  }
 };
 
 export const getOrganization = async (id: string): Promise<import('./types').Organization> => {
@@ -1873,27 +1893,49 @@ export const getDailyReadinessReport = async (orgId: string): Promise<DailyReadi
 
   const host = typeof window !== 'undefined' ? window.location.hostname : '';
   const search = typeof window !== 'undefined' ? window.location.search : '';
-  const hasAuthToken = Boolean(tokenProvider);
-  const isDemoEnv = !hasAuthToken && (
-    host === 'demo.resilai.org' || 
-    host.includes('demo') || 
+  const isDemoSession = typeof window !== 'undefined' && (
+    localStorage.getItem('resilai_demo_user') === 'true' ||
+    localStorage.getItem('resilai_demo_session') === 'true' ||
+    host === 'demo.resilai.org' ||
+    host.includes('demo') ||
     search.includes('env=demo') ||
-    import.meta.env.VITE_APP_ENV === 'demo' || 
-    import.meta.env.MODE === 'demo' ||
-    (typeof window !== 'undefined' && (localStorage.getItem('resilai_demo_user') === 'true' || localStorage.getItem('resilai_demo_session') === 'true'))
+    import.meta.env.VITE_APP_ENV === 'demo' ||
+    import.meta.env.MODE === 'demo'
   );
 
-  // Invariant: Demo data is ONLY returned for explicit demo organization IDs in demo mode.
+  // Invariant: Demo data is ONLY returned for explicit demo organization IDs.
   // Real organizations with real IDs MUST ALWAYS call the backend API to reflect real verification status.
-  if (isExplicitDemoOrg && (isDemoEnv || !hasAuthToken)) {
+  // Note: on staging, tokenProvider may be set even for demo users who lack a valid Firebase token,
+  // so we check the org ID + demo session signals — NOT the presence of tokenProvider.
+  if (isExplicitDemoOrg && isDemoSession) {
     console.log('[API] Returning Acme Health Systems demo readiness report');
     return MOCK_ACME_DAILY_READINESS;
+  }
+
+  // Fallback: even without an explicit demo session flag, if the org ID is a known
+  // demo org and the user has no valid auth token, serve mock data to avoid 401.
+  if (isExplicitDemoOrg) {
+    try {
+      const headers = await getAuthHeaders();
+      if (!headers.Authorization) {
+        console.log('[API] No auth token for demo org — returning mock readiness report');
+        return MOCK_ACME_DAILY_READINESS;
+      }
+    } catch {
+      console.log('[API] Auth error for demo org — returning mock readiness report');
+      return MOCK_ACME_DAILY_READINESS;
+    }
   }
 
   try {
     const report = await request<DailyReadinessReport>(`/api/clinic/readiness/${orgId}`);
     return report;
   } catch (err) {
+    // If the backend returns 401 for a demo org, gracefully fall back to mock data
+    if (isExplicitDemoOrg && err instanceof ApiRequestError && err.status === 401) {
+      console.log('[API] 401 for demo org — falling back to mock readiness report');
+      return MOCK_ACME_DAILY_READINESS;
+    }
     throw err;
   }
 };
