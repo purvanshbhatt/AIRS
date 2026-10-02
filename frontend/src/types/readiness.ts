@@ -85,6 +85,7 @@ export interface ActionCard {
   last_verified_at: string;
   confidence_pct: number;
   verification_method: string;
+  fix_now_available?: boolean;
   explanation?: ExecutiveExplanation;
 }
 

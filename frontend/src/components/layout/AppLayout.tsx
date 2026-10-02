@@ -168,6 +168,7 @@ export default function AppLayout() {
       {/* Mobile Bottom Navigation Bar - Material 3 NavigationBar */}
       <nav 
         className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-low/95 dark:bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/40 z-40 pb-safe m3-elevation-2"
+        style={{ bottom: 0, top: 'auto' }}
         aria-label="Mobile Bottom Navigation"
       >
         <ul className="flex justify-around items-center h-16 px-1">

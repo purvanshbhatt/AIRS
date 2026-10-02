@@ -96,7 +96,7 @@ export default function Login() {
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center mb-2">
             <div className="w-14 h-14 rounded-2xl bg-ready-emerald/15 border border-ready-emerald/30 flex items-center justify-center shadow-lg shadow-ready-emerald/10">
-              <ShieldAlert className="w-8 h-8 text-ready-emerald" />
+              <img src="/favicon.png" alt="ResilAI" className="w-10 h-10 object-contain rounded-xl" />
             </div>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-on-surface mt-2">ResilAI</h1>

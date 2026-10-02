@@ -95,35 +95,35 @@ export default function AgentAuditPage() {
     switch (status) {
       case 'COMPLETE':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <CheckCircle2 className="w-3.5 h-3.5" />
             Evaluation Complete
           </span>
         );
       case 'INGESTING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
             <Activity className="w-3.5 h-3.5 animate-pulse" />
             Ingesting Live Traces
           </span>
         );
       case 'EVALUATING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             Evaluating Blast Radius
           </span>
         );
       case 'EXPIRED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container text-on-surface-variant border border-outline-variant/60">
             <Clock className="w-3.5 h-3.5" />
             Window Expired (48h)
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             <Clock className="w-3.5 h-3.5" />
             Window Initialized
           </span>
@@ -142,7 +142,7 @@ export default function AgentAuditPage() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-container-low p-6 rounded-2xl border border-outline-variant/60 shadow-xs">
         <div>
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
@@ -150,14 +150,14 @@ export default function AgentAuditPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-white tracking-tight">48-Hour Live AI Agent Blast-Radius Audit</h1>
+                <h1 className="text-2xl font-bold text-on-surface tracking-tight">48-Hour Live AI Agent Blast-Radius Audit</h1>
                 {isDemo && (
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                     Sandbox Demo
                   </span>
                 )}
               </div>
-              <p className="text-slate-400 text-sm mt-0.5">
+              <p className="text-on-surface-variant text-sm mt-0.5">
                 Deterministic, time-bounded telemetry evaluation of autonomous tool execution, lateral blast radius, and NIST AI RMF / OWASP LLM alignment.
               </p>
             </div>
@@ -166,7 +166,7 @@ export default function AgentAuditPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={fetchAudits}
-            className="p-2.5 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-colors"
+            className="p-2.5 text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded-xl border border-outline-variant/60 transition-colors"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -185,12 +185,12 @@ export default function AgentAuditPage() {
       {paywallError && (
         <div className="p-6 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl">
           <div className="flex items-start gap-4">
-            <div className="p-2 bg-amber-500/10 text-amber-400 rounded-lg">
+            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
               <Lock className="w-6 h-6" />
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-semibold text-white">Design Partner Subscription Required</h3>
-              <p className="text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+              <h3 className="text-base font-semibold text-on-surface">Design Partner Subscription Required</h3>
+              <p className="text-sm text-on-surface-variant mt-1 max-w-2xl leading-relaxed">
                 48-Hour Live AI Agent Blast-Radius Audits require an active ResilAI subscription or design partner enrollment to ingest production traces and generate compliance audit artifacts.
               </p>
               <div className="mt-4 flex items-center gap-3">
@@ -202,7 +202,7 @@ export default function AgentAuditPage() {
                 </button>
                 <button
                   onClick={() => navigate('/pilot')}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-colors"
+                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg border border-outline-variant/60 transition-colors"
                 >
                   Request 14-Day Pilot
                 </button>
@@ -214,7 +214,7 @@ export default function AgentAuditPage() {
 
       {/* Error state */}
       {error && (
-        <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm flex items-center gap-3">
+        <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-500 dark:text-rose-400 text-sm flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -222,17 +222,17 @@ export default function AgentAuditPage() {
 
       {/* Content Area */}
       {loading ? (
-        <div className="p-12 text-center bg-slate-900/40 rounded-2xl border border-slate-800/80">
-          <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin mx-auto mb-3" />
-          <p className="text-sm text-slate-400 font-medium">Loading agent observation sessions...</p>
+        <div className="p-12 text-center bg-surface-container-low rounded-2xl border border-outline-variant/60">
+          <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-3" />
+          <p className="text-sm text-on-surface-variant font-medium">Loading agent observation sessions...</p>
         </div>
       ) : audits.length === 0 ? (
-        <div className="p-12 text-center bg-slate-900/40 rounded-2xl border border-slate-800/80 max-w-2xl mx-auto">
-          <div className="w-16 h-16 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-400">
+        <div className="p-12 text-center bg-surface-container-low rounded-2xl border border-outline-variant/60 max-w-2xl mx-auto shadow-xs">
+          <div className="w-16 h-16 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-500">
             <Bot className="w-8 h-8" />
           </div>
-          <h2 className="text-lg font-bold text-white mb-2">No Active Agent Audits</h2>
-          <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+          <h2 className="text-lg font-bold text-on-surface mb-2">No Active Agent Audits</h2>
+          <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
             Deploy a bounded 48-hour observation window to ingest agent execution telemetry from your MSP, SIEM, or directly via OpenTelemetry. The deterministic engine validates tool authorization, lateral blast radius, and unconstrained action execution.
           </p>
           <button
@@ -253,31 +253,31 @@ export default function AgentAuditPage() {
               <div
                 key={audit.id}
                 onClick={() => navigate(`/agent-audit/${audit.id}`)}
-                className="group relative bg-slate-900/50 hover:bg-slate-900/80 border border-slate-800 hover:border-slate-700 p-6 rounded-2xl cursor-pointer transition-all duration-200"
+                className="group relative bg-surface-container-low hover:bg-surface-container border border-outline-variant/60 hover:border-outline-variant p-6 rounded-2xl cursor-pointer transition-all duration-200 shadow-xs"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   {/* Left Column */}
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">
+                      <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors">
                         {audit.agent_name || 'Autonomous Agent'}
                       </h3>
-                      <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                      <span className="text-xs px-2.5 py-0.5 rounded-md bg-surface-container text-on-surface-variant border border-outline-variant/60 font-mono">
                         {audit.environment}
                       </span>
-                      <span className="text-xs px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono uppercase">
+                      <span className="text-xs px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono uppercase">
                         {audit.source_type}
                       </span>
                       {getStatusBadge(audit.status)}
                     </div>
 
-                    <p className="text-sm text-slate-400 line-clamp-1">
+                    <p className="text-sm text-on-surface-variant line-clamp-1">
                       {audit.business_context || 'Autonomous operational workflow'}
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                      <span className="flex items-center gap-1.5 text-slate-400 font-medium">
-                        <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-on-surface-variant/80">
+                      <span className="flex items-center gap-1.5 text-on-surface-variant font-medium">
+                        <Clock className="w-3.5 h-3.5 text-indigo-500" />
                         {getRemainingTime(audit.expires_at)}
                       </span>
                       <span>•</span>
@@ -293,32 +293,32 @@ export default function AgentAuditPage() {
                   <div className="flex items-center gap-6 self-end lg:self-center">
                     {score !== null && score !== undefined ? (
                       <div className="text-right">
-                        <div className="text-2xl font-extrabold text-white">
+                        <div className="text-2xl font-extrabold text-on-surface">
                           <span
                             className={
                               score >= 80
-                                ? 'text-emerald-400'
+                                ? 'text-emerald-500 dark:text-emerald-400'
                                 : score >= 60
-                                ? 'text-amber-400'
-                                : 'text-rose-400'
+                                ? 'text-amber-500 dark:text-amber-400'
+                                : 'text-rose-500 dark:text-rose-400'
                             }
                           >
                             {Math.round(score)}%
                           </span>
                         </div>
-                        <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                        <div className="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">
                           Readiness Score
                         </div>
                       </div>
                     ) : (
                       <div className="text-right">
-                        <div className="text-xs text-slate-400 font-medium bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                        <div className="text-xs text-on-surface-variant font-medium bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/60">
                           Awaiting Evaluation
                         </div>
                       </div>
                     )}
 
-                    <div className="p-3 bg-slate-800/80 group-hover:bg-indigo-600/20 text-slate-400 group-hover:text-indigo-400 rounded-xl border border-slate-700/80 transition-all">
+                    <div className="p-3 bg-surface-container group-hover:bg-primary/10 text-on-surface-variant group-hover:text-primary rounded-xl border border-outline-variant/60 transition-all">
                       <ChevronRight className="w-5 h-5" />
                     </div>
                   </div>
@@ -331,18 +331,18 @@ export default function AgentAuditPage() {
 
       {/* Create Audit Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface-container-low border border-outline-variant rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-lg font-bold text-white">Start 48-Hour Blast-Radius Audit</h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <h3 className="text-lg font-bold text-on-surface">Start 48-Hour Blast-Radius Audit</h3>
+                <p className="text-xs text-on-surface-variant mt-1">
                   Bounded time observation session. Automatically expires in 48 hours.
                 </p>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-slate-400 hover:text-white text-sm"
+                className="text-on-surface-variant hover:text-on-surface text-sm"
               >
                 ✕
               </button>
@@ -350,7 +350,7 @@ export default function AgentAuditPage() {
 
             <form onSubmit={handleCreateAudit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">
                   AI Agent Identifier / Name
                 </label>
                 <input
@@ -359,19 +359,19 @@ export default function AgentAuditPage() {
                   placeholder="e.g., Triage AI Assistant or Client Document Vault Bot"
                   value={agentName}
                   onChange={(e) => setAgentName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-800/70 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">
                     Environment
                   </label>
                   <select
                     value={environment}
                     onChange={(e) => setEnvironment(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800/70 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm focus:outline-none focus:border-primary"
                   >
                     <option value="Production">Production</option>
                     <option value="Staging">Staging</option>
@@ -380,13 +380,13 @@ export default function AgentAuditPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">
                     Telemetry Source
                   </label>
                   <select
                     value={sourceType}
                     onChange={(e) => setSourceType(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800/70 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm focus:outline-none focus:border-primary"
                   >
                     <option value="splunk">Splunk MCP</option>
                     <option value="datadog">Datadog MCP</option>
@@ -397,7 +397,7 @@ export default function AgentAuditPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">
                   Business Scope & Mission
                 </label>
                 <textarea
@@ -405,13 +405,13 @@ export default function AgentAuditPage() {
                   placeholder="Describe what data and tools this agent has access to..."
                   value={businessContext}
                   onChange={(e) => setBusinessContext(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-800/70 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
                 />
               </div>
 
               <div className="p-3.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                <div className="flex items-start gap-2.5 text-xs text-indigo-300">
-                  <Shield className="w-4 h-4 flex-shrink-0 mt-0.5 text-indigo-400" />
+                <div className="flex items-start gap-2.5 text-xs text-indigo-700 dark:text-indigo-300">
+                  <Shield className="w-4 h-4 flex-shrink-0 mt-0.5 text-indigo-500" />
                   <span>
                     Deterministic rules evaluate score and findings against NIST AI RMF. Gemini synthesizes executive explanations.
                   </span>
@@ -422,14 +422,14 @@ export default function AgentAuditPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-colors"
+                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-medium rounded-xl border border-outline-variant/60 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2 bg-primary hover:bg-primary-hover text-on-primary text-sm font-semibold rounded-xl shadow-lg transition-all disabled:opacity-50"
                 >
                   {submitting && <RefreshCw className="w-4 h-4 animate-spin" />}
                   Initialize 48h Window

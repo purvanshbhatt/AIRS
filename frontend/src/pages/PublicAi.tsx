@@ -53,7 +53,7 @@ export default function PublicAi() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-primary-500/20 transition-colors duration-300">
+    <div className="min-h-screen bg-background text-on-surface flex flex-col selection:bg-primary-500/20 transition-colors duration-300">
       <PublicNavbar />
 
       <main className="flex-1">

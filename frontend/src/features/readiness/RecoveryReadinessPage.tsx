@@ -144,7 +144,7 @@ export default function RecoveryReadinessPage() {
               </div>
             )}
             <p className="text-xs text-on-surface-variant leading-relaxed">
-              Estimated restoration time (Recovery Time Objective) for Tier 1 Patient Databases (EHR/EMR) from the last verified snapshot.
+              Estimated time to restore patient databases from verified snapshots in an emergency.
             </p>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function RecoveryReadinessPage() {
               <span>Backup Health (7 Days)</span>
             </h2>
             <span className={`text-xs font-mono ${hasRecoveryData ? 'text-ready-emerald' : 'text-on-surface-variant'}`}>
-              {hasRecoveryData ? '100% Immutable Snapshots' : 'Data Unavailable'}
+              {hasRecoveryData ? '100% Protected Backups' : 'Data Unavailable'}
             </span>
           </div>
 
@@ -212,7 +212,7 @@ export default function RecoveryReadinessPage() {
               <h3 className="text-base font-semibold text-on-surface">Disaster Recovery Playbook</h3>
             </div>
             <p className="text-sm text-on-surface-variant mb-4">
-              Automated Ransomware Recovery Playbook is compiled and ready. Storage snapshots are cryptographically signed and air-gapped.
+              Automated Ransomware Recovery Playbook is ready. Storage snapshots are secured, isolated, and tested.
             </p>
           </div>
           <div className="p-4 rounded-lg bg-surface-container border border-outline-variant/30 flex items-center justify-between">

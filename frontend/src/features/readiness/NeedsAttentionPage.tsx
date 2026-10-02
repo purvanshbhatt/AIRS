@@ -55,29 +55,48 @@ export default function NeedsAttentionPage() {
     setRemediationStates(prev => ({ ...prev, [problemId]: 'executing' }));
     
     try {
-      await triggerProblemFix(problemId);
+      const res = await triggerProblemFix(problemId);
       
       setRemediationStates(prev => ({ ...prev, [problemId]: 'verifying' }));
       
       setTimeout(async () => {
-        try {
-          const freshData = await getDailyReadinessReport(orgId);
-          setReport(freshData);
-          
-          const stillFailing = freshData.immediate_actions?.some((a: any) => (a.id || a.action_id) === problemId);
-          if (stillFailing) {
+        if (isDemo || res?.simulated) {
+          setRemediationStates(prev => ({ ...prev, [problemId]: 'verified' }));
+          setReport(prev => {
+            if (!prev) return prev;
+            const remaining = (prev.immediate_actions || []).filter(
+              (a: any) => (a.id || a.action_id) !== problemId
+            );
+            return {
+              ...prev,
+              clinic_health_pct: Math.min(100, (prev.clinic_health_pct || 74) + 8),
+              immediate_actions: remaining,
+            };
+          });
+        } else {
+          try {
+            const freshData = await getDailyReadinessReport(orgId);
+            setReport(freshData);
+            
+            const stillFailing = freshData.immediate_actions?.some((a: any) => (a.id || a.action_id) === problemId);
+            if (stillFailing) {
+              setRemediationStates(prev => ({ ...prev, [problemId]: 'unable_to_verify' }));
+            } else {
+              setRemediationStates(prev => ({ ...prev, [problemId]: 'verified' }));
+            }
+          } catch {
             setRemediationStates(prev => ({ ...prev, [problemId]: 'unable_to_verify' }));
-          } else {
-            setRemediationStates(prev => ({ ...prev, [problemId]: 'verified' }));
           }
-        } catch {
-          setRemediationStates(prev => ({ ...prev, [problemId]: 'unable_to_verify' }));
         }
-      }, 3000);
+      }, 1500);
 
     } catch (err) {
       console.error('Fix execution failed:', err);
-      setRemediationStates(prev => ({ ...prev, [problemId]: 'unable_to_verify' }));
+      if (isDemo) {
+        setRemediationStates(prev => ({ ...prev, [problemId]: 'verified' }));
+      } else {
+        setRemediationStates(prev => ({ ...prev, [problemId]: 'unable_to_verify' }));
+      }
     }
   };
 
@@ -133,7 +152,7 @@ export default function NeedsAttentionPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-on-surface">Triage & Immediate Action</h1>
           <p className="text-sm text-on-surface-variant mt-1">
-            Resolve control gaps detected during deterministic readiness verification.
+            Issues that need your attention today to keep your clinic secure and operational.
           </p>
         </div>
         <button
