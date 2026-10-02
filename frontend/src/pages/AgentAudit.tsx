@@ -145,7 +145,7 @@ export default function AgentAuditPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-container-low p-6 rounded-2xl border border-outline-variant/60 shadow-xs">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
+            <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl text-primary">
               <Bot className="w-6 h-6" />
             </div>
             <div>
@@ -173,7 +173,7 @@ export default function AgentAuditPage() {
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-on-primary font-medium text-sm rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             Start 48-Hour Audit
@@ -223,12 +223,12 @@ export default function AgentAuditPage() {
       {/* Content Area */}
       {loading ? (
         <div className="p-12 text-center bg-surface-container-low rounded-2xl border border-outline-variant/60">
-          <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-3" />
+          <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
           <p className="text-sm text-on-surface-variant font-medium">Loading agent observation sessions...</p>
         </div>
       ) : audits.length === 0 ? (
         <div className="p-12 text-center bg-surface-container-low rounded-2xl border border-outline-variant/60 max-w-2xl mx-auto shadow-xs">
-          <div className="w-16 h-16 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-500">
+          <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-primary">
             <Bot className="w-8 h-8" />
           </div>
           <h2 className="text-lg font-bold text-on-surface mb-2">No Active Agent Audits</h2>
@@ -237,7 +237,7 @@ export default function AgentAuditPage() {
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-xl transition-all shadow-lg shadow-indigo-600/20"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-on-primary font-semibold text-sm rounded-xl transition-all shadow-lg shadow-primary/20"
           >
             <Plus className="w-4 h-4" />
             Launch First 48-Hour Session
@@ -265,7 +265,7 @@ export default function AgentAuditPage() {
                       <span className="text-xs px-2.5 py-0.5 rounded-md bg-surface-container text-on-surface-variant border border-outline-variant/60 font-mono">
                         {audit.environment}
                       </span>
-                      <span className="text-xs px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono uppercase">
+                      <span className="text-xs px-2.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 font-mono uppercase">
                         {audit.source_type}
                       </span>
                       {getStatusBadge(audit.status)}
@@ -277,7 +277,7 @@ export default function AgentAuditPage() {
 
                     <div className="flex flex-wrap items-center gap-4 text-xs text-on-surface-variant/80">
                       <span className="flex items-center gap-1.5 text-on-surface-variant font-medium">
-                        <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                        <Clock className="w-3.5 h-3.5 text-primary" />
                         {getRemainingTime(audit.expires_at)}
                       </span>
                       <span>•</span>
@@ -409,9 +409,9 @@ export default function AgentAuditPage() {
                 />
               </div>
 
-              <div className="p-3.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                <div className="flex items-start gap-2.5 text-xs text-indigo-700 dark:text-indigo-300">
-                  <Shield className="w-4 h-4 flex-shrink-0 mt-0.5 text-indigo-500" />
+              <div className="p-3.5 bg-surface-container border border-outline-variant/60 rounded-xl">
+                <div className="flex items-start gap-2.5 text-xs text-on-surface-variant">
+                  <Shield className="w-4 h-4 flex-shrink-0 mt-0.5 text-primary" />
                   <span>
                     Deterministic rules evaluate score and findings against NIST AI RMF. Gemini synthesizes executive explanations.
                   </span>

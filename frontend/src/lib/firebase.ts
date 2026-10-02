@@ -8,14 +8,7 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, Auth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'gen-lang-client-0384513977.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'gen-lang-client-0384513977',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'gen-lang-client-0384513977.firebasestorage.app',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '227825933697',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:227825933697:web:db541dfaf9e10e778edc80',
-};
+const DEFAULT_FIREBASE_API_KEY = 'AIzaSyC3QWQVV0FJHDveMbsD2FsdjV5pJiHIauw';
 
 function isMissingOrFakeApiKey(value?: string): boolean {
   if (!value) return true;
@@ -27,6 +20,18 @@ function isMissingOrFakeApiKey(value?: string): boolean {
     normalized.includes('placeholder')
   );
 }
+
+const rawApiKey = import.meta.env.VITE_FIREBASE_API_KEY || '';
+const effectiveApiKey = !isMissingOrFakeApiKey(rawApiKey) ? rawApiKey : DEFAULT_FIREBASE_API_KEY;
+
+const firebaseConfig = {
+  apiKey: effectiveApiKey,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'gen-lang-client-0384513977.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'gen-lang-client-0384513977',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'gen-lang-client-0384513977.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '227825933697',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:227825933697:web:db541dfaf9e10e778edc80',
+};
 
 // Check if Firebase config is available and key looks valid for web auth usage.
 export const isFirebaseConfigured = Boolean(
