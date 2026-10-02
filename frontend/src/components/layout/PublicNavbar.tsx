@@ -124,8 +124,8 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
     <header
       className={`sticky top-0 z-50 w-full transition-colors duration-300 ${
         transparent
-          ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80'
-          : 'bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800'
+          ? 'bg-background/80 dark:bg-background/80 backdrop-blur-md border-b border-outline-variant/40'
+          : 'bg-background/95 dark:bg-background/95 backdrop-blur-md border-b border-outline-variant/40'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,15 +133,16 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
           {/* Brand Logo */}
           <Link
             to={homeLink}
-            className="flex items-center gap-2.5 text-slate-900 dark:text-slate-100 font-bold tracking-tight text-lg group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg py-1 px-1.5"
+            className="flex items-center gap-2.5 text-on-surface font-bold tracking-tight text-lg group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg py-1 px-1.5"
             aria-label={`${config.displayName} Home`}
             data-testid="navbar-brand-link"
           >
             <img
-              src="/logo_header.svg"
+              src="/favicon.png"
               alt="ResilAI Logo"
-              className="h-9 w-auto dark:brightness-0 dark:invert transition-transform duration-300 group-hover:scale-105"
+              className="h-8 w-8 object-contain rounded-lg transition-transform duration-300 group-hover:scale-105 shrink-0"
             />
+            <span className="font-extrabold tracking-tight text-xl text-on-surface">ResilAI</span>
             {currentVertical !== 'general' && (
               <span
                 data-testid="navbar-vertical-badge"
@@ -235,7 +236,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg px-4 pt-2 pb-6 space-y-3 animate-fadeIn">
+        <div className="lg:hidden border-b border-outline-variant/40 bg-background/95 backdrop-blur-lg px-4 pt-2 pb-6 space-y-3 animate-fadeIn">
           <nav className="flex flex-col space-y-1">
             {navLinks.map(({ label, to }) => {
               const isAnchor = to.includes('#');

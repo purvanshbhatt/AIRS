@@ -375,7 +375,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
   }, [currentVertical]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 transition-colors duration-300 flex flex-col">
+    <div className="min-h-screen bg-background text-on-surface selection:bg-primary-500/20 transition-colors duration-300 flex flex-col">
       <SEOHead {...seoConfig} />
       {/* Unified Public Navigation */}
       <PublicNavbar transparent currentVertical={effectiveVertical} />
@@ -403,7 +403,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-all cursor-pointer m3-state-layer shadow-xs ${
                   currentVertical === 'healthcare'
                     ? 'bg-ready-emerald/15 text-emerald-900 dark:text-ready-emerald border-ready-emerald/50 shadow-sm shadow-ready-emerald/15 font-bold'
-                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'bg-surface-container-low text-on-surface-variant border-outline-variant/60 hover:bg-surface-container-high hover:text-on-surface'
                 }`}
               >
                 <Activity className="w-4 h-4 text-ready-emerald shrink-0" />
@@ -419,7 +419,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-all cursor-pointer m3-state-layer shadow-xs ${
                   currentVertical === 'legal'
                     ? 'bg-blue-500/15 text-blue-950 dark:text-blue-400 border-blue-500/50 shadow-sm shadow-blue-500/15 font-bold'
-                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'bg-surface-container-low text-on-surface-variant border-outline-variant/60 hover:bg-surface-container-high hover:text-on-surface'
                 }`}
               >
                 <Scale className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -495,7 +495,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 {config.focusAreas.map((area, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-surface-container border border-outline-variant/60 text-on-surface"
                   >
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                     {area}
@@ -519,13 +519,13 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
               </Link>
               <a
                 href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-slate-800 dark:text-slate-200 font-semibold rounded-full sm:rounded-2xl border border-slate-300 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-[0.98] min-h-[48px] text-center"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-on-surface font-semibold rounded-full sm:rounded-2xl border border-outline-variant/60 bg-surface-container-low hover:bg-surface-container-high transition-all active:scale-[0.98] min-h-[48px] text-center"
               >
                 See How It Works
               </a>
               <button
                 onClick={handleEnterSandbox}
-                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 text-slate-800 dark:text-slate-200 font-semibold rounded-full sm:rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all text-sm cursor-pointer min-h-[48px] text-center"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 text-on-surface font-semibold rounded-full sm:rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all text-sm cursor-pointer min-h-[48px] text-center"
                 data-testid="hero-demo-cta"
               >
                 <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
@@ -664,10 +664,10 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
       </section>
 
       {/* Core Loop Section */}
-      <section id="how-it-works" className="py-16 bg-slate-50 dark:bg-slate-900/60 border-y border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300 scroll-mt-20">
+      <section id="how-it-works" className="py-16 bg-surface-container border-y border-outline-variant/40 transition-colors duration-300 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 relative">
-            <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-slate-200 via-primary-300 to-slate-200 dark:from-slate-800 dark:via-primary-800 dark:to-slate-800" />
+            <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-outline-variant via-primary-300 to-outline-variant dark:from-outline-variant/40 dark:via-primary-800 dark:to-outline-variant/40" />
             {loopSteps.map((step, i) => (
               <motion.div
                 key={step.title}
@@ -677,13 +677,13 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="relative text-center z-10"
               >
-                <div className="w-16 h-16 mx-auto bg-white dark:bg-slate-950 border-2 border-primary-100 dark:border-primary-900/50 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                <div className="w-16 h-16 mx-auto bg-surface-container-low border-2 border-primary-500/20 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
                   <step.icon className="w-7 h-7 text-primary-600 dark:text-primary-400" />
                 </div>
-                <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">
+                <h3 className="text-xl font-extrabold text-on-surface tracking-tight">
                   {step.title}
                 </h3>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mt-2 leading-relaxed max-w-[250px] mx-auto">
+                <p className="text-sm font-medium text-on-surface-variant mt-2 leading-relaxed max-w-[250px] mx-auto">
                   {step.description}
                 </p>
               </motion.div>
@@ -696,10 +696,10 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-on-surface">
               One truth, translated for every leader.
             </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p className="text-lg text-on-surface-variant leading-relaxed">
               ResilAI provides a unified, continuous readiness posture that speaks the right language to the right stakeholder.
             </p>
           </div>
@@ -712,15 +712,15 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="group p-8 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-[24px] hover:border-primary-500 hover:bg-white dark:hover:bg-slate-900/80 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
+                className="group p-8 bg-surface-container-low border border-outline-variant/60 rounded-[24px] hover:border-primary-500 hover:bg-surface-container hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
               >
                 <div className="w-12 h-12 bg-primary-100 dark:bg-primary-950/40 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-105 transition-all duration-300">
                   <persona.icon className="w-6 h-6 text-primary-600 dark:text-primary-400 group-hover:text-white transition-colors" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-3">
+                <h3 className="text-lg font-bold text-on-surface mb-3">
                   {persona.title}
                 </h3>
-                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                <p className="text-on-surface-variant text-sm leading-relaxed">
                   {persona.description}
                 </p>
               </motion.div>
@@ -730,7 +730,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
       </section>
 
       {/* Report Preview Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-200/50 dark:border-slate-800/40">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface-container-low/60 border-t border-outline-variant/40">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-6 text-left">
@@ -770,7 +770,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
             {/* Interactive Report View */}
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary-500 to-emerald-500 rounded-[32px] blur-2xl opacity-15 dark:opacity-25" />
-              <div className="relative bg-white dark:bg-slate-900 rounded-[24px] shadow-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden text-left">
+              <div className="relative bg-surface-container-low rounded-[24px] shadow-2xl border border-outline-variant/60 overflow-hidden text-left">
                 {/* Banner header */}
                 <div className="bg-gradient-to-r from-primary-600 to-emerald-600 px-6 py-5">
                   <div className="flex items-center gap-3">
@@ -790,11 +790,11 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                   {/* Score Ring */}
                   <div className="flex items-center gap-6">
                     <div className="w-20 h-20 rounded-full border-[6px] border-emerald-500 flex items-center justify-center shadow-inner">
-                      <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">84%</span>
+                      <span className="text-2xl font-bold text-on-surface">84%</span>
                     </div>
                     <div>
-                      <p className="font-bold text-slate-900 dark:text-slate-50">Maturity Level: Managed</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Recalculated 2 minutes ago</p>
+                      <p className="font-bold text-on-surface">Maturity Level: Managed</p>
+                      <p className="text-xs text-on-surface-variant mt-1">Recalculated 2 minutes ago</p>
                     </div>
                   </div>
 
@@ -802,11 +802,11 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                   <div className="space-y-3.5">
                     {config.criticalSystems.slice(0, 3).map((sys, idx) => (
                       <div key={sys}>
-                        <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">
+                        <div className="flex justify-between text-xs font-semibold mb-1 text-on-surface-variant">
                           <span>{sys}</span>
                           <span className="font-bold">{92 - idx * 5}%</span>
                         </div>
-                        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary-500 rounded-full"
                             style={{ width: `${92 - idx * 5}%` }}
@@ -848,24 +848,24 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
       </section>
 
       {/* Industry Cyber Defense Playbooks & Solutions Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-slate-200/60 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-outline-variant/40 bg-surface-container-low/60">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 dark:bg-primary-950/60 text-primary-800 dark:text-primary-300 rounded-full text-xs font-semibold border border-primary-200 dark:border-primary-800/60">
               <BookOpen className="w-3.5 h-3.5" />
               <span>Cyber Defense Guides & Solutions</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-on-surface">
               How to Stop Attacks on High-Risk Organizations
             </h2>
-            <p className="text-base text-slate-600 dark:text-slate-300">
+            <p className="text-base text-on-surface-variant">
               Battle-tested operational playbooks designed specifically for legal firms and healthcare practices facing targeted ransomware and sophisticated threat actors.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Legal Guide Card */}
-            <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-primary-500/40 dark:hover:border-primary-500/40 transition-all flex flex-col justify-between group">
+            <div className="p-8 rounded-2xl bg-surface-container-low border border-outline-variant/60 shadow-xs hover:border-primary-500/40 transition-all flex flex-col justify-between group">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
@@ -873,13 +873,13 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                   </span>
                   <Scale className="w-5 h-5 text-indigo-500" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                <h3 className="text-xl font-bold text-on-surface group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                   How to Stop Attacks on Legal Firms
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-sm text-on-surface-variant leading-relaxed">
                   Protect confidential client matters, satisfy ABA Formal Opinion 477R, enforce FIDO2 hardware MFA, and secure document vaults (NetDocuments/iManage) against double-extortion ransomware.
                 </p>
-                <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 pt-2">
+                <ul className="space-y-2 text-xs text-on-surface pt-2">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
                     <span>Ethical wall & matter-level Zero Trust access segregation</span>
@@ -906,7 +906,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
             </div>
 
             {/* Healthcare Guide Card */}
-            <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500/40 dark:hover:border-emerald-500/40 transition-all flex flex-col justify-between group">
+            <div className="p-8 rounded-2xl bg-surface-container-low border border-outline-variant/60 shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between group">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -914,13 +914,13 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                   </span>
                   <Activity className="w-5 h-5 text-emerald-500" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-xl font-bold text-on-surface group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                   How to Stop Attacks on Healthcare Businesses
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-sm text-on-surface-variant leading-relaxed">
                   Prevent clinical EHR shutdowns, isolate vulnerable medical IoT & diagnostic imaging systems, guarantee 4-hour RTO, and enforce continuous HIPAA Security Rule compliance.
                 </p>
-                <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 pt-2">
+                <ul className="space-y-2 text-xs text-on-surface pt-2">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
                     <span>Clinical EHR micro-segmentation & Zero Trust network isolation</span>
@@ -950,20 +950,20 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200/50 dark:border-slate-800/40">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-outline-variant/40 bg-surface-container-low/40">
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-950/40 text-primary-700 dark:text-primary-300 rounded-full text-xs font-semibold border border-primary-100 dark:border-primary-900/50">
             <Clock className="w-3.5 h-3.5" />
             Deterministic verification in minutes
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-on-surface">
             {currentVertical === 'healthcare'
               ? 'Verify Your Clinic’s Operational Readiness'
               : currentVertical === 'legal'
               ? 'Verify Your Firm’s Incident Readiness Posture'
               : 'Verify Your Operational Readiness Posture'}
           </h2>
-          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
             {currentVertical === 'healthcare'
               ? 'Verify whether the controls protecting your clinic operations and patient care actually work. Explore the pre-populated Northstar Family Health demo.'
               : currentVertical === 'legal'
@@ -980,7 +980,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
             </Link>
             <button
               onClick={handleEnterSandbox}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-base font-semibold rounded-full sm:rounded-2xl border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-[0.98] cursor-pointer min-touch-target m3-state-layer text-center"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-surface-container-low text-on-surface text-base font-semibold rounded-full sm:rounded-2xl border border-outline-variant/60 hover:bg-surface-container-high transition-all active:scale-[0.98] cursor-pointer min-touch-target m3-state-layer text-center"
               data-testid="bottom-demo-cta"
             >
               <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />

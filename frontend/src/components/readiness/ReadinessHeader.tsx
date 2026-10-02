@@ -77,6 +77,9 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
         </button>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          <Link to="/morning-brief" className="md:hidden flex items-center shrink-0 mr-0.5" aria-label="ResilAI Home">
+            <img src="/favicon.png" alt="ResilAI" className="w-8 h-8 rounded-xl object-contain shadow-xs shrink-0" />
+          </Link>
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald font-bold text-sm shadow-sm shrink-0">
             {orgName ? orgName.charAt(0).toUpperCase() : 'R'}
           </div>

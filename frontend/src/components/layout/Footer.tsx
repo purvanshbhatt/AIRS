@@ -34,11 +34,11 @@ export function Footer() {
     import.meta.env.MODE === 'demo';
 
   return (
-    <footer className="border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 transition-colors duration-300">
+    <footer className="border-t border-outline-variant/60 bg-surface-container-low text-on-surface-variant transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         {/* Environment Status Notice (Staging / Demo) */}
         {(isStaging || isDemo) && (
-          <div className="mb-10 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 transition-all duration-300 shadow-xs">
+          <div className="mb-10 p-3.5 rounded-2xl bg-surface-container border border-outline-variant/60 flex flex-wrap items-center justify-between gap-4 transition-all duration-300 shadow-xs">
             <div className="flex items-center gap-3">
               <div className="relative flex h-3 w-3">
                 <span
@@ -77,7 +77,7 @@ export function Footer() {
         )}
 
         {/* Main 5-Column Startup Navigation Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 pb-12 border-b border-slate-200 dark:border-slate-800/80">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 pb-12 border-b border-outline-variant/60">
           {/* Brand & Mission Column (Spans 2 cols on desktop) */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="inline-block">
@@ -87,7 +87,7 @@ export function Footer() {
                 className="h-12 w-auto dark:brightness-0 dark:invert transition-all duration-300"
               />
             </Link>
-            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm leading-relaxed">
+            <p className="text-sm text-on-surface-variant max-w-sm leading-relaxed">
               Continuous AI & cybersecurity incident readiness for healthcare and legal organizations. Transform fragmented telemetry into verifiable executive understanding and operational resilience.
             </p>
             <div className="pt-2 flex items-center gap-3">
@@ -109,7 +109,7 @@ export function Footer() {
                 href={COMPANY_INFO.socials.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                className="p-2 rounded-xl bg-surface-container border border-outline-variant/60 text-on-surface-variant hover:text-on-surface transition-colors"
                 aria-label="ResilAI GitHub Repository"
               >
                 <Github className="w-5 h-5" />
@@ -119,7 +119,7 @@ export function Footer() {
 
           {/* Solutions Column */}
           <div className="space-y-3">
-            <p className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-on-surface">
               Solutions
             </p>
             <ul className="space-y-2 text-sm">
