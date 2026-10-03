@@ -8,7 +8,7 @@ export function DiagnosticsFooter() {
   if (Object.keys(buildInfo).length === 0) return null;
 
   return (
-    <div className="fixed bottom-0 right-0 z-50 p-2">
+    <div className="hidden sm:block fixed bottom-0 right-0 z-50 p-2">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="bg-gray-800 text-gray-400 hover:text-white rounded px-2 py-1 text-xs flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity"

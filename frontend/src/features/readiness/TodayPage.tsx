@@ -395,10 +395,19 @@ export default function TodayPage() {
       <section className="flex flex-col items-center justify-center text-center py-10 px-4 sm:px-6 bg-surface-container-low rounded-2xl border border-surface-bright border-t-2 border-t-ready-emerald/40 relative overflow-hidden shadow-xl group hover:border-ready-emerald/40 transition-all duration-300">
         <div className="absolute inset-0 bg-gradient-to-b from-ready-emerald/5 via-transparent to-transparent pointer-events-none" />
         
-        {/* Instant Status Badge */}
-        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider border mb-6 ${heroBadgeClass}`}>
-          <span className={`w-2 h-2 rounded-full ${isUnknown ? 'bg-outline' : isReady ? 'bg-ready-emerald animate-pulse' : 'bg-drift-amber animate-pulse'}`} />
-          <span>Stage 1 • {heroStatusText}</span>
+        {/* Instant Status Badge & Brand Indicator */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 mb-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-container border border-outline-variant/60 shadow-xs">
+            <img src="/favicon.png" alt="ResilAI" className="w-4 h-4 object-contain rounded-xs shrink-0" />
+            <span className="font-bold text-on-surface">ResilAI</span>
+            <span className="text-on-surface-variant/40">•</span>
+            <span className="text-on-surface-variant font-mono text-[11px]">Continuous Verification</span>
+          </div>
+
+          <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider border ${heroBadgeClass}`}>
+            <span className={`w-2 h-2 rounded-full ${isUnknown ? 'bg-outline' : isReady ? 'bg-ready-emerald animate-pulse' : 'bg-drift-amber animate-pulse'}`} />
+            <span>Stage 1 • {heroStatusText}</span>
+          </div>
         </div>
 
         {/* Circular Hero Arc Gauge & Score - Stitch Obsidian Brand Design */}

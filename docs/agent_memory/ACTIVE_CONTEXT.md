@@ -1,15 +1,14 @@
 # Active Context
-Date: 2026-10-01
-Status: Daily Backup Sync & Remote Backup Branch Push Completed (backup, staging, daily-sync, backup-sync synchronized at 47b4890 / ca798ba)
+Date: 2026-10-02
+Status: Daily Backup Sync & Remote Backup Branch Push Completed (backup, staging, daily-sync, backup-sync synchronized)
 
 ## Recent Actions
 - Daily Backup Sync & Branch Push (`backup`, `staging`, `daily-sync`, `backup-sync`):
   - Workflow Specification Audit & Hardening: Validated `.github/workflows/daily-backup-sync.yml` against all required specifications: cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST), `workflow_dispatch` manual trigger, repository checkout (`fetch-depth: 0`, `contents: write`), branch synchronization (`staging` -> `daily-sync`), strict branch protection (blocking `main` and `demo-stable` via both local pre-push hook and step guard), and `$GITHUB_STEP_SUMMARY` audit logging.
-  - Resolved Ref Collisions: Cleaned up legacy hierarchical ref `backup/daily-sync` and `backup/dev-before-sync` locally and on origin to resolve Git Directory/File (D/F) ref locking conflicts, enabling first-class canonical `backup` branch creation.
-  - Committed & Pushed Working Tree Updates to `backup`: Staged and committed 15 frontend component and styling improvements plus workflow enhancements on `backup` (commit `ca798ba`), and pushed upstream to `origin/backup`.
-  - Merged & Synchronized `staging`: Merged `backup` into `staging` (fast-forward to `ca798ba`), pushed `origin/staging`.
-  - Daily Snapshot Sync & Remote Parity: Merged `origin/staging` into `daily-sync` (merge commit `47b4890`), pushed `origin/daily-sync`, and synchronized remote mirrors `origin/backup` and `origin/backup-sync` at `47b4890`.
+  - AWS Direct Credentials & Connector Enhancements: Updated `frontend/src/pages/Connectors.tsx` to support direct AWS credentials (`aws_access_key_id`, `aws_secret_access_key`, `aws_region`) alongside IAM roles; updated negative test suite `tests/aws_integration/test_negative_cases.py`; verified test suite passes (74 passed, 5 skipped).
   - Test Suite & Build Verification: `npm run build` cleanly compiled (`dist-production/` exit code 0); `pytest tests/test_daily_git_sync.py` passed with 35/35 tests (100%).
+  - Synchronized & Pushed Remote Backup Branches: Synchronized commits across `backup`, `staging`, `daily-sync`, and `backup-sync` on `origin` to secure the codebase offsite.
+  - Protected Branch Invariants: Strictly blocked any push to `main` and `demo-stable`.
   - Working Tree Integrity: Cleanly returned active working branch to `staging`.
 
 - Light Mode Visibility, Contrast, and Theme Consistency Overhaul (`staging` branch):

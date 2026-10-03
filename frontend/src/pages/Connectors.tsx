@@ -116,8 +116,11 @@ const CONNECTOR_DEFINITIONS: ConnectorCardDef[] = [
     missing: ['CloudTrail Ingestion', 'S3 Encryption State'],
     icon: 'cloud_done',
     configFields: [
-      { key: 'role_arn', label: 'Cross-Account IAM Role ARN *', placeholder: 'arn:aws:iam::123456789012:role/ResilAI-Audit-Role' },
-      { key: 'external_id', label: 'External ID', placeholder: 'resilai-org-external-id' },
+      { key: 'role_arn', label: 'Cross-Account IAM Role ARN', placeholder: 'arn:aws:iam::505467908065:role/resilai-test-connector-role', defaultValue: 'arn:aws:iam::505467908065:role/resilai-test-connector-role' },
+      { key: 'external_id', label: 'External ID (Optional)', placeholder: 'resilai-org-external-id' },
+      { key: 'aws_region', label: 'AWS Region', placeholder: 'us-east-1', defaultValue: 'us-east-1' },
+      { key: 'aws_access_key_id', label: 'Access Key ID (Optional / Direct Auth)', placeholder: 'AKIA...' },
+      { key: 'aws_secret_access_key', label: 'Secret Access Key (Optional / Direct Auth)', placeholder: '••••••••', type: 'password' },
     ],
   },
   {
@@ -227,10 +230,13 @@ export default function ConnectorsPage() {
 
       switch (connectorType) {
         case 'aws':
-          authMethod = 'iam_role';
+          authMethod = formData.role_arn ? 'iam_role' : 'api_key';
           credentials = {
             role_arn: formData.role_arn || '',
             external_id: formData.external_id || '',
+            aws_region: formData.aws_region || 'us-east-1',
+            aws_access_key_id: formData.aws_access_key_id || '',
+            aws_secret_access_key: formData.aws_secret_access_key || '',
           };
           break;
         case 'microsoft':

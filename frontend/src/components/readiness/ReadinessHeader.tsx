@@ -77,15 +77,17 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
         </button>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link to="/morning-brief" className="md:hidden flex items-center shrink-0 mr-0.5" aria-label="ResilAI Home">
-            <img src="/favicon.png" alt="ResilAI" className="w-8 h-8 rounded-xl object-contain shadow-xs shrink-0" />
+          <Link to="/morning-brief" className="flex items-center gap-2 shrink-0 group focus-visible:outline-none" aria-label="ResilAI Home">
+            <img src="/favicon.png" alt="ResilAI" className="w-8 h-8 rounded-xl object-contain shadow-xs shrink-0 group-hover:scale-105 transition-transform" />
+            <span className="font-extrabold text-base tracking-tight text-on-surface">ResilAI</span>
           </Link>
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald font-bold text-sm shadow-sm shrink-0">
+          <span className="text-outline-variant/60 text-sm font-light">/</span>
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald font-bold text-xs shadow-sm shrink-0">
             {orgName ? orgName.charAt(0).toUpperCase() : 'R'}
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-bold text-on-surface flex items-center gap-1.5 sm:gap-2">
-              <span className="truncate max-w-[120px] xs:max-w-[160px] sm:max-w-[280px]">{orgName || 'Workspace'}</span>
+              <span className="truncate max-w-[110px] sm:max-w-[220px]">{orgName || 'Workspace'}</span>
               
               {isDemo ? (
                 <span className="px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold font-mono uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm shrink-0">

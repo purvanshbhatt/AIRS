@@ -16,6 +16,8 @@ import {
 import {
   User as FirebaseUser,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -32,6 +34,7 @@ export interface User {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  providerId?: string | null;
 }
 
 // Auth context value
@@ -69,6 +72,7 @@ function toUser(firebaseUser: FirebaseUser): User {
     email: firebaseUser.email,
     displayName: firebaseUser.displayName,
     photoURL: firebaseUser.photoURL,
+    providerId: firebaseUser.providerData?.[0]?.providerId || null,
   };
 }
 
@@ -109,6 +113,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     console.log('[Auth] Setting up auth state listener');
     let isMounted = true;
+
+    // Process redirect result if arriving from an OAuth redirect
+    getRedirectResult(auth)
+      .then((result) => {
+        if (!isMounted) return;
+        if (result?.user) {
+          console.log('[Auth] User successfully signed in via redirect:', result.user.email);
+        }
+      })
+      .catch((err) => {
+        console.error('[Auth] getRedirectResult notice:', err);
+      });
 
     // Await authStateReady to prevent 401 race condition during initial page hydration
     auth.authStateReady()
@@ -233,8 +249,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Sign in with Google
   const signInWithGoogle = useCallback(async (): Promise<void> => {
     if (!isFirebaseConfigured || !auth) {
-      setError('Firebase not configured. Check environment variables.');
-      return;
+      const msg = 'Authentication service is not configured. Please contact support.';
+      setError(msg);
+      throw new Error(msg);
     }
 
     setError(null);
@@ -247,6 +264,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sign in with Google';
       console.error('[Auth] Google sign in error:', err);
+      // Fallback to redirect if popup is blocked by browser
+      if (
+        (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === 'auth/popup-blocked') ||
+        message.includes('popup-blocked')
+      ) {
+        console.warn('[Auth] Popup blocked by browser, falling back to redirect flow...');
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       // Don't show popup closed errors
       if (!message.includes('popup-closed') && !message.includes('cancelled-popup-request')) {
         setError(formatFirebaseError(message));
