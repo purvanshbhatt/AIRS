@@ -11,7 +11,7 @@ from app.services.clinic_engine.v2.schema import EvidenceKind, ConnectorCapabili
 
 from unittest.mock import patch
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_microsoft_produces_user_evidence():
     """Proves Microsoft connector produces UserEvidence."""
     connector = MicrosoftConnector(connector_id="ms-001", organization_id="org-1")
@@ -39,7 +39,7 @@ async def test_microsoft_produces_user_evidence():
     assert user_evidence[0].source_connector == "microsoft"
     assert not user_evidence[0].is_expired
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_wazuh_produces_device_evidence():
     """Proves Wazuh connector produces DeviceEvidence."""
     connector = WazuhConnector(connector_id="wz-001", organization_id="org-1", credentials={"wazuh_url": "mock"})
@@ -67,7 +67,7 @@ async def test_wazuh_produces_device_evidence():
     assert device_evidence[0].source_connector == "wazuh"
     assert not device_evidence[0].is_expired
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_expired_evidence_ignored():
     """Proves that expired evidence is correctly identified."""
     connector = MicrosoftConnector(connector_id="ms-001", organization_id="org-1")
@@ -94,7 +94,7 @@ async def test_expired_evidence_ignored():
     
     assert ev.is_expired
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_organization_isolation_enforced():
     """Proves evidence holds organization IDs securely."""
     connector_a = MicrosoftConnector(connector_id="ms-a", organization_id="org-a")
@@ -119,7 +119,7 @@ async def test_organization_isolation_enforced():
     assert all(e.organization_id == "org-a" for e in ev_a)
     assert all(e.organization_id == "org-b" for e in ev_b)
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_connector_health_failure():
     """Proves Connector failure is handled gracefully."""
     connector = MicrosoftConnector(connector_id="ms-fail", organization_id="org-1", credentials={"client_secret": "invalid"})

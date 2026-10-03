@@ -167,11 +167,11 @@ export default function AppLayout() {
 
       {/* Mobile Bottom Navigation Bar - Material 3 NavigationBar */}
       <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-low/95 dark:bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/40 z-40 pb-safe m3-elevation-2"
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-low/95 dark:bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/60 z-40 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)]"
         style={{ bottom: 0, top: 'auto' }}
         aria-label="Mobile Bottom Navigation"
       >
-        <ul className="flex justify-around items-center h-16 px-1">
+        <ul className="flex justify-around items-center h-16 px-2">
           {[
             { to: '/morning-brief', icon: Calendar, label: 'Today' },
             { to: '/needs-attention', icon: AlertTriangle, label: 'Triage' },
@@ -190,10 +190,14 @@ export default function AppLayout() {
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`px-4 py-1 rounded-full transition-all duration-200 ${isActive ? 'bg-ready-emerald/20 text-ready-emerald font-bold shadow-xs' : 'text-on-surface-variant'}`}>
+                    <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+                      isActive 
+                        ? 'bg-ready-emerald/20 text-ready-emerald font-bold shadow-[0_0_12px_rgba(16,185,129,0.25)] ring-1 ring-ready-emerald/30' 
+                        : 'text-on-surface-variant hover:bg-surface-container-high/60'
+                    }`}>
                       <Icon className="w-5 h-5 shrink-0" />
                     </div>
-                    <span className="text-[11px] font-medium tracking-tight mt-0.5">{label}</span>
+                    <span className={`text-[10px] tracking-tight mt-0.5 font-medium ${isActive ? 'text-ready-emerald font-bold' : 'text-on-surface-variant'}`}>{label}</span>
                   </>
                 )}
               </NavLink>

@@ -1,7 +1,7 @@
 # Graph Report - AIRS  (2026-10-02)
 
 ## Corpus Check
-- 930 files · ~640,384 words
+- 930 files · ~640,325 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 31 file(s) not represented in the graph (top: (none) 20, .example 4, .ini 2)
 

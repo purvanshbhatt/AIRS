@@ -4,12 +4,12 @@ import { ShieldCheck, HelpCircle, AlertTriangle, Loader2 } from 'lucide-react';
 
 export function HealthyState() {
   return (
-    <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center shadow-lg">
-      <div className="mx-auto w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mb-4 border border-emerald-500/40">
+    <div className="rounded-3xl border border-ready-emerald/30 bg-surface-container-low p-8 text-center shadow-lg">
+      <div className="mx-auto w-12 h-12 bg-ready-emerald/15 text-ready-emerald rounded-2xl flex items-center justify-center mb-4 border border-ready-emerald/30 shadow-xs">
         <ShieldCheck className="w-6 h-6" />
       </div>
-      <h3 className="text-lg font-bold text-white mb-2">Everything is healthy</h3>
-      <p className="text-slate-300 text-sm max-w-sm mx-auto leading-relaxed">
+      <h3 className="text-lg font-bold text-on-surface mb-2">Everything is healthy</h3>
+      <p className="text-on-surface-variant text-sm max-w-sm mx-auto leading-relaxed">
         There is nothing requiring your attention today. We'll continue monitoring your systems and notify you if anything changes.
       </p>
     </div>
@@ -18,12 +18,12 @@ export function HealthyState() {
 
 export function UnknownState({ message = "We couldn't verify critical systems this morning. Readiness may be lower than shown." }: { message?: string }) {
   return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 text-center shadow-lg">
-      <div className="mx-auto w-12 h-12 bg-slate-800 text-amber-400 rounded-2xl flex items-center justify-center mb-4 border border-slate-700">
+    <div className="rounded-3xl border border-drift-amber/30 bg-surface-container-low p-8 text-center shadow-lg">
+      <div className="mx-auto w-12 h-12 bg-drift-amber/15 text-drift-amber rounded-2xl flex items-center justify-center mb-4 border border-drift-amber/30 shadow-xs">
         <HelpCircle className="w-6 h-6" />
       </div>
-      <h3 className="text-lg font-bold text-white mb-2">Telemetry Missing</h3>
-      <p className="text-slate-300 text-sm max-w-sm mx-auto leading-relaxed">
+      <h3 className="text-lg font-bold text-on-surface mb-2">Telemetry Missing</h3>
+      <p className="text-on-surface-variant text-sm max-w-sm mx-auto leading-relaxed">
         {message}
       </p>
     </div>
@@ -33,8 +33,8 @@ export function UnknownState({ message = "We couldn't verify critical systems th
 export function LoadingState({ message = "Gathering morning readiness data..." }: { message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-64 space-y-4">
-      <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-      <p className="text-slate-400 text-xs font-mono uppercase tracking-wider">{message}</p>
+      <Loader2 className="w-8 h-8 text-ready-emerald animate-spin" />
+      <p className="text-on-surface-variant text-xs font-mono uppercase tracking-wider">{message}</p>
     </div>
   );
 }
@@ -54,19 +54,19 @@ export function ErrorState({ error, onRetry }: { error: string, onRetry: () => v
   };
 
   return (
-    <div className="rounded-3xl border border-red-500/30 bg-slate-900/90 p-8 text-center shadow-2xl max-w-lg mx-auto">
-      <div className="mx-auto w-12 h-12 bg-red-500/20 text-red-400 rounded-2xl flex items-center justify-center mb-4 border border-red-500/40">
+    <div className="rounded-3xl border border-critical-red/30 bg-surface-container-low p-8 text-center shadow-2xl max-w-lg mx-auto">
+      <div className="mx-auto w-12 h-12 bg-critical-red/15 text-critical-red rounded-2xl flex items-center justify-center mb-4 border border-critical-red/30 shadow-xs">
         <AlertTriangle className="w-6 h-6" />
       </div>
-      <h3 className="text-lg font-bold text-white mb-2">Unable to Load Data</h3>
-      <p className="text-slate-300 text-sm max-w-md mx-auto mb-6 leading-relaxed">
+      <h3 className="text-lg font-bold text-on-surface mb-2">Unable to Load Data</h3>
+      <p className="text-on-surface-variant text-sm max-w-md mx-auto mb-6 leading-relaxed">
         {error}
       </p>
 
       <div className="flex flex-wrap items-center justify-center gap-3">
         <button 
           onClick={onRetry}
-          className="px-5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-all active:scale-[0.98]"
+          className="px-5 py-2.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant/60 rounded-xl text-sm font-semibold text-on-surface transition-all active:scale-[0.98] cursor-pointer"
         >
           Try Again
         </button>
@@ -75,13 +75,13 @@ export function ErrorState({ error, onRetry }: { error: string, onRetry: () => v
           <>
             <Link
               to="/onboarding?new=true"
-              className="px-5 py-2.5 bg-gradient-to-br from-primary-600 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:shadow-lg transition-all active:scale-[0.98]"
+              className="px-5 py-2.5 bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 font-bold rounded-xl text-sm transition-all active:scale-[0.98] shadow-md shadow-ready-emerald/20"
             >
               Create Organization
             </Link>
             <button
               onClick={handleResetWorkspace}
-              className="px-4 py-2.5 bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-medium transition-all"
+              className="px-4 py-2.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant/60 text-on-surface rounded-xl text-sm font-medium transition-all cursor-pointer"
             >
               Reset Workspace
             </button>
@@ -89,7 +89,7 @@ export function ErrorState({ error, onRetry }: { error: string, onRetry: () => v
         ) : (
           <button
             onClick={handleEnterDemo}
-            className="px-4 py-2.5 bg-slate-800/80 border border-slate-700 text-amber-400 hover:text-amber-300 rounded-xl text-sm font-medium transition-all"
+            className="px-4 py-2.5 bg-drift-amber/15 hover:bg-drift-amber/25 border border-drift-amber/30 text-amber-600 dark:text-amber-400 rounded-xl text-sm font-semibold transition-all cursor-pointer shadow-xs"
           >
             Open Demo Sandbox
           </button>

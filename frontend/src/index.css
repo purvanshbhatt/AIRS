@@ -23,7 +23,7 @@
   vertical-align: middle;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, [data-theme="dark"], .dark *, [data-theme="dark"] *));
 
 /* Stitch & Material Design 3 System Variables */
 :root {
@@ -44,10 +44,10 @@
   --color-on-surface-variant: #475569;
   --color-outline: #94a3b8;
   --color-outline-variant: #e2e8f0;
-  --color-primary: #1d4ed8;
+  --color-primary: #059669;
   --color-on-primary: #ffffff;
-  --color-primary-container: #dbeafe;
-  --color-on-primary-container: #1e3a8a;
+  --color-primary-container: #d1fae5;
+  --color-on-primary-container: #065f46;
   --color-secondary: #475569;
   --color-on-secondary: #ffffff;
   --color-secondary-container: #f1f5f9;
@@ -77,10 +77,10 @@ html.dark,
   --color-on-surface-variant: #bbcabf;
   --color-outline: #86948a;
   --color-outline-variant: #3c4a42;
-  --color-primary: #60a5fa;
-  --color-on-primary: #0b1326;
-  --color-primary-container: #1e3a8a;
-  --color-on-primary-container: #dbeafe;
+  --color-primary: #4edea3;
+  --color-on-primary: #003824;
+  --color-primary-container: #065f46;
+  --color-on-primary-container: #6ffbbe;
   --color-secondary: #94a3b8;
   --color-on-secondary: #0b1326;
   --color-secondary-container: #1e293b;
@@ -259,6 +259,12 @@ aside.fixed {
 
 header.sticky, nav.fixed:not(.bottom-0) {
   top: var(--banner-height, 0px) !important;
+}
+
+nav.fixed.bottom-0,
+nav[aria-label="Mobile Bottom Navigation"] {
+  bottom: 0 !important;
+  top: auto !important;
 }
 
 @keyframes roi-flash {

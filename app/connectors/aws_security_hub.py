@@ -183,12 +183,12 @@ class AWSSecurityHubConnector(Connector):
         import time
         start = time.monotonic()
         try:
-            if not self._authenticated:
+            if not self._hub_client:
                 ok = await self.authenticate()
                 if not ok or not self._hub_client:
                     return ConnectorHealth(
                         status="unreachable",
-                        message="AWS Security Hub authentication failed",
+                        message="Not authenticated: AWS Security Hub client not initialized",
                     )
             self._hub_client.describe_hub()
             latency = int((time.monotonic() - start) * 1000)
@@ -210,10 +210,13 @@ class AWSSecurityHubConnector(Connector):
     # ------------------------------------------------------------------
 
     async def validate_permissions(self) -> PermissionResult:
-        if not self._authenticated:
+        if not self._hub_client:
             ok = await self.authenticate()
             if not ok or not self._hub_client:
-                return PermissionResult(valid=False, message="AWS Security Hub authentication failed")
+                return PermissionResult(
+                    valid=False,
+                    message="Not authenticated: AWS Security Hub client not initialized",
+                )
 
         missing = []
         try:

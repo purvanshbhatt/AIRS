@@ -318,7 +318,7 @@ export default function AgentAuditDetailPage() {
         <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4 pb-4 border-b border-outline-variant/60">
           <div>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-500">
+              <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-xl text-primary">
                 <Bot className="w-6 h-6" />
               </div>
               <div>
@@ -327,7 +327,7 @@ export default function AgentAuditDetailPage() {
                   <span className="text-xs px-2.5 py-0.5 rounded bg-surface-container text-on-surface-variant border border-outline-variant/60 font-mono">
                     {audit.environment}
                   </span>
-                  <span className="text-xs px-2.5 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono uppercase">
+                  <span className="text-xs px-2.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-mono uppercase">
                     {audit.source_type}
                   </span>
                 </div>
@@ -372,7 +372,7 @@ export default function AgentAuditDetailPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
           <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
             <div className="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold mb-1 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-indigo-500" />
+              <Clock className="w-3.5 h-3.5 text-primary" />
               Observation Window
             </div>
             <div className="text-sm font-bold text-on-surface">{getRemainingTime(audit.expires_at)}</div>
@@ -424,7 +424,7 @@ export default function AgentAuditDetailPage() {
       <div className="p-6 bg-surface-container-low border border-outline-variant/60 rounded-2xl space-y-4 shadow-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg text-purple-500">
+            <div className="p-2 bg-primary/10 border border-primary/20 rounded-lg text-primary">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
@@ -438,7 +438,7 @@ export default function AgentAuditDetailPage() {
           <button
             onClick={handleGenerateExplanation}
             disabled={explaining}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
           >
             <Sparkles className={`w-3.5 h-3.5 ${explaining ? 'animate-spin' : ''}`} />
             {explaining ? 'Synthesizing...' : 'Synthesize Explanation'}
@@ -524,7 +524,7 @@ export default function AgentAuditDetailPage() {
                   </div>
                   <div className="p-2.5 bg-surface-container rounded-xl border border-outline-variant/60">
                     <span className="text-on-surface-variant block mb-0.5 font-medium">Evidence Traces</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-mono">
+                    <span className="text-primary font-mono">
                       {f.evidence_ids ? f.evidence_ids.join(', ') : 'Direct Trace'}
                     </span>
                   </div>
@@ -588,7 +588,7 @@ export default function AgentAuditDetailPage() {
           <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/60 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-on-surface">ISO/IEC 42001</span>
-              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Enforced</span>
+              <span className="text-xs text-primary font-medium">Enforced</span>
             </div>
             <p className="text-xs text-on-surface-variant leading-relaxed">
               Annex A.6 AI Risk Assessment, A.8 AI System Life Cycle and continuous verification.
