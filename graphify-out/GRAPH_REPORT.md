@@ -1,7 +1,7 @@
-# Graph Report - AIRS  (2026-10-02)
+# Graph Report - AIRS  (2026-10-04)
 
 ## Corpus Check
-- 930 files · ~640,384 words
+- 930 files · ~640,853 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 31 file(s) not represented in the graph (top: (none) 20, .example 4, .ini 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a5f4e7d5`
+- Built from commit: `d0645457`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -160,7 +160,7 @@
 - ResilAI V2 — Design Partner Product Stabilization Plan
 - BaseReport
 - ConnectorRegistry
-- SIEMEventWebhookPayload
+- VerificationService
 - API Reference
 - ResilAI Frontend Architecture Specification (`FRONTEND_ARCHITECTURE.md`)
 - TestRRIv2API
@@ -168,17 +168,17 @@
 - api/reliability.py
 - SafeJsonFormatter
 - test_public_config.py
+- SIEMEventWebhookPayload
 - .generate_explanation
-- test_e2e_healthcare.py
 - report_generator.py
 - TestReliabilityAPI
+- test_e2e_healthcare.py
 - TestReports
-- TestNoDemoSeedInProduction
 - compilerOptions
 - staging_real_customer_smoke_test.py
-- .authenticate
+- TestNoDemoSeedInProduction
 - get_evidence_ledger
-- TEST READY REPORT — ResilAI Multi-Vertical Positioning Experiment (Staging Only)
+- .authenticate
 - PilotService
 - .calculate_continuous_score
 - IntegrationService
@@ -188,7 +188,7 @@
 - ScoreContext
 - dependencies
 - Audit-Generated Fix Tasks (per `docs/agent_memory/AUDIT_REPORT.md`)
-- test_ai_narrative_genai.py
+- TEST READY REPORT — ResilAI Multi-Vertical Positioning Experiment (Staging Only)
 - AuditCalendarService
 - PolicyEvaluationLog
 - FindingContext
@@ -197,13 +197,13 @@
 - SplunkMCPClient
 - wazuh_client.py
 - dev_stack.py
+- test_ai_narrative_genai.py
 - TestFindingsSummary
-- get_heatmap_color
 - .sync_intelligence_and_detect_drift
 - docs/index.md
 - router.py
 - TelemetryIngestionService
-- mock_splunk_mcp.py
+- get_heatmap_color
 - TestAdversarialPublicConfigQuery
 - TestPublicConfigContract
 - ResilAI AWS Telemetry Integration Validation Report
@@ -211,7 +211,7 @@
 - test_llm_narrative.py
 - TestPublicConfigBoundaries
 - 3. Verification Gates & Proof of Causality
-- TestCORSErrorSafetyMiddleware
+- mock_splunk_mcp.py
 - Organization
 - services/auditor_view.py
 - overrides
@@ -230,7 +230,7 @@
 - TestGovernanceAPI
 - tracing.py
 - test_methodology.py
-- ReliabilityTimeline
+- TestCORSErrorSafetyMiddleware
 - cache.py
 - ResilAI Principal Security & Architecture Audit
 - Project: ResilAI Multi-Vertical Positioning Experiment (Staging Only)
@@ -240,9 +240,9 @@
 - smart_annotations.py
 - ResilAI Design System Specification
 - receive_telemetry_webhook
-- TestExplainabilityTaxonomy
+- ReliabilityTimeline
 - core/config.py
-- TestDeterministicScoring
+- TestExplainabilityTaxonomy
 - generate_board_story
 - metrics_engine.py
 - CheckoutService
@@ -250,8 +250,8 @@
 - TestDailyGitSyncSecurity
 - 3. Implementation Specification
 - middleware.py
-- TestLLMIsolation
-- VerificationService
+- TestDeterministicScoring
+- MTTRExecutiveSummarySchema
 - client_with_org
 - aws_integration/conftest.py
 - TestAdversarialPublicConfigHost
@@ -264,7 +264,7 @@
 - TestHealthEndpoints
 - ResilAI Design System Specification
 - LifecycleSeverity
-- .__init__
+- TestLLMIsolation
 - test_inventory.py
 - TestAssessments
 - verify_staging.py
@@ -283,7 +283,7 @@
 - ResilAI Entitlements and Access Granting Flow
 - TechStackService
 - Sentinel Production Readiness Guide
-- test_db
+- .__init__
 - _auto_recommend
 - TestEnumMembers
 - ResilAI Product Guide
@@ -302,8 +302,8 @@
 - Product Reality Audit
 - test_integrations.py
 - test_db
+- test_db
 - sync_wazuh_configs_from_firestore
-- .get_content_type
 - get_sla_advisor
 - ADR-009: Evidence Adapters are Vendor-Agnostic
 - cors.py
@@ -317,6 +317,7 @@
 - deploy_cloud_run.sh
 - Hackathon Submission Guide
 - TestPlanEntitlements
+- .get_content_type
 - test_llm_isolation.py
 - TestReportCreation
 - DemoModeError
@@ -377,7 +378,6 @@
 - tasks/__init__.py
 - .discover_from_wazuh
 - test_explainability.py
-- MTTRExecutiveSummarySchema
 - create_explanation
 - EnrichmentResult
 - phase4_deterministic.py
@@ -1145,9 +1145,9 @@ Nodes (6): BaseReport, ABC, Any, Generate report from data., Return the MIME con
 Cohesion: 0.32
 Nodes (6): ConnectorRegistry, Central registry that maps connector type strings to their classes., Look up a connector class by type string. Raises ``KeyError`` if the type is…, Return sorted list of registered connector type identifiers., Verify that MicrosoftConnector is registered with ConnectorRegistry., test_connector_registration()
 
-### Community 144 - "SIEMEventWebhookPayload"
-Cohesion: 0.29
-Nodes (6): Any, field_validator, Inbound webhook payload from a Wazuh or Splunk SIEM integration. This is the…, Enforce non-empty telemetry payload. An empty dict provides no forensic…, Strip whitespace and reject blank strings., SIEMEventWebhookPayload
+### Community 144 - "VerificationService"
+Cohesion: 0.09
+Nodes (28): AuditTrailFindingSchema, AuditTrailSchema, MTTRChartDataPoint, MTTRMetadata, Enum, str, Pydantic schemas for the Verification & Audit Trail API. Defines…, Single data point for the Executive Risk-Reduction Recharts graph. (+20 more)
 
 ### Community 145 - "API Reference"
 Cohesion: 0.07
@@ -1177,13 +1177,13 @@ Nodes (11): Any, Format event data as readable message., Logging filter that add
 Cohesion: 0.10
 Nodes (19): Tests for Public Product Configuration API (M1: Host- and Route-Aware Vertical…, Test pure resolution logic directly., Default request with no parameters returns the general vertical configuration., Architectural invariant R4: Ensure app.api.public has no LLM or intelligence…, Query parameter vertical=healthcare returns healthcare vertical configuration., Query parameter vertical=legal returns legal vertical configuration., Unknown vertical key falls back gracefully to general., X-ResilAI-Vertical header routes to specified vertical. (+11 more)
 
-### Community 152 - ".generate_explanation"
+### Community 152 - "SIEMEventWebhookPayload"
+Cohesion: 0.29
+Nodes (6): Any, field_validator, Inbound webhook payload from a Wazuh or Splunk SIEM integration. This is the…, Enforce non-empty telemetry payload. An empty dict provides no forensic…, Strip whitespace and reject blank strings., SIEMEventWebhookPayload
+
+### Community 153 - ".generate_explanation"
 Cohesion: 0.29
 Nodes (4): Any, Use Gemini to transform source facts into a narrative. Returns None if Gemini…, Generate a structured explanation without LLM assistance., Generate a business-language explanation for a deterministic subject. Steps: 1.…
-
-### Community 153 - "test_e2e_healthcare.py"
-Cohesion: 0.32
-Nodes (7): get_aws_credentials(), main(), Any, ResilAI Healthcare AWS Telemetry - End-to-End Integration Test. Validates the…, Resolve AWS credentials from environment or boto3 session., Execute full end-to-end test and return results., run_e2e_test()
 
 ### Community 154 - "report_generator.py"
 Cohesion: 0.22
@@ -1193,13 +1193,13 @@ Nodes (7): ExecutiveReportGenerator, Any, Executive Report Generator — Framewo
 Cohesion: 0.07
 Nodes (14): db(), fixture, Session, Test the RRI API endpoints (staging-gated)., Non-staging environment → 404 (invisible)., Staging env → 200 with full RRI result., Simulation endpoint → 404 outside staging., Simulation endpoint → 200 in staging. (+6 more)
 
-### Community 156 - "TestReports"
+### Community 156 - "test_e2e_healthcare.py"
+Cohesion: 0.32
+Nodes (7): get_aws_credentials(), main(), Any, ResilAI Healthcare AWS Telemetry - End-to-End Integration Test. Validates the…, Resolve AWS credentials from environment or boto3 session., Execute full end-to-end test and return results., run_e2e_test()
+
+### Community 157 - "TestReports"
 Cohesion: 0.25
 Nodes (3): fixture, Tests for report generation., TestReports
-
-### Community 157 - "TestNoDemoSeedInProduction"
-Cohesion: 0.25
-Nodes (5): Test 18: Production organization flow never calls demo seed functions., Test 18a: List organizations does not invoke ensure_demo_seed_data., Test 18b: List assessments does not invoke ensure_demo_seed_data., Test 18c: Readiness endpoint does not seed demo for real org., TestNoDemoSeedInProduction
 
 ### Community 158 - "compilerOptions"
 Cohesion: 0.12
@@ -1209,17 +1209,17 @@ Nodes (15): compilerOptions, allowImportingTsExtensions, isolatedModules, lib, m
 Cohesion: 0.14
 Nodes (10): Infrastructure Recovery Sprint — Live Deployment Audit Script. Fetches HTML and…, make_request(), print_banner(), print_gate(), Any, ResilAI Staging Customer Smoke Test Script…, run_staging_smoke_test(), ssl (+2 more)
 
-### Community 160 - ".authenticate"
-Cohesion: 0.33
-Nodes (4): Any, Fetch MFA authentication logs from Duo Admin API., Generate Duo API HMAC-SHA1 signature., Validate Duo API credentials via /admin/v1/ping.
+### Community 160 - "TestNoDemoSeedInProduction"
+Cohesion: 0.25
+Nodes (5): Test 18: Production organization flow never calls demo seed functions., Test 18a: List organizations does not invoke ensure_demo_seed_data., Test 18b: List assessments does not invoke ensure_demo_seed_data., Test 18c: Readiness endpoint does not seed demo for real org., TestNoDemoSeedInProduction
 
 ### Community 161 - "get_evidence_ledger"
 Cohesion: 0.27
 Nodes (10): get_evidence_ledger(), get_evidence_lineage(), get_evidence_packages(), get_monday_morning_actions(), get, Session, Returns prioritized Monday Morning actions with score projections., Returns the lineage of a piece of evidence. Connector -> Event -> Evidence… (+2 more)
 
-### Community 162 - "TEST READY REPORT — ResilAI Multi-Vertical Positioning Experiment (Staging Only)"
+### Community 162 - ".authenticate"
 Cohesion: 0.33
-Nodes (5): 1. Test Execution Instructions, 2. Test Suite Architecture & Coverage Summary Table, 5. Test Integrity Declaration, Complete Automated E2E Test Suite Run, TEST READY REPORT — ResilAI Multi-Vertical Positioning Experiment (Staging Only)
+Nodes (4): Any, Fetch MFA authentication logs from Duo Admin API., Generate Duo API HMAC-SHA1 signature., Validate Duo API credentials via /admin/v1/ping.
 
 ### Community 163 - "PilotService"
 Cohesion: 0.05
@@ -1257,9 +1257,9 @@ Nodes (9): dependencies, clsx, firebase, framer-motion, lucide-react, react, rea
 Cohesion: 0.08
 Nodes (24): Audit-Generated Fix Tasks (per `docs/agent_memory/AUDIT_REPORT.md`), Blocked — multi-dependency, Blocked — single dependency, IN_PROGRESS, Parallel tracks (no shared dependency), READY (builder may pick now), TASK S1.8-AUDIT-FIX-A01, TASK S1.8-AUDIT-FIX-B01 (+16 more)
 
-### Community 172 - "test_ai_narrative_genai.py"
+### Community 172 - "TEST READY REPORT — ResilAI Multi-Vertical Positioning Experiment (Staging Only)"
 Cohesion: 0.33
-Nodes (3): test_fallback_narrative_when_llm_fails_has_required_actions(), test_generate_llm_narrative_uses_google_genai_sdk(), types
+Nodes (5): 1. Test Execution Instructions, 2. Test Suite Architecture & Coverage Summary Table, 5. Test Integrity Declaration, Complete Automated E2E Test Suite Run, TEST READY REPORT — ResilAI Multi-Vertical Positioning Experiment (Staging Only)
 
 ### Community 173 - "AuditCalendarService"
 Cohesion: 0.07
@@ -1293,13 +1293,13 @@ Nodes (26): Any, datetime, EvidenceAdapter implementation for Wazuh., Fetch all 
 Cohesion: 0.15
 Nodes (14): Popen, get_modified_files(), main(), IGVF Merge Gate Check — Environment-Locked Policy Guard. This script checks if…, Retrieve the list of modified files compared to the target base ref., main(), shutdown(), Path (+6 more)
 
-### Community 181 - "TestFindingsSummary"
+### Community 181 - "test_ai_narrative_genai.py"
+Cohesion: 0.33
+Nodes (3): test_fallback_narrative_when_llm_fails_has_required_actions(), test_generate_llm_narrative_uses_google_genai_sdk(), types
+
+### Community 182 - "TestFindingsSummary"
 Cohesion: 0.33
 Nodes (4): Test findings summary generation., Summary should count findings by severity and domain., Summary should identify top priorities (critical/high + low/medium effort)., TestFindingsSummary
-
-### Community 182 - "get_heatmap_color"
-Cohesion: 0.40
-Nodes (5): get_heatmap_color(), get_severity_color(), Get color for severity level., Get heatmap color based on score (0-5 scale)., Color
 
 ### Community 183 - ".sync_intelligence_and_detect_drift"
 Cohesion: 0.18
@@ -1317,9 +1317,9 @@ Nodes (38): _fetch_persisted_telemetry(), fix_problem(), get_clinic_readiness(),
 Cohesion: 0.16
 Nodes (9): Any, Session, Fetch unprocessed events for consumption by the scoring engine. Args: limit:…, Mark events as processed after consumption by the scoring engine. Returns:…, Compute evidence freshness metrics across all source systems. Freshness is…, Get aggregated telemetry statistics for this organization. Returns: Dict with…, Organization-scoped telemetry event processing pipeline. Responsibilities: 1.…, Batch-ingest telemetry events with idempotent deduplication. Args: events: List… (+1 more)
 
-### Community 187 - "mock_splunk_mcp.py"
+### Community 187 - "get_heatmap_color"
 Cohesion: 0.40
-Nodes (4): health(), get, post, search()
+Nodes (5): get_heatmap_color(), get_severity_color(), Get color for severity level., Get heatmap color based on score (0-5 scale)., Color
 
 ### Community 188 - "TestAdversarialPublicConfigQuery"
 Cohesion: 0.13
@@ -1348,6 +1348,10 @@ Nodes (8): Validate edge cases, unknown inputs, subdomains, and normalization., 
 ### Community 194 - "3. Verification Gates & Proof of Causality"
 Cohesion: 0.17
 Nodes (11): 1. Executive Summary, 3. Verification Gates & Proof of Causality, 4. Automated Test Suite Results, 5. Architectural Invariants Preserved, Gate A & B: Organization Provisioning & Evidence Invariant, Gate C: Server-Side Tenant Isolation, Gate E & F: Telemetry Retrieval & Cryptographic Hashing, Gate G: Deterministic Scoring & Ledger State 1 (Healthy) (+3 more)
+
+### Community 195 - "mock_splunk_mcp.py"
+Cohesion: 0.40
+Nodes (4): health(), get, post, search()
 
 ### Community 196 - "Organization"
 Cohesion: 0.02
@@ -1461,10 +1465,6 @@ Nodes (8): get_latest_score_for_external(), get, post, Request, Session, Ingest 
 Cohesion: 0.06
 Nodes (34): Block all drift endpoints unless ENV=staging., _require_staging(), Gate: return 404 if not running in staging environment., _require_staging(), CloudProvider, DeploymentValidationError, Environment, Enum (+26 more)
 
-### Community 226 - "TestDeterministicScoring"
-Cohesion: 0.50
-Nodes (3): Test 14: Scoring is deterministic and evidence-based., Test 14: Same input produces same output., TestDeterministicScoring
-
 ### Community 227 - "generate_board_story"
 Cohesion: 0.53
 Nodes (6): generate_board_story(), _generate_fallback_board_story(), _generate_llm_board_story(), generate_with_retry(), Any, Generate 10 structured narrative sections for the Board Story.
@@ -1493,13 +1493,9 @@ Nodes (11): 1. Architecture Review & Technical Debt Analysis, 2. Alignment with 
 Cohesion: 0.09
 Nodes (28): generate_request_id(), get_safe_error_response(), Exception, Create a safe error response that doesn't expose internal details. Logs the…, Set the request ID in context., Generate a new unique request ID., set_request_id(), global_exception_handler() (+20 more)
 
-### Community 234 - "TestLLMIsolation"
+### Community 234 - "TestDeterministicScoring"
 Cohesion: 0.50
-Nodes (3): Test 17: LLM has zero influence over deterministic scoring., Test 17: Scoring must be identical regardless of LLM state., TestLLMIsolation
-
-### Community 235 - "VerificationService"
-Cohesion: 0.09
-Nodes (28): AuditTrailFindingSchema, AuditTrailSchema, MTTRChartDataPoint, MTTRMetadata, Enum, str, Pydantic schemas for the Verification & Audit Trail API. Defines…, Single data point for the Executive Risk-Reduction Recharts graph. (+20 more)
+Nodes (3): Test 14: Scoring is deterministic and evidence-based., Test 14: Same input produces same output., TestDeterministicScoring
 
 ### Community 236 - "client_with_org"
 Cohesion: 0.12
@@ -1548,6 +1544,10 @@ Nodes (15): 1. Executive Summary & Design System Architecture, 2. CSS Variables 
 ### Community 247 - "LifecycleSeverity"
 Cohesion: 0.40
 Nodes (6): LifecycleSeverity, LifecycleStatus, Enum, str, Deterministic lifecycle classification., Severity mapping for lifecycle status. Deterministic — no AI.
+
+### Community 248 - "TestLLMIsolation"
+Cohesion: 0.50
+Nodes (3): Test 17: LLM has zero influence over deterministic scoring., Test 17: Scoring must be identical regardless of LLM state., TestLLMIsolation
 
 ### Community 249 - "test_inventory.py"
 Cohesion: 0.43
@@ -1604,10 +1604,6 @@ Nodes (41): create_item(), delete_item(), list_items(), BackgroundTasks, delete,
 ### Community 266 - "Sentinel Production Readiness Guide"
 Cohesion: 0.11
 Nodes (18): 1. Architectural Surface Area, 2. Environment Variables & External Dependencies, 3. Deployment Procedure, 4. Rollback Procedure, 5. Monitoring & SLAs, Alerting Triggers, Code Rollback, Database Rollback (If Necessary) (+10 more)
-
-### Community 267 - "test_db"
-Cohesion: 0.67
-Nodes (3): fixture, Create an isolated in-memory SQLite database for testing., test_db()
 
 ### Community 268 - "_auto_recommend"
 Cohesion: 0.11
@@ -1674,6 +1670,10 @@ Cohesion: 0.21
 Nodes (9): _create_scored_assessment(), _submit_full_answers(), test_compute_score_enqueues_webhook_dispatch(), test_dispatch_assessment_scored_webhooks_retries(), test_external_latest_score_rejects_insufficient_scope(), test_external_latest_score_requires_api_key(), test_external_latest_score_with_valid_api_key(), test_org_audit_endpoint_records_core_events() (+1 more)
 
 ### Community 285 - "test_db"
+Cohesion: 0.67
+Nodes (3): fixture, Create an isolated in-memory SQLite database for testing., test_db()
+
+### Community 286 - "test_db"
 Cohesion: 0.67
 Nodes (3): fixture, Create an isolated in-memory SQLite database for testing., test_db()
 
