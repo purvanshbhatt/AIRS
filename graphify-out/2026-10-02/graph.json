@@ -50269,7 +50269,7 @@
       "file_type": "code",
       "norm_label": "connectorspage()",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L151"
+      "source_location": "L154"
     },
     {
       "id": "frontend_src_pages_dashboard_dashboard",
@@ -149781,7 +149781,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L153",
+      "source_location": "L156",
       "weight": 1.0
     },
     {
@@ -149793,7 +149793,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L154",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -149805,7 +149805,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L155",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -149817,7 +149817,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L174",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -149829,7 +149829,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L175",
+      "source_location": "L178",
       "weight": 1.0
     },
     {
@@ -149841,7 +149841,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L176",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -149853,7 +149853,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L304",
+      "source_location": "L310",
       "weight": 1.0
     },
     {
@@ -149865,7 +149865,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L369",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -149877,7 +149877,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L412",
+      "source_location": "L418",
       "weight": 1.0
     },
     {
@@ -318065,7 +318065,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/pages/Connectors.tsx",
-      "source_location": "L151",
+      "source_location": "L154",
       "weight": 1.0
     },
     {

@@ -2916,17 +2916,95 @@
       "source_location": "L56"
     },
     {
-      "id": "app_schemas_telemetry_webhook_siemeventwebhookpayload",
-      "label": "SIEMEventWebhookPayload",
+      "id": "app_schemas_verification_audittrailfindingschema",
+      "label": "AuditTrailFindingSchema",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 144,
-      "community_name": "SIEMEventWebhookPayload",
+      "community_name": "VerificationService",
       "file_type": "code",
-      "norm_label": "siemeventwebhookpayload",
-      "source_file": "app/schemas/telemetry_webhook.py",
-      "source_location": "L22"
+      "norm_label": "audittrailfindingschema",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L78"
+    },
+    {
+      "id": "app_schemas_verification_audittrailschema",
+      "label": "AuditTrailSchema",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "audittrailschema",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L91"
+    },
+    {
+      "id": "app_schemas_verification_mttrchartdatapoint",
+      "label": "MTTRChartDataPoint",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "mttrchartdatapoint",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L173"
+    },
+    {
+      "id": "app_schemas_verification_mttrmetadata",
+      "label": "MTTRMetadata",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "mttrmetadata",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L181"
+    },
+    {
+      "id": "app_schemas_verification_verificationresultschema",
+      "label": "VerificationResultSchema",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "verificationresultschema",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L37"
+    },
+    {
+      "id": "app_schemas_verification_verificationstatusenum",
+      "label": "VerificationStatusEnum",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "verificationstatusenum",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "app_services_verification_verificationservice",
+      "label": "VerificationService",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "verificationservice",
+      "source_file": "app/services/verification.py",
+      "source_location": "L50"
     },
     {
       "id": "tests_test_reliability_testrriv2api",
@@ -3345,6 +3423,19 @@
       "source_location": "L45"
     },
     {
+      "id": "app_schemas_telemetry_webhook_siemeventwebhookpayload",
+      "label": "SIEMEventWebhookPayload",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 152,
+      "community_name": "SIEMEventWebhookPayload",
+      "file_type": "code",
+      "norm_label": "siemeventwebhookpayload",
+      "source_file": "app/schemas/telemetry_webhook.py",
+      "source_location": "L22"
+    },
+    {
       "id": "app_services_report_generator_executivereportgenerator",
       "label": "ExecutiveReportGenerator",
       "_callable": true,
@@ -3376,25 +3467,12 @@
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "community": 156,
+      "community": 157,
       "community_name": "TestReports",
       "file_type": "code",
       "norm_label": "testreports",
       "source_file": "tests/test_assessments.py",
       "source_location": "L367"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_testnodemoseedinproduction",
-      "label": "TestNoDemoSeedInProduction",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 157,
-      "community_name": "TestNoDemoSeedInProduction",
-      "file_type": "code",
-      "norm_label": "testnodemoseedinproduction",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L458"
     },
     {
       "id": "app_models_report_report",
@@ -3538,6 +3616,19 @@
       "norm_label": "testreporttenantisolationv2",
       "source_file": "tests/test_tenant_isolation_v2.py",
       "source_location": "L76"
+    },
+    {
+      "id": "tests_test_production_org_lifecycle_testnodemoseedinproduction",
+      "label": "TestNoDemoSeedInProduction",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 160,
+      "community_name": "TestNoDemoSeedInProduction",
+      "file_type": "code",
+      "norm_label": "testnodemoseedinproduction",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L458"
     },
     {
       "id": "app_models_clinic_critical_system_criticalsystem",
@@ -4741,7 +4832,7 @@
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "community": 181,
+      "community": 182,
       "community_name": "TestFindingsSummary",
       "file_type": "code",
       "norm_label": "testfindingssummary",
@@ -4994,19 +5085,6 @@
       "norm_label": "testpublicconfigboundaries",
       "source_file": "tests/test_e2e_vertical_config.py",
       "source_location": "L106"
-    },
-    {
-      "id": "tests_test_cors_testcorserrorsafetymiddleware",
-      "label": "TestCORSErrorSafetyMiddleware",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 195,
-      "community_name": "TestCORSErrorSafetyMiddleware",
-      "file_type": "code",
-      "norm_label": "testcorserrorsafetymiddleware",
-      "source_file": "tests/test_cors.py",
-      "source_location": "L228"
     },
     {
       "id": "app_models_organization_organization",
@@ -6556,6 +6634,19 @@
       "source_location": "L966"
     },
     {
+      "id": "tests_test_cors_testcorserrorsafetymiddleware",
+      "label": "TestCORSErrorSafetyMiddleware",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 214,
+      "community_name": "TestCORSErrorSafetyMiddleware",
+      "file_type": "code",
+      "norm_label": "testcorserrorsafetymiddleware",
+      "source_file": "tests/test_cors.py",
+      "source_location": "L228"
+    },
+    {
       "id": "app_schemas_intelligence_packet_intelligencepacketingestresponse",
       "label": "IntelligencePacketIngestResponse",
       "_callable": true,
@@ -6645,19 +6736,6 @@
       "norm_label": "testassessmentisolation",
       "source_file": "tests/test_tenant_isolation.py",
       "source_location": "L194"
-    },
-    {
-      "id": "tests_test_framework_validation_testexplainabilitytaxonomy",
-      "label": "TestExplainabilityTaxonomy",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 224,
-      "community_name": "TestExplainabilityTaxonomy",
-      "file_type": "code",
-      "norm_label": "testexplainabilitytaxonomy",
-      "source_file": "tests/test_framework_validation.py",
-      "source_location": "L183"
     },
     {
       "id": "app_core_config_cloudprovider",
@@ -6751,17 +6829,17 @@
       "source_location": "L130"
     },
     {
-      "id": "tests_test_production_org_lifecycle_testdeterministicscoring",
-      "label": "TestDeterministicScoring",
+      "id": "tests_test_framework_validation_testexplainabilitytaxonomy",
+      "label": "TestExplainabilityTaxonomy",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 226,
-      "community_name": "TestDeterministicScoring",
+      "community_name": "TestExplainabilityTaxonomy",
       "file_type": "code",
-      "norm_label": "testdeterministicscoring",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L345"
+      "norm_label": "testexplainabilitytaxonomy",
+      "source_file": "tests/test_framework_validation.py",
+      "source_location": "L183"
     },
     {
       "id": "app_models_clinic_value_metric_clinicvaluemetric",
@@ -6894,108 +6972,30 @@
       "source_location": "L153"
     },
     {
-      "id": "tests_test_production_org_lifecycle_testllmisolation",
-      "label": "TestLLMIsolation",
+      "id": "tests_test_production_org_lifecycle_testdeterministicscoring",
+      "label": "TestDeterministicScoring",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 234,
-      "community_name": "TestLLMIsolation",
+      "community_name": "TestDeterministicScoring",
       "file_type": "code",
-      "norm_label": "testllmisolation",
+      "norm_label": "testdeterministicscoring",
       "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L431"
+      "source_location": "L345"
     },
     {
-      "id": "app_schemas_verification_audittrailfindingschema",
-      "label": "AuditTrailFindingSchema",
+      "id": "app_schemas_verification_mttrexecutivesummaryschema",
+      "label": "MTTRExecutiveSummarySchema",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 235,
-      "community_name": "VerificationService",
+      "community_name": "MTTRExecutiveSummarySchema",
       "file_type": "code",
-      "norm_label": "audittrailfindingschema",
+      "norm_label": "mttrexecutivesummaryschema",
       "source_file": "app/schemas/verification.py",
-      "source_location": "L78"
-    },
-    {
-      "id": "app_schemas_verification_audittrailschema",
-      "label": "AuditTrailSchema",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "audittrailschema",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L91"
-    },
-    {
-      "id": "app_schemas_verification_mttrchartdatapoint",
-      "label": "MTTRChartDataPoint",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "mttrchartdatapoint",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L173"
-    },
-    {
-      "id": "app_schemas_verification_mttrmetadata",
-      "label": "MTTRMetadata",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "mttrmetadata",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L181"
-    },
-    {
-      "id": "app_schemas_verification_verificationresultschema",
-      "label": "VerificationResultSchema",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "verificationresultschema",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L37"
-    },
-    {
-      "id": "app_schemas_verification_verificationstatusenum",
-      "label": "VerificationStatusEnum",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "verificationstatusenum",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L23"
-    },
-    {
-      "id": "app_services_verification_verificationservice",
-      "label": "VerificationService",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "verificationservice",
-      "source_file": "app/services/verification.py",
-      "source_location": "L50"
+      "source_location": "L194"
     },
     {
       "id": "tests_test_adversarial_vertical_testadversarialpublicconfighost",
@@ -7139,6 +7139,19 @@
       "norm_label": "lifecyclestatus",
       "source_file": "app/services/lifecycle/lifecycle_intelligence.py",
       "source_location": "L19"
+    },
+    {
+      "id": "tests_test_production_org_lifecycle_testllmisolation",
+      "label": "TestLLMIsolation",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 248,
+      "community_name": "TestLLMIsolation",
+      "file_type": "code",
+      "norm_label": "testllmisolation",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L431"
     },
     {
       "id": "tests_test_reliability_testautonomousadvisories",
@@ -10220,19 +10233,6 @@
       "norm_label": "explainabilityengine",
       "source_file": "app/services/clinic_engine/v2/explainability_engine.py",
       "source_location": "L75"
-    },
-    {
-      "id": "app_schemas_verification_mttrexecutivesummaryschema",
-      "label": "MTTRExecutiveSummarySchema",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 382,
-      "community_name": "MTTRExecutiveSummarySchema",
-      "file_type": "code",
-      "norm_label": "mttrexecutivesummaryschema",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L194"
     },
     {
       "id": "app_services_cve_cve_enrichment_enrichmentresult",
@@ -25192,28 +25192,136 @@
       "source_location": "L36"
     },
     {
-      "id": "app_schemas_telemetry_webhook_siemeventwebhookpayload_raw_telemetry_dump_must_not_be_empty",
-      "label": ".raw_telemetry_dump_must_not_be_empty()",
+      "id": "app_services_verification_verificationservice_connection_error_result",
+      "label": "._connection_error_result()",
       "_callable": true,
       "_origin": "ast",
       "community": 144,
-      "community_name": "SIEMEventWebhookPayload",
+      "community_name": "VerificationService",
       "file_type": "code",
-      "norm_label": ".raw_telemetry_dump_must_not_be_empty()",
-      "source_file": "app/schemas/telemetry_webhook.py",
+      "norm_label": "._connection_error_result()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L506"
+    },
+    {
+      "id": "app_services_verification_verificationservice_evaluate_microsoft_evidence",
+      "label": "._evaluate_microsoft_evidence()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "._evaluate_microsoft_evidence()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L107"
+    },
+    {
+      "id": "app_services_verification_verificationservice_evaluate_wazuh_evidence",
+      "label": "._evaluate_wazuh_evidence()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "._evaluate_wazuh_evidence()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L408"
+    },
+    {
+      "id": "app_services_verification_verificationservice_generate_audit_trail",
+      "label": ".generate_audit_trail()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": ".generate_audit_trail()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L307"
+    },
+    {
+      "id": "app_services_verification_verificationservice_get_latest_microsoft_telemetry",
+      "label": "._get_latest_microsoft_telemetry()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "._get_latest_microsoft_telemetry()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L77"
+    },
+    {
+      "id": "app_services_verification_verificationservice_init",
+      "label": ".__init__()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": ".__init__()",
+      "source_file": "app/services/verification.py",
       "source_location": "L67"
     },
     {
-      "id": "app_schemas_telemetry_webhook_siemeventwebhookpayload_strip_and_validate_strings",
-      "label": ".strip_and_validate_strings()",
+      "id": "app_services_verification_verificationservice_provisional_result",
+      "label": "._provisional_result()",
       "_callable": true,
       "_origin": "ast",
       "community": 144,
-      "community_name": "SIEMEventWebhookPayload",
+      "community_name": "VerificationService",
       "file_type": "code",
-      "norm_label": ".strip_and_validate_strings()",
-      "source_file": "app/schemas/telemetry_webhook.py",
-      "source_location": "L82"
+      "norm_label": "._provisional_result()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L491"
+    },
+    {
+      "id": "app_services_verification_verificationservice_run_wazuh_check",
+      "label": "._run_wazuh_check()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "._run_wazuh_check()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L389"
+    },
+    {
+      "id": "app_services_verification_verificationservice_verify_all_findings",
+      "label": ".verify_all_findings()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": ".verify_all_findings()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L294"
+    },
+    {
+      "id": "app_services_verification_verificationservice_verify_finding",
+      "label": ".verify_finding()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": ".verify_finding()",
+      "source_file": "app/services/verification.py",
+      "source_location": "L207"
+    },
+    {
+      "id": "app_services_wazuh_client_wazuhagentstatusresponse_disconnection_rate",
+      "label": ".disconnection_rate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": ".disconnection_rate()",
+      "source_file": "app/services/wazuh_client.py",
+      "source_location": "L67"
     },
     {
       "id": "tests_test_reliability_testrriv2api_test_accept_recommendation_404_no_org",
@@ -26284,11 +26392,35 @@
       "source_location": "L108"
     },
     {
+      "id": "app_schemas_telemetry_webhook_siemeventwebhookpayload_raw_telemetry_dump_must_not_be_empty",
+      "label": ".raw_telemetry_dump_must_not_be_empty()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 152,
+      "community_name": "SIEMEventWebhookPayload",
+      "file_type": "code",
+      "norm_label": ".raw_telemetry_dump_must_not_be_empty()",
+      "source_file": "app/schemas/telemetry_webhook.py",
+      "source_location": "L67"
+    },
+    {
+      "id": "app_schemas_telemetry_webhook_siemeventwebhookpayload_strip_and_validate_strings",
+      "label": ".strip_and_validate_strings()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 152,
+      "community_name": "SIEMEventWebhookPayload",
+      "file_type": "code",
+      "norm_label": ".strip_and_validate_strings()",
+      "source_file": "app/schemas/telemetry_webhook.py",
+      "source_location": "L82"
+    },
+    {
       "id": "app_services_explanation_explanationservice_generate_deterministic_fallback",
       "label": "._generate_deterministic_fallback()",
       "_callable": true,
       "_origin": "ast",
-      "community": 152,
+      "community": 153,
       "community_name": ".generate_explanation",
       "file_type": "code",
       "norm_label": "._generate_deterministic_fallback()",
@@ -26300,7 +26432,7 @@
       "label": ".generate_explanation()",
       "_callable": true,
       "_origin": "ast",
-      "community": 152,
+      "community": 153,
       "community_name": ".generate_explanation",
       "file_type": "code",
       "norm_label": ".generate_explanation()",
@@ -26312,7 +26444,7 @@
       "label": "._generate_with_gemini()",
       "_callable": true,
       "_origin": "ast",
-      "community": 152,
+      "community": 153,
       "community_name": ".generate_explanation",
       "file_type": "code",
       "norm_label": "._generate_with_gemini()",
@@ -26324,48 +26456,12 @@
       "label": "._get_model_name()",
       "_callable": true,
       "_origin": "ast",
-      "community": 152,
+      "community": 153,
       "community_name": ".generate_explanation",
       "file_type": "code",
       "norm_label": "._get_model_name()",
       "source_file": "app/services/explanation.py",
       "source_location": "L232"
-    },
-    {
-      "id": "tests_aws_integration_test_e2e_healthcare_get_aws_credentials",
-      "label": "get_aws_credentials()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 153,
-      "community_name": "test_e2e_healthcare.py",
-      "file_type": "code",
-      "norm_label": "get_aws_credentials()",
-      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
-      "source_location": "L30"
-    },
-    {
-      "id": "tests_aws_integration_test_e2e_healthcare_main",
-      "label": "main()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 153,
-      "community_name": "test_e2e_healthcare.py",
-      "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
-      "source_location": "L303"
-    },
-    {
-      "id": "tests_aws_integration_test_e2e_healthcare_run_e2e_test",
-      "label": "run_e2e_test()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 153,
-      "community_name": "test_e2e_healthcare.py",
-      "file_type": "code",
-      "norm_label": "run_e2e_test()",
-      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
-      "source_location": "L58"
     },
     {
       "id": "app_services_report_generator_executivereportgenerator_enrich_with_framework_coverage",
@@ -26572,11 +26668,47 @@
       "source_location": "L1169"
     },
     {
+      "id": "tests_aws_integration_test_e2e_healthcare_get_aws_credentials",
+      "label": "get_aws_credentials()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 156,
+      "community_name": "test_e2e_healthcare.py",
+      "file_type": "code",
+      "norm_label": "get_aws_credentials()",
+      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
+      "source_location": "L30"
+    },
+    {
+      "id": "tests_aws_integration_test_e2e_healthcare_main",
+      "label": "main()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 156,
+      "community_name": "test_e2e_healthcare.py",
+      "file_type": "code",
+      "norm_label": "main()",
+      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
+      "source_location": "L303"
+    },
+    {
+      "id": "tests_aws_integration_test_e2e_healthcare_run_e2e_test",
+      "label": "run_e2e_test()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 156,
+      "community_name": "test_e2e_healthcare.py",
+      "file_type": "code",
+      "norm_label": "run_e2e_test()",
+      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
+      "source_location": "L58"
+    },
+    {
       "id": "tests_test_assessments_testreports_scored_assessment",
       "label": ".scored_assessment()",
       "_callable": true,
       "_origin": "ast",
-      "community": 156,
+      "community": 157,
       "community_name": "TestReports",
       "file_type": "code",
       "norm_label": ".scored_assessment()",
@@ -26588,7 +26720,7 @@
       "label": ".test_export_for_siem_success()",
       "_callable": true,
       "_origin": "ast",
-      "community": 156,
+      "community": 157,
       "community_name": "TestReports",
       "file_type": "code",
       "norm_label": ".test_export_for_siem_success()",
@@ -26600,7 +26732,7 @@
       "label": ".test_generate_executive_summary_success()",
       "_callable": true,
       "_origin": "ast",
-      "community": 156,
+      "community": 157,
       "community_name": "TestReports",
       "file_type": "code",
       "norm_label": ".test_generate_executive_summary_success()",
@@ -26612,7 +26744,7 @@
       "label": ".test_generate_report_not_scored()",
       "_callable": true,
       "_origin": "ast",
-      "community": 156,
+      "community": 157,
       "community_name": "TestReports",
       "file_type": "code",
       "norm_label": ".test_generate_report_not_scored()",
@@ -26624,48 +26756,12 @@
       "label": ".test_generate_report_success()",
       "_callable": true,
       "_origin": "ast",
-      "community": 156,
+      "community": 157,
       "community_name": "TestReports",
       "file_type": "code",
       "norm_label": ".test_generate_report_success()",
       "source_file": "tests/test_assessments.py",
       "source_location": "L435"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_testnodemoseedinproduction_test_assessment_listing_does_not_call_demo_seed",
-      "label": ".test_assessment_listing_does_not_call_demo_seed()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 157,
-      "community_name": "TestNoDemoSeedInProduction",
-      "file_type": "code",
-      "norm_label": ".test_assessment_listing_does_not_call_demo_seed()",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L468"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_testnodemoseedinproduction_test_org_listing_does_not_call_demo_seed",
-      "label": ".test_org_listing_does_not_call_demo_seed()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 157,
-      "community_name": "TestNoDemoSeedInProduction",
-      "file_type": "code",
-      "norm_label": ".test_org_listing_does_not_call_demo_seed()",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L461"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_testnodemoseedinproduction_test_readiness_endpoint_does_not_seed_demo_for_real_org",
-      "label": ".test_readiness_endpoint_does_not_seed_demo_for_real_org()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 157,
-      "community_name": "TestNoDemoSeedInProduction",
-      "file_type": "code",
-      "norm_label": ".test_readiness_endpoint_does_not_seed_demo_for_real_org()",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L475"
     },
     {
       "id": "scratch_audit_live_extract_scripts",
@@ -26884,40 +26980,40 @@
       "source_location": "L79"
     },
     {
-      "id": "app_connectors_duo_duoconnector_authenticate",
-      "label": ".authenticate()",
+      "id": "tests_test_production_org_lifecycle_testnodemoseedinproduction_test_assessment_listing_does_not_call_demo_seed",
+      "label": ".test_assessment_listing_does_not_call_demo_seed()",
       "_callable": true,
       "_origin": "ast",
       "community": 160,
-      "community_name": ".authenticate",
+      "community_name": "TestNoDemoSeedInProduction",
       "file_type": "code",
-      "norm_label": ".authenticate()",
-      "source_file": "app/connectors/duo.py",
-      "source_location": "L83"
+      "norm_label": ".test_assessment_listing_does_not_call_demo_seed()",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L468"
     },
     {
-      "id": "app_connectors_duo_duoconnector_sign",
-      "label": "._sign()",
+      "id": "tests_test_production_org_lifecycle_testnodemoseedinproduction_test_org_listing_does_not_call_demo_seed",
+      "label": ".test_org_listing_does_not_call_demo_seed()",
       "_callable": true,
       "_origin": "ast",
       "community": 160,
-      "community_name": ".authenticate",
+      "community_name": "TestNoDemoSeedInProduction",
       "file_type": "code",
-      "norm_label": "._sign()",
-      "source_file": "app/connectors/duo.py",
-      "source_location": "L64"
+      "norm_label": ".test_org_listing_does_not_call_demo_seed()",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L461"
     },
     {
-      "id": "app_connectors_duo_duoconnector_sync",
-      "label": ".sync()",
+      "id": "tests_test_production_org_lifecycle_testnodemoseedinproduction_test_readiness_endpoint_does_not_seed_demo_for_real_org",
+      "label": ".test_readiness_endpoint_does_not_seed_demo_for_real_org()",
       "_callable": true,
       "_origin": "ast",
       "community": 160,
-      "community_name": ".authenticate",
+      "community_name": "TestNoDemoSeedInProduction",
       "file_type": "code",
-      "norm_label": ".sync()",
-      "source_file": "app/connectors/duo.py",
-      "source_location": "L109"
+      "norm_label": ".test_readiness_endpoint_does_not_seed_demo_for_real_org()",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L475"
     },
     {
       "id": "app_api_v1_evidence_get_evidence_ledger",
@@ -26966,6 +27062,42 @@
       "norm_label": "get_monday_morning_actions()",
       "source_file": "app/api/v1/evidence.py",
       "source_location": "L12"
+    },
+    {
+      "id": "app_connectors_duo_duoconnector_authenticate",
+      "label": ".authenticate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 162,
+      "community_name": ".authenticate",
+      "file_type": "code",
+      "norm_label": ".authenticate()",
+      "source_file": "app/connectors/duo.py",
+      "source_location": "L83"
+    },
+    {
+      "id": "app_connectors_duo_duoconnector_sign",
+      "label": "._sign()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 162,
+      "community_name": ".authenticate",
+      "file_type": "code",
+      "norm_label": "._sign()",
+      "source_file": "app/connectors/duo.py",
+      "source_location": "L64"
+    },
+    {
+      "id": "app_connectors_duo_duoconnector_sync",
+      "label": ".sync()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 162,
+      "community_name": ".authenticate",
+      "file_type": "code",
+      "norm_label": ".sync()",
+      "source_file": "app/connectors/duo.py",
+      "source_location": "L109"
     },
     {
       "id": "app_services_clinic_engine_v2_pilot_pilotservice_init",
@@ -28286,54 +28418,6 @@
       "norm_label": "dispatch_assessment_scored_webhooks()",
       "source_file": "app/services/integrations.py",
       "source_location": "L434"
-    },
-    {
-      "id": "tests_test_ai_narrative_genai_test_fallback_narrative_when_llm_fails_has_required_actions",
-      "label": "test_fallback_narrative_when_llm_fails_has_required_actions()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 172,
-      "community_name": "test_ai_narrative_genai.py",
-      "file_type": "code",
-      "norm_label": "test_fallback_narrative_when_llm_fails_has_required_actions()",
-      "source_file": "tests/test_ai_narrative_genai.py",
-      "source_location": "L84"
-    },
-    {
-      "id": "tests_test_ai_narrative_genai_test_generate_llm_narrative_uses_google_genai_sdk",
-      "label": "test_generate_llm_narrative_uses_google_genai_sdk()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 172,
-      "community_name": "test_ai_narrative_genai.py",
-      "file_type": "code",
-      "norm_label": "test_generate_llm_narrative_uses_google_genai_sdk()",
-      "source_file": "tests/test_ai_narrative_genai.py",
-      "source_location": "L7"
-    },
-    {
-      "id": "tests_test_ai_narrative_genai_test_generate_llm_narrative_uses_google_genai_sdk_generate_content",
-      "label": "generate_content()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 172,
-      "community_name": "test_ai_narrative_genai.py",
-      "file_type": "code",
-      "norm_label": "generate_content()",
-      "source_file": "tests/test_ai_narrative_genai.py",
-      "source_location": "L15"
-    },
-    {
-      "id": "tests_test_ai_narrative_genai_test_generate_llm_narrative_uses_google_genai_sdk_init",
-      "label": "__init__()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 172,
-      "community_name": "test_ai_narrative_genai.py",
-      "file_type": "code",
-      "norm_label": "__init__()",
-      "source_file": "tests/test_ai_narrative_genai.py",
-      "source_location": "L11"
     },
     {
       "id": "app_services_governance_audit_calendar_auditcalendarservice_create",
@@ -29944,11 +30028,59 @@
       "source_location": "L35"
     },
     {
+      "id": "tests_test_ai_narrative_genai_test_fallback_narrative_when_llm_fails_has_required_actions",
+      "label": "test_fallback_narrative_when_llm_fails_has_required_actions()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 181,
+      "community_name": "test_ai_narrative_genai.py",
+      "file_type": "code",
+      "norm_label": "test_fallback_narrative_when_llm_fails_has_required_actions()",
+      "source_file": "tests/test_ai_narrative_genai.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "tests_test_ai_narrative_genai_test_generate_llm_narrative_uses_google_genai_sdk",
+      "label": "test_generate_llm_narrative_uses_google_genai_sdk()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 181,
+      "community_name": "test_ai_narrative_genai.py",
+      "file_type": "code",
+      "norm_label": "test_generate_llm_narrative_uses_google_genai_sdk()",
+      "source_file": "tests/test_ai_narrative_genai.py",
+      "source_location": "L7"
+    },
+    {
+      "id": "tests_test_ai_narrative_genai_test_generate_llm_narrative_uses_google_genai_sdk_generate_content",
+      "label": "generate_content()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 181,
+      "community_name": "test_ai_narrative_genai.py",
+      "file_type": "code",
+      "norm_label": "generate_content()",
+      "source_file": "tests/test_ai_narrative_genai.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "tests_test_ai_narrative_genai_test_generate_llm_narrative_uses_google_genai_sdk_init",
+      "label": "__init__()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 181,
+      "community_name": "test_ai_narrative_genai.py",
+      "file_type": "code",
+      "norm_label": "__init__()",
+      "source_file": "tests/test_ai_narrative_genai.py",
+      "source_location": "L11"
+    },
+    {
       "id": "tests_test_findings_testfindingssummary_test_summary_counts",
       "label": ".test_summary_counts()",
       "_callable": true,
       "_origin": "ast",
-      "community": 181,
+      "community": 182,
       "community_name": "TestFindingsSummary",
       "file_type": "code",
       "norm_label": ".test_summary_counts()",
@@ -29960,36 +30092,12 @@
       "label": ".test_summary_top_priorities()",
       "_callable": true,
       "_origin": "ast",
-      "community": 181,
+      "community": 182,
       "community_name": "TestFindingsSummary",
       "file_type": "code",
       "norm_label": ".test_summary_top_priorities()",
       "source_file": "tests/test_findings.py",
       "source_location": "L403"
-    },
-    {
-      "id": "app_reports_pdf_get_heatmap_color",
-      "label": "get_heatmap_color()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 182,
-      "community_name": "get_heatmap_color",
-      "file_type": "code",
-      "norm_label": "get_heatmap_color()",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L91"
-    },
-    {
-      "id": "app_reports_pdf_get_severity_color",
-      "label": "get_severity_color()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 182,
-      "community_name": "get_heatmap_color",
-      "file_type": "code",
-      "norm_label": "get_severity_color()",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L77"
     },
     {
       "id": "app_services_intelligence_intelligenceservice_fetch_cisa_kev_advisory",
@@ -30364,28 +30472,28 @@
       "source_location": "L146"
     },
     {
-      "id": "scripts_mock_splunk_mcp_health",
-      "label": "health()",
+      "id": "app_reports_pdf_get_heatmap_color",
+      "label": "get_heatmap_color()",
       "_callable": true,
       "_origin": "ast",
       "community": 187,
-      "community_name": "mock_splunk_mcp.py",
+      "community_name": "get_heatmap_color",
       "file_type": "code",
-      "norm_label": "health()",
-      "source_file": "scripts/mock_splunk_mcp.py",
-      "source_location": "L8"
+      "norm_label": "get_heatmap_color()",
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L91"
     },
     {
-      "id": "scripts_mock_splunk_mcp_search",
-      "label": "search()",
+      "id": "app_reports_pdf_get_severity_color",
+      "label": "get_severity_color()",
       "_callable": true,
       "_origin": "ast",
       "community": 187,
-      "community_name": "mock_splunk_mcp.py",
+      "community_name": "get_heatmap_color",
       "file_type": "code",
-      "norm_label": "search()",
-      "source_file": "scripts/mock_splunk_mcp.py",
-      "source_location": "L12"
+      "norm_label": "get_severity_color()",
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L77"
     },
     {
       "id": "tests_test_adversarial_vertical_testadversarialpublicconfigquery_test_empty_and_blank_query",
@@ -31084,40 +31192,28 @@
       "source_location": "L128"
     },
     {
-      "id": "tests_test_cors_testcorserrorsafetymiddleware_test_options_preflight_custom_headers",
-      "label": ".test_options_preflight_custom_headers()",
+      "id": "scripts_mock_splunk_mcp_health",
+      "label": "health()",
       "_callable": true,
       "_origin": "ast",
       "community": 195,
-      "community_name": "TestCORSErrorSafetyMiddleware",
+      "community_name": "mock_splunk_mcp.py",
       "file_type": "code",
-      "norm_label": ".test_options_preflight_custom_headers()",
-      "source_file": "tests/test_cors.py",
-      "source_location": "L231"
+      "norm_label": "health()",
+      "source_file": "scripts/mock_splunk_mcp.py",
+      "source_location": "L8"
     },
     {
-      "id": "tests_test_cors_testcorserrorsafetymiddleware_test_options_preflight_custom_headers_endpoint",
-      "label": "endpoint()",
+      "id": "scripts_mock_splunk_mcp_search",
+      "label": "search()",
       "_callable": true,
       "_origin": "ast",
       "community": 195,
-      "community_name": "TestCORSErrorSafetyMiddleware",
+      "community_name": "mock_splunk_mcp.py",
       "file_type": "code",
-      "norm_label": "endpoint()",
-      "source_file": "tests/test_cors.py",
-      "source_location": "L240"
-    },
-    {
-      "id": "tests_test_cors_testcorserrorsafetymiddleware_test_options_preflight_trusted_origin_auto_allowed",
-      "label": ".test_options_preflight_trusted_origin_auto_allowed()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 195,
-      "community_name": "TestCORSErrorSafetyMiddleware",
-      "file_type": "code",
-      "norm_label": ".test_options_preflight_trusted_origin_auto_allowed()",
-      "source_file": "tests/test_cors.py",
-      "source_location": "L258"
+      "norm_label": "search()",
+      "source_file": "scripts/mock_splunk_mcp.py",
+      "source_location": "L12"
     },
     {
       "id": "app_api_internal_verify_admin_token",
@@ -33844,52 +33940,40 @@
       "source_location": "L8"
     },
     {
-      "id": "frontend_src_pages_reliabilitydashboard_reliabilitytimeline",
-      "label": "ReliabilityTimeline()",
+      "id": "tests_test_cors_testcorserrorsafetymiddleware_test_options_preflight_custom_headers",
+      "label": ".test_options_preflight_custom_headers()",
       "_callable": true,
       "_origin": "ast",
       "community": 214,
-      "community_name": "ReliabilityTimeline",
+      "community_name": "TestCORSErrorSafetyMiddleware",
       "file_type": "code",
-      "norm_label": "reliabilitytimeline()",
-      "source_file": "frontend/src/pages/ReliabilityDashboard.tsx",
-      "source_location": "L772"
+      "norm_label": ".test_options_preflight_custom_headers()",
+      "source_file": "tests/test_cors.py",
+      "source_location": "L231"
     },
     {
-      "id": "frontend_src_pages_reliabilitydashboard_reliabilitytimeline_tox",
-      "label": "toX()",
+      "id": "tests_test_cors_testcorserrorsafetymiddleware_test_options_preflight_custom_headers_endpoint",
+      "label": "endpoint()",
       "_callable": true,
       "_origin": "ast",
       "community": 214,
-      "community_name": "ReliabilityTimeline",
+      "community_name": "TestCORSErrorSafetyMiddleware",
       "file_type": "code",
-      "norm_label": "tox()",
-      "source_file": "frontend/src/pages/ReliabilityDashboard.tsx",
-      "source_location": "L811"
+      "norm_label": "endpoint()",
+      "source_file": "tests/test_cors.py",
+      "source_location": "L240"
     },
     {
-      "id": "frontend_src_pages_reliabilitydashboard_reliabilitytimeline_toyrcs",
-      "label": "toYRcs()",
+      "id": "tests_test_cors_testcorserrorsafetymiddleware_test_options_preflight_trusted_origin_auto_allowed",
+      "label": ".test_options_preflight_trusted_origin_auto_allowed()",
       "_callable": true,
       "_origin": "ast",
       "community": 214,
-      "community_name": "ReliabilityTimeline",
+      "community_name": "TestCORSErrorSafetyMiddleware",
       "file_type": "code",
-      "norm_label": "toyrcs()",
-      "source_file": "frontend/src/pages/ReliabilityDashboard.tsx",
-      "source_location": "L817"
-    },
-    {
-      "id": "frontend_src_pages_reliabilitydashboard_reliabilitytimeline_toyrri",
-      "label": "toYRri()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 214,
-      "community_name": "ReliabilityTimeline",
-      "file_type": "code",
-      "norm_label": "toyrri()",
-      "source_file": "frontend/src/pages/ReliabilityDashboard.tsx",
-      "source_location": "L814"
+      "norm_label": ".test_options_preflight_trusted_origin_auto_allowed()",
+      "source_file": "tests/test_cors.py",
+      "source_location": "L258"
     },
     {
       "id": "app_db_cache_clear_cache",
@@ -34372,28 +34456,52 @@
       "source_location": "L36"
     },
     {
-      "id": "tests_test_framework_validation_testexplainabilitytaxonomy_test_taxonomy_has_no_llm_references",
-      "label": ".test_taxonomy_has_no_llm_references()",
+      "id": "frontend_src_pages_reliabilitydashboard_reliabilitytimeline",
+      "label": "ReliabilityTimeline()",
       "_callable": true,
       "_origin": "ast",
       "community": 224,
-      "community_name": "TestExplainabilityTaxonomy",
+      "community_name": "ReliabilityTimeline",
       "file_type": "code",
-      "norm_label": ".test_taxonomy_has_no_llm_references()",
-      "source_file": "tests/test_framework_validation.py",
-      "source_location": "L193"
+      "norm_label": "reliabilitytimeline()",
+      "source_file": "frontend/src/pages/ReliabilityDashboard.tsx",
+      "source_location": "L772"
     },
     {
-      "id": "tests_test_framework_validation_testexplainabilitytaxonomy_test_taxonomy_is_deterministic",
-      "label": ".test_taxonomy_is_deterministic()",
+      "id": "frontend_src_pages_reliabilitydashboard_reliabilitytimeline_tox",
+      "label": "toX()",
       "_callable": true,
       "_origin": "ast",
       "community": 224,
-      "community_name": "TestExplainabilityTaxonomy",
+      "community_name": "ReliabilityTimeline",
       "file_type": "code",
-      "norm_label": ".test_taxonomy_is_deterministic()",
-      "source_file": "tests/test_framework_validation.py",
-      "source_location": "L186"
+      "norm_label": "tox()",
+      "source_file": "frontend/src/pages/ReliabilityDashboard.tsx",
+      "source_location": "L811"
+    },
+    {
+      "id": "frontend_src_pages_reliabilitydashboard_reliabilitytimeline_toyrcs",
+      "label": "toYRcs()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 224,
+      "community_name": "ReliabilityTimeline",
+      "file_type": "code",
+      "norm_label": "toyrcs()",
+      "source_file": "frontend/src/pages/ReliabilityDashboard.tsx",
+      "source_location": "L817"
+    },
+    {
+      "id": "frontend_src_pages_reliabilitydashboard_reliabilitytimeline_toyrri",
+      "label": "toYRri()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 224,
+      "community_name": "ReliabilityTimeline",
+      "file_type": "code",
+      "norm_label": "toyrri()",
+      "source_file": "frontend/src/pages/ReliabilityDashboard.tsx",
+      "source_location": "L814"
     },
     {
       "id": "app_api_drift_require_staging",
@@ -34540,16 +34648,28 @@
       "source_location": "L151"
     },
     {
-      "id": "tests_test_production_org_lifecycle_testdeterministicscoring_test_scoring_is_deterministic",
-      "label": ".test_scoring_is_deterministic()",
+      "id": "tests_test_framework_validation_testexplainabilitytaxonomy_test_taxonomy_has_no_llm_references",
+      "label": ".test_taxonomy_has_no_llm_references()",
       "_callable": true,
       "_origin": "ast",
       "community": 226,
-      "community_name": "TestDeterministicScoring",
+      "community_name": "TestExplainabilityTaxonomy",
       "file_type": "code",
-      "norm_label": ".test_scoring_is_deterministic()",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L348"
+      "norm_label": ".test_taxonomy_has_no_llm_references()",
+      "source_file": "tests/test_framework_validation.py",
+      "source_location": "L193"
+    },
+    {
+      "id": "tests_test_framework_validation_testexplainabilitytaxonomy_test_taxonomy_is_deterministic",
+      "label": ".test_taxonomy_is_deterministic()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 226,
+      "community_name": "TestExplainabilityTaxonomy",
+      "file_type": "code",
+      "norm_label": ".test_taxonomy_is_deterministic()",
+      "source_file": "tests/test_framework_validation.py",
+      "source_location": "L186"
     },
     {
       "id": "app_services_ai_narrative_generate_board_story",
@@ -35068,148 +35188,16 @@
       "source_location": "L437"
     },
     {
-      "id": "tests_test_production_org_lifecycle_testllmisolation_test_readiness_score_is_llm_independent",
-      "label": ".test_readiness_score_is_llm_independent()",
+      "id": "tests_test_production_org_lifecycle_testdeterministicscoring_test_scoring_is_deterministic",
+      "label": ".test_scoring_is_deterministic()",
       "_callable": true,
       "_origin": "ast",
       "community": 234,
-      "community_name": "TestLLMIsolation",
+      "community_name": "TestDeterministicScoring",
       "file_type": "code",
-      "norm_label": ".test_readiness_score_is_llm_independent()",
+      "norm_label": ".test_scoring_is_deterministic()",
       "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L434"
-    },
-    {
-      "id": "app_services_verification_verificationservice_connection_error_result",
-      "label": "._connection_error_result()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "._connection_error_result()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L506"
-    },
-    {
-      "id": "app_services_verification_verificationservice_evaluate_microsoft_evidence",
-      "label": "._evaluate_microsoft_evidence()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "._evaluate_microsoft_evidence()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L107"
-    },
-    {
-      "id": "app_services_verification_verificationservice_evaluate_wazuh_evidence",
-      "label": "._evaluate_wazuh_evidence()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "._evaluate_wazuh_evidence()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L408"
-    },
-    {
-      "id": "app_services_verification_verificationservice_generate_audit_trail",
-      "label": ".generate_audit_trail()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": ".generate_audit_trail()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L307"
-    },
-    {
-      "id": "app_services_verification_verificationservice_get_latest_microsoft_telemetry",
-      "label": "._get_latest_microsoft_telemetry()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "._get_latest_microsoft_telemetry()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L77"
-    },
-    {
-      "id": "app_services_verification_verificationservice_init",
-      "label": ".__init__()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": ".__init__()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L67"
-    },
-    {
-      "id": "app_services_verification_verificationservice_provisional_result",
-      "label": "._provisional_result()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "._provisional_result()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L491"
-    },
-    {
-      "id": "app_services_verification_verificationservice_run_wazuh_check",
-      "label": "._run_wazuh_check()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "._run_wazuh_check()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L389"
-    },
-    {
-      "id": "app_services_verification_verificationservice_verify_all_findings",
-      "label": ".verify_all_findings()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": ".verify_all_findings()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L294"
-    },
-    {
-      "id": "app_services_verification_verificationservice_verify_finding",
-      "label": ".verify_finding()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": ".verify_finding()",
-      "source_file": "app/services/verification.py",
-      "source_location": "L207"
-    },
-    {
-      "id": "app_services_wazuh_client_wazuhagentstatusresponse_disconnection_rate",
-      "label": ".disconnection_rate()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": ".disconnection_rate()",
-      "source_file": "app/services/wazuh_client.py",
-      "source_location": "L67"
+      "source_location": "L348"
     },
     {
       "id": "tests_conftest_client",
@@ -36160,28 +36148,16 @@
       "source_location": "L60"
     },
     {
-      "id": "app_reports_pdf_professionalpdfgenerator_init",
-      "label": ".__init__()",
+      "id": "tests_test_production_org_lifecycle_testllmisolation_test_readiness_score_is_llm_independent",
+      "label": ".test_readiness_score_is_llm_independent()",
       "_callable": true,
       "_origin": "ast",
       "community": 248,
-      "community_name": ".__init__",
+      "community_name": "TestLLMIsolation",
       "file_type": "code",
-      "norm_label": ".__init__()",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L234"
-    },
-    {
-      "id": "app_reports_pdf_professionalpdfgenerator_setup_custom_styles",
-      "label": "._setup_custom_styles()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 248,
-      "community_name": ".__init__",
-      "file_type": "code",
-      "norm_label": "._setup_custom_styles()",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L240"
+      "norm_label": ".test_readiness_score_is_llm_independent()",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L434"
     },
     {
       "id": "tests_test_inventory_test_asset_relationships",
@@ -36892,7 +36868,7 @@
       "source_location": "L32"
     },
     {
-      "id": "app_services_clinic_engine_v2_trust_engine_trustengine_init",
+      "id": "app_reports_pdf_professionalpdfgenerator_init",
       "label": ".__init__()",
       "_callable": true,
       "_origin": "ast",
@@ -36900,8 +36876,20 @@
       "community_name": ".__init__",
       "file_type": "code",
       "norm_label": ".__init__()",
-      "source_file": "app/services/clinic_engine/v2/trust_engine.py",
-      "source_location": "L33"
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L234"
+    },
+    {
+      "id": "app_reports_pdf_professionalpdfgenerator_setup_custom_styles",
+      "label": "._setup_custom_styles()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 254,
+      "community_name": ".__init__",
+      "file_type": "code",
+      "norm_label": "._setup_custom_styles()",
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L240"
     },
     {
       "id": "tests_test_findings_testrulecount_test_all_rules_have_references",
@@ -37432,7 +37420,7 @@
       "source_location": "L55"
     },
     {
-      "id": "app_services_report_reportservice_init",
+      "id": "app_services_clinic_engine_v2_trust_engine_trustengine_init",
       "label": ".__init__()",
       "_callable": true,
       "_origin": "ast",
@@ -37440,8 +37428,8 @@
       "community_name": ".__init__",
       "file_type": "code",
       "norm_label": ".__init__()",
-      "source_file": "app/services/report.py",
-      "source_location": "L29"
+      "source_file": "app/services/clinic_engine/v2/trust_engine.py",
+      "source_location": "L33"
     },
     {
       "id": "tests_test_reliability_testtiermultipliers_test_tier_0",
@@ -37708,16 +37696,16 @@
       "source_location": "L848"
     },
     {
-      "id": "tests_test_demo_isolation_test_db",
-      "label": "test_db()",
+      "id": "app_services_report_reportservice_init",
+      "label": ".__init__()",
       "_callable": true,
       "_origin": "ast",
       "community": 267,
-      "community_name": "test_db",
+      "community_name": ".__init__",
       "file_type": "code",
-      "norm_label": "test_db()",
-      "source_file": "tests/test_demo_isolation.py",
-      "source_location": "L24"
+      "norm_label": ".__init__()",
+      "source_file": "app/services/report.py",
+      "source_location": "L29"
     },
     {
       "id": "app_services_governance_reliability_engine_auto_recommend",
@@ -38740,11 +38728,23 @@
       "source_location": "L191"
     },
     {
-      "id": "tests_test_tenant_isolation_v2_test_db",
+      "id": "tests_test_demo_isolation_test_db",
       "label": "test_db()",
       "_callable": true,
       "_origin": "ast",
       "community": 285,
+      "community_name": "test_db",
+      "file_type": "code",
+      "norm_label": "test_db()",
+      "source_file": "tests/test_demo_isolation.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "tests_test_tenant_isolation_v2_test_db",
+      "label": "test_db()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 286,
       "community_name": "test_db",
       "file_type": "code",
       "norm_label": "test_db()",
@@ -38756,24 +38756,12 @@
       "label": "sync_wazuh_configs_from_firestore()",
       "_callable": true,
       "_origin": "ast",
-      "community": 286,
+      "community": 287,
       "community_name": "sync_wazuh_configs_from_firestore",
       "file_type": "code",
       "norm_label": "sync_wazuh_configs_from_firestore()",
       "source_file": "app/db/firestore.py",
       "source_location": "L1001"
-    },
-    {
-      "id": "app_reports_pdf_professionalpdfgenerator_get_content_type",
-      "label": ".get_content_type()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 287,
-      "community_name": ".get_content_type",
-      "file_type": "code",
-      "norm_label": ".get_content_type()",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L1607"
     },
     {
       "id": "app_services_governance_reliability_engine_cached_sla_advisor",
@@ -39518,6 +39506,18 @@
       "norm_label": ".test_plans_are_cumulative()",
       "source_file": "tests/test_entitlements_service.py",
       "source_location": "L104"
+    },
+    {
+      "id": "app_reports_pdf_professionalpdfgenerator_get_content_type",
+      "label": ".get_content_type()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 301,
+      "community_name": ".get_content_type",
+      "file_type": "code",
+      "norm_label": ".get_content_type()",
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L1607"
     },
     {
       "id": "tests_test_llm_isolation_check_file_for_forbidden_imports",
@@ -72640,59 +72640,257 @@
       "source_location": "L37"
     },
     {
-      "id": "app_schemas_telemetry_webhook_py_any",
+      "id": "app_schemas_verification",
+      "label": "schemas/verification.py",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "schemas/verification.py",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_schemas_verification_py_enum",
+      "label": "Enum",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "enum",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "app_schemas_verification_py_str",
+      "label": "str",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "str",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "app_services_verification",
+      "label": "services/verification.py",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "code",
+      "norm_label": "services/verification.py",
+      "source_file": "app/services/verification.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_services_verification_py_any",
       "label": "Any",
       "_origin": "ast",
       "community": 144,
-      "community_name": "SIEMEventWebhookPayload",
+      "community_name": "VerificationService",
       "file_type": "code",
       "norm_label": "any",
       "source_file": "",
       "source_location": ""
     },
     {
-      "id": "app_schemas_telemetry_webhook_py_field_validator",
-      "label": "field_validator",
+      "id": "app_schemas_verification_rationale_1",
+      "label": "Pydantic schemas for the Verification & Audit Trail API. Defines\u2026",
       "_origin": "ast",
       "community": 144,
-      "community_name": "SIEMEventWebhookPayload",
-      "file_type": "code",
-      "norm_label": "field_validator",
-      "source_file": "",
-      "source_location": ""
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "pydantic schemas for the verification & audit trail api. defines...",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L1"
     },
     {
-      "id": "app_schemas_telemetry_webhook_rationale_23",
-      "label": "Inbound webhook payload from a Wazuh or Splunk SIEM integration. This is the\u2026",
+      "id": "app_schemas_verification_rationale_174",
+      "label": "Single data point for the Executive Risk-Reduction Recharts graph.",
       "_origin": "ast",
       "community": 144,
-      "community_name": "SIEMEventWebhookPayload",
+      "community_name": "VerificationService",
       "file_type": "rationale",
-      "norm_label": "inbound webhook payload from a wazuh or splunk siem integration. this is the...",
-      "source_file": "app/schemas/telemetry_webhook.py",
-      "source_location": "L23"
+      "norm_label": "single data point for the executive risk-reduction recharts graph.",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L174"
     },
     {
-      "id": "app_schemas_telemetry_webhook_rationale_68",
-      "label": "Enforce non-empty telemetry payload. An empty dict provides no forensic\u2026",
+      "id": "app_schemas_verification_rationale_182",
+      "label": "Deterministic metadata backing the MTTR summary.",
       "_origin": "ast",
       "community": 144,
-      "community_name": "SIEMEventWebhookPayload",
+      "community_name": "VerificationService",
       "file_type": "rationale",
-      "norm_label": "enforce non-empty telemetry payload. an empty dict provides no forensic...",
-      "source_file": "app/schemas/telemetry_webhook.py",
-      "source_location": "L68"
+      "norm_label": "deterministic metadata backing the mttr summary.",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L182"
     },
     {
-      "id": "app_schemas_telemetry_webhook_rationale_83",
-      "label": "Strip whitespace and reject blank strings.",
+      "id": "app_schemas_verification_rationale_24",
+      "label": "Badge status for a finding after SIEM cross-reference.",
       "_origin": "ast",
       "community": 144,
-      "community_name": "SIEMEventWebhookPayload",
+      "community_name": "VerificationService",
       "file_type": "rationale",
-      "norm_label": "strip whitespace and reject blank strings.",
-      "source_file": "app/schemas/telemetry_webhook.py",
-      "source_location": "L83"
+      "norm_label": "badge status for a finding after siem cross-reference.",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "app_schemas_verification_rationale_38",
+      "label": "Result of cross-referencing a single finding against SIEM logs.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "result of cross-referencing a single finding against siem logs.",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L38"
+    },
+    {
+      "id": "app_schemas_verification_rationale_79",
+      "label": "Compact finding representation inside the audit trail.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "compact finding representation inside the audit trail.",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L79"
+    },
+    {
+      "id": "app_schemas_verification_rationale_92",
+      "label": "Tamper-evident audit trail for an assessment's scoring + verification.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "tamper-evident audit trail for an assessment's scoring + verification.",
+      "source_file": "app/schemas/verification.py",
+      "source_location": "L92"
+    },
+    {
+      "id": "app_services_verification_rationale_1",
+      "label": "VerificationService \u2014 SIEM-Corroborated Finding Verification. Cross-references\u2026",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "verificationservice \u2014 siem-corroborated finding verification. cross-references...",
+      "source_file": "app/services/verification.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_services_verification_rationale_108",
+      "label": "Evaluate a finding against Microsoft telemetry payload.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "evaluate a finding against microsoft telemetry payload.",
+      "source_file": "app/services/verification.py",
+      "source_location": "L108"
+    },
+    {
+      "id": "app_services_verification_rationale_208",
+      "label": "Verify a single finding against SIEM evidence. Args: finding: A Finding\u2026",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "verify a single finding against siem evidence. args: finding: a finding...",
+      "source_file": "app/services/verification.py",
+      "source_location": "L208"
+    },
+    {
+      "id": "app_services_verification_rationale_295",
+      "label": "Batch-verify all findings against SIEM evidence.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "batch-verify all findings against siem evidence.",
+      "source_file": "app/services/verification.py",
+      "source_location": "L295"
+    },
+    {
+      "id": "app_services_verification_rationale_316",
+      "label": "Generate a tamper-evident JSON audit trail. The integrity_hash is a SHA-256 of\u2026",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "generate a tamper-evident json audit trail. the integrity_hash is a sha-256 of...",
+      "source_file": "app/services/verification.py",
+      "source_location": "L316"
+    },
+    {
+      "id": "app_services_verification_rationale_390",
+      "label": "Run a Wazuh evidence check, caching results.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "run a wazuh evidence check, caching results.",
+      "source_file": "app/services/verification.py",
+      "source_location": "L390"
+    },
+    {
+      "id": "app_services_verification_rationale_409",
+      "label": "Evaluate Wazuh evidence and assign verification status.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "evaluate wazuh evidence and assign verification status.",
+      "source_file": "app/services/verification.py",
+      "source_location": "L409"
+    },
+    {
+      "id": "app_services_verification_rationale_492",
+      "label": "Create a Provisional verification result.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "create a provisional verification result.",
+      "source_file": "app/services/verification.py",
+      "source_location": "L492"
+    },
+    {
+      "id": "app_services_verification_rationale_507",
+      "label": "Create a Connection Error verification result.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "create a connection error verification result.",
+      "source_file": "app/services/verification.py",
+      "source_location": "L507"
+    },
+    {
+      "id": "app_services_verification_rationale_51",
+      "label": "Deterministic SIEM-corroborated finding verification. Cross-references internal\u2026",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "deterministic siem-corroborated finding verification. cross-references internal...",
+      "source_file": "app/services/verification.py",
+      "source_location": "L51"
+    },
+    {
+      "id": "app_services_verification_rationale_78",
+      "label": "Fetch the latest Microsoft telemetry payload from database.",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "VerificationService",
+      "file_type": "rationale",
+      "norm_label": "fetch the latest microsoft telemetry payload from database.",
+      "source_file": "app/services/verification.py",
+      "source_location": "L78"
     },
     {
       "id": "docs_v1_api",
@@ -74770,10 +74968,65 @@
       "source_location": "L98"
     },
     {
-      "id": "app_services_explanation_py_any",
+      "id": "app_schemas_telemetry_webhook_py_any",
       "label": "Any",
       "_origin": "ast",
       "community": 152,
+      "community_name": "SIEMEventWebhookPayload",
+      "file_type": "code",
+      "norm_label": "any",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "app_schemas_telemetry_webhook_py_field_validator",
+      "label": "field_validator",
+      "_origin": "ast",
+      "community": 152,
+      "community_name": "SIEMEventWebhookPayload",
+      "file_type": "code",
+      "norm_label": "field_validator",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "app_schemas_telemetry_webhook_rationale_23",
+      "label": "Inbound webhook payload from a Wazuh or Splunk SIEM integration. This is the\u2026",
+      "_origin": "ast",
+      "community": 152,
+      "community_name": "SIEMEventWebhookPayload",
+      "file_type": "rationale",
+      "norm_label": "inbound webhook payload from a wazuh or splunk siem integration. this is the...",
+      "source_file": "app/schemas/telemetry_webhook.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "app_schemas_telemetry_webhook_rationale_68",
+      "label": "Enforce non-empty telemetry payload. An empty dict provides no forensic\u2026",
+      "_origin": "ast",
+      "community": 152,
+      "community_name": "SIEMEventWebhookPayload",
+      "file_type": "rationale",
+      "norm_label": "enforce non-empty telemetry payload. an empty dict provides no forensic...",
+      "source_file": "app/schemas/telemetry_webhook.py",
+      "source_location": "L68"
+    },
+    {
+      "id": "app_schemas_telemetry_webhook_rationale_83",
+      "label": "Strip whitespace and reject blank strings.",
+      "_origin": "ast",
+      "community": 152,
+      "community_name": "SIEMEventWebhookPayload",
+      "file_type": "rationale",
+      "norm_label": "strip whitespace and reject blank strings.",
+      "source_file": "app/schemas/telemetry_webhook.py",
+      "source_location": "L83"
+    },
+    {
+      "id": "app_services_explanation_py_any",
+      "label": "Any",
+      "_origin": "ast",
+      "community": 153,
       "community_name": ".generate_explanation",
       "file_type": "code",
       "norm_label": "any",
@@ -74784,7 +75037,7 @@
       "id": "app_services_explanation_rationale_239",
       "label": "Use Gemini to transform source facts into a narrative. Returns None if Gemini\u2026",
       "_origin": "ast",
-      "community": 152,
+      "community": 153,
       "community_name": ".generate_explanation",
       "file_type": "rationale",
       "norm_label": "use gemini to transform source facts into a narrative. returns none if gemini...",
@@ -74795,7 +75048,7 @@
       "id": "app_services_explanation_rationale_341",
       "label": "Generate a structured explanation without LLM assistance.",
       "_origin": "ast",
-      "community": 152,
+      "community": 153,
       "community_name": ".generate_explanation",
       "file_type": "rationale",
       "norm_label": "generate a structured explanation without llm assistance.",
@@ -74806,67 +75059,12 @@
       "id": "app_services_explanation_rationale_51",
       "label": "Generate a business-language explanation for a deterministic subject. Steps: 1.\u2026",
       "_origin": "ast",
-      "community": 152,
+      "community": 153,
       "community_name": ".generate_explanation",
       "file_type": "rationale",
       "norm_label": "generate a business-language explanation for a deterministic subject. steps: 1....",
       "source_file": "app/services/explanation.py",
       "source_location": "L51"
-    },
-    {
-      "id": "tests_aws_integration_test_e2e_healthcare",
-      "label": "test_e2e_healthcare.py",
-      "_origin": "ast",
-      "community": 153,
-      "community_name": "test_e2e_healthcare.py",
-      "file_type": "code",
-      "norm_label": "test_e2e_healthcare.py",
-      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "tests_aws_integration_test_e2e_healthcare_py_any",
-      "label": "Any",
-      "_origin": "ast",
-      "community": 153,
-      "community_name": "test_e2e_healthcare.py",
-      "file_type": "code",
-      "norm_label": "any",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "tests_aws_integration_test_e2e_healthcare_rationale_2",
-      "label": "ResilAI Healthcare AWS Telemetry - End-to-End Integration Test. Validates the\u2026",
-      "_origin": "ast",
-      "community": 153,
-      "community_name": "test_e2e_healthcare.py",
-      "file_type": "rationale",
-      "norm_label": "resilai healthcare aws telemetry - end-to-end integration test. validates the...",
-      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
-      "source_location": "L2"
-    },
-    {
-      "id": "tests_aws_integration_test_e2e_healthcare_rationale_31",
-      "label": "Resolve AWS credentials from environment or boto3 session.",
-      "_origin": "ast",
-      "community": 153,
-      "community_name": "test_e2e_healthcare.py",
-      "file_type": "rationale",
-      "norm_label": "resolve aws credentials from environment or boto3 session.",
-      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
-      "source_location": "L31"
-    },
-    {
-      "id": "tests_aws_integration_test_e2e_healthcare_rationale_59",
-      "label": "Execute full end-to-end test and return results.",
-      "_origin": "ast",
-      "community": 153,
-      "community_name": "test_e2e_healthcare.py",
-      "file_type": "rationale",
-      "norm_label": "execute full end-to-end test and return results.",
-      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
-      "source_location": "L59"
     },
     {
       "id": "app_services_report_generator",
@@ -74900,7 +75098,7 @@
       "node_kind": "heading",
       "norm_label": "2026-09-01 - backend executive capabilities & explainability layer",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L992"
+      "source_location": "L1073"
     },
     {
       "id": "app_services_report_generator_rationale_1",
@@ -75079,10 +75277,65 @@
       "source_location": "L77"
     },
     {
+      "id": "tests_aws_integration_test_e2e_healthcare",
+      "label": "test_e2e_healthcare.py",
+      "_origin": "ast",
+      "community": 156,
+      "community_name": "test_e2e_healthcare.py",
+      "file_type": "code",
+      "norm_label": "test_e2e_healthcare.py",
+      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_aws_integration_test_e2e_healthcare_py_any",
+      "label": "Any",
+      "_origin": "ast",
+      "community": 156,
+      "community_name": "test_e2e_healthcare.py",
+      "file_type": "code",
+      "norm_label": "any",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "tests_aws_integration_test_e2e_healthcare_rationale_2",
+      "label": "ResilAI Healthcare AWS Telemetry - End-to-End Integration Test. Validates the\u2026",
+      "_origin": "ast",
+      "community": 156,
+      "community_name": "test_e2e_healthcare.py",
+      "file_type": "rationale",
+      "norm_label": "resilai healthcare aws telemetry - end-to-end integration test. validates the...",
+      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
+      "source_location": "L2"
+    },
+    {
+      "id": "tests_aws_integration_test_e2e_healthcare_rationale_31",
+      "label": "Resolve AWS credentials from environment or boto3 session.",
+      "_origin": "ast",
+      "community": 156,
+      "community_name": "test_e2e_healthcare.py",
+      "file_type": "rationale",
+      "norm_label": "resolve aws credentials from environment or boto3 session.",
+      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "tests_aws_integration_test_e2e_healthcare_rationale_59",
+      "label": "Execute full end-to-end test and return results.",
+      "_origin": "ast",
+      "community": 156,
+      "community_name": "test_e2e_healthcare.py",
+      "file_type": "rationale",
+      "norm_label": "execute full end-to-end test and return results.",
+      "source_file": "tests/aws_integration/test_e2e_healthcare.py",
+      "source_location": "L59"
+    },
+    {
       "id": "tests_test_assessments_py_fixture",
       "label": "fixture",
       "_origin": "ast",
-      "community": 156,
+      "community": 157,
       "community_name": "TestReports",
       "file_type": "code",
       "norm_label": "fixture",
@@ -75093,56 +75346,12 @@
       "id": "tests_test_assessments_rationale_368",
       "label": "Tests for report generation.",
       "_origin": "ast",
-      "community": 156,
+      "community": 157,
       "community_name": "TestReports",
       "file_type": "rationale",
       "norm_label": "tests for report generation.",
       "source_file": "tests/test_assessments.py",
       "source_location": "L368"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_rationale_459",
-      "label": "Test 18: Production organization flow never calls demo seed functions.",
-      "_origin": "ast",
-      "community": 157,
-      "community_name": "TestNoDemoSeedInProduction",
-      "file_type": "rationale",
-      "norm_label": "test 18: production organization flow never calls demo seed functions.",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L459"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_rationale_462",
-      "label": "Test 18a: List organizations does not invoke ensure_demo_seed_data.",
-      "_origin": "ast",
-      "community": 157,
-      "community_name": "TestNoDemoSeedInProduction",
-      "file_type": "rationale",
-      "norm_label": "test 18a: list organizations does not invoke ensure_demo_seed_data.",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L462"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_rationale_469",
-      "label": "Test 18b: List assessments does not invoke ensure_demo_seed_data.",
-      "_origin": "ast",
-      "community": 157,
-      "community_name": "TestNoDemoSeedInProduction",
-      "file_type": "rationale",
-      "norm_label": "test 18b: list assessments does not invoke ensure_demo_seed_data.",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L469"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_rationale_476",
-      "label": "Test 18c: Readiness endpoint does not seed demo for real org.",
-      "_origin": "ast",
-      "community": 157,
-      "community_name": "TestNoDemoSeedInProduction",
-      "file_type": "rationale",
-      "norm_label": "test 18c: readiness endpoint does not seed demo for real org.",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L476"
     },
     {
       "id": "frontend_tsconfig_node",
@@ -75695,48 +75904,48 @@
       "source_location": "L87"
     },
     {
-      "id": "app_connectors_duo_py_any",
-      "label": "Any",
+      "id": "tests_test_production_org_lifecycle_rationale_459",
+      "label": "Test 18: Production organization flow never calls demo seed functions.",
       "_origin": "ast",
       "community": 160,
-      "community_name": ".authenticate",
-      "file_type": "code",
-      "norm_label": "any",
-      "source_file": "",
-      "source_location": ""
+      "community_name": "TestNoDemoSeedInProduction",
+      "file_type": "rationale",
+      "norm_label": "test 18: production organization flow never calls demo seed functions.",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L459"
     },
     {
-      "id": "app_connectors_duo_rationale_110",
-      "label": "Fetch MFA authentication logs from Duo Admin API.",
+      "id": "tests_test_production_org_lifecycle_rationale_462",
+      "label": "Test 18a: List organizations does not invoke ensure_demo_seed_data.",
       "_origin": "ast",
       "community": 160,
-      "community_name": ".authenticate",
+      "community_name": "TestNoDemoSeedInProduction",
       "file_type": "rationale",
-      "norm_label": "fetch mfa authentication logs from duo admin api.",
-      "source_file": "app/connectors/duo.py",
-      "source_location": "L110"
+      "norm_label": "test 18a: list organizations does not invoke ensure_demo_seed_data.",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L462"
     },
     {
-      "id": "app_connectors_duo_rationale_65",
-      "label": "Generate Duo API HMAC-SHA1 signature.",
+      "id": "tests_test_production_org_lifecycle_rationale_469",
+      "label": "Test 18b: List assessments does not invoke ensure_demo_seed_data.",
       "_origin": "ast",
       "community": 160,
-      "community_name": ".authenticate",
+      "community_name": "TestNoDemoSeedInProduction",
       "file_type": "rationale",
-      "norm_label": "generate duo api hmac-sha1 signature.",
-      "source_file": "app/connectors/duo.py",
-      "source_location": "L65"
+      "norm_label": "test 18b: list assessments does not invoke ensure_demo_seed_data.",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L469"
     },
     {
-      "id": "app_connectors_duo_rationale_84",
-      "label": "Validate Duo API credentials via /admin/v1/ping.",
+      "id": "tests_test_production_org_lifecycle_rationale_476",
+      "label": "Test 18c: Readiness endpoint does not seed demo for real org.",
       "_origin": "ast",
       "community": 160,
-      "community_name": ".authenticate",
+      "community_name": "TestNoDemoSeedInProduction",
       "file_type": "rationale",
-      "norm_label": "validate duo api credentials via /admin/v1/ping.",
-      "source_file": "app/connectors/duo.py",
-      "source_location": "L84"
+      "norm_label": "test 18c: readiness endpoint does not seed demo for real org.",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L476"
     },
     {
       "id": "app_api_v1_evidence_py_get",
@@ -75805,76 +76014,48 @@
       "source_location": "L85"
     },
     {
-      "id": "test_ready",
-      "label": "TEST_READY.md",
+      "id": "app_connectors_duo_py_any",
+      "label": "Any",
       "_origin": "ast",
       "community": 162,
-      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
-      "file_type": "document",
-      "node_kind": "page",
-      "norm_label": "test_ready.md",
-      "source_file": "TEST_READY.md",
-      "source_location": "L1"
+      "community_name": ".authenticate",
+      "file_type": "code",
+      "norm_label": "any",
+      "source_file": "",
+      "source_location": ""
     },
     {
-      "id": "test_ready_1_test_execution_instructions",
-      "label": "1. Test Execution Instructions",
+      "id": "app_connectors_duo_rationale_110",
+      "label": "Fetch MFA authentication logs from Duo Admin API.",
       "_origin": "ast",
       "community": 162,
-      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "1. test execution instructions",
-      "source_file": "TEST_READY.md",
-      "source_location": "L13"
+      "community_name": ".authenticate",
+      "file_type": "rationale",
+      "norm_label": "fetch mfa authentication logs from duo admin api.",
+      "source_file": "app/connectors/duo.py",
+      "source_location": "L110"
     },
     {
-      "id": "test_ready_2_test_suite_architecture_coverage_summary_table",
-      "label": "2. Test Suite Architecture & Coverage Summary Table",
+      "id": "app_connectors_duo_rationale_65",
+      "label": "Generate Duo API HMAC-SHA1 signature.",
       "_origin": "ast",
       "community": 162,
-      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "2. test suite architecture & coverage summary table",
-      "source_file": "TEST_READY.md",
-      "source_location": "L28"
+      "community_name": ".authenticate",
+      "file_type": "rationale",
+      "norm_label": "generate duo api hmac-sha1 signature.",
+      "source_file": "app/connectors/duo.py",
+      "source_location": "L65"
     },
     {
-      "id": "test_ready_5_test_integrity_declaration",
-      "label": "5. Test Integrity Declaration",
+      "id": "app_connectors_duo_rationale_84",
+      "label": "Validate Duo API credentials via /admin/v1/ping.",
       "_origin": "ast",
       "community": 162,
-      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "5. test integrity declaration",
-      "source_file": "TEST_READY.md",
-      "source_location": "L152"
-    },
-    {
-      "id": "test_ready_complete_automated_e2e_test_suite_run",
-      "label": "Complete Automated E2E Test Suite Run",
-      "_origin": "ast",
-      "community": 162,
-      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "complete automated e2e test suite run",
-      "source_file": "TEST_READY.md",
-      "source_location": "L15"
-    },
-    {
-      "id": "test_ready_test_ready_report_resilai_multi_vertical_positioning_experiment_staging_only",
-      "label": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
-      "_origin": "ast",
-      "community": 162,
-      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
-      "file_type": "document",
-      "node_kind": "heading",
-      "norm_label": "test ready report \u2014 resilai multi-vertical positioning experiment (staging only)",
-      "source_file": "TEST_READY.md",
-      "source_location": "L1"
+      "community_name": ".authenticate",
+      "file_type": "rationale",
+      "norm_label": "validate duo api credentials via /admin/v1/ping.",
+      "source_file": "app/connectors/duo.py",
+      "source_location": "L84"
     },
     {
       "id": "app_models_clinic_critical_system_py_base",
@@ -77584,14 +77765,75 @@
       "source_location": "L881"
     },
     {
-      "id": "tests_test_ai_narrative_genai",
-      "label": "test_ai_narrative_genai.py",
+      "id": "test_ready",
+      "label": "TEST_READY.md",
       "_origin": "ast",
       "community": 172,
-      "community_name": "test_ai_narrative_genai.py",
-      "file_type": "code",
-      "norm_label": "test_ai_narrative_genai.py",
-      "source_file": "tests/test_ai_narrative_genai.py",
+      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
+      "file_type": "document",
+      "node_kind": "page",
+      "norm_label": "test_ready.md",
+      "source_file": "TEST_READY.md",
+      "source_location": "L1"
+    },
+    {
+      "id": "test_ready_1_test_execution_instructions",
+      "label": "1. Test Execution Instructions",
+      "_origin": "ast",
+      "community": 172,
+      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "1. test execution instructions",
+      "source_file": "TEST_READY.md",
+      "source_location": "L13"
+    },
+    {
+      "id": "test_ready_2_test_suite_architecture_coverage_summary_table",
+      "label": "2. Test Suite Architecture & Coverage Summary Table",
+      "_origin": "ast",
+      "community": 172,
+      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "2. test suite architecture & coverage summary table",
+      "source_file": "TEST_READY.md",
+      "source_location": "L28"
+    },
+    {
+      "id": "test_ready_5_test_integrity_declaration",
+      "label": "5. Test Integrity Declaration",
+      "_origin": "ast",
+      "community": 172,
+      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "5. test integrity declaration",
+      "source_file": "TEST_READY.md",
+      "source_location": "L152"
+    },
+    {
+      "id": "test_ready_complete_automated_e2e_test_suite_run",
+      "label": "Complete Automated E2E Test Suite Run",
+      "_origin": "ast",
+      "community": 172,
+      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "complete automated e2e test suite run",
+      "source_file": "TEST_READY.md",
+      "source_location": "L15"
+    },
+    {
+      "id": "test_ready_test_ready_report_resilai_multi_vertical_positioning_experiment_staging_only",
+      "label": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
+      "_origin": "ast",
+      "community": 172,
+      "community_name": "TEST READY REPORT \u2014 ResilAI Multi-Vertical Positioning Experiment (Staging Only)",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "test ready report \u2014 resilai multi-vertical positioning experiment (staging only)",
+      "source_file": "TEST_READY.md",
       "source_location": "L1"
     },
     {
@@ -79569,10 +79811,21 @@
       "source_location": "L2"
     },
     {
+      "id": "tests_test_ai_narrative_genai",
+      "label": "test_ai_narrative_genai.py",
+      "_origin": "ast",
+      "community": 181,
+      "community_name": "test_ai_narrative_genai.py",
+      "file_type": "code",
+      "norm_label": "test_ai_narrative_genai.py",
+      "source_file": "tests/test_ai_narrative_genai.py",
+      "source_location": "L1"
+    },
+    {
       "id": "tests_test_findings_rationale_386",
       "label": "Test findings summary generation.",
       "_origin": "ast",
-      "community": 181,
+      "community": 182,
       "community_name": "TestFindingsSummary",
       "file_type": "rationale",
       "norm_label": "test findings summary generation.",
@@ -79583,7 +79836,7 @@
       "id": "tests_test_findings_rationale_389",
       "label": "Summary should count findings by severity and domain.",
       "_origin": "ast",
-      "community": 181,
+      "community": 182,
       "community_name": "TestFindingsSummary",
       "file_type": "rationale",
       "norm_label": "summary should count findings by severity and domain.",
@@ -79594,45 +79847,12 @@
       "id": "tests_test_findings_rationale_404",
       "label": "Summary should identify top priorities (critical/high + low/medium effort).",
       "_origin": "ast",
-      "community": 181,
+      "community": 182,
       "community_name": "TestFindingsSummary",
       "file_type": "rationale",
       "norm_label": "summary should identify top priorities (critical/high + low/medium effort).",
       "source_file": "tests/test_findings.py",
       "source_location": "L404"
-    },
-    {
-      "id": "color",
-      "label": "Color",
-      "_origin": "ast",
-      "community": 182,
-      "community_name": "get_heatmap_color",
-      "file_type": "code",
-      "norm_label": "color",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "app_reports_pdf_rationale_78",
-      "label": "Get color for severity level.",
-      "_origin": "ast",
-      "community": 182,
-      "community_name": "get_heatmap_color",
-      "file_type": "rationale",
-      "norm_label": "get color for severity level.",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L78"
-    },
-    {
-      "id": "app_reports_pdf_rationale_92",
-      "label": "Get heatmap color based on score (0-5 scale).",
-      "_origin": "ast",
-      "community": 182,
-      "community_name": "get_heatmap_color",
-      "file_type": "rationale",
-      "norm_label": "get heatmap color based on score (0-5 scale).",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L92"
     },
     {
       "id": "app_services_intelligence_py_any",
@@ -80363,37 +80583,37 @@
       "source_location": "L52"
     },
     {
-      "id": "scripts_mock_splunk_mcp",
-      "label": "mock_splunk_mcp.py",
+      "id": "color",
+      "label": "Color",
       "_origin": "ast",
       "community": 187,
-      "community_name": "mock_splunk_mcp.py",
+      "community_name": "get_heatmap_color",
       "file_type": "code",
-      "norm_label": "mock_splunk_mcp.py",
-      "source_file": "scripts/mock_splunk_mcp.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "scripts_mock_splunk_mcp_py_get",
-      "label": "get",
-      "_origin": "ast",
-      "community": 187,
-      "community_name": "mock_splunk_mcp.py",
-      "file_type": "code",
-      "norm_label": "get",
+      "norm_label": "color",
       "source_file": "",
       "source_location": ""
     },
     {
-      "id": "scripts_mock_splunk_mcp_py_post",
-      "label": "post",
+      "id": "app_reports_pdf_rationale_78",
+      "label": "Get color for severity level.",
       "_origin": "ast",
       "community": 187,
-      "community_name": "mock_splunk_mcp.py",
-      "file_type": "code",
-      "norm_label": "post",
-      "source_file": "",
-      "source_location": ""
+      "community_name": "get_heatmap_color",
+      "file_type": "rationale",
+      "norm_label": "get color for severity level.",
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L78"
+    },
+    {
+      "id": "app_reports_pdf_rationale_92",
+      "label": "Get heatmap color based on score (0-5 scale).",
+      "_origin": "ast",
+      "community": 187,
+      "community_name": "get_heatmap_color",
+      "file_type": "rationale",
+      "norm_label": "get heatmap color based on score (0-5 scale).",
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L92"
     },
     {
       "id": "tests_test_adversarial_vertical_rationale_20",
@@ -81532,15 +81752,37 @@
       "source_location": "L1"
     },
     {
-      "id": "tests_test_cors_rationale_229",
-      "label": "Tests for CORSErrorSafetyMiddleware preflight and headers.",
+      "id": "scripts_mock_splunk_mcp",
+      "label": "mock_splunk_mcp.py",
       "_origin": "ast",
       "community": 195,
-      "community_name": "TestCORSErrorSafetyMiddleware",
-      "file_type": "rationale",
-      "norm_label": "tests for corserrorsafetymiddleware preflight and headers.",
-      "source_file": "tests/test_cors.py",
-      "source_location": "L229"
+      "community_name": "mock_splunk_mcp.py",
+      "file_type": "code",
+      "norm_label": "mock_splunk_mcp.py",
+      "source_file": "scripts/mock_splunk_mcp.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_mock_splunk_mcp_py_get",
+      "label": "get",
+      "_origin": "ast",
+      "community": 195,
+      "community_name": "mock_splunk_mcp.py",
+      "file_type": "code",
+      "norm_label": "get",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "scripts_mock_splunk_mcp_py_post",
+      "label": "post",
+      "_origin": "ast",
+      "community": 195,
+      "community_name": "mock_splunk_mcp.py",
+      "file_type": "code",
+      "norm_label": "post",
+      "source_file": "",
+      "source_location": ""
     },
     {
       "id": "app_api_audit_calendar",
@@ -85704,6 +85946,17 @@
       "source_location": "L9"
     },
     {
+      "id": "tests_test_cors_rationale_229",
+      "label": "Tests for CORSErrorSafetyMiddleware preflight and headers.",
+      "_origin": "ast",
+      "community": 214,
+      "community_name": "TestCORSErrorSafetyMiddleware",
+      "file_type": "rationale",
+      "norm_label": "tests for corserrorsafetymiddleware preflight and headers.",
+      "source_file": "tests/test_cors.py",
+      "source_location": "L229"
+    },
+    {
       "id": "app_db_cache",
       "label": "cache.py",
       "_origin": "ast",
@@ -86686,17 +86939,6 @@
       "source_location": "L41"
     },
     {
-      "id": "tests_test_framework_validation_rationale_184",
-      "label": "Validate the explainability engine taxonomy is deterministic.",
-      "_origin": "ast",
-      "community": 224,
-      "community_name": "TestExplainabilityTaxonomy",
-      "file_type": "rationale",
-      "norm_label": "validate the explainability engine taxonomy is deterministic.",
-      "source_file": "tests/test_framework_validation.py",
-      "source_location": "L184"
-    },
-    {
       "id": "app_core_config",
       "label": "core/config.py",
       "_origin": "ast",
@@ -86961,26 +87203,15 @@
       "source_location": "L152"
     },
     {
-      "id": "tests_test_production_org_lifecycle_rationale_346",
-      "label": "Test 14: Scoring is deterministic and evidence-based.",
+      "id": "tests_test_framework_validation_rationale_184",
+      "label": "Validate the explainability engine taxonomy is deterministic.",
       "_origin": "ast",
       "community": 226,
-      "community_name": "TestDeterministicScoring",
+      "community_name": "TestExplainabilityTaxonomy",
       "file_type": "rationale",
-      "norm_label": "test 14: scoring is deterministic and evidence-based.",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L346"
-    },
-    {
-      "id": "tests_test_production_org_lifecycle_rationale_349",
-      "label": "Test 14: Same input produces same output.",
-      "_origin": "ast",
-      "community": 226,
-      "community_name": "TestDeterministicScoring",
-      "file_type": "rationale",
-      "norm_label": "test 14: same input produces same output.",
-      "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L349"
+      "norm_label": "validate the explainability engine taxonomy is deterministic.",
+      "source_file": "tests/test_framework_validation.py",
+      "source_location": "L184"
     },
     {
       "id": "app_services_ai_narrative_py_any",
@@ -87800,279 +88031,37 @@
       "source_location": "L48"
     },
     {
-      "id": "tests_test_production_org_lifecycle_rationale_432",
-      "label": "Test 17: LLM has zero influence over deterministic scoring.",
+      "id": "tests_test_production_org_lifecycle_rationale_346",
+      "label": "Test 14: Scoring is deterministic and evidence-based.",
       "_origin": "ast",
       "community": 234,
-      "community_name": "TestLLMIsolation",
+      "community_name": "TestDeterministicScoring",
       "file_type": "rationale",
-      "norm_label": "test 17: llm has zero influence over deterministic scoring.",
+      "norm_label": "test 14: scoring is deterministic and evidence-based.",
       "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L432"
+      "source_location": "L346"
     },
     {
-      "id": "tests_test_production_org_lifecycle_rationale_435",
-      "label": "Test 17: Scoring must be identical regardless of LLM state.",
+      "id": "tests_test_production_org_lifecycle_rationale_349",
+      "label": "Test 14: Same input produces same output.",
       "_origin": "ast",
       "community": 234,
-      "community_name": "TestLLMIsolation",
+      "community_name": "TestDeterministicScoring",
       "file_type": "rationale",
-      "norm_label": "test 17: scoring must be identical regardless of llm state.",
+      "norm_label": "test 14: same input produces same output.",
       "source_file": "tests/test_production_org_lifecycle.py",
-      "source_location": "L435"
+      "source_location": "L349"
     },
     {
-      "id": "app_schemas_verification",
-      "label": "schemas/verification.py",
+      "id": "app_schemas_verification_rationale_195",
+      "label": "Board-ready MTTR + risk-reduction executive summary.",
       "_origin": "ast",
       "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "schemas/verification.py",
+      "community_name": "MTTRExecutiveSummarySchema",
+      "file_type": "rationale",
+      "norm_label": "board-ready mttr + risk-reduction executive summary.",
       "source_file": "app/schemas/verification.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_schemas_verification_py_enum",
-      "label": "Enum",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "enum",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "app_schemas_verification_py_str",
-      "label": "str",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "str",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "app_services_verification",
-      "label": "services/verification.py",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "services/verification.py",
-      "source_file": "app/services/verification.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_services_verification_py_any",
-      "label": "Any",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "code",
-      "norm_label": "any",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "app_schemas_verification_rationale_1",
-      "label": "Pydantic schemas for the Verification & Audit Trail API. Defines\u2026",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "pydantic schemas for the verification & audit trail api. defines...",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_schemas_verification_rationale_174",
-      "label": "Single data point for the Executive Risk-Reduction Recharts graph.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "single data point for the executive risk-reduction recharts graph.",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L174"
-    },
-    {
-      "id": "app_schemas_verification_rationale_182",
-      "label": "Deterministic metadata backing the MTTR summary.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "deterministic metadata backing the mttr summary.",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L182"
-    },
-    {
-      "id": "app_schemas_verification_rationale_24",
-      "label": "Badge status for a finding after SIEM cross-reference.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "badge status for a finding after siem cross-reference.",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L24"
-    },
-    {
-      "id": "app_schemas_verification_rationale_38",
-      "label": "Result of cross-referencing a single finding against SIEM logs.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "result of cross-referencing a single finding against siem logs.",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L38"
-    },
-    {
-      "id": "app_schemas_verification_rationale_79",
-      "label": "Compact finding representation inside the audit trail.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "compact finding representation inside the audit trail.",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L79"
-    },
-    {
-      "id": "app_schemas_verification_rationale_92",
-      "label": "Tamper-evident audit trail for an assessment's scoring + verification.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "tamper-evident audit trail for an assessment's scoring + verification.",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L92"
-    },
-    {
-      "id": "app_services_verification_rationale_1",
-      "label": "VerificationService \u2014 SIEM-Corroborated Finding Verification. Cross-references\u2026",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "verificationservice \u2014 siem-corroborated finding verification. cross-references...",
-      "source_file": "app/services/verification.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "app_services_verification_rationale_108",
-      "label": "Evaluate a finding against Microsoft telemetry payload.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "evaluate a finding against microsoft telemetry payload.",
-      "source_file": "app/services/verification.py",
-      "source_location": "L108"
-    },
-    {
-      "id": "app_services_verification_rationale_208",
-      "label": "Verify a single finding against SIEM evidence. Args: finding: A Finding\u2026",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "verify a single finding against siem evidence. args: finding: a finding...",
-      "source_file": "app/services/verification.py",
-      "source_location": "L208"
-    },
-    {
-      "id": "app_services_verification_rationale_295",
-      "label": "Batch-verify all findings against SIEM evidence.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "batch-verify all findings against siem evidence.",
-      "source_file": "app/services/verification.py",
-      "source_location": "L295"
-    },
-    {
-      "id": "app_services_verification_rationale_316",
-      "label": "Generate a tamper-evident JSON audit trail. The integrity_hash is a SHA-256 of\u2026",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "generate a tamper-evident json audit trail. the integrity_hash is a sha-256 of...",
-      "source_file": "app/services/verification.py",
-      "source_location": "L316"
-    },
-    {
-      "id": "app_services_verification_rationale_390",
-      "label": "Run a Wazuh evidence check, caching results.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "run a wazuh evidence check, caching results.",
-      "source_file": "app/services/verification.py",
-      "source_location": "L390"
-    },
-    {
-      "id": "app_services_verification_rationale_409",
-      "label": "Evaluate Wazuh evidence and assign verification status.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "evaluate wazuh evidence and assign verification status.",
-      "source_file": "app/services/verification.py",
-      "source_location": "L409"
-    },
-    {
-      "id": "app_services_verification_rationale_492",
-      "label": "Create a Provisional verification result.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "create a provisional verification result.",
-      "source_file": "app/services/verification.py",
-      "source_location": "L492"
-    },
-    {
-      "id": "app_services_verification_rationale_507",
-      "label": "Create a Connection Error verification result.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "create a connection error verification result.",
-      "source_file": "app/services/verification.py",
-      "source_location": "L507"
-    },
-    {
-      "id": "app_services_verification_rationale_51",
-      "label": "Deterministic SIEM-corroborated finding verification. Cross-references internal\u2026",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "deterministic siem-corroborated finding verification. cross-references internal...",
-      "source_file": "app/services/verification.py",
-      "source_location": "L51"
-    },
-    {
-      "id": "app_services_verification_rationale_78",
-      "label": "Fetch the latest Microsoft telemetry payload from database.",
-      "_origin": "ast",
-      "community": 235,
-      "community_name": "VerificationService",
-      "file_type": "rationale",
-      "norm_label": "fetch the latest microsoft telemetry payload from database.",
-      "source_file": "app/services/verification.py",
-      "source_location": "L78"
+      "source_location": "L195"
     },
     {
       "id": "tests_conftest_py_fixture",
@@ -89615,15 +89604,26 @@
       "source_location": "L28"
     },
     {
-      "id": "app_reports_pdf_rationale_241",
-      "label": "Configure professional typography.",
+      "id": "tests_test_production_org_lifecycle_rationale_432",
+      "label": "Test 17: LLM has zero influence over deterministic scoring.",
       "_origin": "ast",
       "community": 248,
-      "community_name": ".__init__",
+      "community_name": "TestLLMIsolation",
       "file_type": "rationale",
-      "norm_label": "configure professional typography.",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L241"
+      "norm_label": "test 17: llm has zero influence over deterministic scoring.",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L432"
+    },
+    {
+      "id": "tests_test_production_org_lifecycle_rationale_435",
+      "label": "Test 17: Scoring must be identical regardless of LLM state.",
+      "_origin": "ast",
+      "community": 248,
+      "community_name": "TestLLMIsolation",
+      "file_type": "rationale",
+      "norm_label": "test 17: scoring must be identical regardless of llm state.",
+      "source_file": "tests/test_production_org_lifecycle.py",
+      "source_location": "L435"
     },
     {
       "id": "tests_test_inventory",
@@ -90099,26 +90099,15 @@
       "source_location": ""
     },
     {
-      "id": "app_services_clinic_engine_v2_trust_engine_py_session",
-      "label": "Session",
-      "_origin": "ast",
-      "community": 254,
-      "community_name": ".__init__",
-      "file_type": "code",
-      "norm_label": "session",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "app_services_clinic_engine_v2_trust_engine_rationale_34",
-      "label": "Initialize with a database session. Args: db (Session): SQLAlchemy database\u2026",
+      "id": "app_reports_pdf_rationale_241",
+      "label": "Configure professional typography.",
       "_origin": "ast",
       "community": 254,
       "community_name": ".__init__",
       "file_type": "rationale",
-      "norm_label": "initialize with a database session. args: db (session): sqlalchemy database...",
-      "source_file": "app/services/clinic_engine/v2/trust_engine.py",
-      "source_location": "L34"
+      "norm_label": "configure professional typography.",
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L241"
     },
     {
       "id": "tests_test_findings_rationale_541",
@@ -90693,7 +90682,7 @@
       "source_location": ""
     },
     {
-      "id": "app_services_report_py_session",
+      "id": "app_services_clinic_engine_v2_trust_engine_py_session",
       "label": "Session",
       "_origin": "ast",
       "community": 261,
@@ -90704,15 +90693,15 @@
       "source_location": ""
     },
     {
-      "id": "app_services_report_rationale_30",
-      "label": "Initialize service. Args: db: Database session owner_uid: Firebase user UID for\u2026",
+      "id": "app_services_clinic_engine_v2_trust_engine_rationale_34",
+      "label": "Initialize with a database session. Args: db (Session): SQLAlchemy database\u2026",
       "_origin": "ast",
       "community": 261,
       "community_name": ".__init__",
       "file_type": "rationale",
-      "norm_label": "initialize service. args: db: database session owner_uid: firebase user uid for...",
-      "source_file": "app/services/report.py",
-      "source_location": "L30"
+      "norm_label": "initialize with a database session. args: db (session): sqlalchemy database...",
+      "source_file": "app/services/clinic_engine/v2/trust_engine.py",
+      "source_location": "L34"
     },
     {
       "id": "tests_test_reliability_rationale_639",
@@ -91631,26 +91620,26 @@
       "source_location": "L64"
     },
     {
-      "id": "tests_test_demo_isolation_py_fixture",
-      "label": "fixture",
+      "id": "app_services_report_py_session",
+      "label": "Session",
       "_origin": "ast",
       "community": 267,
-      "community_name": "test_db",
+      "community_name": ".__init__",
       "file_type": "code",
-      "norm_label": "fixture",
+      "norm_label": "session",
       "source_file": "",
       "source_location": ""
     },
     {
-      "id": "tests_test_demo_isolation_rationale_25",
-      "label": "Create an isolated in-memory SQLite database for testing.",
+      "id": "app_services_report_rationale_30",
+      "label": "Initialize service. Args: db: Database session owner_uid: Firebase user UID for\u2026",
       "_origin": "ast",
       "community": 267,
-      "community_name": "test_db",
+      "community_name": ".__init__",
       "file_type": "rationale",
-      "norm_label": "create an isolated in-memory sqlite database for testing.",
-      "source_file": "tests/test_demo_isolation.py",
-      "source_location": "L25"
+      "norm_label": "initialize service. args: db: database session owner_uid: firebase user uid for...",
+      "source_file": "app/services/report.py",
+      "source_location": "L30"
     },
     {
       "id": "app_services_governance_reliability_engine_rationale_202",
@@ -93672,7 +93661,7 @@
       "source_location": "L1"
     },
     {
-      "id": "tests_test_tenant_isolation_v2_py_fixture",
+      "id": "tests_test_demo_isolation_py_fixture",
       "label": "fixture",
       "_origin": "ast",
       "community": 285,
@@ -93683,10 +93672,32 @@
       "source_location": ""
     },
     {
-      "id": "tests_test_tenant_isolation_v2_rationale_24",
+      "id": "tests_test_demo_isolation_rationale_25",
       "label": "Create an isolated in-memory SQLite database for testing.",
       "_origin": "ast",
       "community": 285,
+      "community_name": "test_db",
+      "file_type": "rationale",
+      "norm_label": "create an isolated in-memory sqlite database for testing.",
+      "source_file": "tests/test_demo_isolation.py",
+      "source_location": "L25"
+    },
+    {
+      "id": "tests_test_tenant_isolation_v2_py_fixture",
+      "label": "fixture",
+      "_origin": "ast",
+      "community": 286,
+      "community_name": "test_db",
+      "file_type": "code",
+      "norm_label": "fixture",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "tests_test_tenant_isolation_v2_rationale_24",
+      "label": "Create an isolated in-memory SQLite database for testing.",
+      "_origin": "ast",
+      "community": 286,
       "community_name": "test_db",
       "file_type": "rationale",
       "norm_label": "create an isolated in-memory sqlite database for testing.",
@@ -93697,23 +93708,12 @@
       "id": "app_db_firestore_rationale_1002",
       "label": "Sync all Wazuh configs from Firestore to local SQLite database on startup.",
       "_origin": "ast",
-      "community": 286,
+      "community": 287,
       "community_name": "sync_wazuh_configs_from_firestore",
       "file_type": "rationale",
       "norm_label": "sync all wazuh configs from firestore to local sqlite database on startup.",
       "source_file": "app/db/firestore.py",
       "source_location": "L1002"
-    },
-    {
-      "id": "app_reports_pdf_rationale_1608",
-      "label": "Return PDF MIME type.",
-      "_origin": "ast",
-      "community": 287,
-      "community_name": ".get_content_type",
-      "file_type": "rationale",
-      "norm_label": "return pdf mime type.",
-      "source_file": "app/reports/pdf.py",
-      "source_location": "L1608"
     },
     {
       "id": "app_services_governance_reliability_engine_rationale_145",
@@ -95197,6 +95197,17 @@
       "norm_label": "verify entitlement mapping integrity.",
       "source_file": "tests/test_entitlements_service.py",
       "source_location": "L61"
+    },
+    {
+      "id": "app_reports_pdf_rationale_1608",
+      "label": "Return PDF MIME type.",
+      "_origin": "ast",
+      "community": 301,
+      "community_name": ".get_content_type",
+      "file_type": "rationale",
+      "norm_label": "return pdf mime type.",
+      "source_file": "app/reports/pdf.py",
+      "source_location": "L1608"
     },
     {
       "id": "tests_test_llm_isolation",
@@ -101112,17 +101123,6 @@
       "norm_label": "no evidence never produces healthy/verified/100%.",
       "source_file": "tests/test_explainability.py",
       "source_location": "L98"
-    },
-    {
-      "id": "app_schemas_verification_rationale_195",
-      "label": "Board-ready MTTR + risk-reduction executive summary.",
-      "_origin": "ast",
-      "community": 382,
-      "community_name": "MTTRExecutiveSummarySchema",
-      "file_type": "rationale",
-      "norm_label": "board-ready mttr + risk-reduction executive summary.",
-      "source_file": "app/schemas/verification.py",
-      "source_location": "L195"
     },
     {
       "id": "app_api_explanations_py_post",
@@ -109559,7 +109559,7 @@
       "node_kind": "heading",
       "norm_label": "agent_log.md",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1002"
+      "source_location": "L1083"
     },
     {
       "id": "docs_agent_memory_session_handoff",
@@ -129863,18 +129863,6 @@
       "type": "external"
     },
     {
-      "id": "types",
-      "label": "types",
-      "_origin": "semantic",
-      "community": 172,
-      "community_name": "test_ai_narrative_genai.py",
-      "external": true,
-      "file_type": "concept",
-      "norm_label": "types",
-      "source_file": "",
-      "type": "external"
-    },
-    {
       "id": "tenacity",
       "label": "tenacity",
       "_origin": "semantic",
@@ -130051,6 +130039,18 @@
       "external": true,
       "file_type": "concept",
       "norm_label": "subprocess",
+      "source_file": "",
+      "type": "external"
+    },
+    {
+      "id": "types",
+      "label": "types",
+      "_origin": "semantic",
+      "community": 181,
+      "community_name": "test_ai_narrative_genai.py",
+      "external": true,
+      "file_type": "concept",
+      "norm_label": "types",
       "source_file": "",
       "type": "external"
     },
@@ -131157,7 +131157,7 @@
       "confidence_score": 1.0,
       "context": "app/api/integrations.py::configure_splunk_hec",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1714",
+      "source_location": "L1795",
       "weight": 1.0
     },
     {
@@ -131169,7 +131169,7 @@
       "confidence_score": 1.0,
       "context": "app/api/integrations.py::pull_splunk_evidence",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1710",
+      "source_location": "L1791",
       "weight": 1.0
     },
     {
@@ -131181,7 +131181,7 @@
       "confidence_score": 1.0,
       "context": "app/connectors/splunk.py::SplunkConnector",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1679",
+      "source_location": "L1760",
       "weight": 1.0
     },
     {
@@ -131277,7 +131277,7 @@
       "confidence_score": 1.0,
       "context": "app/integrations/splunk/client.py::SplunkMCPClient",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1677",
+      "source_location": "L1758",
       "weight": 1.0
     },
     {
@@ -131301,7 +131301,7 @@
       "confidence_score": 1.0,
       "context": "app/integrations/splunk/service.py::ingest_splunk_telemetry",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1734",
+      "source_location": "L1815",
       "weight": 1.0
     },
     {
@@ -299194,24 +299194,24 @@
     },
     {
       "source": "docs_agent_memory_agent_log",
-      "target": "docs_agent_memory_agent_log_agent_log_md",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1002",
-      "weight": 1.0
-    },
-    {
-      "source": "docs_agent_memory_agent_log",
       "target": "docs_agent_memory_agent_log_2026_09_01_backend_executive_capabilities_explainability_layer",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L992",
+      "source_location": "L1073",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_agent_memory_agent_log",
+      "target": "docs_agent_memory_agent_log_agent_log_md",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/agent_memory/AGENT_LOG.md",
+      "source_location": "L1083",
       "weight": 1.0
     },
     {
@@ -392160,7 +392160,7 @@
       "confidence_score": 0.95,
       "context": "AIAssetType",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1824",
+      "source_location": "L1905",
       "weight": 1.0
     },
     {
@@ -392232,7 +392232,7 @@
       "confidence_score": 0.95,
       "context": "AWSSecurityHubAdapter",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L683",
+      "source_location": "L764",
       "weight": 1.0
     },
     {
@@ -392328,7 +392328,7 @@
       "confidence_score": 0.95,
       "context": "Accordion",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1126",
+      "source_location": "L1207",
       "weight": 1.0
     },
     {
@@ -392448,7 +392448,7 @@
       "confidence_score": 0.95,
       "context": "AdapterHealth",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1697",
+      "source_location": "L1778",
       "weight": 1.0
     },
     {
@@ -392700,7 +392700,7 @@
       "confidence_score": 0.95,
       "context": "AuthRedirectHandler",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1521",
+      "source_location": "L1602",
       "weight": 1.0
     },
     {
@@ -392712,7 +392712,7 @@
       "confidence_score": 0.95,
       "context": "BaseTelemetryConnector",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1974",
+      "source_location": "L2055",
       "weight": 1.0
     },
     {
@@ -392796,7 +392796,7 @@
       "confidence_score": 0.95,
       "context": "CORSErrorSafetyMiddleware",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1537",
+      "source_location": "L1618",
       "weight": 1.0
     },
     {
@@ -392928,7 +392928,7 @@
       "confidence_score": 0.95,
       "context": "CloudProvider",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L941",
+      "source_location": "L1022",
       "weight": 1.0
     },
     {
@@ -393204,7 +393204,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorManager",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L110",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -393216,7 +393216,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorManager",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1344",
+      "source_location": "L1425",
       "weight": 1.0
     },
     {
@@ -393264,7 +393264,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorManager._encrypt_credentials()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L816",
+      "source_location": "L897",
       "weight": 1.0
     },
     {
@@ -393336,7 +393336,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorManager._ensure_adapter_registered",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L684",
+      "source_location": "L765",
       "weight": 1.0
     },
     {
@@ -393348,7 +393348,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorManager._ingest_events",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1690",
+      "source_location": "L1771",
       "weight": 1.0
     },
     {
@@ -393408,7 +393408,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorManager.register_connector",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1741",
+      "source_location": "L1822",
       "weight": 1.0
     },
     {
@@ -393420,7 +393420,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorManager.sync_connector",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1708",
+      "source_location": "L1789",
       "weight": 1.0
     },
     {
@@ -393432,7 +393432,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorNotFoundError",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L780",
+      "source_location": "L861",
       "weight": 1.0
     },
     {
@@ -393444,7 +393444,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorRegistry",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L684",
+      "source_location": "L765",
       "weight": 1.0
     },
     {
@@ -393456,7 +393456,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorRegistry",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1682",
+      "source_location": "L1763",
       "weight": 1.0
     },
     {
@@ -393492,7 +393492,7 @@
       "confidence_score": 0.95,
       "context": "ConnectorRegistry.get_connector_class()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L775",
+      "source_location": "L856",
       "weight": 1.0
     },
     {
@@ -393864,7 +393864,7 @@
       "confidence_score": 0.95,
       "context": "Entitlement",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L65",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -393876,7 +393876,7 @@
       "confidence_score": 0.95,
       "context": "Entitlement",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L458",
+      "source_location": "L539",
       "weight": 1.0
     },
     {
@@ -393888,7 +393888,7 @@
       "confidence_score": 0.95,
       "context": "EntitlementService",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L67",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -393900,7 +393900,7 @@
       "confidence_score": 0.95,
       "context": "EntitlementService",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L459",
+      "source_location": "L540",
       "weight": 1.0
     },
     {
@@ -393924,7 +393924,7 @@
       "confidence_score": 0.95,
       "context": "Environment",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L870",
+      "source_location": "L951",
       "weight": 1.0
     },
     {
@@ -394248,7 +394248,7 @@
       "confidence_score": 0.95,
       "context": "EvidenceLedger",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L115",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -394260,7 +394260,7 @@
       "confidence_score": 0.95,
       "context": "EvidenceLedger",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L690",
+      "source_location": "L771",
       "weight": 1.0
     },
     {
@@ -394272,7 +394272,7 @@
       "confidence_score": 0.95,
       "context": "EvidenceLedger",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1691",
+      "source_location": "L1772",
       "weight": 1.0
     },
     {
@@ -394440,7 +394440,7 @@
       "confidence_score": 0.95,
       "context": "EvidenceOrchestrator",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1689",
+      "source_location": "L1770",
       "weight": 1.0
     },
     {
@@ -394476,7 +394476,7 @@
       "confidence_score": 0.95,
       "context": "EvidenceOrchestrator.ingest_collection_result",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L115",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -394488,7 +394488,7 @@
       "confidence_score": 0.95,
       "context": "EvidenceOrchestrator.ingest_collection_result",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L690",
+      "source_location": "L771",
       "weight": 1.0
     },
     {
@@ -394560,7 +394560,7 @@
       "confidence_score": 0.95,
       "context": "EvidenceRecord",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1697",
+      "source_location": "L1778",
       "weight": 1.0
     },
     {
@@ -394692,7 +394692,7 @@
       "confidence_score": 0.95,
       "context": "EvidenceRegistry",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1698",
+      "source_location": "L1779",
       "weight": 1.0
     },
     {
@@ -394932,7 +394932,7 @@
       "confidence_score": 0.95,
       "context": "ExecutiveReportGenerator",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L998",
+      "source_location": "L1079",
       "weight": 1.0
     },
     {
@@ -395004,7 +395004,7 @@
       "confidence_score": 0.95,
       "context": "ExplanationService",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L995",
+      "source_location": "L1076",
       "weight": 1.0
     },
     {
@@ -395616,7 +395616,7 @@
       "confidence_score": 0.95,
       "context": "NormalizedEvidence.verify_integrity()",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L114",
+      "source_location": "L116",
       "weight": 1.0
     },
     {
@@ -395628,7 +395628,7 @@
       "confidence_score": 0.95,
       "context": "NormalizedEvidence.verify_integrity()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L689",
+      "source_location": "L770",
       "weight": 1.0
     },
     {
@@ -395652,7 +395652,7 @@
       "confidence_score": 0.95,
       "context": "NormalizedEvidenceRecord",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L115",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -395664,7 +395664,7 @@
       "confidence_score": 0.95,
       "context": "NormalizedEvidenceRecord",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L690",
+      "source_location": "L771",
       "weight": 1.0
     },
     {
@@ -395676,7 +395676,7 @@
       "confidence_score": 0.95,
       "context": "NormalizedEvidenceRecord",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1691",
+      "source_location": "L1772",
       "weight": 1.0
     },
     {
@@ -395904,7 +395904,7 @@
       "confidence_score": 0.95,
       "context": "OrganizationService",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1554",
+      "source_location": "L1635",
       "weight": 1.0
     },
     {
@@ -395928,7 +395928,7 @@
       "confidence_score": 0.95,
       "context": "OrganizationService.get_all()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1155",
+      "source_location": "L1236",
       "weight": 1.0
     },
     {
@@ -395940,7 +395940,7 @@
       "confidence_score": 0.95,
       "context": "PaywallLockCard",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0
     },
     {
@@ -396204,7 +396204,7 @@
       "confidence_score": 0.95,
       "context": "ReadinessEngine",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1543",
+      "source_location": "L1624",
       "weight": 1.0
     },
     {
@@ -396240,7 +396240,7 @@
       "confidence_score": 0.95,
       "context": "ReadinessEngine.evaluate()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1539",
+      "source_location": "L1620",
       "weight": 1.0
     },
     {
@@ -396312,7 +396312,7 @@
       "confidence_score": 0.95,
       "context": "ReadinessLedgerEntry",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1484",
+      "source_location": "L1565",
       "weight": 1.0
     },
     {
@@ -397140,7 +397140,7 @@
       "confidence_score": 0.95,
       "context": "Step4NeedsAttention",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1036",
+      "source_location": "L1117",
       "weight": 1.0
     },
     {
@@ -397152,7 +397152,7 @@
       "confidence_score": 0.95,
       "context": "Step6BoardReport",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1036",
+      "source_location": "L1117",
       "weight": 1.0
     },
     {
@@ -397236,7 +397236,7 @@
       "confidence_score": 0.95,
       "context": "TechStackLifecycleMonitor",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1774",
+      "source_location": "L1855",
       "weight": 1.0
     },
     {
@@ -397344,7 +397344,7 @@
       "confidence_score": 0.95,
       "context": "TelemetryEvent",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L686",
+      "source_location": "L767",
       "weight": 1.0
     },
     {
@@ -397356,7 +397356,7 @@
       "confidence_score": 0.95,
       "context": "TelemetryEvent",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1344",
+      "source_location": "L1425",
       "weight": 1.0
     },
     {
@@ -397512,7 +397512,7 @@
       "confidence_score": 0.95,
       "context": "TestDailyBackupSyncWorkflow",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L99",
+      "source_location": "L101",
       "weight": 1.0
     },
     {
@@ -397524,7 +397524,7 @@
       "confidence_score": 0.95,
       "context": "TestDailyBackupSyncWorkflow",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L643",
+      "source_location": "L724",
       "weight": 1.0
     },
     {
@@ -397536,7 +397536,7 @@
       "confidence_score": 0.95,
       "context": "TestDurablePersistence.test_org_creation_fails_when_firestore_unavailable",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1246",
+      "source_location": "L1327",
       "weight": 1.0
     },
     {
@@ -398004,7 +398004,7 @@
       "confidence_score": 0.95,
       "context": "VerificationService.verify_finding",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1692",
+      "source_location": "L1773",
       "weight": 1.0
     },
     {
@@ -398136,7 +398136,7 @@
       "confidence_score": 0.95,
       "context": "_derive_eol_from_entry()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1859",
+      "source_location": "L1940",
       "weight": 1.0
     },
     {
@@ -398148,7 +398148,7 @@
       "confidence_score": 0.95,
       "context": "_fetch_persisted_telemetry()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1344",
+      "source_location": "L1425",
       "weight": 1.0
     },
     {
@@ -398160,7 +398160,7 @@
       "confidence_score": 0.95,
       "context": "_org_to_doc",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L63",
+      "source_location": "L65",
       "weight": 1.0
     },
     {
@@ -398172,7 +398172,7 @@
       "confidence_score": 0.95,
       "context": "_org_to_doc()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L455",
+      "source_location": "L536",
       "weight": 1.0
     },
     {
@@ -398184,7 +398184,7 @@
       "confidence_score": 0.95,
       "context": "activatePlan",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L82",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -398232,7 +398232,7 @@
       "confidence_score": 0.95,
       "context": "attach_to_scoring()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1898",
+      "source_location": "L1979",
       "weight": 1.0
     },
     {
@@ -398280,7 +398280,7 @@
       "confidence_score": 0.95,
       "context": "build_audit_metadata",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L118",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -398292,7 +398292,7 @@
       "confidence_score": 0.95,
       "context": "build_audit_metadata",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L693",
+      "source_location": "L774",
       "weight": 1.0
     },
     {
@@ -398340,7 +398340,7 @@
       "confidence_score": 0.95,
       "context": "calculate_readiness_delta",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1877",
+      "source_location": "L1958",
       "weight": 1.0
     },
     {
@@ -398556,7 +398556,7 @@
       "confidence_score": 0.95,
       "context": "canonicalize_payload",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L113",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -398568,7 +398568,7 @@
       "confidence_score": 0.95,
       "context": "canonicalize_payload",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L688",
+      "source_location": "L769",
       "weight": 1.0
     },
     {
@@ -398580,7 +398580,7 @@
       "confidence_score": 0.95,
       "context": "compute_content_sha256",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L118",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -398592,7 +398592,7 @@
       "confidence_score": 0.95,
       "context": "compute_content_sha256",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L693",
+      "source_location": "L774",
       "weight": 1.0
     },
     {
@@ -398604,7 +398604,7 @@
       "confidence_score": 0.95,
       "context": "compute_hash()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L689",
+      "source_location": "L770",
       "weight": 1.0
     },
     {
@@ -398640,7 +398640,7 @@
       "confidence_score": 0.95,
       "context": "ensure_demo_seed_data()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1349",
+      "source_location": "L1430",
       "weight": 1.0
     },
     {
@@ -398652,7 +398652,7 @@
       "confidence_score": 0.95,
       "context": "evaluate_ai_governance_findings()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1842",
+      "source_location": "L1923",
       "weight": 1.0
     },
     {
@@ -398688,7 +398688,7 @@
       "confidence_score": 0.95,
       "context": "extract_action_items()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1877",
+      "source_location": "L1958",
       "weight": 1.0
     },
     {
@@ -398736,7 +398736,7 @@
       "confidence_score": 0.95,
       "context": "extract_drivers()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1877",
+      "source_location": "L1958",
       "weight": 1.0
     },
     {
@@ -399036,7 +399036,7 @@
       "confidence_score": 0.95,
       "context": "getBillingStatus",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L82",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -399060,7 +399060,7 @@
       "confidence_score": 0.95,
       "context": "getCapabilities",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L82",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -399240,7 +399240,7 @@
       "confidence_score": 0.95,
       "context": "get_clinic_readiness",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1156",
+      "source_location": "L1237",
       "weight": 1.0
     },
     {
@@ -399252,7 +399252,7 @@
       "confidence_score": 0.95,
       "context": "get_current_user",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1540",
+      "source_location": "L1621",
       "weight": 1.0
     },
     {
@@ -399276,7 +399276,7 @@
       "confidence_score": 0.95,
       "context": "get_db()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L834",
+      "source_location": "L915",
       "weight": 1.0
     },
     {
@@ -399312,7 +399312,7 @@
       "confidence_score": 0.95,
       "context": "get_demo_telemetry",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1343",
+      "source_location": "L1424",
       "weight": 1.0
     },
     {
@@ -399336,7 +399336,7 @@
       "confidence_score": 0.95,
       "context": "get_instance",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1698",
+      "source_location": "L1779",
       "weight": 1.0
     },
     {
@@ -399372,7 +399372,7 @@
       "confidence_score": 0.95,
       "context": "get_mode()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1347",
+      "source_location": "L1428",
       "weight": 1.0
     },
     {
@@ -399384,7 +399384,7 @@
       "confidence_score": 0.95,
       "context": "get_replica_db()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L943",
+      "source_location": "L1024",
       "weight": 1.0
     },
     {
@@ -399396,7 +399396,7 @@
       "confidence_score": 0.95,
       "context": "handleUnauthorized",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1519",
+      "source_location": "L1600",
       "weight": 1.0
     },
     {
@@ -399408,7 +399408,7 @@
       "confidence_score": 0.95,
       "context": "http_exception_handler",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1352",
+      "source_location": "L1433",
       "weight": 1.0
     },
     {
@@ -399456,7 +399456,7 @@
       "confidence_score": 0.95,
       "context": "initialize_splunk_connector",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1732",
+      "source_location": "L1813",
       "weight": 1.0
     },
     {
@@ -399492,7 +399492,7 @@
       "confidence_score": 0.95,
       "context": "list_assessments",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1350",
+      "source_location": "L1431",
       "weight": 1.0
     },
     {
@@ -399516,7 +399516,7 @@
       "confidence_score": 0.95,
       "context": "list_organizations",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1349",
+      "source_location": "L1430",
       "weight": 1.0
     },
     {
@@ -399552,7 +399552,7 @@
       "confidence_score": 0.95,
       "context": "org_id",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L111",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -399564,7 +399564,7 @@
       "confidence_score": 0.95,
       "context": "org_id",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L686",
+      "source_location": "L767",
       "weight": 1.0
     },
     {
@@ -399576,7 +399576,7 @@
       "confidence_score": 0.95,
       "context": "org_id",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1342",
+      "source_location": "L1423",
       "weight": 1.0
     },
     {
@@ -403440,7 +403440,7 @@
       "confidence_score": 0.95,
       "context": "pull_all_evidence",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1687",
+      "source_location": "L1768",
       "weight": 1.0
     },
     {
@@ -403488,7 +403488,7 @@
       "confidence_score": 0.95,
       "context": "record_score_change()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1898",
+      "source_location": "L1979",
       "weight": 1.0
     },
     {
@@ -403536,7 +403536,7 @@
       "confidence_score": 0.95,
       "context": "require_auth",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1877",
+      "source_location": "L1958",
       "weight": 1.0
     },
     {
@@ -403548,7 +403548,7 @@
       "confidence_score": 0.95,
       "context": "require_entitlement",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L52",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -403560,7 +403560,7 @@
       "confidence_score": 0.95,
       "context": "require_entitlement",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L358",
+      "source_location": "L439",
       "weight": 1.0
     },
     {
@@ -403596,7 +403596,7 @@
       "confidence_score": 0.95,
       "context": "reset_instance",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1698",
+      "source_location": "L1779",
       "weight": 1.0
     },
     {
@@ -403632,7 +403632,7 @@
       "confidence_score": 0.95,
       "context": "resolve_eol_status()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1859",
+      "source_location": "L1940",
       "weight": 1.0
     },
     {
@@ -403860,7 +403860,7 @@
       "confidence_score": 0.95,
       "context": "score_and_record()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1898",
+      "source_location": "L1979",
       "weight": 1.0
     },
     {
@@ -403920,7 +403920,7 @@
       "confidence_score": 0.95,
       "context": "seed_demo_clinic()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1337",
+      "source_location": "L1418",
       "weight": 1.0
     },
     {
@@ -403944,7 +403944,7 @@
       "confidence_score": 0.95,
       "context": "sign_report_content",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L118",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -403956,7 +403956,7 @@
       "confidence_score": 0.95,
       "context": "sign_report_content",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L693",
+      "source_location": "L774",
       "weight": 1.0
     },
     {
@@ -403968,7 +403968,7 @@
       "confidence_score": 0.95,
       "context": "submitEnterprisePilotLead",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1291",
+      "source_location": "L1372",
       "weight": 1.0
     },
     {
@@ -403992,7 +403992,7 @@
       "confidence_score": 0.95,
       "context": "sync_assessments_from_firestore",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1252",
+      "source_location": "L1333",
       "weight": 1.0
     },
     {
@@ -404028,7 +404028,7 @@
       "confidence_score": 0.95,
       "context": "sync_orgs_from_firestore()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1248",
+      "source_location": "L1329",
       "weight": 1.0
     },
     {
@@ -404040,7 +404040,7 @@
       "confidence_score": 0.95,
       "context": "test_assessment_survives_cold_start",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1249",
+      "source_location": "L1330",
       "weight": 1.0
     },
     {
@@ -404076,7 +404076,7 @@
       "confidence_score": 0.95,
       "context": "test_org_survives_cold_start",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1248",
+      "source_location": "L1329",
       "weight": 1.0
     },
     {
@@ -404088,7 +404088,7 @@
       "confidence_score": 0.95,
       "context": "test_readiness_deterministic_after_cold_start",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1250",
+      "source_location": "L1331",
       "weight": 1.0
     },
     {
@@ -404112,7 +404112,7 @@
       "confidence_score": 0.95,
       "context": "test_tenant_isolation_survives_cold_start",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1251",
+      "source_location": "L1332",
       "weight": 1.0
     },
     {
@@ -404124,7 +404124,7 @@
       "confidence_score": 0.95,
       "context": "test_verification_service_evaluation",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1747",
+      "source_location": "L1828",
       "weight": 1.0
     },
     {
@@ -404172,7 +404172,7 @@
       "confidence_score": 0.95,
       "context": "useActiveOrg()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1166",
+      "source_location": "L1247",
       "weight": 1.0
     },
     {
@@ -404196,7 +404196,7 @@
       "confidence_score": 0.95,
       "context": "useActiveOrgId",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1336",
+      "source_location": "L1417",
       "weight": 1.0
     },
     {
@@ -404268,7 +404268,7 @@
       "confidence_score": 0.95,
       "context": "useAuth()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1480",
+      "source_location": "L1561",
       "weight": 1.0
     },
     {
@@ -404280,7 +404280,7 @@
       "confidence_score": 0.95,
       "context": "useCapabilities",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L83",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -404340,7 +404340,7 @@
       "confidence_score": 0.95,
       "context": "validate_deployment()",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L941",
+      "source_location": "L1022",
       "weight": 1.0
     },
     {
@@ -404376,7 +404376,7 @@
       "confidence_score": 0.95,
       "context": "verify_edr_coverage",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1685",
+      "source_location": "L1766",
       "weight": 1.0
     },
     {
@@ -404400,7 +404400,7 @@
       "confidence_score": 0.95,
       "context": "verify_evidence_hash",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L113",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -404412,7 +404412,7 @@
       "confidence_score": 0.95,
       "context": "verify_evidence_hash",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L688",
+      "source_location": "L769",
       "weight": 1.0
     },
     {
@@ -404424,7 +404424,7 @@
       "confidence_score": 0.95,
       "context": "verify_heartbeat",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1686",
+      "source_location": "L1767",
       "weight": 1.0
     },
     {
@@ -404448,7 +404448,7 @@
       "confidence_score": 0.95,
       "context": "verify_logging_health",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1686",
+      "source_location": "L1767",
       "weight": 1.0
     },
     {
@@ -404484,7 +404484,7 @@
       "confidence_score": 0.95,
       "context": "verify_mfa_enforcement",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L1685",
+      "source_location": "L1766",
       "weight": 1.0
     },
     {
@@ -404508,7 +404508,7 @@
       "confidence_score": 0.95,
       "context": "verify_report_hmac",
       "source_file": "docs/agent_memory/ACTIVE_CONTEXT.md",
-      "source_location": "L118",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -404520,7 +404520,7 @@
       "confidence_score": 0.95,
       "context": "verify_report_hmac",
       "source_file": "docs/agent_memory/AGENT_LOG.md",
-      "source_location": "L693",
+      "source_location": "L774",
       "weight": 1.0
     },
     {
@@ -417879,5 +417879,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "a5f4e7d5fb34eb7ef0c1e8f8c8ee6a3c5a33d4a4"
+  "built_at_commit": "d064545798007f5164e93488c2bde93d82c32a3f"
 }
