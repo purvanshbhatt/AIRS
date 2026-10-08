@@ -236,7 +236,7 @@ def perform_daily_git_sync(
                 run_cmd(["git", "branch", "-f", TARGET_SYNC_BRANCH, "HEAD"], cwd=root)
                 run_cmd(["git", "checkout", TARGET_SYNC_BRANCH], cwd=root)
 
-        # Step 4: Push to remote daily-sync
+        # Step 4: Push to remote daily-sync and mirror to backup
         remotes_result = run_cmd(["git", "remote"], cwd=root)
         remotes = [r.strip() for r in remotes_result.stdout.splitlines() if r.strip()]
         
@@ -247,6 +247,17 @@ def perform_daily_git_sync(
                 push_cmd.append("--force")
             run_cmd(push_cmd, cwd=root)
             logger.info(f"Successfully pushed '{TARGET_SYNC_BRANCH}' to origin.")
+
+            # Mirror to backup branch
+            logger.info("Mirroring snapshot to remote 'backup' branch...")
+            backup_push_cmd = ["git", "push", "origin", f"{TARGET_SYNC_BRANCH}:refs/heads/backup"]
+            if force_push:
+                backup_push_cmd.append("--force")
+            try:
+                run_cmd(backup_push_cmd, cwd=root)
+                logger.info("Successfully pushed snapshot mirror to 'backup' branch.")
+            except Exception as err:
+                logger.warning(f"Could not push to backup branch mirror: {err}")
         else:
             logger.warning("No 'origin' remote found. Snapshot committed locally only.")
 

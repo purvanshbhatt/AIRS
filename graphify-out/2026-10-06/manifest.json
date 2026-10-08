@@ -3594,10 +3594,10 @@
     "semantic_hash": "0779f5866edba7c2646130a0b1e009b9"
   },
   "scripts/daily_git_sync.py": {
-    "mtime": 1791331945.551471,
-    "seen": 1791332053.4407673,
-    "ast_hash": "882321cca7ba457046835abb179b1bdd",
-    "semantic_hash": ""
+    "mtime": 1790837553.2772894,
+    "seen": 1790899901.5827646,
+    "ast_hash": "597ed7f48fab1d8d636491e7b7d74dbb",
+    "semantic_hash": "597ed7f48fab1d8d636491e7b7d74dbb"
   },
   "scripts/demo_sentinel.py": {
     "mtime": 1784301032.0,
@@ -4068,10 +4068,10 @@
     "semantic_hash": ""
   },
   "tests/test_daily_git_sync.py": {
-    "mtime": 1791331921.031604,
-    "seen": 1791332053.4409003,
-    "ast_hash": "96ad18913229e41c493470f439a812e2",
-    "semantic_hash": ""
+    "mtime": 1790837553.3019602,
+    "seen": 1790899901.5828693,
+    "ast_hash": "d960f46f1683f07c673758cffbb1d84b",
+    "semantic_hash": "d960f46f1683f07c673758cffbb1d84b"
   },
   "tests/test_decision_drift_guard.py": {
     "mtime": 1790837544.3651867,
@@ -4944,15 +4944,15 @@
     "semantic_hash": ""
   },
   "docs/agent_memory/ACTIVE_CONTEXT.md": {
-    "mtime": 1791331976.6786513,
-    "seen": 1791332053.4411454,
-    "ast_hash": "5f935d152ed568e4fc7af538dda5a327",
+    "mtime": 1791245537.4060557,
+    "seen": 1791245615.876659,
+    "ast_hash": "075278ccbbc02e72f52fadd740026a8e",
     "semantic_hash": ""
   },
   "docs/agent_memory/AGENT_LOG.md": {
-    "mtime": 1791331991.7454417,
-    "seen": 1791332053.4411469,
-    "ast_hash": "382feed73f56ec3834dd955ba6315e45",
+    "mtime": 1791245537.4079,
+    "seen": 1791245615.8766627,
+    "ast_hash": "9f74926e89d9730b0b4a8d26c549d8d7",
     "semantic_hash": ""
   },
   "docs/agent_memory/AGENT_START.md": {
