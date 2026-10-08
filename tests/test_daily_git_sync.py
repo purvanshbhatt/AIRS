@@ -169,3 +169,8 @@ class TestDailyBackupSyncWorkflow:
         assert "COMMIT_HASH" in workflow_content
         assert "SYNC_STATUS" in workflow_content
 
+    def test_workflow_backup_branch_mirroring(self, workflow_content: str):
+        """Verify workflow mirrors updates to the backup branch to keep codebase secure."""
+        assert "refs/heads/backup" in workflow_content
+
+
