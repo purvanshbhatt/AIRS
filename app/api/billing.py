@@ -30,11 +30,11 @@ router = APIRouter()
 # ── Request / Response Schemas ──────────────────────────────────────
 
 class PlanActivateRequest(BaseModel):
-    plan: str = Field(..., description="Plan to activate: free, design-partner, growth, enterprise")
+    plan: str = Field(..., description="Plan to activate: free, solo-it, founding-sysadmin, starter, design-partner, growth, enterprise")
 
 
 class CheckoutSessionRequest(BaseModel):
-    plan: str = Field(..., description="Paid plan to purchase: design-partner, growth, enterprise")
+    plan: str = Field(..., description="Paid plan to purchase: solo-it, founding-sysadmin, starter, design-partner, growth, enterprise")
     success_url: str = Field(..., description="Redirect URL upon successful checkout")
     cancel_url: str = Field(..., description="Redirect URL upon checkout cancellation")
 
@@ -67,7 +67,7 @@ async def get_capabilities(
         )
 
     from app.core.config import settings
-    if user and (settings.is_admin_email(user.email) or (user.uid and "purvansh" in user.uid.lower())):
+    if user and settings.is_paywall_exempt_user(user.uid, user.email):
         from app.services.billing.entitlements import Entitlement
         return {
             "plan": "enterprise",
@@ -191,7 +191,7 @@ async def activate_plan(
     """Directly activate a plan for the organization."""
     from app.core.config import settings, Environment
     is_prod = (settings.ENV == Environment.PROD) or (settings.ENVIRONMENT == "production")
-    is_admin = user and (settings.is_admin_email(user.email) or (user.uid and "purvansh" in user.uid.lower()))
+    is_admin = bool(user and settings.is_paywall_exempt_user(user.uid, user.email))
     if is_prod and not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

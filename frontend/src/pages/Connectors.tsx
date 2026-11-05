@@ -5,6 +5,7 @@ import {
   getEvidenceConfidence, 
   getConnectorsList, 
   createConnector, 
+  updateConnector,
   checkConnectorHealth, 
   syncConnectorNow, 
   deleteConnector 
@@ -147,15 +148,34 @@ const CONNECTOR_DEFINITIONS: ConnectorCardDef[] = [
     icon: 'api',
     configFields: [
       { key: 'webhook_name', label: 'Integration Name', placeholder: 'My MSP Telemetry Feed', defaultValue: 'Primary MSP Webhook' },
+      { key: 'webhook_secret', label: 'Shared Secret *', placeholder: 'Generate a long random string', type: 'password', help: 'Senders must include this value in the X-Webhook-Secret header.' },
     ],
   },
 ];
+
+// Keys that must only travel in `credentials`, never in the non-secret `config` blob.
+const SECRET_CONFIG_KEYS = new Set([
+  'api_key',
+  'client_secret',
+  'secret_key',
+  'aws_secret_access_key',
+  'aws_access_key_id',
+  'webhook_secret',
+]);
+
+const isSecretField = (def: ConnectorCardDef, key: string) =>
+  SECRET_CONFIG_KEYS.has(key) || def.configFields.some(f => f.key === key && f.type === 'password');
+
+const PASSWORD_SAVED_PLACEHOLDER = '•••• saved, enter to replace';
 
 export default function ConnectorsPage() {
   const navigate = useNavigate();
   const { orgId, orgName, isDemo } = useActiveOrg();
   const { has: hasCapability, plan } = useCapabilities(orgId);
   const { addToast } = useToast();
+
+  // Backend decides: paid plan or admin-exempt account both grant connectors_manage.
+  const canManageConnectors = isDemo || hasCapability('connectors_manage');
 
   const [loading, setLoading] = useState(true);
   const [confidenceData, setConfidenceData] = useState<any>(null);
@@ -176,7 +196,7 @@ export default function ConnectorsPage() {
       const [integ, conf, connList] = await Promise.all([
         getIntegrationStatus(orgId).catch(() => null),
         getEvidenceConfidence(orgId).catch(() => null),
-        getConnectorsList().catch(() => ({ connectors: [], total: 0 })),
+        getConnectorsList(orgId).catch(() => ({ connectors: [], total: 0 })),
       ]);
       setIntegrationStatus(integ);
       setConfidenceData(conf);
@@ -198,6 +218,11 @@ export default function ConnectorsPage() {
     const initial: Record<string, string> = {};
     
     def.configFields.forEach(field => {
+      if (field.type === 'password') {
+        // Secrets are never returned by the backend; leave blank so a saved value is kept unless replaced.
+        initial[field.key] = '';
+        return;
+      }
       initial[field.key] = existing?.config?.[field.key] || field.defaultValue || '';
     });
     
@@ -285,6 +310,7 @@ export default function ConnectorsPage() {
           authMethod = 'webhook';
           credentials = {
             webhook_name: formData.webhook_name || 'Primary MSP Webhook',
+            webhook_secret: formData.webhook_secret || '',
           };
           break;
         default:
@@ -296,7 +322,7 @@ export default function ConnectorsPage() {
           break;
       }
 
-      if (!isDemo && !hasCapability('connectors_manage')) {
+      if (!canManageConnectors) {
         const errorMsg = `Connecting live security infrastructure (${activeConfigDef.name}) requires an active ResilAI subscription. Unpaid workspaces can preview connector schemas, but live credential persistence and automated telemetry ingestion are gated.`;
         setModalPaywallError(errorMsg);
         addToast({
@@ -307,18 +333,46 @@ export default function ConnectorsPage() {
         return;
       }
 
-      await createConnector({
-        connector_type: connectorType,
-        display_name: activeConfigDef.name,
-        auth_method: authMethod,
-        credentials,
-        config: formData,
-        sync_interval_minutes: parseInt(formData.sync_interval_minutes || '15', 10),
+      // Secrets go only in `credentials`; strip them from the stored config blob.
+      const nonSecretConfig: Record<string, string> = {};
+      Object.entries(formData).forEach(([key, value]) => {
+        if (!isSecretField(activeConfigDef, key)) nonSecretConfig[key] = value;
       });
+      const syncIntervalMinutes = parseInt(formData.sync_interval_minutes || '15', 10);
+
+      // Re-use the existing row for this connector type instead of creating a duplicate per Save.
+      const existing = registeredConnectors.find(
+        c => c.connector_type === connectorType && c.status !== 'inactive'
+      );
+
+      if (existing) {
+        // Blank password fields mean "keep the saved secret"; only send credentials the user re-entered.
+        const credentialsToSend: Record<string, string> = {};
+        Object.entries(credentials).forEach(([key, value]) => {
+          if (!isSecretField(activeConfigDef, key) || value) credentialsToSend[key] = value;
+        });
+        await updateConnector(existing.id, {
+          credentials: credentialsToSend,
+          config: nonSecretConfig,
+          sync_interval_minutes: syncIntervalMinutes,
+          display_name: activeConfigDef.name,
+        }, orgId);
+      } else {
+        await createConnector({
+          connector_type: connectorType,
+          display_name: activeConfigDef.name,
+          auth_method: authMethod,
+          credentials,
+          config: nonSecretConfig,
+          sync_interval_minutes: syncIntervalMinutes,
+        }, orgId);
+      }
 
       addToast({
-        title: 'Connector Configured',
-        message: `${activeConfigDef.name} has been successfully registered and encrypted at rest.`,
+        title: existing ? 'Connector Updated' : 'Connector Configured',
+        message: existing
+          ? `${activeConfigDef.name} credentials re-encrypted and configuration updated.`
+          : `${activeConfigDef.name} has been successfully registered and encrypted at rest.`,
         type: 'ready',
       });
 
@@ -372,7 +426,7 @@ export default function ConnectorsPage() {
         return;
       }
 
-      const res = await checkConnectorHealth(registered.id);
+      const res = await checkConnectorHealth(registered.id, orgId);
       addToast({
         title: `Health Check: ${res.status.toUpperCase()}`,
         message: `${res.message || 'Connected successfully'}. Latency: ${res.latency_ms || 0}ms.`,
@@ -415,11 +469,11 @@ export default function ConnectorsPage() {
         return;
       }
 
-      const res = await syncConnectorNow(registered.id);
+      const res = await syncConnectorNow(registered.id, orgId);
       if (res.success) {
         addToast({
           title: 'Telemetry Ingested',
-          message: `Ingested ${res.events_ingested} evidence events in ${res.duration_ms}ms. Score updated.`,
+          message: `Ingested ${res.events_ingested} evidence events in ${res.duration_ms}ms. Readiness recalculates on the next scoring run.`,
           type: 'ready',
         });
       } else {
@@ -478,6 +532,7 @@ export default function ConnectorsPage() {
   };
 
   const activeCount = CONNECTOR_DEFINITIONS.filter(d => getConnectorStatus(d) === 'CONNECTED').length;
+  const hasLiveConnector = registeredConnectors.some(c => c.status === 'active' || c.status === 'syncing');
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -492,9 +547,13 @@ export default function ConnectorsPage() {
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold uppercase bg-amber-500/20 text-amber-500 border border-amber-500/30">
                 SIMULATED TELEMETRY
               </span>
-            ) : (
+            ) : hasLiveConnector ? (
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold uppercase bg-ready-emerald/15 text-ready-emerald border border-ready-emerald/30">
                 LIVE PRODUCTION
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold uppercase bg-surface-container-high text-on-surface-variant border border-outline-variant/40">
+                NO CONNECTORS YET
               </span>
             )}
           </div>
@@ -519,7 +578,7 @@ export default function ConnectorsPage() {
       </div>
 
       {/* Paywall Gate Notice for Unpaid Organizations */}
-      {!isDemo && !hasCapability('connectors_manage') && (
+      {!canManageConnectors && (
         <PaywallLockCard
           feature="Live Telemetry Connector Management"
           description="Connecting live security infrastructure (Splunk, Wazuh, Microsoft 365, AWS, Veeam) requires an active ResilAI subscription. Unpaid workspaces can preview connector schemas and evidence mappings, but live credential persistence and automated telemetry ingestion are gated."
@@ -612,7 +671,7 @@ export default function ConnectorsPage() {
                     <span className={`px-2.5 py-1 rounded-full text-[11px] font-mono uppercase font-bold border shrink-0 ${getStatusBadge(status)}`}>
                       {status}
                     </span>
-                    {!isConnected && !isDemo && !hasCapability('connectors_manage') && (
+                    {!isConnected && !canManageConnectors && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
                         <Lock className="w-3 h-3" />
                         Plan Required
@@ -747,7 +806,7 @@ export default function ConnectorsPage() {
               )}
 
               {/* Paywall Banner for Unpaid Workspaces */}
-              {!isDemo && !hasCapability('connectors_manage') && (
+              {!canManageConnectors && (
                 <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
@@ -819,8 +878,15 @@ export default function ConnectorsPage() {
                     type={field.type || 'text'}
                     value={formData[field.key] || ''}
                     onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-                    placeholder={field.placeholder}
-                    required={field.label.includes('*')}
+                    placeholder={
+                      field.type === 'password' && registeredConnectors.some(c => c.connector_type === activeConfigDef.type)
+                        ? PASSWORD_SAVED_PLACEHOLDER
+                        : field.placeholder
+                    }
+                    required={
+                      field.label.includes('*') &&
+                      !(field.type === 'password' && registeredConnectors.some(c => c.connector_type === activeConfigDef.type))
+                    }
                     className="w-full bg-surface-container text-xs text-on-surface rounded-xl px-3.5 py-2.5 border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-ready-emerald/50 font-mono"
                   />
                   {field.help && (
@@ -833,13 +899,16 @@ export default function ConnectorsPage() {
                 <div className="p-3 bg-surface-container rounded-xl border border-surface-bright space-y-2 text-xs">
                   <span className="font-mono text-ready-emerald font-bold block">Webhook Endpoint URL:</span>
                   <div className="p-2 bg-surface-container-high rounded font-mono text-[11px] select-all break-all text-on-surface">
-                    {`https://api.resilai.io/api/v1/connectors/webhook/custom?org_id=${orgId || 'your-org-id'}`}
+                    {`${import.meta.env.VITE_API_BASE_URL || window.location.origin}/api/v1/connectors/webhook/webhook?org_id=${orgId || 'your-org-id'}`}
                   </div>
+                  <p className="text-[11px] text-on-surface-variant">
+                    POST JSON to this URL with header <code className="font-mono text-on-surface">X-Webhook-Secret</code> set to the Shared Secret above.
+                  </p>
                 </div>
               )}
 
               <div className="pt-4 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-3">
-                {!isDemo && !hasCapability('connectors_manage') ? (
+                {!canManageConnectors ? (
                   <button
                     type="button"
                     onClick={() => {

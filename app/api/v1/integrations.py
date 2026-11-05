@@ -840,14 +840,30 @@ async def get_siem_integration_status(
     splunk_status = "configured" if splunk_connected else "not_configured"
     elastic_status = "configured" if elastic_connected else "not_configured"
     
-    # Calculate simple mock verified controls count if any are connected
+    # Verified controls come from the deterministic Verification Engine, never
+    # from an invented per-integration constant.
     verified_count = 0
-    if wazuh_connected:
-        verified_count += 2
-    if splunk_connected:
-        verified_count += 2
-    if elastic_connected:
-        verified_count += 2
+    total_controls = 0
+    if org_id:
+        try:
+            from app.models.verification import VerificationResult, VerificationState
+            total_controls = (
+                db.query(VerificationResult)
+                .filter(VerificationResult.organization_id == org_id)
+                .count()
+            )
+            verified_count = (
+                db.query(VerificationResult)
+                .filter(
+                    VerificationResult.organization_id == org_id,
+                    VerificationResult.state == VerificationState.VERIFIED,
+                )
+                .count()
+            )
+        except Exception:
+            verified_count = 0
+            total_controls = 0
+    verified_pct = round(100.0 * verified_count / total_controls, 1) if total_controls else 0.0
 
     return SIEMIntegrationStatus(
         wazuh_status=wazuh_status,
@@ -863,6 +879,6 @@ async def get_siem_integration_status(
         elastic_last_successful=None,
         
         siem_verified_controls=verified_count,
-        siem_verified_percentage=float(min(100.0, verified_count * 16.6)),
+        siem_verified_percentage=verified_pct,
     )
 

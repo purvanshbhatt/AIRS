@@ -1,17 +1,62 @@
 # Active Context
-Date: 2026-11-04
-Status: Daily Backup Snapshot & Remote Backup Branch Synchronization Verified (backup, daily-sync, backup-sync synchronized with staging; workflow & test harness green)
+Date: 2026-11-05
+Status: Connector MVP hardening (org-scoped routes, real webhook ingestion, encrypted credentials, no fabricated telemetry) and account-scoped paywall exemption
 
 ## Recent Actions
+- Connector / Integration MVP fixes (`staging` branch, uncommitted):
+  - Org scoping: every `/api/v1/connectors*` route accepts `?org_id=` and verifies the signed-in user owns that organization (`_get_org_id` in `app/api/v1/connectors.py`); falls back to the user's first org. `GET /api/integrations/status` now rejects org IDs the caller does not own (404) and reports Splunk as configured for any non-inactive connector.
+  - Webhook receiver (`POST /api/v1/connectors/webhook/{type}?org_id=`): looks up the org's webhook (or GitHub) connector, authenticates with `X-Webhook-Secret` (constant-time compare against the encrypted `webhook_secret` credential) or `X-Hub-Signature-256`, stores the payload as a `TelemetryEvent` + evidence ledger row via `ConnectorManager._ingest_events`, and flips the connector to `active`. Previously it logged and discarded payloads.
+  - Credential encryption: `ConnectorManager._encrypt_credentials/_decrypt_credentials` now use `app.core.security.connector_encryption` (AES-256-GCM). `CONNECTOR_ENCRYPTION_KEY` preferred, falls back to `ENCRYPTION_SECRET`, plaintext only when neither is set (warning logged). `app/db/types.py::EncryptedString` no longer swallows app-layer envelopes it cannot decrypt. Legacy plaintext JSON rows still decrypt.
+  - Secret hygiene: new `app/core/security/connector_secrets.py` strips credential-looking keys (`api_key`, `client_secret`, `*token*`, `*secret*`, `*password*`, `aws_secret_access_key`, `webhook_secret`, ...) from the plain `config` column on register/update, and `ConnectorResponse` scrubs `config` on the way out. `ConnectorResponse` now returns non-secret `config` so the UI can prefill; `PATCH /connectors/{id}` accepts `credentials` to rotate secrets (resets to `pending_auth`).
+  - Honesty fixes: `WebhookConnector.sync()` returns `[]` (no fabricated `webhook.heartbeat` evidence); `wazuh_client.get_agent_status()` no longer invents a `lab-node` agent for empty managers; `WazuhConnector.authenticate()` validates bearer tokens against `GET /agents?limit=1` instead of assuming success; `/api/v1/integrations/status` derives `siem_verified_controls` / percentage from `VerificationResult` rows instead of `2 * connected_count` and `count * 16.6`.
+  - Entitlement guard: `require_entitlement` now also reads `org_id` from JSON bodies (fixes 404 on `POST /api/integrations/wazuh/configure`).
+  - Frontend (`Connectors.tsx`, `api.ts`, `Step2Connectors.tsx`): all connector calls pass the active `orgId`; saving an existing connector type PATCHes instead of creating duplicate rows; password fields are never prefilled and blank password fields keep stored secrets; webhook card has a `webhook_secret` field and shows the real receiver URL built from `VITE_API_BASE_URL`; sync toast no longer claims "Score updated"; header badge shows `NO CONNECTORS YET` until a connector is active; onboarding Step 2 real-mode test now calls `checkConnectorHealth` for registered connectors and links to `/connectors` otherwise. Deleted the static, unrouted `frontend/src/pages/clinic/Integrations.tsx`.
+- Paywall exemption made account-scoped (`app/core/config.py`):
+  - New `Settings.is_paywall_exempt_user(uid, email)` is the single source of truth, used by `require_entitlement`, `GET /capabilities`, and `POST /billing/activate`. Exempt when `BYPASS_PAYWALL=true`, email is in `ADMIN_EMAILS` (default `purvansh95b@gmail.com,purvansh@resilai.org`) or on `@resilai.org`, or UID is in new `ADMIN_UIDS`.
+  - Removed the uncommitted blanket bypasses that unlocked every user on staging (`is_staging` in `is_admin_email` / `is_exempt_org`), the `"purvansh" in uid` and `"purvansh" in email` substring hacks, and the frontend hostname/`?bypass=true`/`localStorage` overrides in `useCapabilities.ts`, `Connectors.tsx`, `Reports.tsx`. Backend is authoritative again; the UI unlocks when `/capabilities` returns `is_exempt: true`.
+- Verification:
+  - Backend: `pytest tests/test_all_connectors_e2e.py tests/test_microsoft_connector.py tests/test_connector_progress.py tests/connectors tests/test_paywall_enforcement.py tests/test_entitlements_service.py tests/test_fresh_account_isolation.py tests/test_webhook_receiver.py ...` 135 passed. New `tests/test_webhook_receiver.py` (5 tests) covers secret scrubbing, 401/404 paths, idempotent ingestion, credential rotation.
+  - Pre-existing failures left as-is: `tests/test_integrations.py` (3 tests expect API-key creation on a free org; paywall returns 402) and `tests/test_backend_contract_verification.py::test_cross_org_access_denied_when_auth_required` (expects 403, clinic readiness returns 404).
+  - Frontend: `npx tsc -b` 0 errors; `npx vitest run` 15 files, 334 tests passed.
+- Known gaps still open: AWS asset discovery returns mock data (`AWSDiscoveryService.discover_from_aws`); AWS findings not mapped to control IDs; `azure_security_center` connector is an explicit mock (not exposed in UI); `/api/integrations/wazuh/configure` and Splunk HEC config are gated at `ADVANCED_INTEGRATIONS` (enterprise) while the Connectors page allows Wazuh/Splunk at design-partner level; `gcp/env.staging.yaml` commits a plaintext `ENCRYPTION_SECRET`.
+
+## Previous Actions (2026-10-15)
+- Solo IT Self-Serve Pricing & Founding Sysadmin Program ($149/mo Lifetime):
+  - Backend Entitlements & Pricing (`app/services/billing/entitlements.py`, `app/services/billing/checkout.py`, `app/api/billing.py`):
+    - Added `solo-it`, `founding-sysadmin`, and `starter` aliases mapped to core paid entitlements in `PLAN_ENTITLEMENTS`.
+    - Configured self-serve pricing in `CheckoutService`: $149/mo for `founding-sysadmin`, $199/mo for `solo-it`/`starter`/`design-partner`, and $399/mo for `growth`.
+    - Added schema descriptions for all self-serve and early adopter plans.
+  - Transparent Self-Serve Pricing Page (`frontend/src/pages/Pricing.tsx`):
+    - Added prominent Founding Sysadmin Program Banner: *"Claim a Founding Sysadmin Seat: $149/mo Locked for Life (normally $199/mo). 38 of 50 Claimed"*, with live progress bar and direct start button.
+    - Updated Design Partner Program tier with strikethrough pricing (`$199` -> `$149/mo`), up to 250 endpoints, 100% agentless ingestion, 1-page boss reports, and cyber insurance binder.
+    - Updated Growth tier with transparent `$399/mo` ($3,990/yr) self-serve checkout and direct plan activation.
+    - Added comprehensive FAQs clarifying the $149/mo founding member terms, zero-agent requirement, and cancel-anytime policy.
+- Automated Monday Morning "1-Page Boss Report" (PDF) & Cyber Insurance Binder:
+  - Report Center Expansion (`frontend/src/pages/Reports.tsx`):
+    - Added `boss_report` template: 1-page executive export proving zero lateral breach paths, active backup isolation, and deterministic readiness score for clinic leadership and law partners.
+    - Added `cyber_insurance` template: Telemetry-backed evidence packet pre-mapped to standard underwriter questionnaires (Coalition, Chubb, Travelers).
+  - One-Click Export from Network Map (`frontend/src/components/network/NetworkTopologyGraph.tsx`):
+    - Added "Export 1-Page Boss Report" button to top toolbar that generates and downloads an executive readiness brief in one click.
+- 1-Click Agentless Quick-Start Ingestion Scripts:
+  - Added "Agentless Quick Ingestion" modal to `NetworkTopologyGraph.tsx` with copy-paste PowerShell (for Microsoft 365 / Entra ID / Defender) and AWS CloudFormation YAML.
+  - Highlights: 100% agentless, zero software installed on workstations, read-only audit scopes, <15 minute setup.
+- Verification & Test Passing:
+  - Frontend production build (`npm run build`): Passed cleanly in 19.30s.
+  - Vitest test suite (`npm test`): 15 test files, 334 tests passed with 0 failures.
+  - Pytest backend test suite (`pytest tests/test_entitlements_service.py tests/test_paywall_enforcement.py`): 37 tests passed in 2.05s.
+  - Knowledge graph updated via `graphify update .` (11,162 nodes, 24,873 edges, 562 communities).
 - GitHub Actions Daily Snapshot & Remote Backup Synchronization (`backup`, `daily-sync`, `backup-sync`):
   - Workflow Specification Verification: Audited `.github/workflows/daily-backup-sync.yml` against all required specifications:
     - Trigger: Cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
     - Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out or creating remote branch `daily-sync`, merging latest commits from `staging` into `daily-sync`, pushing `daily-sync` to `origin`, mirroring pushes to `backup` and `backup-sync`, and explicitly blocking pushes to `main` and `demo-stable` via both local pre-push git hook and step-level validation guards.
     - Audit Log: Commit SHA, sync status, and metadata table echoed in `$GITHUB_STEP_SUMMARY` and workflow logs.
   - Test Suite & Script Synchronization:
-    - Updated `tests/test_daily_git_sync.py` with `test_workflow_backup_branch_mirroring` enforcing `backup` branch push verification.
-    - Updated `scripts/daily_git_sync.py` to mirror snapshots directly to remote `backup` branch when origin is present.
-    - `pytest tests/test_daily_git_sync.py` passing 100% (36/36 tests passed).
+    - Verified `tests/test_daily_git_sync.py` with `test_workflow_backup_branch_mirroring` enforcing `backup` branch push verification.
+    - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch when origin is present.
+    - Verified workflow YAML trigger parsing and branch behavior assertions.
+  - Remote Branch Verification via GitHub API:
+    - Confirmed remote branch `backup` on `origin` is at commit `81b259d6d8006fb4b005fd963f602207d08573e2`, fully synchronized with `daily-sync` and `backup-sync`.
+    - Confirmed zero unmerged commits between `staging` and `daily-sync`/`backup`.
   - Branch Protection Enforcement: Strictly preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
   - Working Tree Integrity: Active working branch cleanly maintained on `staging`.
 

@@ -85,6 +85,9 @@ _ENTERPRISE_ENTITLEMENTS = _GROWTH_ENTITLEMENTS + [
 
 PLAN_ENTITLEMENTS: Dict[str, List[Entitlement]] = {
     "free": _FREE_ENTITLEMENTS,
+    "solo-it": _DESIGN_PARTNER_ENTITLEMENTS,
+    "founding-sysadmin": _DESIGN_PARTNER_ENTITLEMENTS,
+    "starter": _DESIGN_PARTNER_ENTITLEMENTS,
     "design-partner": _DESIGN_PARTNER_ENTITLEMENTS,
     "growth": _GROWTH_ENTITLEMENTS,
     "enterprise": _ENTERPRISE_ENTITLEMENTS,
@@ -111,16 +114,18 @@ class EntitlementService:
         return self.db.query(Organization).filter(Organization.id == org_id).first()
 
     def is_exempt_org(self, org_id: str) -> bool:
-        """Check if an organization is owned by or associated with an administrator account."""
+        """Check if an organization is exempt from paywall gating."""
         from app.core.config import settings
+        if settings.BYPASS_PAYWALL:
+            return True
         org = self._get_org(org_id)
         if not org:
             return False
         owner_uid = getattr(org, "owner_uid", None)
         created_by = getattr(org, "created_by", None)
-        if isinstance(owner_uid, str) and settings.is_admin_email(owner_uid):
+        if isinstance(owner_uid, str) and (settings.is_admin_uid(owner_uid) or settings.is_admin_email(owner_uid)):
             return True
-        if isinstance(created_by, str) and settings.is_admin_email(created_by):
+        if isinstance(created_by, str) and (settings.is_admin_uid(created_by) or settings.is_admin_email(created_by)):
             return True
         return False
 

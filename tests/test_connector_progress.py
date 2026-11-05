@@ -129,7 +129,8 @@ def test_configure_wazuh_endpoint_initiates_background_sync(mock_auth):
     """Test configure endpoint returns 200 and initiates background sync."""
     app.dependency_overrides[app.dependency_overrides.get("require_auth", "")] = lambda: mock_auth
 
-    with patch("app.services.organization.OrganizationService.get") as mock_get_org:
+    with patch("app.services.organization.OrganizationService.get") as mock_get_org, \
+         patch("app.core.entitlements.EntitlementService.has", return_value=True):
         mock_org = MagicMock()
         mock_org.id = "test-org"
         mock_get_org.return_value = mock_org

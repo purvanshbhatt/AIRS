@@ -45,22 +45,12 @@ class WebhookConnector(Connector):
         return True
 
     async def sync(self) -> List[NormalizedEvent]:
-        """Webhooks are push-based; pull sync returns active status heartbeat."""
-        now = datetime.now(timezone.utc)
-        return [
-            NormalizedEvent(
-                event_type="webhook.heartbeat",
-                source_system="webhook",
-                source_event_id=f"webhook-hb-{int(now.timestamp())}",
-                severity="low",
-                payload={
-                    "webhook_name": self._webhook_name,
-                    "status": "listening",
-                    "last_checked": now.isoformat(),
-                },
-                timestamp=now.isoformat(),
-            )
-        ]
+        """Webhooks are push-based: events arrive via
+        POST /api/v1/connectors/webhook/webhook?org_id=... and are ingested
+        there. A pull sync therefore has nothing to fetch and must not
+        fabricate heartbeat evidence.
+        """
+        return []
 
     async def health_check(self) -> ConnectorHealth:
         """Health check verifies internal readiness to receive webhook events."""

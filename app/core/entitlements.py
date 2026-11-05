@@ -30,13 +30,14 @@ from app.services.billing.entitlements import Entitlement, EntitlementService
 logger = logging.getLogger("airs.core.entitlements")
 
 
-def _resolve_org_id(request: Request, user: User, db: Session) -> Optional[str]:
+async def _resolve_org_id(request: Request, user: User, db: Session) -> Optional[str]:
     """Extract org_id from the request context.
 
     Resolution order:
       1. Path parameter 'org_id'
       2. Query parameter 'org_id'
-      3. The user's first (default) organization
+      3. JSON body field 'org_id' (e.g. Wazuh configure, connector create)
+      4. The user's first (default) organization
     """
     # 1. Path parameter
     org_id = request.path_params.get("org_id")
@@ -48,7 +49,16 @@ def _resolve_org_id(request: Request, user: User, db: Session) -> Optional[str]:
     if org_id:
         return org_id
 
-    # 3. User's default organization
+    # 3. JSON body (Starlette caches the body, so the route handler still gets it)
+    if request.method in ("POST", "PUT", "PATCH"):
+        try:
+            body = await request.json()
+            if isinstance(body, dict) and isinstance(body.get("org_id"), str) and body["org_id"]:
+                return body["org_id"]
+        except Exception:
+            pass
+
+    # 4. User's default organization
     try:
         from app.core.auth import get_user_org_id
         return get_user_org_id(user, db)
@@ -68,11 +78,11 @@ def require_entitlement(capability: Entitlement | str) -> Callable:
         user: User = Depends(require_auth),
         db: Session = Depends(get_db),
     ) -> None:
-        org_id = _resolve_org_id(request, user, db)
+        org_id = await _resolve_org_id(request, user, db)
 
         # Administrator / testing exemption bypass
         from app.core.config import settings
-        if user and (settings.is_admin_email(user.email) or (user.uid and "purvansh" in user.uid.lower())):
+        if user and settings.is_paywall_exempt_user(user.uid, user.email):
             logger.info("ADMIN_TEST_EXEMPTION: user %s (%s) bypassed paywall for org %s (entitlement: %s)", user.uid, user.email, org_id, getattr(capability, 'value', capability))
             return
 

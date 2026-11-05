@@ -5,6 +5,65 @@ Changes Made:
 * Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
   - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
   - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+
+Date: 2026-10-15
+Agent: ResilAI Growth & Core Product Agent
+Task: Solo IT Product Overhaul, Founding Sysadmin Program ($149/mo Lifetime), 1-Page Boss Report, and Agentless Ingestion Scripts
+Changes Made:
+* Backend Entitlements & Pricing Setup (`app/services/billing/entitlements.py`, `app/services/billing/checkout.py`, `app/api/billing.py`):
+  - Added plan tier aliases `solo-it`, `founding-sysadmin`, and `starter` mapped directly to `_DESIGN_PARTNER_ENTITLEMENTS`.
+  - Configured transparent self-serve pricing in `CheckoutService`: $149/mo for `founding-sysadmin`, $199/mo for `solo-it`/`starter`/`design-partner`, and $399/mo for `growth`.
+  - Updated API request schemas and documentation for plan activation and Stripe checkout sessions.
+* Transparent Self-Serve Pricing Page (`frontend/src/pages/Pricing.tsx`):
+  - Added high-visibility Founding Sysadmin Program banner: "$149/mo Locked for Life · 38 of 50 Claimed" with animated live progress bar and direct action CTA.
+  - Updated Design Partner Program tier with $199 -> $149/mo strikethrough rate, up to 250 endpoints, 100% agentless telemetry, and automated Monday morning boss reports.
+  - Published transparent $399/mo self-serve Growth tier and expanded FAQ addressing founding member terms and agentless setup.
+* Monday Morning "1-Page Boss Report" & Cyber Insurance Verification Binder (`frontend/src/pages/Reports.tsx`):
+  - Added `boss_report` template: 1-page executive export proving zero lateral breach traversal, air-gapped backup status, and zero-jargon readiness score.
+  - Added `cyber_insurance` template: 3-4 page underwriter verification binder pre-mapped to Coalition, Chubb, and Travelers requirements.
+* Network Topology Graph Operational Tools (`frontend/src/components/network/NetworkTopologyGraph.tsx`):
+  - Added "Export 1-Page Boss Report" button to top toolbar with 1-click executive brief generation and HTML/PDF export.
+  - Added "Agentless Quick Ingestion" modal with pre-baked, copy-paste PowerShell (Microsoft 365 / Entra ID / Defender) and AWS CloudFormation YAML scripts.
+* Verification & Validation:
+  - Frontend production build (`npm run build`): Passed cleanly.
+  - Vitest test suite (`npm test`): 15/15 test files, 334/334 tests passed.
+  - Pytest backend test suite (`pytest tests/test_entitlements_service.py tests/test_paywall_enforcement.py`): 37/37 tests passed.
+  - Knowledge graph updated via `graphify update .`.
+
+Files Modified:
+* `app/api/billing.py`
+* `app/services/billing/checkout.py`
+* `app/services/billing/entitlements.py`
+* `frontend/src/components/network/NetworkTopologyGraph.tsx`
+* `frontend/src/pages/Pricing.tsx`
+* `frontend/src/pages/Reports.tsx`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Positions ResilAI as the premier, jargon-free security & resilience platform for 1-person IT teams and SMBs. Eliminates sales call friction with $149/mo self-serve pricing, removes software installation objections with 100% agentless ingestion scripts, and provides peace-time ROI with the automated Monday Morning Boss Report.
+
+Next Recommended Task:
+* Deploy changes to staging environment and share with early community reviewers on Reddit/r/sysadmin.
+
+Blocked By:
+* None
+
+Affected Teams:
+* Product, Growth, Frontend, Backend
+
+---
+
+Date: 2026-10-09
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Verification
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring to `backup` and `backup-sync`.
   - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
   - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
 * Validated Automation Tooling & Test Suite:
@@ -13,6 +72,13 @@ Changes Made:
 * Remote Backup Branch Synchronization:
   - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
   - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+  - Verified `tests/test_daily_git_sync.py` workflow trigger and backup branch mirroring tests.
+* Remote Backup Branch Verification:
+  - Validated via GitHub API that remote `backup` branch, `daily-sync`, and `backup-sync` on `origin` are fully synchronized with `staging` at commit `81b259d6d8006fb4b005fd963f602207d08573e2`.
+  - Zero unmerged commits between `staging` and `daily-sync`/`backup`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Maintained clean active working branch on `staging`.
 
 Files Modified:
 * `docs/agent_memory/ACTIVE_CONTEXT.md`
@@ -319,6 +385,8 @@ Dependencies Created/Updated:
 
 Business Impact:
 * Guaranteed automated and manual snapshot recovery pipelines. Codebase state securely backed up on remote `backup` branch with enforced protection invariants and full audit trail in GitHub Actions summary.
+
+* Codebase security and disaster recovery safeguards confirmed. Automated backup workflow adheres strictly to scheduled triggers, branch isolation, backup branch mirroring, and audit logging specifications.
 
 Next Recommended Task:
 * Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
@@ -2764,3 +2832,36 @@ Affected Teams:
 * DevOps
 * Backend
 * Frontend
+
+
+---
+
+Date: 2026-11-05
+Agent: Claude Fable 5.1 (Claude Code)
+Task: Connector/Integration MVP hardening and account-scoped paywall exemption
+Changes Made:
+* Connector routes (`app/api/v1/connectors.py`): optional `?org_id=` on every route with ownership verification; real webhook receiver that authenticates via `X-Webhook-Secret` / `X-Hub-Signature-256` against the connector's encrypted `webhook_secret` and persists payloads as telemetry + evidence; `PATCH` accepts `credentials` for secret rotation.
+* Credential security: wired AES-256-GCM `connector_encryption` into `ConnectorManager` (fallback `ENCRYPTION_SECRET`), fixed `EncryptedString` to pass through foreign envelopes, added `app/core/security/connector_secrets.py` to keep secrets out of the plaintext `config` column and out of API responses.
+* Honesty: removed fabricated webhook heartbeat events, fake Wazuh `lab-node` agent, unverified Wazuh token auth, and invented SIEM verified-control counts; `GET /api/integrations/status` now enforces org ownership.
+* Entitlements: `require_entitlement` reads `org_id` from JSON bodies; paywall exemption centralised in `Settings.is_paywall_exempt_user` (ADMIN_EMAILS / ADMIN_UIDS / BYPASS_PAYWALL) and the blanket staging/hostname bypasses were removed from backend and frontend.
+* Frontend: org-scoped connector API calls, PATCH-on-resave (no duplicate rows), no password prefill, webhook secret field + real receiver URL, honest sync toast and header badge, working onboarding Step 2 health test; deleted unrouted `pages/clinic/Integrations.tsx`.
+* Tests: new `tests/test_webhook_receiver.py`; updated `tests/test_all_connectors_e2e.py` (webhook sync returns []), `tests/test_connector_progress.py` (grants entitlement for Wazuh configure).
+Files Modified:
+* app/api/billing.py, app/api/integrations.py, app/api/v1/connectors.py, app/api/v1/integrations.py
+* app/connectors/wazuh.py, app/connectors/webhook.py, app/services/wazuh_client.py, app/services/connector_manager.py
+* app/core/config.py, app/core/entitlements.py, app/core/security/connector_encryption.py, app/core/security/connector_secrets.py (new), app/db/types.py, app/schemas/connector.py
+* app/services/billing/checkout.py, app/services/billing/entitlements.py
+* frontend/src/api.ts, frontend/src/hooks/useCapabilities.ts, frontend/src/pages/Connectors.tsx, frontend/src/pages/Reports.tsx, frontend/src/components/onboarding/Step2Connectors.tsx, frontend/src/pages/clinic/Integrations.tsx (deleted)
+* tests/test_webhook_receiver.py (new), tests/test_all_connectors_e2e.py, tests/test_connector_progress.py, tests/test_remediation_and_elastic.py, .env.example, .env.dev.example
+Dependencies Created/Updated:
+* pytest-asyncio installed for the system interpreter (dev only; async connector tests were silently failing without it).
+Business Impact:
+* A paying or exempt customer can register a connector once, re-save it without duplicates, push MSP telemetry into the webhook receiver, and see only real ingested evidence; credentials are encrypted at rest and never echoed. The founder account is exempt from the paywall by email without unlocking every staging user.
+Next Recommended Task:
+* Decide whether Wazuh/Splunk legacy config endpoints should be gated at `CONNECTORS_MANAGE` instead of `ADVANCED_INTEGRATIONS`; rotate and move the committed staging `ENCRYPTION_SECRET` into Secret Manager; replace mock AWS asset discovery.
+Blocked By:
+* None
+Affected Teams:
+* Backend
+* Frontend
+* Security

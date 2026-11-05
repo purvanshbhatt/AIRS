@@ -93,6 +93,26 @@ const REPORT_TEMPLATES: ReportTemplate[] = [
     estimatedPages: 'Data Export',
     badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   },
+  {
+    id: 'boss_report',
+    title: 'Monday Morning 1-Page Boss Report',
+    category: 'Executive Briefing',
+    description:
+      '1-page plain-English summary verifying zero lateral breach paths, active backup isolation, and deterministic readiness score—ready to forward to clinic directors or managing partners.',
+    defaultFormat: 'pdf',
+    estimatedPages: '1 page',
+    badgeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  },
+  {
+    id: 'cyber_insurance',
+    title: 'Cyber Insurance Underwriter Verification Binder',
+    category: 'Insurance & Audit',
+    description:
+      'Telemetry-backed evidence packet pre-mapped to standard underwriter questionnaires (Coalition, Chubb, Travelers) verifying MFA, immutable backups, and lateral containment.',
+    defaultFormat: 'pdf',
+    estimatedPages: '3-4 pages',
+    badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+  },
 ];
 
 export default function Reports() {
@@ -100,6 +120,9 @@ export default function Reports() {
   const { orgName, isDemo } = useActiveOrg();
   const activeOrgId = useActiveOrgId();
   const { has: hasCapability, plan } = useCapabilities(activeOrgId);
+
+  // Backend decides: paid plan or admin-exempt account both grant executive_reports.
+  const canAccessReports = isDemo || hasCapability('executive_reports');
 
   // Report Library State
   const [loading, setLoading] = useState(true);
@@ -154,7 +177,7 @@ export default function Reports() {
   const handleGenerateReport = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isDemo && !hasCapability('executive_reports')) {
+    if (!canAccessReports) {
       navigate('/pricing');
       return;
     }
@@ -471,7 +494,7 @@ export default function Reports() {
       )}
 
       {/* Paywall Gate for Unpaid Workspaces */}
-      {!isDemo && !hasCapability('executive_reports') && (
+      {!canAccessReports && (
         <PaywallLockCard
           feature="Executive & Boardroom Report Generation"
           description="Generating signed PDF executive dossiers, HIPAA safeguards dossiers, and compliance telemetry exports requires an active Design Partner or Enterprise license. You can view sample archives below or upgrade your workspace."

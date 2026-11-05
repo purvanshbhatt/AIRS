@@ -38,7 +38,7 @@ class CheckoutService:
         """
         from app.core.config import settings, Environment
         is_prod = (settings.ENV == Environment.PROD) or (settings.ENVIRONMENT == "production")
-        if is_prod and not settings.is_admin_email(activated_by):
+        if is_prod and not (settings.is_admin_email(activated_by) or settings.is_admin_uid(activated_by)):
             return {
                 "success": False,
                 "error": "Direct activation is disabled in production. Checkout must be completed through Stripe.",
@@ -104,6 +104,9 @@ class CheckoutService:
             }
 
         price_map = {
+            "founding-sysadmin": settings.STRIPE_PRICE_DESIGN_PARTNER,
+            "solo-it": settings.STRIPE_PRICE_DESIGN_PARTNER,
+            "starter": settings.STRIPE_PRICE_DESIGN_PARTNER,
             "design-partner": settings.STRIPE_PRICE_DESIGN_PARTNER,
             "growth": settings.STRIPE_PRICE_GROWTH,
             "enterprise": settings.STRIPE_PRICE_ENTERPRISE,
@@ -128,8 +131,15 @@ class CheckoutService:
                     payload["line_items[0][price]"] = price_id
                     payload["line_items[0][quantity]"] = "1"
                 else:
-                    # Dynamic line item for fallback or test pricing
-                    unit_amount = 49900 if plan == "design-partner" else (149900 if plan == "growth" else 499900)
+                    # Dynamic line item for fallback or self-serve pricing
+                    if plan == "founding-sysadmin":
+                        unit_amount = 14900  # $149/month
+                    elif plan in ("solo-it", "starter", "design-partner"):
+                        unit_amount = 19900  # $199/month
+                    elif plan == "growth":
+                        unit_amount = 39900  # $399/month
+                    else:
+                        unit_amount = 499900  # $4999/month enterprise
                     payload["line_items[0][price_data][currency]"] = "usd"
                     payload["line_items[0][price_data][product_data][name]"] = f"ResilAI {plan.replace('-', ' ').title()} Subscription"
                     payload["line_items[0][price_data][unit_amount]"] = str(unit_amount)

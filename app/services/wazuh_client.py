@@ -228,10 +228,6 @@ class WazuhClient:
                 disconnected += 1
 
         total = len(agent_list)
-        if total == 0:
-            total = 1
-            active = 1
-            agent_list = [AgentStatus("lab-node", "lab-node", "127.0.0.1", "active")]
 
         return WazuhAgentStatusResponse(
             total_agents=total,

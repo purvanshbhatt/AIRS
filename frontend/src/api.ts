@@ -2026,7 +2026,8 @@ export interface ConnectorItem {
   connector_type: string;
   display_name: string;
   auth_method: string;
-  config: Record<string, any>;
+  /** Non-secret config returned by the backend; secret keys are stripped server-side. */
+  config?: Record<string, any>;
   status: string;
   sync_interval_minutes: number;
   last_sync_at?: string;
@@ -2056,31 +2057,41 @@ export interface ConnectorSyncResult {
   error_details?: string[];
 }
 
-export const getConnectorsList = () =>
-  request<ConnectorListResponse>('/api/v1/connectors');
+export interface ConnectorUpdatePayload extends Partial<Omit<ConnectorConfigPayload, 'credentials'>> {
+  /** Sending credentials re-encrypts and replaces the stored secrets. */
+  credentials?: Record<string, any>;
+  status?: string;
+}
 
-export const createConnector = (payload: ConnectorConfigPayload) =>
-  request<ConnectorItem>('/api/v1/connectors', {
+/** Append `?org_id=` when an org is given; backend falls back to the user's first org otherwise. */
+const connectorsPath = (path: string, orgId?: string) =>
+  orgId ? `${path}?org_id=${encodeURIComponent(orgId)}` : path;
+
+export const getConnectorsList = (orgId?: string) =>
+  request<ConnectorListResponse>(connectorsPath('/api/v1/connectors', orgId));
+
+export const createConnector = (payload: ConnectorConfigPayload, orgId?: string) =>
+  request<ConnectorItem>(connectorsPath('/api/v1/connectors', orgId), {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 
-export const updateConnector = (connectorId: string, payload: Partial<ConnectorConfigPayload> & { status?: string }) =>
-  request<ConnectorItem>(`/api/v1/connectors/${connectorId}`, {
+export const updateConnector = (connectorId: string, payload: ConnectorUpdatePayload, orgId?: string) =>
+  request<ConnectorItem>(connectorsPath(`/api/v1/connectors/${connectorId}`, orgId), {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
 
-export const checkConnectorHealth = (connectorId: string) =>
-  request<ConnectorHealthResult>(`/api/v1/connectors/${connectorId}/health`);
+export const checkConnectorHealth = (connectorId: string, orgId?: string) =>
+  request<ConnectorHealthResult>(connectorsPath(`/api/v1/connectors/${connectorId}/health`, orgId));
 
-export const syncConnectorNow = (connectorId: string) =>
-  request<ConnectorSyncResult>(`/api/v1/connectors/${connectorId}/sync`, {
+export const syncConnectorNow = (connectorId: string, orgId?: string) =>
+  request<ConnectorSyncResult>(connectorsPath(`/api/v1/connectors/${connectorId}/sync`, orgId), {
     method: 'POST',
   });
 
-export const deleteConnector = (connectorId: string) =>
-  request<void>(`/api/v1/connectors/${connectorId}`, {
+export const deleteConnector = (connectorId: string, orgId?: string) =>
+  request<void>(connectorsPath(`/api/v1/connectors/${connectorId}`, orgId), {
     method: 'DELETE',
   });
 

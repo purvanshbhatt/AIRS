@@ -191,7 +191,11 @@ class TestRemediationEndpoints:
         data = resp.json()
         assert "elastic_status" in data
         assert data["elastic_status"] == "configured"
-        assert data["siem_verified_controls"] > 0
+        # Verified controls come from VerificationResult rows, never from an
+        # invented per-integration constant; a fresh org has none.
+        assert isinstance(data["siem_verified_controls"], int)
+        assert data["siem_verified_controls"] >= 0
+        assert 0.0 <= data["siem_verified_percentage"] <= 100.0
 
     def test_agentic_fix_endpoint(self, client, db_session):
         """Test POST /api/remediations/findings/{finding_id}/agentic-fix."""

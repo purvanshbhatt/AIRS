@@ -36,6 +36,16 @@ def _load_key_from_secret_manager() -> Optional[str]:
         logger.info("Connector encryption key loaded from environment variable")
         return env_key
 
+    # 1b. Fall back to the org-data key rather than storing credentials in
+    #     plaintext. Dedicated CONNECTOR_ENCRYPTION_KEY is still preferred for
+    #     key-domain separation.
+    shared_key = os.environ.get("ENCRYPTION_SECRET")
+    if shared_key:
+        logger.warning(
+            "CONNECTOR_ENCRYPTION_KEY not set; falling back to ENCRYPTION_SECRET for connector credentials"
+        )
+        return shared_key
+
     # 2. Try GCP Secret Manager
     try:
         from google.cloud import secretmanager
