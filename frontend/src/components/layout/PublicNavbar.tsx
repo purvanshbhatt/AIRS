@@ -138,11 +138,16 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
             data-testid="navbar-brand-link"
           >
             <img
-              src="/favicon.png"
-              alt="ResilAI Logo"
-              className="h-8 w-8 object-contain rounded-lg transition-transform duration-300 group-hover:scale-105 shrink-0"
+              src="/brand/horizontal/resilai_horizontal_light_trans.png"
+              alt="ResilAI"
+              className="h-8 sm:h-9 w-auto object-contain block dark:hidden transition-transform duration-300 group-hover:scale-105 shrink-0"
             />
-            <span className="font-extrabold tracking-tight text-xl text-on-surface">ResilAI</span>
+            <img
+              src="/brand/horizontal/resilai_horizontal_dark_trans.png"
+              alt="ResilAI"
+              className="h-8 sm:h-9 w-auto object-contain hidden dark:block transition-transform duration-300 group-hover:scale-105 shrink-0"
+            />
+            <span className="sr-only">ResilAI</span>
             {currentVertical !== 'general' && (
               <span
                 data-testid="navbar-vertical-badge"

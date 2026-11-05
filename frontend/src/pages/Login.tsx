@@ -94,13 +94,19 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center mb-2">
-            <div className="w-14 h-14 rounded-2xl bg-ready-emerald/15 border border-ready-emerald/30 flex items-center justify-center shadow-lg shadow-ready-emerald/10">
-              <img src="/favicon.png" alt="ResilAI" className="w-10 h-10 object-contain rounded-xl" />
-            </div>
+          <div className="flex items-center justify-center mb-2">
+            <img
+              src="/brand/stacked/resilai_stacked_light_trans.png"
+              alt="ResilAI"
+              className="h-20 sm:h-24 w-auto object-contain block dark:hidden transition-transform duration-300 hover:scale-105"
+            />
+            <img
+              src="/brand/stacked/resilai_stacked_dark_trans.png"
+              alt="ResilAI"
+              className="h-20 sm:h-24 w-auto object-contain hidden dark:block transition-transform duration-300 hover:scale-105"
+            />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface mt-2">ResilAI</h1>
-          <p className="text-on-surface-variant text-xs mt-0.5">Healthcare Readiness & Compliance Intelligence</p>
+          <p className="text-on-surface-variant text-xs mt-1">Healthcare Readiness & Compliance Intelligence</p>
         </div>
 
         <Card className="bg-surface-container-low border-surface-bright shadow-2xl">

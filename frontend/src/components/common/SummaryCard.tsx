@@ -61,7 +61,7 @@ export function SummaryCard({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+              <h2 className="text-xl font-bold tracking-tight text-on-surface">
                 {domainName}
               </h2>
               <TrustBadge status="verified" text={`${readinessScore}% Readiness`} />
@@ -87,8 +87,8 @@ export function SummaryCard({
             SO WHAT? — Executive Business Answer
           </span>
         </div>
-        <div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80">
-          <p className="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-100 leading-relaxed">
+        <div className="p-4 rounded-xl bg-surface-container border border-outline-variant/60">
+          <p className="text-base sm:text-lg font-semibold text-on-surface leading-relaxed">
             {soWhat}
           </p>
         </div>
@@ -113,7 +113,7 @@ export function SummaryCard({
                   {metric.label}
                 </span>
                 <div className="mt-2 flex items-baseline justify-between">
-                  <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+                  <span className="text-lg font-bold tracking-tight text-on-surface">
                     {metric.value}
                   </span>
                   {metric.subtitle && (

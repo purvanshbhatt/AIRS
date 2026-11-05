@@ -65,7 +65,9 @@ export default function DocsLayout() {
                             {/* Logo */}
                              <div className="flex items-center justify-between h-16 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
                                  <Link to="/" className="flex items-center">
-                                     <img src="/logo_header.svg" alt="ResilAI Logo" className="h-10 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
+                                     <img src="/brand/horizontal/resilai_horizontal_light_trans.png" alt="ResilAI" className="h-8 w-auto object-contain block dark:hidden transition-all duration-300" />
+                                     <img src="/brand/horizontal/resilai_horizontal_dark_trans.png" alt="ResilAI" className="h-8 w-auto object-contain hidden dark:block transition-all duration-300" />
+                                     <span className="sr-only">ResilAI</span>
                                  </Link>
                                 <button
                                     onClick={() => setSidebarOpen(false)}
@@ -147,7 +149,9 @@ export default function DocsLayout() {
                 {/* Logo */}
                  <div className="flex items-center h-16 px-6 border-b border-slate-200 dark:border-slate-800 shrink-0">
                      <Link to="/" className="flex items-center">
-                         <img src="/logo_header.svg" alt="ResilAI Logo" className="h-10 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
+                         <img src="/brand/horizontal/resilai_horizontal_light_trans.png" alt="ResilAI" className="h-8 w-auto object-contain block dark:hidden transition-all duration-300" />
+                         <img src="/brand/horizontal/resilai_horizontal_dark_trans.png" alt="ResilAI" className="h-8 w-auto object-contain hidden dark:block transition-all duration-300" />
+                         <span className="sr-only">ResilAI</span>
                      </Link>
                  </div>
 
@@ -174,7 +178,7 @@ export default function DocsLayout() {
                                 <item.icon
                                     className={clsx('w-5 h-5 transition-transform group-hover:scale-105', isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500')}
                                 />
-                                {item.name}
+                                <item.name
                                 {isActive && (
                                     <span className="absolute right-0 top-1/4 bottom-1/4 w-1 bg-blue-600 dark:bg-blue-400 rounded-l" />
                                 )}
@@ -266,4 +270,3 @@ export default function DocsLayout() {
         </div>
     );
 }
-

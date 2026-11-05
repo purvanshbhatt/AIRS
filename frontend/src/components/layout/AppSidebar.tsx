@@ -116,8 +116,9 @@ export function AppSidebar({ mobile = false, onClose }: AppSidebarProps = {}) {
           className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ready-emerald rounded-lg"
           aria-label="ResilAI Home"
         >
-          <div className="w-10 h-10 rounded-xl bg-ready-emerald/15 border border-ready-emerald/30 flex items-center justify-center shadow-lg shadow-ready-emerald/10 group-hover:scale-105 transition-transform shrink-0">
-            <img src="/favicon.png" alt="ResilAI" className="w-7 h-7 object-contain rounded-md" />
+          <div className="w-10 h-10 rounded-xl bg-ready-emerald/15 border border-ready-emerald/30 flex items-center justify-center shadow-lg shadow-ready-emerald/10 group-hover:scale-105 transition-transform shrink-0 p-1.5">
+            <img src="/brand/emblem/resilai_emblem_light_trans.png" alt="ResilAI" className="w-full h-full object-contain block dark:hidden" />
+            <img src="/brand/emblem/resilai_emblem_dark_trans.png" alt="ResilAI" className="w-full h-full object-contain hidden dark:block" />
           </div>
           <div className={cn(!mobile && "hidden lg:block")}>
             <div className="flex items-center gap-2">

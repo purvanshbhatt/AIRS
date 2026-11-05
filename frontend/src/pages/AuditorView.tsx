@@ -80,10 +80,20 @@ export default function AuditorView() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-blue-600" />
+            <img
+              src="/brand/horizontal/resilai_horizontal_light_trans.png"
+              alt="ResilAI"
+              className="h-8 w-auto object-contain block dark:hidden"
+            />
+            <img
+              src="/brand/horizontal/resilai_horizontal_dark_trans.png"
+              alt="ResilAI"
+              className="h-8 w-auto object-contain hidden dark:block"
+            />
+            <span className="hidden sm:inline-block h-5 w-[1px] bg-gray-300" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">AIRS — Auditor View</h1>
-              <p className="text-sm text-gray-500">Read-only governance snapshot</p>
+              <h1 className="text-base sm:text-lg font-bold text-gray-900">Auditor Portal</h1>
+              <p className="text-xs text-gray-500">Continuous governance verification snapshot</p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
