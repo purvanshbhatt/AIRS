@@ -14,7 +14,23 @@ def test_generate_llm_narrative_uses_google_genai_sdk(monkeypatch):
     class FakeModels:
         def generate_content(self, model, contents, config):
             calls.append({"model": model, "contents": contents, "config": config})
-            return FakeResponse("Generated narrative text")
+            fake_json = """
+            {
+              "sections": [
+                {"section_id": "executive_summary", "title": "Executive Summary", "content": "100.0"},
+                {"section_id": "risk_posture", "title": "Risk Posture", "content": "..."},
+                {"section_id": "governance_maturity", "title": "Governance Maturity", "content": "..."},
+                {"section_id": "control_effectiveness", "title": "Control Effectiveness", "content": "..."},
+                {"section_id": "compliance_status", "title": "Compliance Status", "content": "..."},
+                {"section_id": "financial_exposure", "title": "Financial Exposure", "content": "..."},
+                {"section_id": "threat_landscape", "title": "Threat Landscape", "content": "..."},
+                {"section_id": "resource_allocation", "title": "Resource Allocation", "content": "..."},
+                {"section_id": "remediation_roadmap", "title": "Remediation Roadmap", "content": "..."},
+                {"section_id": "strategic_recommendations", "title": "Strategic Recommendations", "content": "..."}
+              ]
+            }
+            """
+            return FakeResponse(fake_json)
 
     class FakeClient:
         def __init__(self, *args, **kwargs):
@@ -38,7 +54,7 @@ def test_generate_llm_narrative_uses_google_genai_sdk(monkeypatch):
     monkeypatch.setattr(ai_narrative.settings, "LLM_MAX_TOKENS", 256, raising=False)
 
     payload = {
-        "overall_score": 71.0,
+        "overall_score": 100.0,
         "tier": {"label": "Good", "color": "primary"},
         "domain_scores": [
             {"domain_id": "telemetry_logging", "domain_name": "Telemetry", "score_5": 3.5}
@@ -51,20 +67,18 @@ def test_generate_llm_narrative_uses_google_genai_sdk(monkeypatch):
                 "recommendation": "Increase retention to 90 days",
             }
         ],
-        "organization_name": "Acme Corp",
+        "organization_name": "sandbox Corp",
         "baseline_profiles": {},
     }
 
-    result = ai_narrative._generate_llm_narrative(payload)
+    result = ai_narrative._generate_llm_board_story(payload)
 
     assert result["llm_generated"] is True
-    assert isinstance(result["executive_summary_text"], str)
-    assert isinstance(result["roadmap_narrative_text"], str)
-    assert len(calls) == 2
+    assert "sections" in result
+    assert len(result["sections"]) == 10
+    assert len(calls) == 1
     exec_prompt = calls[0]["contents"]
-    assert "Readiness Score" in exec_prompt
-    assert "Top 3 Remediation Priorities" in exec_prompt
-    assert "Do not repeat raw questionnaire answers" in exec_prompt
+    assert "Overall Score:" in exec_prompt
 
 
 def test_fallback_narrative_when_llm_fails_has_required_actions():
@@ -76,9 +90,8 @@ def test_fallback_narrative_when_llm_fails_has_required_actions():
         "organization_name": "Fallback Corp",
     }
 
-    result = ai_narrative._generate_fallback_narrative(payload, llm_failed=True)
-    text = result["executive_summary_text"]
-    assert "Executive narrative unavailable." in text
-    assert "1. Access controls" in text
-    assert "2. Monitoring" in text
-    assert "3. Incident response planning" in text
+    result = ai_narrative._generate_fallback_board_story(payload, llm_failed=True)
+    sections = result["sections"]
+    assert len(sections) == 10
+    assert sections[0]["section_id"] == "executive_summary"
+    assert "Fallback Corp scored 52.0/100" in sections[0]["content"]

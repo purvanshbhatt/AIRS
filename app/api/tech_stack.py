@@ -6,7 +6,7 @@ CRUD for tech stack items + summary/risk classification.
 
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.auth import require_auth, User
@@ -44,18 +44,23 @@ def _verify_org(db: Session, user: User, org_id: str):
 )
 async def list_items(
     org_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
 ):
     """GET /api/governance/{org_id}/tech-stack"""
     _verify_org(db, user, org_id)
-    
+    # Run technology discovery in staging to populate demo data
     from app.core.config import settings
-    if settings.is_staging or settings.ENV == "staging":
-        from app.services.asset_discovery import AssetDiscoveryService
-        discovery_svc = AssetDiscoveryService(db, org_id)
-        discovery_svc.discover_assets()
-        
+    if settings.is_staging:
+        try:
+            # Run synchronously in staging so the API response includes it immediately
+            from app.services.asset_discovery import AssetDiscoveryService
+            svc = AssetDiscoveryService(db, org_id)
+            svc.discover_assets()
+        except Exception as e:
+            logger.error(f"Auto-discovery cycle failed during tech stack list: {e}")
+
     svc = TechStackService(db, org_id)
     items = svc.list_all()
     enriched = [svc.enrich_response(i) for i in items]

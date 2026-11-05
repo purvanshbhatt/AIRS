@@ -1,0 +1,1496 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ResilAI",
+    "description": "ResilAI - AI Incident Readiness Score API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health Check",
+        "description": "Simple health check for load balancers and orchestrators. Returns immediately with minimal processing.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Service is healthy and ready to receive traffic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/llm": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "LLM Status",
+        "description": "Returns the current LLM configuration status. Does NOT call the LLM. Safe to expose publicly.",
+        "operationId": "llm_health_health_llm_get",
+        "responses": {
+          "200": {
+            "description": "LLM configuration status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LLMHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/cors": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "CORS Verification",
+        "description": "Returns current CORS configuration for debugging. Does NOT expose secrets. Safe to call from browser console.",
+        "operationId": "cors_health_health_cors_get",
+        "responses": {
+          "200": {
+            "description": "CORS configuration status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CORSHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/system": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "System Status",
+        "description": "Public system status for UI footer/build verification.",
+        "operationId": "system_health_health_system_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinic/morning-summary": {
+      "get": {
+        "tags": [
+          "clinic"
+        ],
+        "summary": "Get Morning Summary",
+        "description": "Returns the Morning Safety Check for the clinic owner. DEPRECATED. Use /readiness/{org_id}.",
+        "operationId": "get_morning_summary_api_clinic_morning_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MorningCheckV2"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true
+      }
+    },
+    "/api/clinic/readiness/{org_id}": {
+      "get": {
+        "tags": [
+          "clinic"
+        ],
+        "summary": "Get Clinic Readiness",
+        "description": "The product endpoint. Returns the immutable DailyReadinessReport.",
+        "operationId": "get_clinic_readiness_api_clinic_readiness__org_id__get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Org Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyReadinessReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/clinic/problems/{problem_id}/fix": {
+      "post": {
+        "tags": [
+          "clinic"
+        ],
+        "summary": "Fix Problem",
+        "description": "Triggers the autofix for a given problem.",
+        "operationId": "fix_problem_api_clinic_problems__problem_id__fix_post",
+        "parameters": [
+          {
+            "name": "problem_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Problem Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/governance/validate/{organization_id}": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Run IGVF validation for an organization",
+        "description": "Execute the full Internal Governance Validation Framework check\nfor a single organization.\n\nReturns compliance, audit readiness, SLA gap, lifecycle risk,\nand the composite Governance Health Index (GHI).\n\nOnly available when ENV=staging.",
+        "operationId": "run_igvf_validation_internal_governance_validate__organization_id__get",
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "X-Admin-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/governance/validate": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "List all organizations with GHI scores",
+        "description": "Run IGVF validation for ALL organizations and return summary.\nOnly available when ENV=staging.",
+        "operationId": "run_igvf_validation_all_internal_governance_validate_get",
+        "parameters": [
+          {
+            "name": "X-Admin-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "description": "Root endpoint.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/debug/build-info": {
+      "get": {
+        "summary": "Build Info",
+        "operationId": "build_info_api_debug_build_info_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActionCard": {
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "title": "Action Id"
+          },
+          "problem": {
+            "type": "string",
+            "title": "Problem"
+          },
+          "why_it_matters": {
+            "type": "string",
+            "title": "Why It Matters"
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          },
+          "can_be_undone": {
+            "type": "boolean",
+            "title": "Can Be Undone"
+          },
+          "estimated_time_minutes": {
+            "type": "integer",
+            "title": "Estimated Time Minutes"
+          },
+          "fix_now_available": {
+            "type": "boolean",
+            "title": "Fix Now Available"
+          },
+          "verification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerificationContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "approval_needed": {
+            "type": "boolean",
+            "title": "Approval Needed"
+          },
+          "required_permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Permissions"
+          },
+          "success_message": {
+            "type": "string",
+            "title": "Success Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action_id",
+          "problem",
+          "why_it_matters",
+          "recommended_action",
+          "can_be_undone",
+          "estimated_time_minutes",
+          "fix_now_available",
+          "category",
+          "approval_needed",
+          "required_permissions",
+          "success_message"
+        ],
+        "title": "ActionCard",
+        "description": "Customer-facing action. Replaces raw ActionIntent at the product boundary."
+      },
+      "ActionIntent": {
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "title": "Action Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "can_automate": {
+            "type": "boolean",
+            "title": "Can Automate",
+            "default": false
+          },
+          "estimated_minutes": {
+            "type": "integer",
+            "title": "Estimated Minutes",
+            "default": 5
+          }
+        },
+        "type": "object",
+        "required": [
+          "action_id",
+          "label"
+        ],
+        "title": "ActionIntent",
+        "description": "What the user can do. Describes intent, not execution."
+      },
+      "BusinessContinuity": {
+        "properties": {
+          "operational_readiness": {
+            "$ref": "#/components/schemas/OperationalReadiness"
+          }
+        },
+        "type": "object",
+        "required": [
+          "operational_readiness"
+        ],
+        "title": "BusinessContinuity",
+        "description": "Top-level container for continuity and operational metrics."
+      },
+      "CORSHealthResponse": {
+        "properties": {
+          "env": {
+            "type": "string",
+            "title": "Env"
+          },
+          "localhost_allowed": {
+            "type": "boolean",
+            "title": "Localhost Allowed"
+          },
+          "allowed_origins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Origins"
+          },
+          "request_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Origin"
+          },
+          "origin_allowed": {
+            "type": "boolean",
+            "title": "Origin Allowed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "env",
+          "localhost_allowed",
+          "allowed_origins",
+          "origin_allowed"
+        ],
+        "title": "CORSHealthResponse",
+        "description": "CORS configuration diagnostic response."
+      },
+      "ClinicMoment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "capability_id": {
+            "type": "string",
+            "title": "Capability Id"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/Verdict"
+          },
+          "translation": {
+            "$ref": "#/components/schemas/MomentTranslation"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionIntent"
+            },
+            "type": "array",
+            "title": "Actions"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity",
+            "default": "medium"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "question_id",
+          "capability_id",
+          "verdict",
+          "translation"
+        ],
+        "title": "ClinicMoment",
+        "description": "The complete output: what happened, why, and what to do."
+      },
+      "ConnectorReadiness": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          },
+          "last_verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Verified At"
+          },
+          "coverage": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Coverage"
+          },
+          "missing_visibility": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Visibility"
+          },
+          "confidence_pct": {
+            "type": "integer",
+            "title": "Confidence Pct",
+            "default": 100
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "connected"
+        ],
+        "title": "ConnectorReadiness",
+        "description": "Health and coverage of one integration."
+      },
+      "CoverageArea": {
+        "properties": {
+          "area": {
+            "type": "string",
+            "title": "Area"
+          },
+          "monitored": {
+            "type": "boolean",
+            "title": "Monitored"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "area",
+          "monitored"
+        ],
+        "title": "CoverageArea",
+        "description": "One security area that can be monitored."
+      },
+      "CoverageReport": {
+        "properties": {
+          "coverage_pct": {
+            "type": "integer",
+            "title": "Coverage Pct"
+          },
+          "monitored": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageArea"
+            },
+            "type": "array",
+            "title": "Monitored"
+          },
+          "not_monitored": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageArea"
+            },
+            "type": "array",
+            "title": "Not Monitored"
+          }
+        },
+        "type": "object",
+        "required": [
+          "coverage_pct"
+        ],
+        "title": "CoverageReport",
+        "description": "Security Visibility: what we can see and what we can't."
+      },
+      "DailyReadinessReport": {
+        "properties": {
+          "report_id": {
+            "type": "string",
+            "title": "Report Id"
+          },
+          "report_date": {
+            "type": "string",
+            "title": "Report Date"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReadinessStatus"
+          },
+          "clinic_health_pct": {
+            "type": "integer",
+            "title": "Clinic Health Pct"
+          },
+          "connector_health_pct": {
+            "type": "integer",
+            "title": "Connector Health Pct"
+          },
+          "greeting": {
+            "type": "string",
+            "title": "Greeting"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEvent"
+            },
+            "type": "array",
+            "title": "Timeline"
+          },
+          "business_continuity": {
+            "$ref": "#/components/schemas/BusinessContinuity"
+          },
+          "passed_checks": {
+            "items": {
+              "$ref": "#/components/schemas/ReadinessCheck"
+            },
+            "type": "array",
+            "title": "Passed Checks"
+          },
+          "failed_checks": {
+            "items": {
+              "$ref": "#/components/schemas/ReadinessCheck"
+            },
+            "type": "array",
+            "title": "Failed Checks"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/ReadinessCheck"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "unknowns": {
+            "items": {
+              "$ref": "#/components/schemas/UnknownItem"
+            },
+            "type": "array",
+            "title": "Unknowns"
+          },
+          "immediate_actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionCard"
+            },
+            "type": "array",
+            "title": "Immediate Actions"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/CoverageReport"
+          },
+          "connectors": {
+            "items": {
+              "$ref": "#/components/schemas/ConnectorReadiness"
+            },
+            "type": "array",
+            "title": "Connectors"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/VerificationExplanation"
+          },
+          "trend": {
+            "$ref": "#/components/schemas/ReadinessTrend"
+          },
+          "value": {
+            "$ref": "#/components/schemas/ValueSummary"
+          },
+          "audit_snapshot_id": {
+            "type": "string",
+            "title": "Audit Snapshot Id",
+            "default": ""
+          },
+          "checks_performed": {
+            "type": "integer",
+            "title": "Checks Performed",
+            "default": 0
+          },
+          "devices_checked": {
+            "type": "integer",
+            "title": "Devices Checked",
+            "default": 0
+          },
+          "accounts_checked": {
+            "type": "integer",
+            "title": "Accounts Checked",
+            "default": 0
+          },
+          "backups_verified": {
+            "type": "integer",
+            "title": "Backups Verified",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "report_id",
+          "report_date",
+          "generated_at",
+          "status",
+          "clinic_health_pct",
+          "connector_health_pct",
+          "greeting",
+          "summary",
+          "business_continuity"
+        ],
+        "title": "DailyReadinessReport",
+        "description": "The immutable product contract.\n\nEverything in the system \u2014 every connector, capability, evidence provider,\nbusiness rule, action, and trust signal \u2014 exists ONLY to populate this object.\n\nThis is what the customer sees. This is what they pay for.\nThis is what answers: \"Can this clinic safely open today?\""
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "product": {
+            "$ref": "#/components/schemas/ProductInfo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "product"
+        ],
+        "title": "HealthResponse",
+        "description": "Health check response."
+      },
+      "LLMHealthResponse": {
+        "properties": {
+          "llm_enabled": {
+            "type": "boolean",
+            "title": "Llm Enabled"
+          },
+          "llm_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Provider"
+          },
+          "llm_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Model"
+          },
+          "demo_mode": {
+            "type": "boolean",
+            "title": "Demo Mode"
+          },
+          "runtime_check": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Runtime Check"
+          }
+        },
+        "type": "object",
+        "required": [
+          "llm_enabled",
+          "demo_mode",
+          "runtime_check"
+        ],
+        "title": "LLMHealthResponse",
+        "description": "LLM status response for verification and demo confidence."
+      },
+      "MomentTranslation": {
+        "properties": {
+          "what_happened": {
+            "type": "string",
+            "title": "What Happened"
+          },
+          "why_care": {
+            "type": "string",
+            "title": "Why Care"
+          },
+          "ignore_impact": {
+            "type": "string",
+            "title": "Ignore Impact"
+          }
+        },
+        "type": "object",
+        "required": [
+          "what_happened",
+          "why_care",
+          "ignore_impact"
+        ],
+        "title": "MomentTranslation",
+        "description": "Plain-English rendering of an evaluation result."
+      },
+      "MorningCheckV2": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "moments": {
+            "items": {
+              "$ref": "#/components/schemas/ClinicMoment"
+            },
+            "type": "array",
+            "title": "Moments"
+          },
+          "questions_answered": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionSummary"
+            },
+            "type": "array",
+            "title": "Questions Answered"
+          },
+          "generated_at": {
+            "type": "string",
+            "title": "Generated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "date",
+          "status",
+          "headline",
+          "generated_at"
+        ],
+        "title": "MorningCheckV2",
+        "description": "The Morning Safety Check a clinic owner sees."
+      },
+      "OperationalReadiness": {
+        "properties": {
+          "can_operate_today": {
+            "type": "boolean",
+            "title": "Can Operate Today"
+          },
+          "can_recover": {
+            "type": "boolean",
+            "title": "Can Recover"
+          },
+          "current_blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Current Blockers"
+          },
+          "estimated_downtime_minutes": {
+            "type": "integer",
+            "title": "Estimated Downtime Minutes",
+            "default": 0
+          },
+          "critical_systems_verified": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Critical Systems Verified"
+          },
+          "critical_systems_assumed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Critical Systems Assumed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "can_operate_today",
+          "can_recover"
+        ],
+        "title": "OperationalReadiness",
+        "description": "Answers core business continuity questions."
+      },
+      "ProductInfo": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ProductInfo"
+      },
+      "QuestionSummary": {
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "question_text": {
+            "type": "string",
+            "title": "Question Text"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "moment_count": {
+            "type": "integer",
+            "title": "Moment Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_id",
+          "question_text",
+          "status",
+          "moment_count"
+        ],
+        "title": "QuestionSummary",
+        "description": "Summary of how one customer question was answered."
+      },
+      "ReadinessCheck": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "verification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VerificationContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActionCard"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "label"
+        ],
+        "title": "ReadinessCheck",
+        "description": "One item in the readiness report. Includes verification and optional action."
+      },
+      "ReadinessStatus": {
+        "type": "string",
+        "enum": [
+          "safe_to_open",
+          "action_needed",
+          "critical_risk",
+          "unknown"
+        ],
+        "title": "ReadinessStatus",
+        "description": "The three states a clinic can be in."
+      },
+      "ReadinessTrend": {
+        "properties": {
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ReadinessTrendPoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "improving": {
+            "type": "boolean",
+            "title": "Improving",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "ReadinessTrend",
+        "description": "Are we improving? Historical daily snapshots with explanations."
+      },
+      "ReadinessTrendPoint": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "clinic_health_pct": {
+            "type": "integer",
+            "title": "Clinic Health Pct"
+          },
+          "delta_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Delta Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "clinic_health_pct"
+        ],
+        "title": "ReadinessTrendPoint",
+        "description": "One day's readiness snapshot."
+      },
+      "SystemHealthResponse": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "llm_enabled": {
+            "type": "boolean",
+            "title": "Llm Enabled"
+          },
+          "demo_mode": {
+            "type": "boolean",
+            "title": "Demo Mode"
+          },
+          "is_read_only": {
+            "type": "boolean",
+            "title": "Is Read Only",
+            "default": false
+          },
+          "integrations_enabled": {
+            "type": "boolean",
+            "title": "Integrations Enabled"
+          },
+          "last_deployment_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Deployment At"
+          },
+          "wazuh_connected": {
+            "type": "boolean",
+            "title": "Wazuh Connected",
+            "default": false
+          },
+          "splunk_connected": {
+            "type": "boolean",
+            "title": "Splunk Connected",
+            "default": false
+          },
+          "elastic_connected": {
+            "type": "boolean",
+            "title": "Elastic Connected",
+            "default": false
+          },
+          "siem_verified": {
+            "type": "boolean",
+            "title": "Siem Verified",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "environment",
+          "llm_enabled",
+          "demo_mode",
+          "integrations_enabled"
+        ],
+        "title": "SystemHealthResponse"
+      },
+      "TimelineEvent": {
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp",
+          "icon",
+          "label",
+          "source"
+        ],
+        "title": "TimelineEvent",
+        "description": "One entry in the overnight timeline. Chronological."
+      },
+      "UnknownItem": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "last_seen": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen"
+          },
+          "last_seen_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen Description"
+          },
+          "impact": {
+            "type": "string",
+            "title": "Impact"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "impact",
+          "source"
+        ],
+        "title": "UnknownItem",
+        "description": "Something we can't verify. 'We don't know' is more trustworthy than silence."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ValueSummary": {
+        "properties": {
+          "period_label": {
+            "type": "string",
+            "title": "Period Label"
+          },
+          "accounts_protected": {
+            "type": "integer",
+            "title": "Accounts Protected",
+            "default": 0
+          },
+          "devices_protected": {
+            "type": "integer",
+            "title": "Devices Protected",
+            "default": 0
+          },
+          "backups_verified": {
+            "type": "integer",
+            "title": "Backups Verified",
+            "default": 0
+          },
+          "problems_prevented": {
+            "type": "integer",
+            "title": "Problems Prevented",
+            "default": 0
+          },
+          "estimated_downtime_avoided_hours": {
+            "type": "number",
+            "title": "Estimated Downtime Avoided Hours",
+            "default": 0.0
+          },
+          "estimated_hipaa_records_protected": {
+            "type": "integer",
+            "title": "Estimated Hipaa Records Protected",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_label"
+        ],
+        "title": "ValueSummary",
+        "description": "Business value delivered. These are what convince customers to renew."
+      },
+      "Verdict": {
+        "type": "string",
+        "enum": [
+          "safe",
+          "concern",
+          "critical",
+          "unknown"
+        ],
+        "title": "Verdict"
+      },
+      "VerificationContext": {
+        "properties": {
+          "verification_source": {
+            "type": "string",
+            "title": "Verification Source"
+          },
+          "last_verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Verified At"
+          },
+          "connector_health": {
+            "type": "string",
+            "title": "Connector Health"
+          },
+          "confidence_pct": {
+            "type": "integer",
+            "title": "Confidence Pct"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status"
+          },
+          "data_age_description": {
+            "type": "string",
+            "title": "Data Age Description"
+          },
+          "can_reverify": {
+            "type": "boolean",
+            "title": "Can Reverify",
+            "default": true
+          },
+          "verification_method": {
+            "type": "string",
+            "title": "Verification Method"
+          }
+        },
+        "type": "object",
+        "required": [
+          "verification_source",
+          "connector_health",
+          "confidence_pct",
+          "verification_status",
+          "data_age_description",
+          "verification_method"
+        ],
+        "title": "VerificationContext",
+        "description": "Per-item verification metadata. Answers 'Why are you telling me this?'"
+      },
+      "VerificationExplanation": {
+        "properties": {
+          "confidence_pct": {
+            "type": "integer",
+            "title": "Confidence Pct"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/VerificationReason"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "confidence_pct"
+        ],
+        "title": "VerificationExplanation",
+        "description": "Why we believe our assessment. Doctors trust explanations, not numbers."
+      },
+      "VerificationReason": {
+        "properties": {
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "icon",
+          "text"
+        ],
+        "title": "VerificationReason",
+        "description": "One reason contributing to verification or distrust."
+      }
+    }
+  }
+}

@@ -33,10 +33,11 @@ function getStoredTheme(): Theme {
 
 interface ThemeProviderProps {
     children: ReactNode;
+    defaultTheme?: Theme;
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-    const [theme, setThemeState] = useState<Theme>(() => (FORCE_LIGHT_THEME ? 'light' : getStoredTheme()));
+export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
+    const [theme, setThemeState] = useState<Theme>(() => (FORCE_LIGHT_THEME ? 'light' : (defaultTheme || getStoredTheme())));
     const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
         theme === 'system' ? getSystemTheme() : theme
     );
@@ -67,11 +68,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
                 root.classList.remove('dark');
             }
             
-            // Dynamically update favicon based on the application's active theme
-            const favicons = document.querySelectorAll('link[rel="icon"]');
-            favicons.forEach(favicon => {
-                favicon.setAttribute('href', resolved === 'dark' ? '/Favicon Dark.svg' : '/Favicon Light.svg');
-            });
+            // Dynamically update legacy SVG favicon based on the application's active theme
+            const svgFavicon = document.querySelector('#favicon-svg');
+            if (svgFavicon) {
+                svgFavicon.setAttribute('href', resolved === 'dark' ? '/Favicon Dark.svg' : '/Favicon Light.svg');
+            }
         };
 
         if (FORCE_LIGHT_THEME) {
@@ -108,7 +109,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 export function useTheme() {
     const context = useContext(ThemeContext);
     if (!context) {
-        throw new Error('useTheme must be used within a ThemeProvider');
+        return {
+            theme: 'system' as Theme,
+            setTheme: () => {},
+            resolvedTheme: 'dark' as ResolvedTheme,
+        };
     }
     return context;
 }

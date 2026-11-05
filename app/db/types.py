@@ -54,8 +54,18 @@ class EncryptedString(TypeDecorator):
         # Check if it has encryption metadata
         if "encrypted_blob" in doc:
             svc = get_encryption_service()
-            decrypted_doc = svc.decrypt_fields(doc)
-            return decrypted_doc.get("value")
+            if not svc.enabled:
+                # Envelope was not produced by this column type (e.g. the
+                # connector-credential layer encrypts with its own key).
+                # Hand the raw value back so the application layer can
+                # decrypt it instead of silently returning None.
+                return value
+            try:
+                decrypted_doc = svc.decrypt_fields(doc)
+            except Exception:
+                return value
+            decrypted = decrypted_doc.get("value")
+            return decrypted if decrypted is not None else value
             
         # Plaintext JSON dict fallback
         return doc.get("value", value)

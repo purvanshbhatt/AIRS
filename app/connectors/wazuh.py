@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from app.connectors.base import (
-    BaseConnector,
+    Connector,
     ConnectorHealth,
     NormalizedEvent,
     PermissionResult,
@@ -27,7 +27,7 @@ logger = logging.getLogger("airs.connectors.wazuh")
 
 
 @register_connector
-class WazuhConnector(BaseConnector):
+class WazuhConnector(Connector):
     """Wazuh SIEM connector for verified security telemetry.
 
     Connects to the Wazuh Manager REST API to ingest:
@@ -43,12 +43,21 @@ class WazuhConnector(BaseConnector):
     """
 
     CONNECTOR_TYPE = "wazuh"
+    CAPABILITIES = ["devices", "security_alerts", "vulnerabilities"]
     REQUIRED_PERMISSIONS = ["agent:read", "vulnerability:read", "alert:read"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._token: Optional[str] = None
         self._base_url = self._credentials.get("wazuh_url", "").rstrip("/")
+        if not self._base_url:
+            host = self._credentials.get("manager_host") or self._config.get("manager_host") or self._config.get("host")
+            port = self._credentials.get("port") or self._config.get("port") or "55000"
+            if host:
+                if not host.startswith("http://") and not host.startswith("https://"):
+                    self._base_url = f"https://{host}:{port}"
+                else:
+                    self._base_url = f"{host}:{port}" if ":" not in host[8:] else host
         self._verify_ssl = self._credentials.get("verify_ssl", True)
 
     # ------------------------------------------------------------------
@@ -56,9 +65,40 @@ class WazuhConnector(BaseConnector):
     # ------------------------------------------------------------------
 
     async def authenticate(self) -> bool:
-        """Authenticate via Wazuh Manager /security/user/authenticate."""
+        """Authenticate via Wazuh Manager /security/user/authenticate or API token."""
+        api_key = self._credentials.get("api_key", "")
         username = self._credentials.get("username", "")
         password = self._credentials.get("password", "")
+
+        if api_key and not (username and password):
+            if ":" in api_key:
+                username, password = api_key.split(":", 1)
+            else:
+                # Bearer token supplied directly: prove it against the manager
+                # instead of assuming it works (failures used to surface only at sync).
+                if not self._base_url:
+                    self.logger.error("Missing Wazuh URL for token authentication")
+                    return False
+                try:
+                    async with httpx.AsyncClient(
+                        timeout=15.0, verify=self._verify_ssl
+                    ) as client:
+                        resp = await client.get(
+                            f"{self._base_url}/agents",
+                            params={"limit": 1},
+                            headers={"Authorization": f"Bearer {api_key}"},
+                        )
+                    if resp.status_code == 200:
+                        self._token = api_key
+                        self._authenticated = True
+                        self.logger.info("Wazuh authentication successful using API token")
+                        return True
+                    self.logger.warning("Wazuh API token rejected: HTTP %d", resp.status_code)
+                    return False
+                except Exception as exc:
+                    self.logger.error("Wazuh token validation error: %s", exc)
+                    return False
+
         if not self._base_url or not username:
             self.logger.error("Missing Wazuh URL or username")
             return False

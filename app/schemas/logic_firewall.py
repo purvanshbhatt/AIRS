@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 class LogicFirewallSimulationRequest(BaseModel):
     query: str = Field(default="What is our 401k policy?")
-    organization_name: str = Field(default="Acme Health Systems")
+    organization_name: str = Field(default="ResilAI Sandbox Clinic")
     enable_logic_firewall: bool = Field(default=True)
 
 

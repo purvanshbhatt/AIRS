@@ -1,6 +1,6 @@
-# ResilAI Documentation
+﻿# ResilAI Documentation
 
-Welcome to the documentation hub for **ResilAI**, the Deterministic Governance Factory.
+Welcome to the documentation hub for **ResilAI**, the AI Incident Readiness Platform.
 
 ## Start Here
 
@@ -11,8 +11,8 @@ Welcome to the documentation hub for **ResilAI**, the Deterministic Governance F
 
 ## Product Links
 
-- Live Demo: `https://demo.resilai.org`
-- Staging API Docs: `https://api-staging.resilai.org/docs`
+- Public Beta: `https://airs-staging-0384513977.web.app`
+- Staging API Docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 
 ## Additional Runbooks
 

@@ -234,6 +234,10 @@ class IntegrationService:
         org = self.resolve_org(org_id)
         created = 0
 
+        # Import evidence models
+        from app.models.evidence import EvidenceLedger, NormalizedEvidenceRecord
+        import hashlib
+
         for index, (title, severity) in enumerate(MOCK_SPLUNK_FINDINGS, start=1):
             raw = {
                 "vendor": "splunk",
@@ -251,6 +255,29 @@ class IntegrationService:
                 raw_json=raw,
             )
             self.db.add(finding)
+            
+            # Seed the immutable evidence ledger
+            evidence_hash = hashlib.sha256(f"{org.id}-splunk-{index:03d}".encode()).hexdigest()
+            ledger_entry = EvidenceLedger(
+                org_id=org.id,
+                evidence_hash=evidence_hash,
+                source_name="Splunk SIEM",
+                event_type="security_alert",
+                raw_payload=raw,
+                overall_confidence=78,
+                verification_status="verified"
+            )
+            self.db.add(ledger_entry)
+
+            # Seed normalized evidence
+            normalized_entry = NormalizedEvidenceRecord(
+                org_id=org.id,
+                evidence_hash=evidence_hash,
+                severity=severity,
+                processed=True
+            )
+            self.db.add(normalized_entry)
+            
             created += 1
 
         # Mark the mock integration connected for demo visibility.

@@ -24,6 +24,7 @@ interface NavItem {
 
 const docsNavigation: NavItem[] = [
     { name: 'Overview', href: '/docs', icon: BookOpen },
+    { name: 'Governance Engine', href: '/docs/governance', icon: Shield },
     { name: 'Methodology', href: '/docs/methodology', icon: BarChart3 },
     { name: 'Frameworks', href: '/docs/frameworks', icon: Shield },
     { name: 'Security', href: '/docs/security', icon: Lock },
@@ -64,7 +65,9 @@ export default function DocsLayout() {
                             {/* Logo */}
                              <div className="flex items-center justify-between h-16 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
                                  <Link to="/" className="flex items-center">
-                                     <img src="/logo_header.svg" alt="ResilAI Logo" className="h-10 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
+                                     <img src="/brand/horizontal/resilai_horizontal_light_trans.png" alt="ResilAI" className="h-8 w-auto object-contain block dark:hidden transition-all duration-300" />
+                                     <img src="/brand/horizontal/resilai_horizontal_dark_trans.png" alt="ResilAI" className="h-8 w-auto object-contain hidden dark:block transition-all duration-300" />
+                                     <span className="sr-only">ResilAI</span>
                                  </Link>
                                 <button
                                     onClick={() => setSidebarOpen(false)}
@@ -146,7 +149,9 @@ export default function DocsLayout() {
                 {/* Logo */}
                  <div className="flex items-center h-16 px-6 border-b border-slate-200 dark:border-slate-800 shrink-0">
                      <Link to="/" className="flex items-center">
-                         <img src="/logo_header.svg" alt="ResilAI Logo" className="h-10 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
+                         <img src="/brand/horizontal/resilai_horizontal_light_trans.png" alt="ResilAI" className="h-8 w-auto object-contain block dark:hidden transition-all duration-300" />
+                         <img src="/brand/horizontal/resilai_horizontal_dark_trans.png" alt="ResilAI" className="h-8 w-auto object-contain hidden dark:block transition-all duration-300" />
+                         <span className="sr-only">ResilAI</span>
                      </Link>
                  </div>
 
@@ -166,14 +171,14 @@ export default function DocsLayout() {
                                 className={clsx(
                                     'flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all relative overflow-hidden group',
                                     isActive
-                                        ? 'bg-blue-600/10 dark:bg-blue-400/5 text-blue-700 dark:text-blue-450 border border-blue-500/20'
+                                        ? 'bg-blue-600/10 dark:bg-blue-400/5 text-blue-700 dark:text-blue-400 border border-blue-500/20'
                                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/60 hover:text-slate-900 dark:hover:text-slate-200'
                                 )}
                             >
                                 <item.icon
                                     className={clsx('w-5 h-5 transition-transform group-hover:scale-105', isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500')}
                                 />
-                                {item.name}
+                                <item.name
                                 {isActive && (
                                     <span className="absolute right-0 top-1/4 bottom-1/4 w-1 bg-blue-600 dark:bg-blue-400 rounded-l" />
                                 )}
@@ -244,10 +249,10 @@ export default function DocsLayout() {
                     <div className="flex items-center gap-4">
                         <ThemeToggle />
                         <Link
-                            to="/assessment/new"
+                            to="/dashboard"
                             className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-semibold rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all shadow-sm shadow-blue-500/10"
                         >
-                            Start Assessment
+                            Open Dashboard
                         </Link>
                     </div>
                 </header>
@@ -265,4 +270,3 @@ export default function DocsLayout() {
         </div>
     );
 }
-

@@ -7,7 +7,7 @@ export interface Toast {
   id: string;
   title?: string;
   message?: string;
-  type?: 'success' | 'error' | 'warning' | 'info';
+  type?: "ready" | 'error' | "drift" | 'info' | 'success' | 'warning';
   duration?: number;
 }
 
@@ -23,7 +23,11 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function useToast() {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+    return {
+      toasts: [] as Toast[],
+      addToast: () => {},
+      removeToast: () => {},
+    };
   }
   return context;
 }

@@ -1,0 +1,138 @@
+full_name: Purvansh Bhatt
+primary_email: purvansh95b@gmail.com
+date_of_birth: '2002-02-02'
+location: Jersey City, NJ, USA
+legally_authorized_us: 'Yes'
+startup_intent:
+- actively_building
+linkedin_url: https://www.linkedin.com/in/purvanshbhatt/
+github_or_url: https://github.com/purvanshbhatt
+personal_site_url: https://purvanshbhatt.github.io
+proudest_work_url: https://airs-staging-0384513977.web.app
+resume_url: https://storage.googleapis.com/speedrun-dlee-alpha-ats-media/resumes/bc1441c20a3142cf9aa22b3c8ff05ea4/resume.pdf
+has_raised_capital: 'No'
+cofounder_status: solo
+build_stage: launched
+founder_full_time_timeline: already_full_time
+most_impressive_thing: 'I single-handedly built ResilAI (AIRS), an AI incident readiness
+  platform that transforms raw security telemetry into deterministic readiness contracts.
+  While existing GRC tools rely on subjective self-attestations or LLMs hallucinating
+  risk scores, I architected a zero-trust deterministic evaluation engine across NIST
+  CSF 2.0, NIST AI RMF, CIS Controls, and MITRE ATT&CK.
+
+
+  Key technical achievements:
+
+  1. Deterministic Engine & Invariants: Engineered an auditable math engine with 455+
+  passing unit/integration tests across 79 suites. Scores are cryptographically verifiable
+  down to SHA-256 evidence hashes.
+
+  2. Logic Firewall: Implemented a pre-LLM deterministic defense layer intercepting
+  poisoned retrieval patterns (MITRE AML.T0031) and prompt injections before context
+  reaches Gemini.
+
+  3. 4-Tier Progressive Disclosure: Built a full-stack system (FastAPI on GCP Cloud
+  Run + React/Vite/Tailwind) translating telemetry into 4 layers: Plain-English Executive
+  Summary, Business/Liability Impact, Technical Evidence, and Cryptographic Provenance.
+
+
+  I independently engineered the backend pipelines, API contracts, and interactive
+  frontend deployed live on Cloud Run and Firebase.'
+building_now: 'I am building ResilAI to answer the single question healthcare practices
+  and critical SMBs fail to answer every morning: ''If a cyber or AI incident strikes
+  today, are we actually operational and legally protected?''
+
+
+  Security vendors flood operators with thousands of disconnected alerts, while compliance
+  tools offer stale checkboxes. ResilAI continuously ingests telemetry (M365, Wazuh,
+  Veeam, Cloud Run), evaluates it against deterministic rubrics, and issues an immutable
+  Daily Readiness Report with 1-click reversible remediation cards. If an endpoint
+  connector goes offline, we degrade to ''Unknown'' rather than masking danger behind
+  false safety.
+
+
+  Why me:
+
+  I hold an M.S. in Cybersecurity from Pace University (3.9 GPA) and 3+ years in DFIR
+  and GRC engineering. At Filmy AI, I built the security program from scratch, cutting
+  post-release vulnerabilities by 30%. In DFIR consulting, I investigated 20+ breaches
+  where clinics went dark because no one verified backup integrity or credential revocations.
+  I know the operational pain, and I have already built the complete production prototype
+  with live staging.'
+started_building_software: 'I started writing software on my own volition in college
+  around 2020, driven by the frustration of seeing security treated as theoretical
+  slides rather than executable code.
+
+
+  My first self-directed project was an automated forensic log parser and artifact
+  extractor in Python. During early digital forensics labs, analyzing disk images
+  and memory dumps involved hours of repetitive CLI commands and manual hex inspection.
+  I realized attackers automate their playbooks in milliseconds while defenders were
+  drowning in manual triage. I wrote a tool to parse prefetch files, parse MFT records,
+  and automatically construct a unified chronological attack timeline mapped to MITRE
+  ATT&CK.
+
+
+  Seeing raw machine noise turn into an undeniable, minute-by-minute narrative of
+  an intrusion hooked me instantly. It taught me the defining lesson of my engineering
+  career: software is most powerful when it strips away human wishful thinking and
+  exposes deterministic, verifiable truth. That same obsession is what led me to build
+  my vulnerability scanner, MITRE eCTF firmware defenses, and ultimately ResilAI.'
+anything_else: I am currently based in Jersey City, NJ on valid STEM OPT work authorization,
+  fully committed to building ResilAI full-time. The live product staging environment,
+  architecture specifications, and deterministic methodology endpoints are available
+  to inspect directly at airs-staging-0384513977.web.app and github.com/purvanshbhatt/AIRS.
+education_entries:
+- school: Pace University
+  degree: Master of Science
+  field_of_study: Cybersecurity
+  graduation_year: 2024
+  domain: pace.edu
+- school: Gujarat University
+  degree: Bachelor of Science
+  field_of_study: Cybersecurity, IT
+  graduation_year: 2022
+  domain: gujaratuniversity.org.in
+work_experiences:
+- title: Security Lead & Engineer
+  company: Filmy AI
+  start_date: Aug 2024
+  end_date: Present
+  summary: Built full security program from scratch including NIST CSF policies, SAST/DAST
+    CI/CD integration, IAM redesign, IR playbooks, and SOC 2 compliance; reduced post-release
+    vulnerabilities by 30% and detection-to-containment time by 30%.
+  domain: filmy-ai.pl
+- title: Cybersecurity Intern
+  company: Bunchful
+  start_date: Mar 2024
+  end_date: May 2024
+  summary: Penetration tested 5+ web platforms using OWASP methodology and Burp Suite
+    Pro; delivered 10+ structured vulnerability reports reducing high-risk client
+    exposure by 25%.
+  domain: bunchful.com
+- title: Digital Forensics & Incident Response Analyst
+  company: Cod-Ingenuity
+  start_date: Feb 2021
+  end_date: Mar 2023
+  summary: Led 20+ DFIR investigations across Windows, Linux, and mobile using Magnet
+    Axiom, FTK, Autopsy, and Cellebrite; deployed CrowdStrike Falcon and Cisco firewall
+    ACLs reducing security incidents by 25% and achieving PCI DSS compliance.
+  domain: cod-ingenuity.org
+projects:
+- name: ResilAI
+  description: Built a FastAPI + GCP + React platform that assesses organizations
+    against NIST CSF, CIS Controls, ISO 42001, and OWASP Top 10 using a deterministic
+    Python engine (79+ tests, 455+ passing) with zero-knowledge AES-256-GCM security;
+    integrated Gemini and OpenAI LLMs to auto-generate executive risk narratives and
+    compliance gap reports.
+- name: Cloud-Native SOC Lab (GCP)
+  description: Deployed a 3-node GCP cluster running Wazuh and Sysmon, ingesting 64K+
+    auth events; implemented serverless FIM with SHA256 audit trails and automated
+    alert triage for RDP brute-force and LotL attacks using Python scripts.
+additional_links:
+- label: Portfolio
+  url: https://purvanshbhatt.github.io
+tos_accepted: true
+submission_status: submitted
+submitted_at: '2026-09-11T06:13:30.530567+00:00'
+draft_id: 3d7b344a-b753-4399-b405-0f17d3fac9fb

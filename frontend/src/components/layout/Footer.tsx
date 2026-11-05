@@ -1,127 +1,288 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Github, FileText, Lock, Shield, Activity, Mail, ShieldCheck } from 'lucide-react';
+import { Github, FileText, Lock, Shield, Activity, Mail, ShieldCheck, ArrowUpRight, ExternalLink } from 'lucide-react';
 import { getSystemStatus } from '../../api';
 import type { SystemStatus } from '../../types';
-
-interface FooterLink {
-    label: string;
-    href: string;
-    icon: typeof FileText;
-    external?: boolean;
-}
-
-const footerLinks: FooterLink[] = [
-    { label: 'About', href: '/about', icon: FileText },
-    { label: 'Docs', href: '/docs', icon: FileText },
-    { label: 'Request Enterprise Pilot', href: '/pilot', icon: Activity },
-    { label: 'Privacy', href: '/docs/security#privacy', icon: Lock },
-    { label: 'Security', href: '/security', icon: Shield },
-    { label: 'GitHub', href: 'https://www.github.com/purvanshbhatt/AIRS', icon: Github, external: true },
-    { label: 'Contact', href: 'mailto:purvansh95b@gmail.com', icon: Mail, external: true },
-    { label: 'Status', href: '/status', icon: Activity },
-];
+import { COMPANY_INFO } from '../../config/company';
 
 export function Footer() {
-    const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
 
-    useEffect(() => {
-        getSystemStatus()
-            .then(setSystemStatus)
-            .catch(() => {
-                setSystemStatus(null);
-            });
-    }, []);
+  useEffect(() => {
+    let mounted = true;
+    getSystemStatus()
+      .then((status) => {
+        if (mounted) setSystemStatus(status);
+      })
+      .catch(() => {
+        if (mounted) setSystemStatus(null);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-    // Check the environment via window location and systemStatus
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isStaging = systemStatus?.environment === 'staging' || 
-                      host.includes('staging') || 
-                      import.meta.env.MODE === 'staging';
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isStaging =
+    systemStatus?.environment === 'staging' ||
+    host.includes('staging') ||
+    import.meta.env.MODE === 'staging';
 
-    const isDemo = systemStatus?.environment === 'demo' || 
-                   host.includes('demo') || 
-                   import.meta.env.MODE === 'demo';
+  const isDemo =
+    systemStatus?.environment === 'demo' ||
+    host.includes('demo') ||
+    import.meta.env.MODE === 'demo';
 
-    return (
-        <footer className="border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-6 lg:px-6">
-            <div className="max-w-[1200px] mx-auto">
-                {/* Organic environment status bar */}
-                {(isStaging || isDemo) && (
-                    <div className="mb-6 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-4 transition-all duration-300">
-                         <div className="flex items-center gap-3">
-                            <div className="relative flex h-3 w-3">
-                                <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${isStaging ? 'bg-amber-400' : isDemo ? 'bg-blue-400' : 'bg-emerald-400'}`}></span>
-                                <span className={`relative inline-flex rounded-full h-3 w-3 ${isStaging ? 'bg-amber-500' : isDemo ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
-                            </div>
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <span className="text-xs font-mono font-bold tracking-wider text-slate-800 dark:text-slate-200 uppercase">
-                                    {isStaging ? 'Staging Environment' : isDemo ? 'Demo Environment' : 'Production Instance'}
-                                </span>
-                                <span className="hidden sm:inline text-slate-400 dark:text-slate-600">|</span>
-                                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                                    {isStaging ? 'staging.resilai.org' : isDemo ? 'demo.resilai.org' : 'resilai.org'}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-4 text-xs font-mono">
-                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                                <span>SIEM: {isStaging ? 'Verified (Sandbox)' : 'Verified (Production)'}</span>
-                            </div>
-                            <span className="text-slate-300 dark:text-slate-800">|</span>
-                            <div className="text-slate-500 dark:text-slate-400">
-                                <span>Latency: {isStaging ? '35ms' : '18ms'}</span>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-t border-gray-200 dark:border-slate-800 pt-6 mt-6">
-                    <div className="flex items-center gap-3">
-                        <img 
-                            src="/logo_footer_and github.svg" 
-                            alt="ResilAI Brand Logo" 
-                            className="h-12 w-auto dark:brightness-0 dark:invert transition-all duration-300" 
-                        />
-                    </div>
-                    <nav className="flex flex-wrap items-center justify-center md:justify-end gap-x-6 gap-y-3">
-                        {footerLinks.map(({ label, href, icon: Icon, external }) =>
-                            external ? (
-                                <a
-                                    key={label}
-                                    href={href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                                >
-                                    <Icon className="h-3.5 w-3.5" />
-                                    {label}
-                                </a>
-                            ) : (
-                                <Link
-                                    key={label}
-                                    to={href}
-                                    className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                                >
-                                    <Icon className="h-3.5 w-3.5" />
-                                    {label}
-                                </Link>
-                            )
-                        )}
-                    </nav>
-                </div>
-
-                <div className="flex items-center justify-center md:justify-end mt-4 pt-2 border-t border-slate-100 dark:border-slate-800/40 w-full">
-                    <p className="text-xs text-gray-400 dark:text-gray-500 text-center md:text-right">
-                        {isStaging || isDemo ? 'ResilAI Public Beta' : 'ResilAI'} | Aligned to CIS | NIST | OWASP | GNU AGPL-3.0 | (c) 2026 ResilAI
-                        {(isStaging || isDemo) && systemStatus ? ` | v${systemStatus.version || 'dev'} (${systemStatus.environment})` : ''}
-                    </p>
-                </div>
+  return (
+    <footer className="border-t border-outline-variant/60 bg-surface-container-low text-on-surface-variant transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        {/* Environment Status Notice (Staging / Demo) */}
+        {(isStaging || isDemo) && (
+          <div className="mb-10 p-3.5 rounded-2xl bg-surface-container border border-outline-variant/60 flex flex-wrap items-center justify-between gap-4 transition-all duration-300 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="relative flex h-3 w-3">
+                <span
+                  className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${
+                    isStaging ? 'bg-amber-400' : isDemo ? 'bg-blue-400' : 'bg-emerald-400'
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex rounded-full h-3 w-3 ${
+                    isStaging ? 'bg-amber-500' : isDemo ? 'bg-blue-500' : 'bg-emerald-500'
+                  }`}
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <span className="text-xs font-mono font-bold tracking-wider text-slate-800 dark:text-slate-200 uppercase">
+                  {isStaging ? 'Staging Environment' : isDemo ? 'Demo Environment' : 'Production Instance'}
+                </span>
+                <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
+                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                  {isStaging ? 'staging.resilai.org' : isDemo ? 'demo.resilai.org' : 'resilai.org'}
+                </span>
+              </div>
             </div>
-        </footer>
-    );
+
+            <div className="flex items-center gap-4 text-xs font-mono">
+              <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Deterministic Scoring Engine: Active</span>
+              </div>
+              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <div className="text-slate-500 dark:text-slate-400">
+                <span>Latency: {isStaging ? '35ms' : '18ms'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main 5-Column Startup Navigation Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 pb-12 border-b border-outline-variant/60">
+          {/* Brand & Mission Column (Spans 2 cols on desktop) */}
+          <div className="lg:col-span-2 space-y-4">
+            <Link to="/" className="inline-block group" aria-label="ResilAI Home">
+              <img
+                src="/brand/horizontal/resilai_horizontal_light_trans.png"
+                alt="ResilAI"
+                className="h-10 w-auto object-contain block dark:hidden transition-all duration-300 group-hover:scale-105"
+              />
+              <img
+                src="/brand/horizontal/resilai_horizontal_dark_trans.png"
+                alt="ResilAI"
+                className="h-10 w-auto object-contain hidden dark:block transition-all duration-300 group-hover:scale-105"
+              />
+              <span className="sr-only">ResilAI</span>
+            </Link>
+            <p className="text-sm text-on-surface-variant max-w-sm leading-relaxed">
+              Continuous AI & cybersecurity incident readiness for healthcare and legal organizations. Transform fragmented telemetry into verifiable executive understanding and operational resilience.
+            </p>
+            <div className="pt-2 flex items-center gap-3">
+              <a
+                href={COMPANY_INFO.socials.maidensail}
+                rel="dofollow"
+                target="_blank"
+                className="inline-flex items-center transition-opacity hover:opacity-90"
+                title="Featured on Maidensail"
+              >
+                <img
+                  src="https://maidensail.com/badge/resilai.svg?theme=dark"
+                  alt="Featured on Maidensail"
+                  height="40"
+                  className="rounded-lg"
+                />
+              </a>
+              <a
+                href={COMPANY_INFO.socials.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl bg-surface-container border border-outline-variant/60 text-on-surface-variant hover:text-on-surface transition-colors"
+                aria-label="ResilAI GitHub Repository"
+              >
+                <Github className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Solutions Column */}
+          <div className="space-y-3">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-on-surface">
+              Solutions
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/solutions/legal-firm-cyber-attacks" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors font-medium text-primary-600 dark:text-primary-400">
+                  Stop Legal Attacks
+                </Link>
+              </li>
+              <li>
+                <Link to="/solutions/healthcare-cyber-attacks" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors font-medium text-emerald-600 dark:text-emerald-400">
+                  Stop Healthcare Attacks
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Legal Firms Portal
+                </Link>
+              </li>
+              <li>
+                <Link to="/healthcare" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Healthcare Portal
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Product Column */}
+          <div className="space-y-3">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
+              Product
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/#how-it-works" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Overview & Loop
+                </Link>
+              </li>
+              <li>
+                <Link to="/results" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Results & Evidence
+                </Link>
+              </li>
+              <li>
+                <Link to="/ai" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  AI Architecture
+                </Link>
+              </li>
+              <li>
+                <Link to="/pricing" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Pricing & Tiers
+                </Link>
+              </li>
+              <li>
+                <Link to="/status" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  System Status
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Company Column */}
+          <div className="space-y-3">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
+              Company
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/about" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/about#team" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  The Team
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/pilot" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Design Partner Program
+                </Link>
+              </li>
+              <li>
+                <Link to="/security" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Security Posture
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Resources & Trust Column */}
+          <div className="space-y-3">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200">
+              Resources & Trust
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/docs/methodology" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Scoring Methodology
+                </Link>
+              </li>
+              <li>
+                <Link to="/docs/frameworks" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Framework Alignment
+                </Link>
+              </li>
+              <li>
+                <Link to="/docs/api" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  API & Verification
+                </Link>
+              </li>
+              <li>
+                <Link to="/docs/security#privacy" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <a
+                  href={COMPANY_INFO.founder.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+                >
+                  <span>Founder LinkedIn</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Legal Bar */}
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-500">
+          <p>
+            &copy; {new Date().getFullYear()} {COMPANY_INFO.name}. Founded {COMPANY_INFO.foundedYear}. Open source under GNU AGPL-3.0 license.
+          </p>
+          <div className="flex items-center gap-4">
+            <Link to="/security" className="hover:underline">
+              Responsible Disclosure
+            </Link>
+            <span>•</span>
+            <Link to="/docs/methodology" className="hover:underline">
+              Trust Invariants
+            </Link>
+            <span>•</span>
+            <a href={`mailto:${COMPANY_INFO.contactEmail}`} className="hover:underline">
+              {COMPANY_INFO.contactEmail}
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 }
 
 export default Footer;

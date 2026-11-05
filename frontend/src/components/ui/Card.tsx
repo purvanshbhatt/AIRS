@@ -8,12 +8,12 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', padding = 'md', children, ...props }, ref) => {
-    const baseStyles = 'bg-white/75 dark:bg-slate-950/45 backdrop-blur-[10px] rounded-3xl border border-slate-200 dark:border-slate-800 transition-all duration-300';
+    const baseStyles = 'bg-surface-container-low rounded-xl border border-surface-bright transition-all duration-300 text-on-surface';
     
     const variants = {
       default: 'shadow-card',
-      bordered: 'border border-slate-200 dark:border-slate-800',
-      elevated: 'shadow-medium',
+      bordered: 'border border-surface-bright',
+      elevated: 'shadow-medium bg-surface-container',
     };
 
     const paddings = {
@@ -53,7 +53,7 @@ export type CardTitleProps = HTMLAttributes<HTMLHeadingElement>;
 
 export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
   ({ className, children, ...props }, ref) => (
-    <h3 ref={ref} className={clsx('text-lg font-bold text-slate-900 dark:text-slate-100', className)} {...props}>
+    <h3 ref={ref} className={clsx('text-lg font-bold text-on-surface', className)} {...props}>
       {children}
     </h3>
   )
@@ -65,7 +65,7 @@ export type CardDescriptionProps = HTMLAttributes<HTMLParagraphElement>;
 
 export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>(
   ({ className, children, ...props }, ref) => (
-    <p ref={ref} className={clsx('text-sm text-slate-500 dark:text-slate-400 mt-1', className)} {...props}>
+    <p ref={ref} className={clsx('text-sm text-on-surface-variant mt-1', className)} {...props}>
       {children}
     </p>
   )
@@ -89,7 +89,7 @@ export type CardFooterProps = HTMLAttributes<HTMLDivElement>;
 
 export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
   ({ className, children, ...props }, ref) => (
-    <div ref={ref} className={clsx('mt-4 pt-4 border-t border-slate-200 dark:border-slate-800', className)} {...props}>
+    <div ref={ref} className={clsx('mt-4 pt-4 border-t border-surface-bright', className)} {...props}>
       {children}
     </div>
   )

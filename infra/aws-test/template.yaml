@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ResilAI AWS Connector Test Environment - Minimal Security Hub setup'
+
+Parameters:
+  TrustedAccountId:
+    Type: String
+    Description: 'AWS Account ID allowed to assume the connector role'
+    MinLength: 12
+    MaxLength: 12
+
+Resources:
+  # IAM Role for ResilAI connector
+  ResilAITestConnectorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: resilai-test-connector-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${TrustedAccountId}:root'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: resilai-test-connector-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'securityhub:GetFindings'
+                  - 'securityhub:DescribeHub'
+                  - 'securityhub:GetEnabledStandards'
+                Resource: '*'
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Test
+        - Key: Purpose
+          Value: Telemetry-Validation
+        - Key: Owner
+          Value: ResilAI
+
+  # Security Hub - enable to feed findings
+  SecurityHub:
+    Type: AWS::SecurityHub::Hub
+    Properties:
+      Tags:
+        Environment: ResilAI-Test
+        Purpose: Telemetry-Validation
+        Owner: ResilAI
+
+  # GuardDuty - to generate findings for Security Hub
+  GuardDutyDetector:
+    Type: AWS::GuardDuty::Detector
+    Properties:
+      Enable: true
+
+  # Test Resource 1: Unencrypted S3 bucket to trigger Security Hub finding
+  TestUnencryptedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'resilai-test-${AWS::AccountId}-${AWS::Region}'
+      # Deliberately NO BucketEncryption configured
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Test
+        - Key: Purpose
+          Value: Telemetry-Validation
+        - Key: Owner
+          Value: ResilAI
+
+  # Test Resource 2: Overpermissive IAM Role to trigger Security Hub finding
+  TestOverpermissiveRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: resilai-test-overpermissive-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: resilai-test-overpermissive-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 's3:*' # Deliberate overpermission
+                Resource: '*'
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Test
+        - Key: Purpose
+          Value: Telemetry-Validation
+        - Key: Owner
+          Value: ResilAI
+
+  # Test Resource 3: CloudTrail
+  TestCloudTrail:
+    Type: AWS::CloudTrail::Trail
+    DependsOn:
+      - TestCloudTrailBucketPolicy
+    Properties:
+      TrailName: resilai-test-trail
+      S3BucketName: !Ref TestUnencryptedBucket
+      IsLogging: true
+      IsMultiRegionTrail: false
+      Tags:
+        - Key: Environment
+          Value: ResilAI-Test
+        - Key: Purpose
+          Value: Telemetry-Validation
+        - Key: Owner
+          Value: ResilAI
+
+  # S3 Bucket Policy for CloudTrail
+  TestCloudTrailBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref TestUnencryptedBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AWSCloudTrailAclCheck
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:GetBucketAcl'
+            Resource: !Sub 'arn:aws:s3:::${TestUnencryptedBucket}'
+          - Sid: AWSCloudTrailWrite
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:PutObject'
+            Resource: !Sub 'arn:aws:s3:::${TestUnencryptedBucket}/AWSLogs/${AWS::AccountId}/*'
+            Condition:
+              StringEquals:
+                's3:x-amz-acl': 'bucket-owner-full-control'
+
+Outputs:
+  ConnectorRoleArn:
+    Description: 'ARN of the IAM role for the ResilAI connector'
+    Value: !GetAtt ResilAITestConnectorRole.Arn
+  TestBucketName:
+    Description: 'Name of the intentionally unencrypted S3 bucket'
+    Value: !Ref TestUnencryptedBucket
+  SecurityHubArn:
+    Description: 'ARN of the Security Hub'
+    Value: !Ref SecurityHub
+  Region:
+    Description: 'AWS Region of the stack'
+    Value: !Ref AWS::Region

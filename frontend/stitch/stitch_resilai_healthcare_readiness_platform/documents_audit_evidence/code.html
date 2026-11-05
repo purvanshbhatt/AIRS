@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Document Repository</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-primary": "#006c49",
+                      "surface-bright": "#31394d",
+                      "outline": "#86948a",
+                      "on-secondary-fixed": "#2a1700",
+                      "ready-emerald": "#10B981",
+                      "on-error": "#690005",
+                      "on-primary-fixed-variant": "#005236",
+                      "surface-container": "#171f33",
+                      "primary-fixed": "#6ffbbe",
+                      "on-secondary-fixed-variant": "#653e00",
+                      "secondary-fixed-dim": "#ffb95f",
+                      "tertiary-fixed-dim": "#c0c1ff",
+                      "critical-red": "#EF4444",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed-dim": "#4edea3",
+                      "on-secondary": "#472a00",
+                      "inverse-surface": "#dae2fd",
+                      "background": "#0b1326",
+                      "error-container": "#93000a",
+                      "slate-800": "#1E293B",
+                      "surface-container-low": "#131b2e",
+                      "surface-tint": "#4edea3",
+                      "primary-container": "#10b981",
+                      "on-primary-container": "#00422b",
+                      "on-secondary-container": "#5b3800",
+                      "secondary-fixed": "#ffddb8",
+                      "tertiary-container": "#9699ff",
+                      "outline-variant": "#3c4a42",
+                      "on-tertiary-fixed-variant": "#2f2ebe",
+                      "slate-900": "#0F172A",
+                      "on-primary-fixed": "#002113",
+                      "on-background": "#dae2fd",
+                      "surface-container-high": "#222a3d",
+                      "inverse-on-surface": "#283044",
+                      "slate-50": "#F8FAFC",
+                      "drift-amber": "#F59E0B",
+                      "on-tertiary-container": "#1d17b2",
+                      "secondary-container": "#ee9800",
+                      "primary": "#4edea3",
+                      "surface-dim": "#0b1326",
+                      "tertiary": "#c0c1ff",
+                      "tertiary-fixed": "#e1e0ff",
+                      "surface-container-lowest": "#060e20",
+                      "secondary": "#ffb95f",
+                      "on-tertiary-fixed": "#07006c",
+                      "on-primary": "#003824",
+                      "error": "#ffb4ab",
+                      "surface": "#0b1326",
+                      "on-surface": "#dae2fd",
+                      "surface-container-highest": "#2d3449",
+                      "surface-variant": "#2d3449",
+                      "on-tertiary": "#1000a9",
+                      "on-surface-variant": "#bbcabf"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "page-margin": "2rem",
+                      "container-max": "1200px",
+                      "gutter": "1.5rem",
+                      "stack-md": "1rem",
+                      "stack-sm": "0.5rem",
+                      "section-gap": "3rem"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "title-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "mono-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "title-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "13px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "mono-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        /* Custom scrollbar for an enterprise feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3c4a42; 
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #86948a; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md antialiased min-h-screen flex">
+<!-- SideNavBar Component -->
+<nav class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant py-6 z-50">
+<!-- Brand Logo -->
+<div class="px-6 pb-8">
+<span class="text-title-md font-title-md font-bold text-primary dark:text-primary tracking-tight">ResilAI</span>
+<div class="text-label-sm font-label-sm text-on-surface-variant mt-1">Executive Health</div>
+</div>
+<!-- Navigation Tabs -->
+<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">today</span>
+<span class="text-label-sm font-label-sm font-medium">Today</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-drift-amber transition-colors">warning</span>
+<span class="text-label-sm font-label-sm font-medium">Needs Attention</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">restore</span>
+<span class="text-label-sm font-label-sm font-medium">Recovery</span>
+</a>
+<!-- Active Tab: Documents -->
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary-container/10 border-r-4 border-primary rounded-l-lg opacity-80 scale-[0.99] transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="text-label-sm font-label-sm font-bold">Documents</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">gavel</span>
+<span class="text-label-sm font-label-sm font-medium">Governance</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">extension</span>
+<span class="text-label-sm font-label-sm font-medium">Connectors</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">hub</span>
+<span class="text-label-sm font-label-sm font-medium">Operations Center</span>
+</a>
+</div>
+<!-- Settings (Bottom) -->
+<div class="px-2 pt-4 border-t border-outline-variant/30">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">settings</span>
+<span class="text-label-sm font-label-sm font-medium">Settings</span>
+</a>
+</div>
+</nav>
+<!-- TopAppBar Component -->
+<header class="hidden md:flex justify-between items-center px-page-margin h-20 fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-background/80 dark:bg-background/80 backdrop-blur-md border-b border-outline-variant">
+<!-- Search Bar (on_left as per JSON) -->
+<div class="flex-1 max-w-md">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors text-[20px]">search</span>
+<input class="w-full bg-slate-800/50 border border-outline-variant/50 text-on-surface text-label-sm font-label-sm rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-on-surface-variant/70" placeholder="Search documents, policies, logs..." type="text"/>
+</div>
+</div>
+<!-- Trailing Icon Actions -->
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-ready-emerald rounded-full border-2 border-background"></span>
+</button>
+<button class="flex items-center justify-center w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant text-primary font-label-sm text-label-sm overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background hover:border-primary transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 pt-24 pb-12 px-page-margin min-h-screen relative">
+<!-- Subtle Background Texture -->
+<div class="absolute inset-0 w-full h-full opacity-10 bg-cover bg-center pointer-events-none z-0" data-alt="A very subtle, dark, minimalist abstract background pattern with faint, high-tech geometric lines and soft blue-green light leaks. The style is ultra-modern, corporate, and clean, conveying a sense of secure digital space and clinical precision, matching the dark slate theme of an enterprise health tech dashboard." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAk6dhJCEFc8ukvM8-c5d_1imc_n4vB7Mu0WDDUM7BTCn-v4_wyRwWfZEdf5GDIIDdJEDsOXHR9ASrZT_Vb6hkD3shXklpP6d_g7UJUKZIm5ttj5RJeGN2ukPkO1wKw2rv0BgZXsN3U-NJTWHfrJWvpdkdFFDuxgqP9GX4FJ4t0XxUND1CeVBP7bx1Npud2vJzP259nHjlf7Y7wdc7SPIN8PqpwfXwDTzeSizYjc8FLXz7ScI10KJ4o')"></div>
+<div class="max-w-container-max mx-auto relative z-10">
+<!-- Page Header -->
+<header class="mb-section-gap flex items-baseline justify-between">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">Documents</h1>
+<p class="text-body-md font-body-md text-on-surface-variant mt-2">Repository for compliance evidence, policies, and narrative summaries.</p>
+</div>
+<button class="hidden md:flex items-center gap-2 bg-primary text-on-primary-container px-4 py-2 rounded-lg font-label-sm text-label-sm font-bold hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20">
+<span class="material-symbols-outlined text-[18px]">upload</span>
+                    Upload Evidence
+                </button>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Left Column (Span 8) -->
+<div class="lg:col-span-8 space-y-section-gap">
+<!-- Section 1: Audit-Ready Folders -->
+<section>
+<div class="flex items-center justify-between mb-stack-md">
+<h2 class="text-title-md font-title-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">folder_special</span>
+                                Audit-Ready Folders
+                            </h2>
+<a class="text-label-sm font-label-sm text-primary hover:underline" href="#">View All</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-stack-md">
+<!-- Folder Card 1 -->
+<div class="group bg-slate-800 border border-slate-700/50 hover:border-primary/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary-container/10 rounded-lg text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface transition-colors">more_vert</span>
+</div>
+<h3 class="text-label-sm font-label-sm font-semibold text-on-surface mb-1">HIPAA Evidence</h3>
+<p class="text-mono-sm font-mono-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-ready-emerald"></span> Verified · 42 files
+                                </p>
+</div>
+<!-- Folder Card 2 -->
+<div class="group bg-slate-800 border border-slate-700/50 hover:border-primary/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-high rounded-lg text-on-surface">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">policy</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface transition-colors">more_vert</span>
+</div>
+<h3 class="text-label-sm font-label-sm font-semibold text-on-surface mb-1">Policy Guidelines</h3>
+<p class="text-mono-sm font-mono-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-ready-emerald"></span> Current · 18 files
+                                </p>
+</div>
+<!-- Folder Card 3 -->
+<div class="group bg-slate-800 border border-slate-700/50 hover:border-drift-amber/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-high rounded-lg text-on-surface">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings_system_daydream</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface transition-colors">more_vert</span>
+</div>
+<h3 class="text-label-sm font-label-sm font-semibold text-on-surface mb-1">System Configs</h3>
+<p class="text-mono-sm font-mono-sm text-drift-amber flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-drift-amber"></span> Review Needed · 7 files
+                                </p>
+</div>
+</div>
+</section>
+<!-- Section 2: Recent Reports -->
+<section>
+<h2 class="text-title-md font-title-md text-on-surface flex items-center gap-2 mb-stack-md">
+<span class="material-symbols-outlined text-primary text-[22px]">history</span>
+                            Recent Reports
+                        </h2>
+<div class="bg-surface-container-low border border-slate-700/30 rounded-xl overflow-hidden">
+<!-- List Header -->
+<div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-700/30 text-mono-sm font-mono-sm text-on-surface-variant bg-slate-800/30">
+<div class="col-span-6 md:col-span-5">Document Name</div>
+<div class="hidden md:block col-span-3">Generated</div>
+<div class="hidden md:block col-span-2">Size</div>
+<div class="col-span-6 md:col-span-2 text-right">Actions</div>
+</div>
+<!-- List Items -->
+<div class="divide-y divide-slate-700/30">
+<!-- Item 1 -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-surface-container-high/50 transition-colors">
+<div class="col-span-8 md:col-span-5 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-error-container/20 flex items-center justify-center text-error flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface truncate">Q3 SOC2 Readiness Assessment</p>
+<p class="text-mono-sm font-mono-sm text-on-surface-variant md:hidden mt-0.5">Oct 12, 2023 · 2.4 MB</p>
+</div>
+</div>
+<div class="hidden md:block col-span-3 text-mono-sm font-mono-sm text-on-surface-variant">Oct 12, 2023</div>
+<div class="hidden md:block col-span-2 text-mono-sm font-mono-sm text-on-surface-variant">2.4 MB</div>
+<div class="col-span-4 md:col-span-2 flex items-center justify-end gap-2">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/10 rounded transition-colors" title="Download PDF">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/10 rounded transition-colors" title="Share">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-surface-container-high/50 transition-colors">
+<div class="col-span-8 md:col-span-5 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/20 flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">table_chart</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface truncate">Access Control Audit Log</p>
+<p class="text-mono-sm font-mono-sm text-on-surface-variant md:hidden mt-0.5">Oct 10, 2023 · 1.1 MB</p>
+</div>
+</div>
+<div class="hidden md:block col-span-3 text-mono-sm font-mono-sm text-on-surface-variant">Oct 10, 2023</div>
+<div class="hidden md:block col-span-2 text-mono-sm font-mono-sm text-on-surface-variant">1.1 MB</div>
+<div class="col-span-4 md:col-span-2 flex items-center justify-end gap-2">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/10 rounded transition-colors" title="Download CSV">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary-container/10 rounded transition-colors" title="Share">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column (Span 4) -->
+<div class="lg:col-span-4 space-y-section-gap">
+<!-- Section 3: Executive Summaries (Narrative Style) -->
+<section class="h-full">
+<div class="sticky top-28">
+<h2 class="text-title-md font-title-md text-on-surface flex items-center gap-2 mb-stack-md">
+<span class="material-symbols-outlined text-primary text-[22px]">subject</span>
+                                Executive Summaries
+                            </h2>
+<div class="space-y-4">
+<!-- Summary Card 1 -->
+<div class="bg-slate-800 border border-slate-700/50 rounded-xl p-5 border-l-4 border-l-ready-emerald relative overflow-hidden group">
+<div class="absolute right-0 top-0 w-24 h-24 bg-ready-emerald/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-500 pointer-events-none"></div>
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-ready-emerald text-[18px]">verified</span>
+<span class="text-label-sm font-label-sm text-ready-emerald font-semibold uppercase tracking-wider">Oct 2023 Review</span>
+</div>
+<h3 class="text-body-lg font-body-lg text-on-surface font-medium leading-snug mb-2">HIPAA Compliance Stance remains stable.</h3>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+                                        All 24 automated checks passed. Identity provider configurations are secure, and MFA enforces are active for all staff members. No data anomalies detected in the primary EHR cluster.
+                                    </p>
+<div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-end">
+<button class="text-label-sm font-label-sm text-primary hover:text-primary-fixed flex items-center gap-1 transition-colors">
+                                            Read Full Summary <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Summary Card 2 -->
+<div class="bg-slate-800 border border-slate-700/50 rounded-xl p-5 border-l-4 border-l-drift-amber relative overflow-hidden group">
+<div class="absolute right-0 top-0 w-24 h-24 bg-drift-amber/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-500 pointer-events-none"></div>
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-drift-amber text-[18px]">info</span>
+<span class="text-label-sm font-label-sm text-drift-amber font-semibold uppercase tracking-wider">Sep 2023 Review</span>
+</div>
+<h3 class="text-body-lg font-body-lg text-on-surface font-medium leading-snug mb-2">Vendor Risk Assessment updated.</h3>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+                                        New policies applied to third-party API connectors. Note: 2 legacy endpoints require deprecation planning before Q4 audit cycle to maintain compliant status.
+                                    </p>
+<div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-end">
+<button class="text-label-sm font-label-sm text-primary hover:text-primary-fixed flex items-center gap-1 transition-colors">
+                                            Read Full Summary <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</main>
+</body></html>

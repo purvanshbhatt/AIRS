@@ -11,7 +11,7 @@ export function EnvironmentHeader() {
       addToast({
         title: 'Read-Only Demo',
         message: customEvent.detail?.message || 'Changes cannot be saved in the interactive demo.',
-        type: 'warning',
+        type: "drift",
         duration: 5000,
       });
     };

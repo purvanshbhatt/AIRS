@@ -11,6 +11,13 @@ env/
 .env.local
 .env.*.local
 
+# Security & Keys
+*.pem
+*.p12
+*.key
+*service-account*.json
+*service_account*.json
+
 # Database
 *.db
 *.sqlite3
@@ -44,6 +51,8 @@ build/
 node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/dist-*/
+frontend/dist_backup/
 frontend/build_output.txt
 frontend/*.tsbuildinfo
 frontend/.env
@@ -53,23 +62,40 @@ frontend/.env.*
 !frontend/.env.staging
 !frontend/.env.production
 
-# GCP secrets (keep .example files)
+# GCP / Firebase secrets & caches
 gcp/env.prod
 gcp/env.staging
+.firebase/
 
-# Logs
+# Agent & AI tool directories
+.agents/*/
+!.agents/rules/
+!.agents/rules/**
+!.agents/workflows/
+!.agents/workflows/**
+!.agents/skills/
+!.agents/skills/**
+.ai-memory/
+.claude/
+.opencode/
+scratch/
+*.zip
+
+# Graphify temporary caches
+graphify-out/cache/
+graphify-out/.*
+
+
+# Logs & Archive logs
 *.log
-
-# Local generated submission artifacts
-.tmp_submission_md/
-ResilAI_submission_docs/
-ResilAI_submission_docs.zip
-submission_docs/
+archive/logs/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Backups
-frontend/dist_backup/
-
+# Root temporary dumps & scratch scripts
+/*_staging.html
+/staging_*.html
+/scratch_*.py
+archive/scratch/

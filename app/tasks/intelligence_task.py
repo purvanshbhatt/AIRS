@@ -3,16 +3,18 @@ Intelligence Task Scheduler — runs software version drift checks on a periodic
 """
 
 import logging
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+try:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    intelligence_scheduler = AsyncIOScheduler()
+except ImportError:
+    AsyncIOScheduler = None
+    intelligence_scheduler = None
 
 from app.db.database import SessionLocal
 from app.models.organization import Organization
 from app.services.intelligence import IntelligenceService
 
 logger = logging.getLogger("airs.tasks.intelligence")
-
-# Global APScheduler instance
-intelligence_scheduler = AsyncIOScheduler()
 
 
 async def run_intelligence_sync_sweep():
@@ -35,6 +37,9 @@ async def run_intelligence_sync_sweep():
 
 def start_intelligence_scheduler():
     """Initialize and start the background scheduler."""
+    if not intelligence_scheduler:
+        logger.warning("APScheduler not available, skipping intelligence scheduler")
+        return
     if not intelligence_scheduler.running:
         logger.info("Initializing intelligence task scheduler...")
         # Schedule to run every 12 hours
@@ -51,7 +56,7 @@ def start_intelligence_scheduler():
 
 def stop_intelligence_scheduler():
     """Stop the background scheduler."""
-    if intelligence_scheduler.running:
+    if intelligence_scheduler and intelligence_scheduler.running:
         logger.info("Stopping intelligence task scheduler...")
         intelligence_scheduler.shutdown()
         logger.info("Intelligence task scheduler stopped.")

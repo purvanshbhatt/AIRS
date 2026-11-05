@@ -12,8 +12,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
-from app.core.auth import User, require_auth
+from app.core.auth import User, require_auth, get_user_org_id
+from app.core.entitlements import require_entitlement
 from app.db.database import get_db
+from app.services.billing.entitlements import Entitlement
 from app.schemas.connector import (
     ConnectorCreateRequest,
     ConnectorHealthResponse,
@@ -34,9 +36,23 @@ logger = logging.getLogger("airs.api.connectors")
 router = APIRouter(prefix="/connectors", tags=["connectors"])
 
 
-def _get_org_id(user: User) -> str:
-    """Extract org_id from authenticated user."""
-    return getattr(user, "org_id", "default-org")
+def _get_org_id(user: User, db: Session, org_id: Optional[str] = None) -> str:
+    """Resolve the organization this request operates on.
+
+    When the client passes ``?org_id=`` (the active workspace in the UI) it
+    must belong to the signed-in user; otherwise fall back to the user's
+    first organization.
+    """
+    if org_id:
+        from app.services.organization import OrganizationService
+        org = OrganizationService(db, owner_uid=user.uid if user else None).get(org_id)
+        if not org:
+            raise HTTPException(status_code=404, detail="Organization not found")
+        return org.id
+    return get_user_org_id(user, db)
+
+
+ORG_ID_QUERY = Query(None, description="Organization ID (defaults to the user's first organization)")
 
 
 # =============================================================================
@@ -52,10 +68,12 @@ def _get_org_id(user: User) -> str:
 )
 async def create_connector(
     body: ConnectorCreateRequest,
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
+    _ent: None = Depends(require_entitlement(Entitlement.CONNECTORS_MANAGE)),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
 
     try:
@@ -82,10 +100,11 @@ async def create_connector(
 )
 async def list_connectors(
     connector_type: Optional[str] = Query(None, description="Filter by connector type"),
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
     connectors = mgr.list_connectors(connector_type=connector_type)
 
@@ -94,6 +113,65 @@ async def list_connectors(
         total=len(connectors),
     )
 
+
+
+# =============================================================================
+# Confidence
+# =============================================================================
+
+from app.schemas.evidence import OrgConfidenceResponse
+
+@router.get(
+    "/confidence",
+    response_model=OrgConfidenceResponse,
+    summary="Get evidence confidence scores",
+    description="Returns confidence scores for all connectors and an organization aggregate.",
+)
+async def get_confidence(
+    org_id: Optional[str] = ORG_ID_QUERY,
+    user: User = Depends(require_auth),
+    db: Session = Depends(get_db),
+):
+    org_id = _get_org_id(user, db, org_id)
+    # The instructions require 422 for missing org_id (though get_user_org_id raises 404 if missing)
+    if not org_id:
+        raise HTTPException(status_code=422, detail="Missing org_id")
+
+    from app.services.evidence.registry import get_instance
+    from app.services.evidence_confidence import calculate_evidence_confidence
+    from app.schemas.evidence import ConnectorConfidenceDetail
+    
+    registry = get_instance()
+    adapters = registry.adapters()
+    
+    details = []
+    total_score = 0.0
+    
+    for adapter in adapters:
+        try:
+            health = await adapter.health()
+        except Exception:
+            from app.services.evidence.base_adapter import AdapterHealth
+            from datetime import datetime, timezone
+            health = AdapterHealth(healthy=False, last_failure_at=datetime.now(timezone.utc), failure_count=1)
+            
+        conf = calculate_evidence_confidence(health)
+        details.append(
+            ConnectorConfidenceDetail(
+                connector_name=adapter.connector_name,
+                confidence_score=conf["confidence_score"],
+                factors=conf["factors"]
+            )
+        )
+        total_score += conf["confidence_score"]
+        
+    aggregate_score = round(total_score / len(details), 2) if details else 0.0
+    
+    return OrgConfidenceResponse(
+        org_id=org_id,
+        aggregate_score=aggregate_score,
+        connectors=details,
+    )
 
 
 # =============================================================================
@@ -184,10 +262,11 @@ async def connect_wazuh(
     description="Locates the active Microsoft connector for the organization and triggers a sync.",
 )
 async def trigger_microsoft_sync(
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
 
     from app.models.connector import Connector, ConnectorType
@@ -230,10 +309,11 @@ async def trigger_microsoft_sync(
     summary="Check token validity and connection health for Microsoft connector",
 )
 async def check_microsoft_health(
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
 
     from app.models.connector import Connector, ConnectorType
@@ -271,10 +351,11 @@ async def check_microsoft_health(
 )
 async def get_connector(
     connector_id: str,
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
     try:
         connector = mgr.get_connector(connector_id)
@@ -291,10 +372,11 @@ async def get_connector(
 async def update_connector(
     connector_id: str,
     body: ConnectorUpdateRequest,
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
     try:
         connector = mgr.update_connector(
@@ -303,6 +385,7 @@ async def update_connector(
             config=body.config,
             sync_interval_minutes=body.sync_interval_minutes,
             status=body.status,
+            credentials=body.credentials,
         )
         return ConnectorResponse.model_validate(connector)
     except ConnectorNotFoundError:
@@ -317,10 +400,11 @@ async def update_connector(
 )
 async def deactivate_connector(
     connector_id: str,
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
     try:
         mgr.deactivate_connector(connector_id)
@@ -340,10 +424,12 @@ async def deactivate_connector(
 )
 async def trigger_sync(
     connector_id: str,
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
+    _ent: None = Depends(require_entitlement(Entitlement.CONNECTORS_MANAGE)),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
     try:
         result = await mgr.sync_connector(connector_id)
@@ -374,10 +460,11 @@ async def trigger_sync(
 )
 async def check_health(
     connector_id: str,
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
     try:
         health = await mgr.health_check(connector_id)
@@ -400,10 +487,11 @@ async def check_health(
 async def get_sync_history(
     connector_id: str,
     limit: int = Query(20, ge=1, le=100),
+    org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
     try:
         logs = mgr.get_sync_history(connector_id, limit=limit)
@@ -422,43 +510,102 @@ async def get_sync_history(
 @router.post(
     "/webhook/{connector_type}",
     summary="Webhook event receiver",
-    description="Receives webhook payloads from external platforms. Validates X-Hub-Signature-256 for GitHub.",
+    description=(
+        "Receives pushed telemetry for an organization's webhook connector. "
+        "Generic webhooks authenticate with the X-Webhook-Secret header; GitHub "
+        "webhooks with X-Hub-Signature-256. Payloads are stored as telemetry events."
+    ),
 )
 async def receive_webhook(
     connector_type: str,
     request: Request,
+    org_id: str = Query(..., description="Organization that owns the webhook connector"),
     db: Session = Depends(get_db),
 ):
-    """Ingest webhook events with payload signature verification.
+    """Ingest a pushed webhook payload as a telemetry event.
 
-    Enterprise requirement: validates X-Hub-Signature-256 for GitHub
-    webhooks. Unauthenticated webhook endpoints WILL fail pen-testing.
+    Security: the shared secret is read from the connector's encrypted
+    credentials (``webhook_secret``); a request without a valid secret or
+    signature is rejected with 401. Unauthenticated webhook endpoints WILL
+    fail pen-testing.
     """
-    body = await request.body()
+    import hashlib
+    import hmac
+    import json
+    from datetime import datetime, timezone
 
-    # GitHub webhook signature verification
+    from app.connectors.base import NormalizedEvent
+    from app.models.connector import Connector, ConnectorStatus, ConnectorType
+
+    body = await request.body()
+    connector_type = connector_type.lower()
+    lookup_type = ConnectorType.github if connector_type == "github" else ConnectorType.webhook
+
+    connector = (
+        db.query(Connector)
+        .filter(
+            Connector.org_id == org_id,
+            Connector.connector_type == lookup_type,
+            Connector.status != ConnectorStatus.inactive,
+        )
+        .order_by(Connector.created_at.desc())
+        .first()
+    )
+    if not connector:
+        raise HTTPException(status_code=404, detail="No webhook connector registered for this organization")
+
+    mgr = ConnectorManager(db, org_id)
+    creds = mgr._decrypt_credentials(connector.encrypted_credentials)
+    secret = str(creds.get("webhook_secret") or creds.get("secret") or "")
+
     if connector_type == "github":
         from app.connectors.github import GitHubConnector
 
         signature = request.headers.get("X-Hub-Signature-256", "")
-        # TODO: Load webhook secret from connector config or Secret Manager
-        webhook_secret = request.headers.get("X-Webhook-Secret", "")
-        if webhook_secret and not GitHubConnector.verify_webhook_signature(
-            body, signature, webhook_secret
-        ):
+        if not secret or not GitHubConnector.verify_webhook_signature(body, signature, secret):
             raise HTTPException(status_code=401, detail="Invalid webhook signature")
+    else:
+        provided = request.headers.get("X-Webhook-Secret", "")
+        if not secret or not provided or not hmac.compare_digest(provided, secret):
+            raise HTTPException(status_code=401, detail="Invalid or missing X-Webhook-Secret header")
 
-    # Parse and normalize the event
-    import json
     try:
-        payload = json.loads(body)
+        payload = json.loads(body) if body else {}
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
+    if not isinstance(payload, dict):
+        payload = {"data": payload}
 
-    # Store as raw telemetry event (org resolution via connector config)
-    logger.info(
-        "Webhook received: type=%s, payload_size=%d bytes",
-        connector_type, len(body),
+    now = datetime.now(timezone.utc)
+    source_event_id = str(
+        payload.get("event_id")
+        or payload.get("id")
+        or request.headers.get("X-GitHub-Delivery")
+        or hashlib.sha256(body).hexdigest()[:32]
+    )
+    event = NormalizedEvent(
+        event_type=str(
+            payload.get("event_type")
+            or request.headers.get("X-GitHub-Event")
+            or f"{connector_type}.event"
+        ),
+        source_system=lookup_type.value,
+        source_event_id=source_event_id,
+        severity=str(payload.get("severity") or "info"),
+        payload=payload,
+        timestamp=now.isoformat(),
     )
 
-    return {"status": "accepted", "connector_type": connector_type}
+    ingested = await mgr._ingest_events(connector.id, [event])
+
+    connector.last_sync_at = now
+    if connector.status != ConnectorStatus.active:
+        connector.status = ConnectorStatus.active.value
+        connector.health_status = "healthy"
+    db.commit()
+
+    logger.info(
+        "Webhook ingested: type=%s org=%s connector=%s events=%d size=%d bytes",
+        connector_type, org_id, connector.id, ingested, len(body),
+    )
+    return {"status": "accepted", "connector_type": connector_type, "events_ingested": ingested}

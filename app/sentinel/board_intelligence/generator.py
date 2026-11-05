@@ -10,8 +10,11 @@ import json
 import logging
 from sqlalchemy.orm import Session
 from app.sentinel.twin.models import SentinelSimulation
-from google import genai
 from app.core.config import settings
+try:
+    from google import genai
+except ImportError:
+    genai = None
 
 logger = logging.getLogger("airs.sentinel.board_intelligence")
 

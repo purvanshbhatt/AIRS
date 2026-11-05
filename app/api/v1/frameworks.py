@@ -34,3 +34,14 @@ async def get_framework_mappings(db: Session = Depends(get_db)) -> Dict[str, Lis
         })
         
     return result
+
+@router.get("/coverage/{org_id}")
+async def get_framework_coverage_data(
+    org_id: str,
+    db: Session = Depends(get_db)
+) -> List[Dict[str, Any]]:
+    """
+    Returns the AI framework coverage for a specific organization.
+    """
+    from app.services.ai_frameworks import calculate_ai_framework_coverage
+    return calculate_ai_framework_coverage(db, org_id)

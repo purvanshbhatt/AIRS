@@ -30,7 +30,7 @@ export default function TechStackLifecycleMonitor({ items }: TechStackLifecycleM
   const getRiskBadge = (item: TechStackItem) => {
     if (item.lts_status === 'eol' || item.major_versions_behind >= 2) {
       return (
-        <Badge variant="danger" className="rounded-full px-2.5 py-0.5 font-bold flex items-center w-fit gap-1 bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 border border-red-200 dark:border-red-900/30">
+        <Badge variant="critical" className="rounded-full px-2.5 py-0.5 font-bold flex items-center w-fit gap-1 bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 border border-red-200 dark:border-red-900/30">
           <XCircle className="w-3.5 h-3.5" />
           Critical Drift
         </Badge>
@@ -38,7 +38,7 @@ export default function TechStackLifecycleMonitor({ items }: TechStackLifecycleM
     }
     if (item.lts_status === 'deprecated' || item.major_versions_behind === 1) {
       return (
-        <Badge variant="warning" className="rounded-full px-2.5 py-0.5 font-bold flex items-center w-fit gap-1 bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30">
+        <Badge variant="drift" className="rounded-full px-2.5 py-0.5 font-bold flex items-center w-fit gap-1 bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30">
           <AlertTriangle className="w-3.5 h-3.5" />
           Minor Drift
         </Badge>

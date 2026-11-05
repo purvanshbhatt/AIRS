@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Executive Morning Brief</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&amp;family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed": "#410005",
+                        "surface-dim": "#0e1511",
+                        "primary-fixed-dim": "#4edea3",
+                        "status-critical": "#ef4444",
+                        "tertiary-container": "#fc7c78",
+                        "on-secondary-fixed": "#131b2e",
+                        "inverse-primary": "#006c49",
+                        "on-primary-container": "#00422b",
+                        "secondary-fixed": "#dbe2fd",
+                        "on-surface": "#dde4dd",
+                        "primary-container": "#10b981",
+                        "on-tertiary": "#650911",
+                        "primary": "#4edea3",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-high": "#242c27",
+                        "on-tertiary-container": "#711419",
+                        "slate-soft": "#f8fafc",
+                        "background": "#0e1511",
+                        "on-background": "#dde4dd",
+                        "surface-bright": "#343b36",
+                        "secondary-fixed-dim": "#bfc6e0",
+                        "surface": "#0e1511",
+                        "on-primary-fixed-variant": "#005236",
+                        "on-secondary-container": "#adb4ce",
+                        "slate-text": "#475569",
+                        "surface-tint": "#4edea3",
+                        "status-drift": "#f59e0b",
+                        "emerald-accent": "#4edea3",
+                        "surface-container": "#1a211d",
+                        "surface-container-lowest": "#09100c",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "primary-fixed": "#6ffbbe",
+                        "outline-variant": "#3c4a42",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "secondary-container": "#3f465c",
+                        "inverse-on-surface": "#2b322d",
+                        "on-primary": "#003824",
+                        "clinical-white": "#ffffff",
+                        "on-primary-fixed": "#002113",
+                        "tertiary": "#ffb3af",
+                        "surface-container-highest": "#2f3632",
+                        "obsidian-deep": "#060d20",
+                        "tertiary-fixed": "#ffdad7",
+                        "secondary": "#bfc6e0",
+                        "surface-variant": "#2f3632",
+                        "on-tertiary-fixed-variant": "#842225",
+                        "outline": "#86948a",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#bbcabf",
+                        "inverse-surface": "#dde4dd",
+                        "surface-container-low": "#161d19",
+                        "on-secondary": "#283044",
+                        "on-error": "#690005"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "unit-lg": "24px",
+                        "unit-xs": "4px",
+                        "gutter": "1.5rem",
+                        "sidebar-width": "260px",
+                        "unit-sm": "8px",
+                        "unit-md": "16px",
+                        "margin-desktop": "2.5rem",
+                        "max-content-width": "1200px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "narrative-summary": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "title-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "narrative-summary": ["18px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #f8fafc; color: #002113; } /* Forcing light mode base */
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.05); }
+        .clinical-shadow { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-slate-soft min-h-screen text-on-primary-fixed overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-screen w-sidebar-width border-r border-outline-variant/20 bg-clinical-white/80 backdrop-blur-md hidden md:flex flex-col py-unit-lg z-40">
+<div class="px-gutter mb-8">
+<h1 class="font-display-lg text-display-lg text-inverse-primary tracking-tight">ResilAI</h1>
+<p class="font-label-sm text-label-sm text-slate-text mt-1 uppercase tracking-wider">Clinical Executive</p>
+</div>
+<div class="flex flex-col gap-2 flex-grow mt-4">
+<!-- Active Tab: Today -->
+<a class="flex items-center gap-4 py-3 px-4 text-inverse-primary bg-primary-container/10 border-l-4 border-inverse-primary hover:bg-slate-soft transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">clinical_notes</span>
+<span class="font-title-md text-title-md">Today</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-slate-text hover:bg-slate-soft transition-colors active:scale-95 duration-150 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-weight="fill">monitoring</span>
+<span class="font-title-md text-title-md">Trends</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-slate-text hover:bg-slate-soft transition-colors active:scale-95 duration-150 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-weight="fill">medical_services</span>
+<span class="font-title-md text-title-md">Clinical</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-slate-text hover:bg-slate-soft transition-colors active:scale-95 duration-150 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-weight="fill">fact_check</span>
+<span class="font-title-md text-title-md">Audit</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-slate-text hover:bg-slate-soft transition-colors active:scale-95 duration-150 border-l-4 border-transparent" href="#">
+<span class="material-symbols-outlined" data-weight="fill">settings</span>
+<span class="font-title-md text-title-md">Settings</span>
+</a>
+</div>
+<div class="px-gutter mt-auto pt-8">
+<button class="w-full bg-status-critical text-clinical-white py-3 rounded-lg font-title-md text-title-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">emergency</span>
+                Emergency Response
+            </button>
+<div class="flex items-center gap-3 mt-6">
+<div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
+<img alt="Executive User Profile" class="w-full h-full object-cover" data-alt="Close up professional headshot of a female clinical executive in her 40s. Soft bright studio lighting, white background. Sharp focus on face, clinical aesthetic, highly detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIduGMZkV7pDw7sOcHsSKUtcEn30qvb4JZV7TfARV2E-7lQIzbT7VquDjQI-tUcBv-HGuXMEtGajlYKBfPAkZDe_Kn8x3v_eW5CHGXP4TJIo_xt6cWkioEcAdHq5XBV1mAykr01hD9uRaABFannthj8tXaupVei1sxleQ7R2IUeaF2_yefPQSuVUBKW1NJGhGzPOSwnPWhMOqiJGU8kKaD0ukEP856MVf8SMm1gKGIoRGRui7sv241"/>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-slate-text">Dr. Sarah Jenkins</p>
+<p class="text-xs text-slate-500">CMO</p>
+</div>
+</div>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-260px)] z-50 backdrop-blur-xl bg-clinical-white/70 border-b border-outline-variant/10 hidden md:flex justify-between items-center h-16 px-gutter max-w-max-content-width mx-auto">
+<div class="flex items-center gap-4 flex-1">
+<!-- Mobile Title (Hidden on desktop) -->
+<h2 class="md:hidden font-headline-lg-mobile text-headline-lg-mobile text-inverse-primary">ResilAI</h2>
+</div>
+<div class="flex items-center gap-6 justify-end flex-1">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-slate-soft border-none rounded-full py-1.5 pl-10 pr-4 font-label-sm text-label-sm text-on-primary-fixed focus:ring-2 focus:ring-inverse-primary/50 transition-all placeholder:text-slate-400" placeholder="Search records... (⌘K)" type="text"/>
+</div>
+<button class="flex items-center gap-2 text-inverse-primary hover:text-primary-container transition-all text-sm font-medium">
+<span class="material-symbols-outlined text-lg">psychiatry</span>
+                Ask ResilAI
+            </button>
+<div class="flex items-center gap-3 text-slate-text">
+<button class="hover:text-inverse-primary transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="hover:text-inverse-primary transition-colors"><span class="material-symbols-outlined">account_circle</span></button>
+</div>
+</div>
+</header>
+<!-- Mobile Nav Header -->
+<header class="md:hidden flex items-center justify-between p-4 bg-clinical-white border-b border-slate-200 sticky top-0 z-50">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-inverse-primary">ResilAI</h1>
+<button><span class="material-symbols-outlined text-inverse-primary">menu</span></button>
+</header>
+<!-- Main Content Canvas -->
+<main class="md:ml-[260px] md:pt-16 min-h-screen">
+<div class="max-w-max-content-width mx-auto px-margin-mobile md:px-margin-desktop py-8 flex flex-col gap-8">
+<!-- Narrative Header -->
+<div class="max-w-3xl">
+<p class="font-label-sm text-label-sm text-slate-500 mb-2 tracking-widest uppercase">Morning Brief · Oct 24</p>
+<h2 class="font-display-lg text-display-lg text-on-primary-fixed leading-tight mb-4">System Operational.</h2>
+<p class="font-narrative-summary text-narrative-summary text-slate-text leading-relaxed">
+                    All core metrics remain within target clinical thresholds. Patient throughput is steady at 94% capacity. Intensive Care units are experiencing elevated utilization, requiring proactive resource balancing before 14:00.
+                </p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]">
+<!-- Primary Status Card - Large Span -->
+<div class="col-span-1 md:col-span-8 bg-clinical-white rounded-xl p-unit-lg clinical-shadow border border-slate-100 flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-accent/5 rounded-full blur-3xl group-hover:bg-emerald-accent/10 transition-colors duration-500"></div>
+<div class="flex justify-between items-start mb-8 relative z-10">
+<div class="bg-primary-container/10 p-3 rounded-lg text-inverse-primary">
+<span class="material-symbols-outlined text-3xl">vital_signs</span>
+</div>
+<div class="text-right">
+<span class="font-display-lg text-display-lg text-inverse-primary block leading-none">98.2%</span>
+<span class="font-label-sm text-label-sm text-slate-500 uppercase tracking-wider">Overall Readiness</span>
+</div>
+</div>
+<div class="relative z-10 border-t border-slate-100 pt-4 mt-auto">
+<p class="font-body-md text-body-md text-slate-text">Network-wide clinical operations are nominal. 3 minor anomalies suppressed automatically in triage queues.</p>
+</div>
+</div>
+<!-- Secondary Status - Critical Alert -->
+<div class="col-span-1 md:col-span-4 bg-clinical-white rounded-xl p-unit-lg clinical-shadow border border-slate-100 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-6">
+<div class="text-status-drift bg-status-drift/10 p-2 rounded">
+<span class="material-symbols-outlined">warning</span>
+</div>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-primary-fixed mb-1">ICU Capacity Risk</h3>
+<p class="font-body-md text-body-md text-slate-text mb-4">Projected 98% utilization by 14:00.</p>
+<button class="text-inverse-primary font-label-sm text-label-sm uppercase tracking-wider hover:underline flex items-center gap-1">
+                            Review Protocol <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Metric Card 1 -->
+<div class="col-span-1 md:col-span-4 bg-clinical-white rounded-xl p-unit-lg clinical-shadow border border-slate-100">
+<div class="flex items-center gap-3 mb-4 text-slate-500">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Patient Throughput</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-primary-fixed">1,248</span>
+<span class="font-label-sm text-label-sm text-primary-container">+4.2%</span>
+</div>
+<div class="w-full h-1 bg-slate-100 rounded-full mt-6 overflow-hidden">
+<div class="h-full bg-primary-container w-[75%]"></div>
+</div>
+</div>
+<!-- Metric Card 2 -->
+<div class="col-span-1 md:col-span-4 bg-clinical-white rounded-xl p-unit-lg clinical-shadow border border-slate-100">
+<div class="flex items-center gap-3 mb-4 text-slate-500">
+<span class="material-symbols-outlined">schedule</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Avg Wait Time</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-primary-fixed">14m</span>
+<span class="font-label-sm text-label-sm text-status-drift">+2m</span>
+</div>
+<div class="w-full h-1 bg-slate-100 rounded-full mt-6 overflow-hidden">
+<div class="h-full bg-status-drift w-[40%]"></div>
+</div>
+</div>
+<!-- Actionable List -->
+<div class="col-span-1 md:col-span-4 bg-slate-200/50 rounded-xl p-6 border border-slate-200/50 flex flex-col justify-center items-center text-center">
+<div class="w-12 h-12 bg-clinical-white rounded-full flex items-center justify-center mb-4 clinical-shadow text-inverse-primary">
+<span class="material-symbols-outlined">assignment</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-primary-fixed mb-2">3 Pending Approvals</h3>
+<p class="font-label-sm text-label-sm text-slate-500 mb-4">Requires executive sign-off.</p>
+<button class="bg-inverse-primary text-clinical-white px-6 py-2 rounded-lg font-label-sm text-label-sm uppercase tracking-widest hover:bg-on-primary-fixed transition-colors w-full">Review Now</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav (Suppressed for this specific top-level dashboard view as requested by strict interpretation, but included here hidden to satisfy the component presence if needed on smaller screens strictly following destination rules) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-clinical-white border-t border-slate-200 flex justify-around py-3 pb-safe z-50">
+<a class="flex flex-col items-center text-inverse-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">clinical_notes</span>
+<span class="text-[10px] mt-1 font-medium">Today</span>
+</a>
+<a class="flex flex-col items-center text-slate-400 hover:text-slate-600" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-[10px] mt-1 font-medium">Trends</span>
+</a>
+<a class="flex flex-col items-center text-slate-400 hover:text-slate-600" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="text-[10px] mt-1 font-medium">Audit</span>
+</a>
+</nav>
+</body></html>

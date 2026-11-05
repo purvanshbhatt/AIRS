@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Governance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "slate-text": "#475569",
+                      "on-secondary-fixed": "#001a42",
+                      "surface-container-lowest": "#060d20",
+                      "tertiary-container": "#e29100",
+                      "inverse-on-surface": "#283044",
+                      "surface-variant": "#2d3449",
+                      "error": "#ffb4ab",
+                      "secondary-fixed": "#d8e2ff",
+                      "on-primary": "#003824",
+                      "surface-container-highest": "#2d3449",
+                      "on-tertiary-container": "#523200",
+                      "inverse-primary": "#006c49",
+                      "primary-fixed-dim": "#4edea3",
+                      "status-critical": "#ef4444",
+                      "secondary-fixed-dim": "#adc6ff",
+                      "on-error": "#690005",
+                      "on-tertiary-fixed": "#2a1700",
+                      "surface-dim": "#0b1326",
+                      "on-primary-fixed": "#002113",
+                      "surface-dark": "#0b1326",
+                      "surface": "#0b1326",
+                      "on-secondary-fixed-variant": "#004395",
+                      "on-secondary-container": "#e6ecff",
+                      "primary-container": "#10b981",
+                      "on-background": "#dbe2fd",
+                      "secondary": "#adc6ff",
+                      "on-primary-container": "#00422b",
+                      "tertiary-fixed": "#ffddb8",
+                      "on-secondary": "#002e6a",
+                      "surface-tint": "#4edea3",
+                      "on-surface-variant": "#bbcabf",
+                      "tertiary": "#ffb95f",
+                      "status-ready": "#10b981",
+                      "outline-variant": "#3c4a42",
+                      "surface-container-high": "#222a3e",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "error-container": "#93000a",
+                      "surface-light": "#ffffff",
+                      "primary": "#4edea3",
+                      "outline": "#86948a",
+                      "slate-soft": "#f8fafc",
+                      "surface-bright": "#31394e",
+                      "background": "#0b1326",
+                      "primary-fixed": "#6ffbbe",
+                      "on-surface": "#dbe2fd",
+                      "on-primary-fixed-variant": "#005236",
+                      "surface-container-low": "#131b2e",
+                      "surface-container": "#171f33",
+                      "on-tertiary": "#472a00",
+                      "secondary-container": "#0566d9",
+                      "inverse-surface": "#dbe2fd",
+                      "on-error-container": "#ffdad6",
+                      "status-drift": "#f59e0b",
+                      "tertiary-fixed-dim": "#ffb95f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "1.5rem",
+                      "max-content-width": "1200px",
+                      "margin-desktop": "2.5rem",
+                      "margin-mobile": "1rem",
+                      "sidebar-width": "260px"
+              },
+              "fontFamily": {
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ],
+                      "narrative-summary": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "title-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "narrative-summary": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "title-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-surface');
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen">
+<!-- Side Navigation -->
+<nav class="hidden md:flex flex-col h-full py-gutter px-4 bg-surface dark:bg-surface text-primary dark:text-primary font-body-md text-body-md fixed left-0 top-0 h-full w-sidebar-width bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant/10 z-50">
+<div class="mb-8">
+<h1 class="font-headline-lg text-headline-lg font-semibold text-primary">ResilAI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Clinic ID: RES-942</p>
+</div>
+<ul class="flex flex-col gap-2 flex-grow">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="today">today</span>
+<span>Today</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span>Needs Attention</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="rebase_edit">rebase_edit</span>
+<span>Recovery</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span>Documents</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-primary font-semibold border-l-4 border-primary bg-primary/5 hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="gavel" style="font-variation-settings: 'FILL' 1;">gavel</span>
+<span>Governance</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span>Connectors</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span>IT Workspace</span>
+</a>
+</li>
+</ul>
+<div class="mt-auto pt-4 border-t border-outline-variant/10">
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<div class="mt-4 flex items-center gap-3 px-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden">
+<img alt="Executive User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a healthcare executive in a dark, clinical modern setting, high contrast, sharp focus, authoritative mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYZdPP-oavhgFIzYkP03XXL3VKrPMSKaqtLmc7u1D6zKVLaef3H0CLmgfkqw3n6d31rysxnSFqjh-4VG0JT88wz8WJUHPG86MdnWjFNjMZeK6b-ahpXId2u1S_V6rOLEvzDtDFFZHbQLGU9bArbI6IqZlLgfY1OPGJsSYjK_47x_yFDV4uu9rZn0CXQTwYas5eGm3CQIY1DdHQhLHVYZVwSvrJPxYfF2vb0opdeDkWY-inJ-2_LnP1"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Top App Bar -->
+<header class="hidden md:flex justify-between items-center px-margin-desktop w-full z-40 bg-surface/80 dark:bg-surface/80 backdrop-blur-md text-primary dark:text-primary font-title-md text-title-md fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface/15 backdrop-blur-[15px] border-b border-outline-variant/10">
+<div class="flex-1 flex justify-center">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant/20 rounded-full py-2 pl-10 pr-4 text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow placeholder:text-on-surface-variant" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-full p-1">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-full p-1">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="md:ml-[260px] md:pt-16 min-h-screen p-margin-mobile md:p-margin-desktop flex flex-col items-center">
+<div class="w-full max-w-max-content-width space-y-12">
+<!-- Page Header & Narrative -->
+<section class="space-y-6">
+<div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface font-semibold">Governance Posture</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Executive summary of regulatory alignment and policy enforcement.</p>
+</div>
+<div class="bg-surface-container border border-outline-variant/10 rounded-xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start">
+<div class="flex-1 space-y-4">
+<p class="font-narrative-summary text-narrative-summary text-on-surface">
+                            Overall compliance posture is currently <span class="text-status-ready font-semibold">Ready</span>. 
+                            Core frameworks (HIPAA, SOC2) remain firmly within tolerated boundaries.
+                        </p>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                            Recent audits show zero critical deviations. A minor drift in endpoint encryption policy was detected in the secondary network, but remediation is already underway and contained. Data sovereignty mandates for the EU region are fully enforced.
+                        </p>
+</div>
+<div class="shrink-0 flex flex-col items-center justify-center p-6 bg-surface-container-low rounded-lg border border-outline-variant/5">
+<span class="font-display-lg text-display-lg text-status-ready font-bold tracking-tight">98%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mt-2">Alignment Score</span>
+</div>
+</div>
+</section>
+<!-- Framework Cards (Bento Grid) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- HIPAA Card -->
+<div class="bg-surface-container border border-outline-variant/10 rounded-xl p-6 hover:scale-[1.02] transition-transform duration-300 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start mb-6 relative z-10">
+<div class="p-3 bg-surface-container-high rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="health_and_safety" data-weight="fill">health_and_safety</span>
+</div>
+<span class="px-3 py-1 bg-status-ready/10 text-status-ready font-label-sm text-label-sm rounded-full border border-status-ready/20">Enforced</span>
+</div>
+<div class="relative z-10 space-y-2">
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">HIPAA</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Health Insurance Portability and Accountability Act. Ensuring safeguarding of PHI.</p>
+</div>
+<div class="mt-6 pt-4 border-t border-outline-variant/10 relative z-10 flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Last Scan: 2h ago</span>
+<a class="font-label-sm text-label-sm text-primary hover:underline" href="#">View Details</a>
+</div>
+</div>
+<!-- SOC2 Card -->
+<div class="bg-surface-container border border-outline-variant/10 rounded-xl p-6 hover:scale-[1.02] transition-transform duration-300 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start mb-6 relative z-10">
+<div class="p-3 bg-surface-container-high rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user" data-weight="fill">verified_user</span>
+</div>
+<span class="px-3 py-1 bg-status-ready/10 text-status-ready font-label-sm text-label-sm rounded-full border border-status-ready/20">Enforced</span>
+</div>
+<div class="relative z-10 space-y-2">
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">SOC 2 Type II</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Service Organization Control 2. Security, availability, and processing integrity.</p>
+</div>
+<div class="mt-6 pt-4 border-t border-outline-variant/10 relative z-10 flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Last Scan: 4h ago</span>
+<a class="font-label-sm text-label-sm text-primary hover:underline" href="#">View Details</a>
+</div>
+</div>
+<!-- GDPR Card (Drift) -->
+<div class="bg-surface-container border border-outline-variant/10 rounded-xl p-6 hover:scale-[1.02] transition-transform duration-300 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-status-drift/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start mb-6 relative z-10">
+<div class="p-3 bg-surface-container-high rounded-lg">
+<span class="material-symbols-outlined text-status-drift" data-icon="public" data-weight="fill">public</span>
+</div>
+<span class="px-3 py-1 bg-status-drift/10 text-status-drift font-label-sm text-label-sm rounded-full border border-status-drift/20">Minor Drift</span>
+</div>
+<div class="relative z-10 space-y-2">
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">GDPR</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">General Data Protection Regulation. Data privacy for EU citizens.</p>
+</div>
+<div class="mt-6 pt-4 border-t border-outline-variant/10 relative z-10 flex justify-between items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">1 Policy deviation</span>
+<button class="font-label-sm text-label-sm text-status-drift hover:underline">Remediate</button>
+</div>
+</div>
+</section>
+<!-- Compliance Drift Tracking -->
+<section class="space-y-6">
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Compliance Drift Tracking</h3>
+<div class="bg-surface-container border border-outline-variant/10 rounded-xl overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/10">
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Policy Area</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Baseline</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current State</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Variance</th>
+<th class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-high/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="vpn_key">vpn_key</span>
+<span class="font-body-md text-body-md text-on-surface">IAM Controls</span>
+</div>
+</td>
+<td class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant">Strict (MFA Required)</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-status-ready/10 text-status-ready font-label-sm text-label-sm border border-status-ready/20">
+<span class="w-1.5 h-1.5 rounded-full bg-status-ready"></span> Aligned
+                                    </span>
+</td>
+<td class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant">0%</td>
+<td class="py-4 px-6 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity font-label-sm text-label-sm text-primary hover:underline flex items-center justify-end gap-1 ml-auto">
+<span class="material-symbols-outlined text-[16px]" data-icon="content_copy">content_copy</span> Copy Evidence
+                                    </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="storage">storage</span>
+<span class="font-body-md text-body-md text-on-surface">Data at Rest</span>
+</div>
+</td>
+<td class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant">AES-256 Enabled</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-status-drift/10 text-status-drift font-label-sm text-label-sm border border-status-drift/20">
+<span class="w-1.5 h-1.5 rounded-full bg-status-drift"></span> Drift Detected
+                                    </span>
+</td>
+<td class="py-4 px-6 font-label-sm text-label-sm text-status-drift">-1.2% (3 Volumes)</td>
+<td class="py-4 px-6 text-right">
+<button class="font-label-sm text-label-sm text-primary hover:underline">Review</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="history">history</span>
+<span class="font-body-md text-body-md text-on-surface">Audit Logging</span>
+</div>
+</td>
+<td class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant">365 Days Retention</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-status-ready/10 text-status-ready font-label-sm text-label-sm border border-status-ready/20">
+<span class="w-1.5 h-1.5 rounded-full bg-status-ready"></span> Aligned
+                                    </span>
+</td>
+<td class="py-4 px-6 font-label-sm text-label-sm text-on-surface-variant">0%</td>
+<td class="py-4 px-6 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity font-label-sm text-label-sm text-primary hover:underline flex items-center justify-end gap-1 ml-auto">
+<span class="material-symbols-outlined text-[16px]" data-icon="content_copy">content_copy</span> Copy Evidence
+                                    </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</body></html>

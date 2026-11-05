@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Executive Morning Brief</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Hanken+Grotesk:wght@600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed": "#410005",
+                        "surface-dim": "#0e1511",
+                        "primary-fixed-dim": "#4edea3",
+                        "status-critical": "#ef4444",
+                        "tertiary-container": "#fc7c78",
+                        "on-secondary-fixed": "#131b2e",
+                        "inverse-primary": "#006c49",
+                        "on-primary-container": "#00422b",
+                        "secondary-fixed": "#dbe2fd",
+                        "on-surface": "#dde4dd",
+                        "primary-container": "#10b981",
+                        "on-tertiary": "#650911",
+                        "primary": "#4edea3",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-high": "#242c27",
+                        "on-tertiary-container": "#711419",
+                        "slate-soft": "#f8fafc",
+                        "background": "#0e1511",
+                        "on-background": "#dde4dd",
+                        "surface-bright": "#343b36",
+                        "secondary-fixed-dim": "#bfc6e0",
+                        "surface": "#0e1511",
+                        "on-primary-fixed-variant": "#005236",
+                        "on-secondary-container": "#adb4ce",
+                        "slate-text": "#475569",
+                        "surface-tint": "#4edea3",
+                        "status-drift": "#f59e0b",
+                        "emerald-accent": "#4edea3",
+                        "surface-container": "#1a211d",
+                        "surface-container-lowest": "#09100c",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "primary-fixed": "#6ffbbe",
+                        "outline-variant": "#3c4a42",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "secondary-container": "#3f465c",
+                        "inverse-on-surface": "#2b322d",
+                        "on-primary": "#003824",
+                        "clinical-white": "#ffffff",
+                        "on-primary-fixed": "#002113",
+                        "tertiary": "#ffb3af",
+                        "surface-container-highest": "#2f3632",
+                        "obsidian-deep": "#060d20",
+                        "tertiary-fixed": "#ffdad7",
+                        "secondary": "#bfc6e0",
+                        "surface-variant": "#2f3632",
+                        "on-tertiary-fixed-variant": "#842225",
+                        "outline": "#86948a",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#bbcabf",
+                        "inverse-surface": "#dde4dd",
+                        "surface-container-low": "#161d19",
+                        "on-secondary": "#283044",
+                        "on-error": "#690005"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "1rem",
+                        "unit-lg": "24px",
+                        "unit-xs": "4px",
+                        "gutter": "1.5rem",
+                        "sidebar-width": "260px",
+                        "unit-sm": "8px",
+                        "unit-md": "16px",
+                        "margin-desktop": "2.5rem",
+                        "max-content-width": "1200px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "narrative-summary": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "title-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "12px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "narrative-summary": ["18px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "52px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(14, 21, 17, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        .emerald-glow {
+            box-shadow: 0 0 40px rgba(78, 222, 163, 0.05);
+            border: 1px solid rgba(78, 222, 163, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen overflow-x-hidden selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar (Web) -->
+<header class="hidden md:flex fixed top-0 right-0 w-[calc(100%-260px)] z-50 backdrop-blur-xl bg-surface-dim/30 border-b border-outline-variant justify-between items-center h-16 px-gutter max-w-max-content-width mx-auto">
+<div class="flex items-center gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">ResilAI</span>
+</div>
+<!-- Search Command K -->
+<div class="flex-1 max-w-md mx-8">
+<div class="relative flex items-center w-full h-10 rounded-lg bg-surface-container/50 border border-outline-variant px-3 hover:border-outline transition-colors cursor-text">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">search</span>
+<span class="text-on-surface-variant ml-2 font-body-md text-body-md opacity-70">Search clinical insights...</span>
+<div class="ml-auto flex items-center gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded border border-outline-variant">⌘</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-1.5 py-0.5 rounded border border-outline-variant">K</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-body-md text-body-md font-medium">
+<span class="material-symbols-outlined text-sm">arrow_back_ios_new</span>
+                Ask ResilAI
+            </button>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-all rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="hidden md:flex fixed left-0 top-0 h-screen w-sidebar-width border-r border-outline-variant bg-surface-container-low/50 backdrop-blur-md flex-col z-40">
+<div class="p-6 border-b border-outline-variant/50">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A macro shot of a sleek, abstract geometric executive profile avatar, rendered in deep obsidian black and glowing emerald green, representing a high-tech clinical executive in a premium dark mode environment. The lighting is dramatic and precise, highlighting subtle glassmorphic textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi9LA9WE_-WyV8ysn7KJh_GgiGWulwbaPJ5yh_AUai7NzFADtdmYRUJ37FW_0wTFgpuDd3tsAFWNLcCUCqVamHThNoPgyk3y2FJnlKaU5051aVYY00voePmGxNrN7py0Ojqj_tF2BPO6ViFWqN3oegudFXLrVVFR46xt8mnO-Qyk2NjfPy1cpT_UTC9CWc2SgltUmPFUNh-qUo_pjSWs2Bn1MXsm6hnJ5P7kXFAMxA0fKjktO_th8A"/>
+</div>
+<div>
+<h2 class="font-title-md text-title-md text-on-surface">ResilAI</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Clinical Executive</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col h-full py-unit-lg gap-2 px-3">
+<a class="flex items-center gap-4 py-3 px-4 text-primary bg-secondary-container/10 border-l-4 border-primary rounded-r-lg group" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">clinical_notes</span>
+<span class="font-body-md text-body-md font-medium">Today</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg border-l-4 border-transparent hover:border-outline-variant group active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-body-md text-body-md font-medium group-hover:text-on-surface transition-colors">Trends</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg border-l-4 border-transparent hover:border-outline-variant group active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">medical_services</span>
+<span class="font-body-md text-body-md font-medium group-hover:text-on-surface transition-colors">Clinical</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg border-l-4 border-transparent hover:border-outline-variant group active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-body-md text-body-md font-medium group-hover:text-on-surface transition-colors">Audit</span>
+</a>
+<div class="mt-auto">
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg border-l-4 border-transparent hover:border-outline-variant group active:scale-95 duration-150 mb-4" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md font-medium group-hover:text-on-surface transition-colors">Settings</span>
+</a>
+<button class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-surface-container-high text-status-critical border border-status-critical/30 hover:bg-status-critical/10 transition-colors font-body-md text-body-md font-medium group">
+<span class="material-symbols-outlined text-[20px]">emergency</span>
+                    Emergency Response
+                </button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="md:ml-sidebar-width pt-16 min-h-screen">
+<div class="max-w-max-content-width mx-auto p-margin-mobile md:p-margin-desktop">
+<!-- Hero Narrative Section -->
+<section class="mb-12">
+<div class="flex items-center gap-3 mb-6">
+<span class="font-label-sm text-label-sm text-primary tracking-widest uppercase">Morning Brief</span>
+<div class="h-px bg-outline-variant flex-1"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">OCT 24, 0800 HRS</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-6 md:w-3/4">
+                    Operations are nominal. We are exceptionally prepared for today's volume.
+                </h1>
+<p class="font-narrative-summary text-narrative-summary text-on-surface-variant md:w-2/3">
+                    Overnight auditing completed with zero critical drifts. Staffing levels across all clinical departments exceed baseline requirements by 4%. The predictive model indicates a stable intake trajectory for the next 12 hours.
+                </p>
+</section>
+<!-- Status Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<!-- Readiness Card (Primary Status) -->
+<div class="glass-panel rounded-xl p-unit-lg emerald-glow flex flex-col justify-between h-48 md:col-span-1">
+<div class="flex justify-between items-start">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-display-lg text-display-lg text-primary leading-none">100<span class="text-2xl text-primary/70">%</span></span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface mb-1">System Readiness</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">All operational metrics optimal.</p>
+</div>
+</div>
+<!-- Secondary Status Cards -->
+<div class="glass-panel rounded-xl p-unit-lg flex flex-col justify-between h-48">
+<div class="flex justify-between items-start">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant">group</span>
+</div>
+<span class="font-headline-lg text-headline-lg text-on-surface leading-none">+4%</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface mb-1">Clinical Staffing</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Above baseline threshold.</p>
+</div>
+</div>
+<div class="glass-panel rounded-xl p-unit-lg flex flex-col justify-between h-48">
+<div class="flex justify-between items-start">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-status-drift">trending_down</span>
+</div>
+<span class="font-headline-lg text-headline-lg text-on-surface leading-none">0.2%</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface mb-1">Variance Rate</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Well within acceptable margins.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

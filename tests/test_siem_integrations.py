@@ -22,8 +22,11 @@ from app.services.wazuh_client import (
     CVESeverity,
 )
 
-# Splunk Tests
-from app.services.splunk import SplunkService, EvidenceStatus
+# Splunk Tests: Splunk legacy classes were removed in Sprint 2.2
+# consolidation. Canonical Splunk tests now live in
+# tests/test_splunk_adapter.py (the SplunkAdapter) and indirectly via
+# ConnectorManager integration tests. The SplunkService facade no
+# longer exists, so the previous TestSplunkClient class is removed.
 
 # GHI Scoring Tests
 from app.services.governance.scoring_v2 import (
@@ -193,73 +196,13 @@ class TestWazuhClient:
 # =============================================================================
 # Splunk Client Tests
 # =============================================================================
+#
+# Tests for the canonical SplunkConnector / SplunkAdapter live in
+# tests/test_splunk_adapter.py. The legacy ``TestSplunkClient`` class
+# that exercised the deleted SplunkService facade has been removed
+# in Sprint 2.2 (2026-07-19).
+#
 
-class TestSplunkClient:
-    """Test suite for SplunkService enhancements."""
-    
-    @pytest.fixture
-    def splunk_client(self):
-        """Create a Splunk client for testing."""
-        return SplunkService(
-            host="splunk.example.com",
-            hec_token="test-hec-token",
-            port=8089,
-            verify_ssl=False,
-        )
-    
-    @pytest.mark.asyncio
-    @patch('app.services.splunk.httpx.AsyncClient')
-    async def test_verify_logging_health_enabled(self, mock_async_client, splunk_client):
-        """Test logging health check when logging is enabled."""
-        # Mock response
-        mock_response = AsyncMock()
-        mock_response.json.return_value = {
-            "results": [
-                {
-                    "last_event": "2026-05-08T10:30:00Z",
-                    "event_count": 1523,
-                }
-            ]
-        }
-        mock_response.raise_for_status.return_value = None
-        
-        mock_client = AsyncMock()
-        mock_client.get.return_value = mock_response
-        mock_client.__aenter__.return_value = mock_client
-        mock_client.__aexit__.return_value = None
-        
-        mock_async_client.return_value = mock_client
-        
-        # Patch _run_search
-        splunk_client._run_search = AsyncMock(return_value={
-            "results": [{"last_event": "2026-05-08T10:30:00Z", "event_count": "1523"}],
-            "total_count": 1,
-        })
-        
-        # Call
-        result = await splunk_client.verify_logging_health()
-        
-        # Assert
-        assert result.logging_enabled is True
-        assert result.event_count_24h == 1523
-        assert result.last_event_time == "2026-05-08T10:30:00Z"
-    
-    @pytest.mark.asyncio
-    @patch('app.services.splunk.httpx.AsyncClient')
-    async def test_verify_logging_health_disabled(self, mock_async_client, splunk_client):
-        """Test logging health check when logging is disabled."""
-        # Mock _run_search to return no results
-        splunk_client._run_search = AsyncMock(return_value={
-            "results": [],
-            "total_count": 0,
-        })
-        
-        # Call
-        result = await splunk_client.verify_logging_health()
-        
-        # Assert
-        assert result.logging_enabled is False
-        assert result.event_count_24h == 0
 
 
 # =============================================================================
@@ -485,7 +428,3 @@ class TestAutomatedFindings:
         )
         
         assert finding is None
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI | Deterministic Security for Healthcare</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "slate-text": "#475569",
+                        "on-secondary-fixed": "#001a42",
+                        "surface-container-lowest": "#060d20",
+                        "tertiary-container": "#e29100",
+                        "inverse-on-surface": "#283044",
+                        "surface-variant": "#2d3449",
+                        "error": "#ffb4ab",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-primary": "#003824",
+                        "surface-container-highest": "#2d3449",
+                        "on-tertiary-container": "#523200",
+                        "inverse-primary": "#006c49",
+                        "primary-fixed-dim": "#4edea3",
+                        "status-critical": "#ef4444",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed": "#2a1700",
+                        "surface-dim": "#0b1326",
+                        "on-primary-fixed": "#002113",
+                        "surface-dark": "#0b1326",
+                        "surface": "#0b1326",
+                        "on-secondary-fixed-variant": "#004395",
+                        "on-secondary-container": "#e6ecff",
+                        "primary-container": "#10b981",
+                        "on-background": "#dbe2fd",
+                        "secondary": "#adc6ff",
+                        "on-primary-container": "#00422b",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-secondary": "#002e6a",
+                        "surface-tint": "#4edea3",
+                        "on-surface-variant": "#bbcabf",
+                        "tertiary": "#ffb95f",
+                        "status-ready": "#10b981",
+                        "outline-variant": "#3c4a42",
+                        "surface-container-high": "#222a3e",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "error-container": "#93000a",
+                        "surface-light": "#ffffff",
+                        "primary": "#4edea3",
+                        "outline": "#86948a",
+                        "slate-soft": "#f8fafc",
+                        "surface-bright": "#31394e",
+                        "background": "#0b1326",
+                        "primary-fixed": "#6ffbbe",
+                        "on-surface": "#dbe2fd",
+                        "on-primary-fixed-variant": "#005236",
+                        "surface-container-low": "#131b2e",
+                        "surface-container": "#171f33",
+                        "on-tertiary": "#472a00",
+                        "secondary-container": "#0566d9",
+                        "inverse-surface": "#dbe2fd",
+                        "on-error-container": "#ffdad6",
+                        "status-drift": "#f59e0b",
+                        "tertiary-fixed-dim": "#ffb95f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "1.5rem",
+                        "max-content-width": "1200px",
+                        "margin-desktop": "2.5rem",
+                        "margin-mobile": "1rem",
+                        "sidebar-width": "260px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["JetBrains Mono"],
+                        "narrative-summary": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "title-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "narrative-summary": ["18px", { "lineHeight": "1.6", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            /* Light mode override for marketing page as requested, though tailwind config defaults to dark */
+            background-color: #f8fafc; /* slate-soft */
+            color: #001a42; /* on-secondary-fixed */
+        }
+        .glass-nav {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #f8fafc 0%, #e6ecff 100%);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen selection:bg-primary-container selection:text-white">
+<!-- Top Navigation (Marketing Version) -->
+<nav class="fixed top-0 left-0 right-0 z-50 glass-nav h-16 flex justify-between items-center px-margin-mobile md:px-margin-desktop transition-all duration-300" id="mainNav">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">shield_lock</span>
+<span class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg font-bold text-on-secondary-fixed">ResilAI</span>
+</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-body-md text-body-md text-slate-text hover:text-on-secondary-fixed transition-colors" href="#platform">Platform</a>
+<a class="font-body-md text-body-md text-slate-text hover:text-on-secondary-fixed transition-colors" href="#solutions">Solutions</a>
+<a class="font-body-md text-body-md text-slate-text hover:text-on-secondary-fixed transition-colors" href="#customers">Customers</a>
+</div>
+<div class="flex items-center gap-4">
+<a class="hidden md:block font-body-md text-body-md text-slate-text hover:text-on-secondary-fixed transition-colors" href="#">Sign In</a>
+<button class="bg-[#001a42] text-white px-6 py-2 rounded-DEFAULT font-title-md text-title-md hover:bg-opacity-90 transition-all shadow-sm">
+                Request Demo
+            </button>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="pt-32 pb-24 md:pt-48 md:pb-32 px-margin-mobile md:px-margin-desktop flex flex-col items-center text-center relative overflow-hidden hero-gradient">
+<div class="max-w-[1000px] z-10 space-y-8">
+<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-slate-200 mb-4 animate-fade-in-up">
+<span class="w-2 h-2 rounded-full bg-status-ready"></span>
+<span class="font-label-sm text-label-sm text-slate-text uppercase tracking-wider">Enterprise Healthcare Security</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-secondary-fixed tracking-tight">
+                Are we ready today?
+            </h1>
+<p class="font-narrative-summary text-narrative-summary text-slate-text max-w-2xl mx-auto">
+                Deterministic security for healthcare executives. Get binary certainty on your compliance, recovery, and operational readiness in a single glance.
+            </p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+<button class="bg-[#001a42] text-white px-8 py-4 rounded-DEFAULT font-title-md text-title-md hover:bg-opacity-90 transition-all shadow-md flex items-center justify-center gap-2 group">
+                    See the Platform
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<button class="bg-white text-on-secondary-fixed border border-slate-200 px-8 py-4 rounded-DEFAULT font-title-md text-title-md hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-slate-text">play_circle</span>
+                    Watch Briefing
+                </button>
+</div>
+</div>
+<!-- Hero Visual (Bento Grid Style) -->
+<div class="mt-24 w-full max-w-max-content-width grid grid-cols-1 md:grid-cols-3 gap-6 z-10 relative">
+<!-- Decorative blur background -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-r from-primary-container/20 to-secondary-container/20 blur-[100px] -z-10 rounded-full"></div>
+<!-- Card 1: Readiness Score -->
+<div class="bg-white rounded-xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300">
+<div class="flex justify-between items-start mb-8">
+<div class="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center text-status-ready">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-label-sm text-label-sm text-slate-text">LIVE STATUS</span>
+</div>
+<div>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-secondary-fixed mb-2">Ready</h3>
+<p class="font-body-md text-body-md text-slate-text">All core critical systems are verified and resilient against current threats.</p>
+</div>
+</div>
+<!-- Card 2: Audit Image -->
+<div class="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden md:col-span-2 relative h-64 hover:scale-[1.02] transition-transform duration-300">
+<img class="w-full h-full object-cover" data-alt="A pristine, light-mode dashboard interface displayed on an ultra-slim monitor, showing clinical compliance metrics with elegant data visualizations. Soft, diffused lighting creates a premium, Apple-like workspace aesthetic. The UI features crisp green accents and rigorous grid alignments, emphasizing deterministic security and trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfAiwFyYdYNlxqX7A2FnKnsJBrPnlP2Yu0Mnmdk5zs01ocaTN0qIQKv-uJrrn4a6Q7sVZbhEsVFIrVoKJtoproY8XmP2YxjudyR7PfMNu0E0FTXjSIc6ewLYUlMX7SKd6LrfO-iF8Rbs6s0dS-r05BJj4CvKD_zmagd3BE2WB0PF6GXo40oWny-jEwFqVMeAkgu_OPG4zbwEsY5Hcp_NtHaolF2eE_ymDSufkCv6L1hq_HLW4FnnR4"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
+<h3 class="font-title-md text-title-md text-white mb-1">Audit-Ready Evidence</h3>
+<p class="font-body-md text-body-md text-white/80">Continuous verification streams directly to auditors.</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Value Prop Section -->
+<section class="py-24 px-margin-mobile md:px-margin-desktop bg-white" id="platform">
+<div class="max-w-max-content-width mx-auto">
+<div class="mb-16 text-center max-w-3xl mx-auto">
+<h2 class="font-headline-lg text-headline-lg text-on-secondary-fixed mb-6">Replace anxiety with deterministic proof.</h2>
+<p class="font-narrative-summary text-narrative-summary text-slate-text">
+                    Healthcare environments are too complex for traditional security assumptions. ResilAI shifts your posture from "we think we're secure" to "we know we are ready."
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Feature 1 -->
+<div class="p-8 rounded-xl bg-slate-soft border border-slate-100">
+<div class="w-12 h-12 mb-6 rounded-lg bg-blue-50 flex items-center justify-center text-[#0566d9]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">autorenew</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-secondary-fixed mb-3">Continuous Verification</h4>
+<p class="font-body-md text-body-md text-slate-text">
+                        Automated testing of your critical infrastructure, ensuring recovery protocols work before you need them.
+                    </p>
+</div>
+<!-- Feature 2 -->
+<div class="p-8 rounded-xl bg-slate-soft border border-slate-100">
+<div class="w-12 h-12 mb-6 rounded-lg bg-emerald-50 flex items-center justify-center text-status-ready">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-secondary-fixed mb-3">Executive Briefs</h4>
+<p class="font-body-md text-body-md text-slate-text">
+                        No more deciphering technical logs. Get high-contrast, binary status reports designed for clinical leadership.
+                    </p>
+</div>
+<!-- Feature 3 -->
+<div class="p-8 rounded-xl bg-slate-soft border border-slate-100">
+<div class="w-12 h-12 mb-6 rounded-lg bg-orange-50 flex items-center justify-center text-status-drift">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">fact_check</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-secondary-fixed mb-3">Audit-Ready Evidence</h4>
+<p class="font-body-md text-body-md text-slate-text">
+                        Instantly export compliance evidence formatted for healthcare regulations, saving hundreds of hours.
+                    </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-[#0b1326] text-white py-12 px-margin-mobile md:px-margin-desktop">
+<div class="max-w-max-content-width mx-auto flex flex-col md:flex-row justify-between items-center border-t border-white/10 pt-8">
+<div class="flex items-center gap-2 mb-4 md:mb-0">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">shield_lock</span>
+<span class="font-title-md text-title-md font-bold">ResilAI</span>
+</div>
+<p class="font-label-sm text-label-sm text-slate-400">© 2024 ResilAI. Clinical Readiness Platform.</p>
+</div>
+</footer>
+<script>
+        // Simple scroll effect for nav
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('mainNav');
+            if (window.scrollY > 20) {
+                nav.classList.add('shadow-sm');
+                nav.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+            } else {
+                nav.classList.remove('shadow-sm');
+                nav.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            }
+        });
+    </script>
+</body></html>

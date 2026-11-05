@@ -7,49 +7,10 @@ Tests for persistent report generation, listing, retrieval, and tenant isolation
 import pytest
 import json
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-
+from tests.conftest import db_session, USER_A, USER_B, make_auth_override
 from app.main import app
-from app.db.database import Base, get_db
-from app.core.auth import User, require_auth
-
-
-# Use in-memory SQLite for testing
-SQLALCHEMY_DATABASE_URL = "sqlite://"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-# Mock users for testing
-USER_A = User(uid="user-a-uid-reports", email="user_a@example.com", name="User A")
-USER_B = User(uid="user-b-uid-reports", email="user_b@example.com", name="User B")
-
-
-def make_auth_override(user: User):
-    """Create an auth override for the given user."""
-    async def override():
-        return user
-    return override
-
-
-@pytest.fixture(scope="function")
-def db_session():
-    """Create a fresh database session for each test."""
-    Base.metadata.create_all(bind=engine)
-    session = TestingSessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-        Base.metadata.drop_all(bind=engine)
+from app.db.database import get_db
+from app.core.auth import require_auth
 
 
 @pytest.fixture(scope="function")

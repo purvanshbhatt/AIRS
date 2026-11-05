@@ -1,0 +1,11 @@
+DEPRECATED ROUTES BACKUP:
+-------------------------
+1. SentinelDashboard
+   - Path: /sentinel (previously deprecated/removed from App.tsx)
+   - Component: SentinelDashboard.tsx
+
+2. PilotDashboard
+   - Path: /pilot-program
+   - Component: PilotDashboard.tsx
+   - Route Config: <Route path="/pilot-program" element={<PilotDashboard />} />
+   - Import: import PilotDashboard from './pages/PilotDashboard';

@@ -231,7 +231,7 @@ export default function Assessment() {
             >
               {domain.name}
               <Badge
-                variant={isComplete ? 'success' : isActive ? 'default' : 'outline'}
+                variant={isComplete ? "ready" : isActive ? 'default' : 'outline'}
                 className={clsx(isActive && !isComplete && 'bg-white/20 text-white')}
               >
                 {domainProgress.answered}/{domainProgress.total}

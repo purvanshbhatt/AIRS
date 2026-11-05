@@ -11,7 +11,9 @@ from sqlalchemy.orm import Session
 
 from app.core.auth import User, require_auth
 from app.core.demo_guard import require_writable
+from app.core.entitlements import require_entitlement
 from app.db.database import get_db
+from app.services.billing.entitlements import Entitlement
 from app.schemas.integrations import (
     ApiKeyCreateRequest,
     ApiKeyCreateResponse,
@@ -49,6 +51,7 @@ async def create_api_key(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.API_KEYS)),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     try:
@@ -96,6 +99,7 @@ async def create_webhook(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.WEBHOOKS)),
 ):
     service = IntegrationService(db, owner_uid=user.uid)
     try:
@@ -247,6 +251,7 @@ async def configure_splunk_hec(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.ADVANCED_INTEGRATIONS)),
 ):
     """Save Splunk HEC credentials for an organization (staging only)."""
     from app.services.organization import OrganizationService
@@ -291,6 +296,7 @@ async def configure_wazuh(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
+    _ent: None = Depends(require_entitlement(Entitlement.ADVANCED_INTEGRATIONS)),
 ):
     """Save Wazuh manager credentials for the current user/org context."""
     import logging
@@ -388,17 +394,23 @@ async def get_integration_status(
     splunk_status = "not_configured"
     
     if org_id:
+        # Tenant isolation: the caller must own the organization they query.
+        from app.services.organization import OrganizationService
+        owned = OrganizationService(db, owner_uid=user.uid if user else None).get(org_id)
+        if not owned:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
         cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
         if cfg:
             wazuh_status = "configured"
             wazuh_host = cfg.wazuh_host
             wazuh_port = cfg.wazuh_port
-        from app.models.connector import Connector, ConnectorType
+        from app.models.connector import Connector, ConnectorType, ConnectorStatus
         conn = db.query(Connector).filter(
             Connector.org_id == org_id,
-            Connector.connector_type == ConnectorType.splunk
+            Connector.connector_type == ConnectorType.splunk,
+            Connector.status != ConnectorStatus.inactive,
         ).first()
-        if conn and conn.status == "active":
+        if conn:
             splunk_status = "configured"
             
     return {
@@ -586,6 +598,7 @@ async def remove_splunk_config(
 
 
 @router.post("/orgs/{org_id}/splunk-evidence", response_model=SplunkEvidenceResponse)
+@router.post("/orgs/{org_id}/splunk-evidence", response_model=SplunkEvidenceResponse)
 async def pull_splunk_evidence(
     org_id: str,
     db: Session = Depends(get_db),
@@ -593,8 +606,11 @@ async def pull_splunk_evidence(
     _: None = Depends(require_writable),
 ):
     """
-    Pull live evidence from Splunk for MFA enforcement + EDR coverage.
-    Returns verification status with 'Verified via Splunk' badges.
+    Pull live evidence from Splunk for MFA enforcement + EDR coverage
+    + centralized logging health.
+    
+    DEPRECATED: This endpoint delegates to the ConnectorManager. 
+    Use /api/v1/connectors/{id}/sync and /api/v1/connectors/confidence instead.
     """
     from app.services.organization import OrganizationService
     svc = OrganizationService(db, owner_uid=user.uid)
@@ -605,23 +621,22 @@ async def pull_splunk_evidence(
     from app.models.connector import Connector, ConnectorType
     conn = db.query(Connector).filter(
         Connector.org_id == org_id,
-        Connector.connector_type == ConnectorType.splunk
+        Connector.connector_type == ConnectorType.splunk,
     ).first()
-    
+
     if not conn or conn.status != "active":
-        # Return not-configured result instead of error
         return SplunkEvidenceResponse(
             org_id=org_id,
             results=[
                 SplunkEvidenceResult(
                     control="MFA Enforcement",
                     status="not_configured",
-                    message="Splunk HEC not configured. Add your Splunk URL and HEC token to enable evidence-based verification.",
+                    message="Splunk MCP not configured. Add your Splunk MCP URL and API key to enable evidence-based verification.",
                 ),
                 SplunkEvidenceResult(
                     control="EDR Coverage",
                     status="not_configured",
-                    message="Splunk HEC not configured. Add your Splunk URL and HEC token to enable evidence-based verification.",
+                    message="Splunk MCP not configured. Add your Splunk MCP URL and API key to enable evidence-based verification.",
                 ),
             ],
             overall_status="not_configured",
@@ -629,11 +644,77 @@ async def pull_splunk_evidence(
             total_controls=2,
         )
 
-    from app.services.splunk import SplunkService
-    config_dict = conn.config or {}
-    base_url = config_dict.get("base_url", "")
-    splunk = SplunkService(base_url=base_url, hec_token=conn.encrypted_credentials)
-    raw_results = await splunk.pull_all_evidence()
+    # Delegate to the canonical ConnectorManager pipeline.
+    # This ensures that events are not only fetched for the UI but also
+    # correctly persisted to TelemetryEvent and EvidenceLedger.
+    from app.services.connector_manager import ConnectorManager
+    mgr = ConnectorManager(db, org_id)
+    
+    raw_results = []
+    try:
+        sync_result = await mgr.sync_connector(conn.id)
+        if not sync_result.success:
+            raise Exception(sync_result.error_details or "Sync failed")
+        events = getattr(sync_result, "events", [])
+    except Exception as exc:
+        events = []
+        raw_results.append({
+            "control": "MCP Connection",
+            "status": "error",
+            "event_count": 0,
+            "sample_events": [],
+            "message": f"Failed to query Splunk MCP: {exc}",
+            "query_used": "ConnectorManager.sync_connector",
+            "verified_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+    # Aggregate events per control
+    control_buckets: dict[tuple[str, str], list] = {}
+    control_messages = {
+        ("splunk.mfa_evidence", "MFA Enforcement (MCP)"): "MFA challenge events",
+        ("splunk.edr_evidence", "EDR Coverage (MCP)"): "EDR telemetry events",
+        ("splunk.logging_health", "Centralized Logging (MCP)"): "ResilAI heartbeat events",
+        ("splunk.notable_event", "Notable Events (MCP)"): "Splunk notable events",
+    }
+    for ev in events:
+        key = None
+        for k in control_messages:
+            if ev.event_type == k[0]:
+                key = k
+                break
+        if key is None:
+            key = (ev.event_type, ev.event_type)
+        control_buckets.setdefault(key, []).append(ev)
+
+    for (control_id_key, control_label), bucket in control_buckets.items():
+        sample_payloads = [
+            (e.payload if isinstance(e.payload, dict) else {})
+            for e in bucket[:5]
+        ]
+        raw_results.append({
+            "control": control_label,
+            "status": "verified" if bucket else "not_verified",
+            "event_count": len(bucket),
+            "sample_events": sample_payloads,
+            "message": (
+                f"{len(bucket)} event(s) returned via Splunk MCP for {control_id_key}"
+                if bucket
+                else f"No {control_messages.get((control_id_key, control_label), control_id_key)} found in last 24h"
+            ),
+            "query_used": control_id_key,
+            "verified_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+    if not raw_results:
+        raw_results.append({
+            "control": "Centralized Logging (MCP)",
+            "status": "not_verified",
+            "event_count": 0,
+            "sample_events": [],
+            "message": "Splunk MCP reachable but no events returned in last 24h.",
+            "query_used": "ConnectorManager.sync_connector",
+            "verified_at": datetime.now(timezone.utc).isoformat(),
+        })
 
     results = [SplunkEvidenceResult(**r) for r in raw_results]
     verified = sum(1 for r in results if r.status == "verified")

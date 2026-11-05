@@ -136,11 +136,11 @@ function riskBandBg(band: string): string {
 function alignmentBadge(alignment: string) {
   switch (alignment) {
     case 'aligned':
-      return <Badge variant="success"><CheckCircle2 className="h-3 w-3 mr-1" /> Aligned</Badge>;
+      return <Badge variant="ready"><CheckCircle2 className="h-3 w-3 mr-1" /> Aligned</Badge>;
     case 'partial':
-      return <Badge variant="warning"><AlertTriangle className="h-3 w-3 mr-1" /> Partial</Badge>;
+      return <Badge variant="drift"><AlertTriangle className="h-3 w-3 mr-1" /> Partial</Badge>;
     case 'high_risk':
-      return <Badge variant="danger"><XCircle className="h-3 w-3 mr-1" /> High Risk</Badge>;
+      return <Badge variant="critical"><XCircle className="h-3 w-3 mr-1" /> High Risk</Badge>;
     default:
       return <Badge variant="outline">Unknown</Badge>;
   }
@@ -163,9 +163,9 @@ function scoreBarColor(score: number): string {
 function confidenceBadge(confidence: string) {
   switch (confidence) {
     case 'high':
-      return <Badge variant="success">High Confidence</Badge>;
+      return <Badge variant="ready">High Confidence</Badge>;
     case 'medium':
-      return <Badge variant="warning">Medium Confidence</Badge>;
+      return <Badge variant="drift">Medium Confidence</Badge>;
     case 'low':
       return <Badge variant="outline">Low Confidence</Badge>;
     default:
@@ -212,8 +212,8 @@ function advisorySeverityColor(severity: string): string {
 
 function advisorySeverityBadge(severity: string) {
   switch (severity) {
-    case 'critical': return <Badge variant="danger">Critical</Badge>;
-    case 'high': return <Badge variant="warning">High</Badge>;
+    case 'critical': return <Badge variant="critical">Critical</Badge>;
+    case 'high': return <Badge variant="drift">High</Badge>;
     case 'medium': return <Badge variant="outline">Medium</Badge>;
     case 'info': return <Badge variant="outline">Info</Badge>;
     default: return <Badge variant="outline">{severity}</Badge>;
@@ -526,7 +526,7 @@ function TopGapsCard({ gaps }: { gaps: string[] }) {
         <CardTitle className="flex items-center gap-2">
           <Target className="h-5 w-5" />
           Top Gaps
-          <Badge variant="danger" className="ml-auto">{gaps.length}</Badge>
+          <Badge variant="critical" className="ml-auto">{gaps.length}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -653,8 +653,8 @@ function AutonomousAdvisoryPanel({ advisories }: { advisories: AdvisoryItem[] })
           <ShieldAlert className="h-5 w-5" />
           Autonomous Advisories
           <div className="ml-auto flex gap-1">
-            {criticalCount > 0 && <Badge variant="danger">{criticalCount} Critical</Badge>}
-            {highCount > 0 && <Badge variant="warning">{highCount} High</Badge>}
+            {criticalCount > 0 && <Badge variant="critical">{criticalCount} Critical</Badge>}
+            {highCount > 0 && <Badge variant="drift">{highCount} High</Badge>}
           </div>
         </CardTitle>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
@@ -998,7 +998,7 @@ function BoardSimulation({
             {/* Direction indicator */}
             {currentSla !== null && (
               <div className="flex items-center gap-2">
-                <Badge variant={simSla > currentSla ? 'outline' : 'warning'}>
+                <Badge variant={simSla > currentSla ? 'outline' : "drift"}>
                   {simSla > currentSla ? '↑ Upgrade Scenario' : simSla < currentSla ? '↓ Downgrade Scenario' : '= No Change'}
                 </Badge>
                 <span className="text-xs text-gray-400">

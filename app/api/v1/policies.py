@@ -9,7 +9,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.core.auth import User, require_auth
+from app.core.auth import User, require_auth, get_user_org_id
 from app.db.database import get_db
 from app.models.governance_policy import PolicyType, EnforcementMode
 from app.schemas.policy import (
@@ -26,8 +26,8 @@ from app.governance.policies.engine import PolicyEngine
 router = APIRouter(prefix="/policies", tags=["policies"])
 
 
-def _get_org_id(user: User) -> str:
-    return getattr(user, "org_id", "default-org")
+def _get_org_id(user: User, db: Session) -> str:
+    return get_user_org_id(user, db)
 
 
 @router.post(
@@ -42,7 +42,7 @@ async def create_policy(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
 
     # Validate policy type
     try:
@@ -95,7 +95,7 @@ async def list_policies(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     engine = PolicyEngine(db)
     policies = engine.list_policies(org_id, active_only=active_only)
     return [PolicyResponse.model_validate(p) for p in policies]
@@ -113,7 +113,7 @@ async def get_policy(
 ):
     from app.models.governance_policy import GovernancePolicy
 
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     policy = db.query(GovernancePolicy).filter(
         GovernancePolicy.id == policy_id,
         GovernancePolicy.org_id == org_id,
@@ -134,7 +134,7 @@ async def update_policy(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     engine = PolicyEngine(db)
     updates = body.model_dump(exclude_unset=True)
 
@@ -164,7 +164,7 @@ async def evaluate_policy(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     engine = PolicyEngine(db)
     result = engine.evaluate_policy(policy_id, org_id, evaluated_by=user.uid)
 
@@ -190,7 +190,7 @@ async def evaluate_all_policies(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     engine = PolicyEngine(db)
     results = engine.evaluate_all_policies(org_id, evaluated_by=user.uid)
 
@@ -257,7 +257,7 @@ async def get_evaluation_history(
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     engine = PolicyEngine(db)
     logs = engine.get_evaluation_history(policy_id, org_id, limit=limit)
     return [PolicyEvaluationLogResponse.model_validate(log) for log in logs]

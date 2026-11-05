@@ -174,21 +174,39 @@ export interface ApiError {
   };
 }
 
-// Report type for saved reports library
+// Report types for Report Center & saved reports library
+export type {
+  ReportType,
+  ReportFormat,
+  ReportGenerationStatus,
+  GenerateReportRequest,
+  GenerateReportResponse,
+  BackendReport,
+  ReportFilters,
+} from './types/reports';
+
 export interface Report {
   id: string;
-  owner_uid: string;
-  assessment_id: string;
+  owner_uid?: string;
+  assessment_id?: string;
   assessment_title?: string;
-  organization_id: string;
+  organization_id?: string;
   organization_name?: string;
   report_type: string;
   title: string;
+  format?: 'pdf' | 'json' | 'csv';
+  status?: 'ready' | 'generating' | 'failed' | 'idle';
+  file_size_bytes?: number;
+  file_size_formatted?: string;
   overall_score?: number;
   maturity_level?: number;
   maturity_name?: string;
   findings_count?: number;
+  critical_high_count?: number;
   created_at: string;
+  updated_at?: string;
+  download_url?: string;
+  summary_text?: string;
 }
 
 export interface ReportListResponse {
@@ -197,9 +215,9 @@ export interface ReportListResponse {
 }
 
 export interface ReportSnapshot {
-  assessment_id: string;
+  assessment_id?: string;
   assessment_title?: string;
-  organization_id: string;
+  organization_id?: string;
   organization_name?: string;
   overall_score: number;
   maturity_level: number;
@@ -208,8 +226,8 @@ export interface ReportSnapshot {
     domain_id: string;
     domain_name: string;
     score: number;
-    score_5: number;
-    weight: number;
+    score_5?: number;
+    weight?: number;
   }>;
   findings: Array<{
     id: string;
@@ -219,14 +237,14 @@ export interface ReportSnapshot {
     recommendation?: string;
   }>;
   findings_count: number;
-  critical_high_count: number;
+  critical_high_count?: number;
   executive_summary?: string;
   roadmap_narrative?: string;
   generated_at: string;
 }
 
 export interface ReportDetail extends Report {
-  snapshot: ReportSnapshot;
+  snapshot?: ReportSnapshot;
 }
 
 // Dashboard KPI types

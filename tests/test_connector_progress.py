@@ -11,6 +11,17 @@ from app.core.auth import User
 client = TestClient(app)
 
 @pytest.fixture
+def mock_db_session():
+    with patch("app.api.integrations.get_db") as mock_get_db:
+        mock_db = MagicMock()
+        mock_get_db.return_value = mock_db
+        yield mock_db
+
+@pytest.fixture(autouse=True)
+def setup_db(db_session):
+    pass
+
+@pytest.fixture
 def mock_auth():
     # Mock require_auth dependency to bypass Firebase auth check in tests
     with patch("app.api.integrations.require_auth") as mock:
@@ -118,7 +129,8 @@ def test_configure_wazuh_endpoint_initiates_background_sync(mock_auth):
     """Test configure endpoint returns 200 and initiates background sync."""
     app.dependency_overrides[app.dependency_overrides.get("require_auth", "")] = lambda: mock_auth
 
-    with patch("app.services.organization.OrganizationService.get") as mock_get_org:
+    with patch("app.services.organization.OrganizationService.get") as mock_get_org, \
+         patch("app.core.entitlements.EntitlementService.has", return_value=True):
         mock_org = MagicMock()
         mock_org.id = "test-org"
         mock_get_org.return_value = mock_org

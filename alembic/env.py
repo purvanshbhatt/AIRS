@@ -37,6 +37,7 @@ from app.models import (
     FrameworkRegistry,
     FrameworkMappingRegistry,
     FindingProvenance,
+    ReadinessLedgerEntry,
 )
 
 # Alembic Config object

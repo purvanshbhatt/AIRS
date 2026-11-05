@@ -16,6 +16,8 @@ import {
 import {
   User as FirebaseUser,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -32,6 +34,7 @@ export interface User {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  providerId?: string | null;
 }
 
 // Auth context value
@@ -40,12 +43,15 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   isConfigured: boolean;
+  hasOrganizations: boolean | null;
   getToken: () => Promise<string | null>;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
+  signInAsDemo: () => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -66,6 +72,7 @@ function toUser(firebaseUser: FirebaseUser): User {
     email: firebaseUser.email,
     displayName: firebaseUser.displayName,
     photoURL: firebaseUser.photoURL,
+    providerId: firebaseUser.providerData?.[0]?.providerId || null,
   };
 }
 
@@ -75,12 +82,29 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const isDemo = typeof window !== 'undefined' ? localStorage.getItem('resilai_demo_user') : null;
+    if (isDemo === 'true') {
+      return {
+        uid: 'demo-executive-uid',
+        email: 'executive@acme-health.resilai.io',
+        displayName: 'Dr. Evelyn Reed (CMO & Exec Lead)',
+        photoURL: null,
+      };
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasOrganizations, setHasOrganizations] = useState<boolean | null>(() => {
+    const isDemo = typeof window !== 'undefined' ? localStorage.getItem('resilai_demo_user') : null;
+    return isDemo === 'true' ? true : null;
+  });
 
   // Listen for auth state changes
   useEffect(() => {
+    const isDemoActive = localStorage.getItem('resilai_demo_user') === 'true';
+
     if (!isFirebaseConfigured || !auth) {
       console.log('[Auth] Firebase not configured, skipping auth listener');
       setLoading(false);
@@ -88,34 +112,127 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     console.log('[Auth] Setting up auth state listener');
+    let isMounted = true;
+
+    // Process redirect result if arriving from an OAuth redirect
+    getRedirectResult(auth)
+      .then((result) => {
+        if (!isMounted) return;
+        if (result?.user) {
+          console.log('[Auth] User successfully signed in via redirect:', result.user.email);
+        }
+      })
+      .catch((err) => {
+        console.error('[Auth] getRedirectResult notice:', err);
+      });
+
+    // Await authStateReady to prevent 401 race condition during initial page hydration
+    auth.authStateReady()
+      .then(() => {
+        if (!isMounted) return;
+        if (auth.currentUser) {
+          localStorage.removeItem('resilai_demo_user');
+          localStorage.removeItem('resilai_demo_session');
+          localStorage.removeItem('resilai_demo_mode');
+          const currentSavedOrg = localStorage.getItem('resilai_selected_org_id');
+          if (currentSavedOrg && currentSavedOrg.startsWith('demo-')) {
+            localStorage.removeItem('resilai_selected_org_id');
+          }
+          setUser(toUser(auth.currentUser));
+        }
+      })
+      .catch((err) => {
+        console.error('[Auth] authStateReady error:', err);
+      });
+
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => {
+        if (!isMounted) return;
         if (firebaseUser) {
           console.log('[Auth] User signed in:', firebaseUser.email);
+          localStorage.removeItem('resilai_demo_user');
+          localStorage.removeItem('resilai_demo_session');
+          localStorage.removeItem('resilai_demo_mode');
+          const currentSavedOrg = localStorage.getItem('resilai_selected_org_id');
+          if (currentSavedOrg && currentSavedOrg.startsWith('demo-')) {
+            localStorage.removeItem('resilai_selected_org_id');
+          }
           setUser(toUser(firebaseUser));
+          
+          // Verify workspace context and handle missing org profiles gracefully
+          setTokenProvider(async () => firebaseUser.getIdToken());
+          import('../api').then(({ getOrganizations }) => {
+            getOrganizations().then(orgs => {
+              if (orgs && orgs.length > 0) {
+                setHasOrganizations(true);
+                const saved = localStorage.getItem('resilai_selected_org_id');
+                if (!saved || !orgs.find(o => o.id === saved)) {
+                  localStorage.setItem('resilai_selected_org_id', orgs[0].id);
+                }
+              } else {
+                setHasOrganizations(false);
+                localStorage.removeItem('resilai_selected_org_id');
+              }
+              setLoading(false);
+            }).catch(err => {
+              console.error('[Auth] Failed to fetch orgs:', err);
+              setLoading(false);
+            });
+          }).catch(err => {
+            console.error('[Auth] Failed to import API:', err);
+            setLoading(false);
+          });
+          
         } else {
-          console.log('[Auth] No user signed in');
-          setUser(null);
+          if (localStorage.getItem('resilai_demo_user') === 'true') {
+            console.log('[Auth] Active Sandbox demo session retained');
+            setUser({
+              uid: 'demo-executive-uid',
+              email: 'executive@acme-health.resilai.io',
+              displayName: 'Dr. Evelyn Reed (CMO & Exec Lead)',
+              photoURL: null,
+            });
+            setHasOrganizations(true);
+            setLoading(false);
+          } else {
+            console.log('[Auth] No user signed in');
+            setUser(null);
+            setHasOrganizations(null);
+            localStorage.removeItem('resilai_selected_org_id');
+            setLoading(false);
+          }
         }
-        setLoading(false);
       },
       (err) => {
-        console.error('[Auth] Auth state error:', err);
-        setError(err.message);
+        if (!isMounted) return;
+        console.warn('[Auth] Auth state observer notice (unauthenticated):', err);
+        // Do NOT set a blocking form error on initial passive page load
+        setUser(null);
+        setHasOrganizations(null);
+        localStorage.removeItem('resilai_selected_org_id');
         setLoading(false);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   // Get auth token for API requests
   const getToken = useCallback(async (): Promise<string | null> => {
-    if (!auth?.currentUser) {
+    if (!auth) {
       return null;
     }
     try {
+      if (typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+      }
+      if (!auth.currentUser) {
+        return null;
+      }
       const token = await auth.currentUser.getIdToken();
       return token;
     } catch (err) {
@@ -132,20 +249,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Sign in with Google
   const signInWithGoogle = useCallback(async (): Promise<void> => {
     if (!isFirebaseConfigured || !auth) {
-      setError('Firebase not configured. Check environment variables.');
-      return;
+      const msg = 'Authentication service is not configured. Please contact support.';
+      setError(msg);
+      throw new Error(msg);
     }
 
     setError(null);
+    localStorage.removeItem('resilai_demo_user');
+    localStorage.removeItem('resilai_demo_session');
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sign in with Google';
       console.error('[Auth] Google sign in error:', err);
+      // Fallback to redirect if popup is blocked by browser
+      if (
+        (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === 'auth/popup-blocked') ||
+        message.includes('popup-blocked')
+      ) {
+        console.warn('[Auth] Popup blocked by browser, falling back to redirect flow...');
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       // Don't show popup closed errors
-      if (!message.includes('popup-closed')) {
-        setError(message);
+      if (!message.includes('popup-closed') && !message.includes('cancelled-popup-request')) {
+        setError(formatFirebaseError(message));
       }
       throw err;
     }
@@ -159,6 +291,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setError(null);
+    localStorage.removeItem('resilai_demo_user');
+    localStorage.removeItem('resilai_demo_session');
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: unknown) {
@@ -177,6 +311,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     setError(null);
+    localStorage.removeItem('resilai_demo_user');
+    localStorage.removeItem('resilai_demo_session');
+    localStorage.removeItem('resilai_selected_org_id');
     try {
       await createUserWithEmailAndPassword(auth, email, password);
     } catch (err: unknown) {
@@ -187,13 +324,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  // Enter Sandbox Demo Mode as Demo Healthcare Executive
+  const signInAsDemo = useCallback(async (): Promise<void> => {
+    setError(null);
+    localStorage.setItem('resilai_demo_user', 'true');
+    localStorage.setItem('resilai_selected_org_id', 'demo-health-org');
+    const demoUser: User = {
+      uid: 'demo-executive-uid',
+      email: 'executive@acme-health.resilai.io',
+      displayName: 'Dr. Evelyn Reed (CMO & Exec Lead)',
+      photoURL: null,
+    };
+    setUser(demoUser);
+    setHasOrganizations(true);
+    setLoading(false);
+  }, []);
+
   // Sign out
   const signOut = useCallback(async (): Promise<void> => {
     // Clear user-specific cached data to prevent cross-user leakage
     clearUserData();
+    localStorage.removeItem('resilai_demo_user');
+    localStorage.removeItem('resilai_selected_org_id');
+    setUser(null);
+    setHasOrganizations(null);
     
     if (!auth) {
-      setUser(null);
       return;
     }
 
@@ -209,17 +365,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
   }, []);
 
+  // Force a refresh of the user's context (e.g. after creating an organization)
+  const refreshAuth = useCallback(async (): Promise<void> => {
+    if (!auth || !auth.currentUser) return;
+    try {
+      setLoading(true);
+      const { getOrganizations } = await import('../api');
+      const orgs = await getOrganizations();
+      if (orgs && orgs.length > 0) {
+        setHasOrganizations(true);
+        const saved = localStorage.getItem('resilai_selected_org_id');
+        if (!saved || !orgs.find(o => o.id === saved)) {
+          localStorage.setItem('resilai_selected_org_id', orgs[0].id);
+        }
+      } else {
+        setHasOrganizations(false);
+        localStorage.removeItem('resilai_selected_org_id');
+      }
+    } catch (err) {
+      console.error('[Auth] Failed to refresh orgs:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const value: AuthContextValue = {
     user,
     loading,
     error,
     isConfigured: isFirebaseConfigured,
+    hasOrganizations,
     getToken,
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
+    signInAsDemo,
     signOut,
     clearError,
+    refreshAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -240,16 +423,25 @@ function formatFirebaseError(message: string): string {
     return 'Invalid email or password.';
   }
   if (message.includes('auth/email-already-in-use')) {
-    return 'An account with this email already exists.';
+    return 'An account with this email already exists. Please switch to Sign in.';
   }
   if (message.includes('auth/weak-password')) {
     return 'Password should be at least 6 characters.';
+  }
+  if (message.includes('auth/popup-blocked')) {
+    return 'Sign-in popup was blocked by your browser. Please allow popups for this site.';
+  }
+  if (message.includes('auth/popup-closed-by-user')) {
+    return '';
   }
   if (message.includes('auth/network-request-failed')) {
     return 'Network error. Check your connection.';
   }
   if (message.includes('auth/too-many-requests')) {
     return 'Too many attempts. Please try again later.';
+  }
+  if (message.includes('auth/api-keys-are-not-supported-by-this-api')) {
+    return 'Authentication service is re-authenticating. Please try signing in again with email/password or reload the page.';
   }
   return message;
 }

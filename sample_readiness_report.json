@@ -1,0 +1,321 @@
+{
+  "report_id": "79c43eca-2425-4c00-a62a-54ccad7ae620",
+  "report_date": "2026-08-03",
+  "generated_at": "2026-08-03T03:43:45.717336Z",
+  "status": "critical_risk",
+  "clinic_health_pct": 55,
+  "connector_health_pct": 95,
+  "greeting": "Good Morning",
+  "summary": "Your clinic has 3 critical risk(s) preventing safe operation.",
+  "timeline": [],
+  "business_continuity": {
+    "operational_readiness": {
+      "can_operate_today": false,
+      "can_recover": false,
+      "current_blockers": [
+        "FRONT-DESK-PC has 1 active security warnings that need immediate attention.",
+        "Patient Database Server's backup hasn't completed successfully in 28 hours.",
+        "former.nurse@clinic.com's account is still active but they haven't signed in for 45 days."
+      ],
+      "estimated_downtime_minutes": 0,
+      "critical_systems_verified": [
+        "Electronic Health Records (EHR)",
+        "Office Network"
+      ],
+      "critical_systems_assumed": [
+        "HVAC",
+        "Medical Devices"
+      ]
+    }
+  },
+  "passed_checks": [],
+  "failed_checks": [
+    {
+      "status": "fail",
+      "label": "FRONT-DESK-PC has 1 active security warnings that need immediate attention.",
+      "detail": "If this device is compromised, attackers can access your network.",
+      "verification": {
+        "verification_source": "Security Monitor",
+        "last_verified_at": "2026-08-03T03:25:16.388880Z",
+        "connector_health": "healthy",
+        "confidence_pct": 99,
+        "verification_status": "verified",
+        "data_age_description": "Checked 18 minutes ago",
+        "can_reverify": true,
+        "verification_method": "Cached from last sync"
+      },
+      "action": {
+        "action_id": "contact_it",
+        "problem": "Contact IT Immediately",
+        "why_it_matters": "Security findings indicate action is required.",
+        "recommended_action": "The issue will be addressed.",
+        "can_be_undone": false,
+        "estimated_time_minutes": 5,
+        "fix_now_available": false,
+        "verification": null,
+        "category": "general",
+        "approval_needed": true,
+        "required_permissions": [],
+        "success_message": "Action completed."
+      }
+    },
+    {
+      "status": "fail",
+      "label": "Patient Database Server's backup hasn't completed successfully in 28 hours.",
+      "detail": "If your systems crash right now, everything since the last successful backup is gone forever.",
+      "verification": {
+        "verification_source": "Backup System",
+        "last_verified_at": "2026-08-03T03:25:16.388880Z",
+        "connector_health": "healthy",
+        "confidence_pct": 99,
+        "verification_status": "verified",
+        "data_age_description": "Checked 18 minutes ago",
+        "can_reverify": true,
+        "verification_method": "Cached from last sync"
+      },
+      "action": {
+        "action_id": "notify_msp",
+        "problem": "Email Instructions to IT",
+        "why_it_matters": "Security findings indicate action is required.",
+        "recommended_action": "The issue will be addressed.",
+        "can_be_undone": false,
+        "estimated_time_minutes": 30,
+        "fix_now_available": false,
+        "verification": null,
+        "category": "general",
+        "approval_needed": true,
+        "required_permissions": [],
+        "success_message": "Action completed."
+      }
+    },
+    {
+      "status": "fail",
+      "label": "former.nurse@clinic.com's account is still active but they haven't signed in for 45 days.",
+      "detail": "Anyone with their password could access patient records, billing data, and email right now.",
+      "verification": {
+        "verification_source": "Microsoft 365",
+        "last_verified_at": "2026-08-03T03:25:16.388880Z",
+        "connector_health": "healthy",
+        "confidence_pct": 99,
+        "verification_status": "verified",
+        "data_age_description": "Checked 18 minutes ago",
+        "can_reverify": true,
+        "verification_method": "Cached from last sync"
+      },
+      "action": {
+        "action_id": "disable_account",
+        "problem": "An inactive account is still enabled.",
+        "why_it_matters": "It could be used to improperly access patient records.",
+        "recommended_action": "This will immediately lock the user and prevent access to all clinic systems. Inactive User will no longer be able to sign in.",
+        "can_be_undone": true,
+        "estimated_time_minutes": 5,
+        "fix_now_available": true,
+        "verification": null,
+        "category": "access_control",
+        "approval_needed": false,
+        "required_permissions": [
+          "Microsoft 365 Admin"
+        ],
+        "success_message": "Account disabled successfully. Access to patient records has been revoked."
+      }
+    }
+  ],
+  "warnings": [],
+  "unknowns": [],
+  "immediate_actions": [
+    {
+      "action_id": "contact_it",
+      "problem": "Contact IT Immediately",
+      "why_it_matters": "Security findings indicate action is required.",
+      "recommended_action": "The issue will be addressed.",
+      "can_be_undone": false,
+      "estimated_time_minutes": 5,
+      "fix_now_available": false,
+      "verification": null,
+      "category": "general",
+      "approval_needed": true,
+      "required_permissions": [],
+      "success_message": "Action completed."
+    },
+    {
+      "action_id": "disable_account",
+      "problem": "An inactive account is still enabled.",
+      "why_it_matters": "It could be used to improperly access patient records.",
+      "recommended_action": "This will immediately lock the user and prevent access to all clinic systems. Inactive User will no longer be able to sign in.",
+      "can_be_undone": true,
+      "estimated_time_minutes": 5,
+      "fix_now_available": true,
+      "verification": null,
+      "category": "access_control",
+      "approval_needed": false,
+      "required_permissions": [
+        "Microsoft 365 Admin"
+      ],
+      "success_message": "Account disabled successfully. Access to patient records has been revoked."
+    },
+    {
+      "action_id": "notify_msp",
+      "problem": "Email Instructions to IT",
+      "why_it_matters": "Security findings indicate action is required.",
+      "recommended_action": "The issue will be addressed.",
+      "can_be_undone": false,
+      "estimated_time_minutes": 30,
+      "fix_now_available": false,
+      "verification": null,
+      "category": "general",
+      "approval_needed": true,
+      "required_permissions": [],
+      "success_message": "Action completed."
+    }
+  ],
+  "coverage": {
+    "coverage_pct": 58,
+    "monitored": [
+      {
+        "area": "Users & Identities",
+        "monitored": true,
+        "source": "Microsoft 365"
+      },
+      {
+        "area": "Email Security",
+        "monitored": true,
+        "source": "Microsoft 365"
+      },
+      {
+        "area": "Multi-Factor Authentication",
+        "monitored": true,
+        "source": "Microsoft 365"
+      },
+      {
+        "area": "Devices & Endpoints",
+        "monitored": true,
+        "source": "Microsoft 365"
+      },
+      {
+        "area": "Backup & Recovery",
+        "monitored": true,
+        "source": "Backup System"
+      },
+      {
+        "area": "Network Security",
+        "monitored": true,
+        "source": "Security Monitor"
+      },
+      {
+        "area": "Vulnerability Scanning",
+        "monitored": true,
+        "source": "Security Monitor"
+      }
+    ],
+    "not_monitored": [
+      {
+        "area": "Firewall",
+        "monitored": false,
+        "source": null
+      },
+      {
+        "area": "Medical Devices",
+        "monitored": false,
+        "source": null
+      },
+      {
+        "area": "Cloud Security",
+        "monitored": false,
+        "source": null
+      },
+      {
+        "area": "Security Analytics",
+        "monitored": false,
+        "source": null
+      },
+      {
+        "area": "Local Backups",
+        "monitored": false,
+        "source": null
+      }
+    ]
+  },
+  "connectors": [
+    {
+      "name": "Microsoft 365",
+      "status": "healthy",
+      "connected": true,
+      "last_verified_at": "2026-08-03T03:25:16.388880",
+      "coverage": [
+        "Users",
+        "Devices",
+        "Email"
+      ],
+      "missing_visibility": [
+        "Conditional Access"
+      ],
+      "confidence_pct": 100
+    },
+    {
+      "name": "Backup System",
+      "status": "healthy",
+      "connected": true,
+      "last_verified_at": "2026-08-03T03:25:16.388880",
+      "coverage": [
+        "Server Backups"
+      ],
+      "missing_visibility": [
+        "Cloud Backups"
+      ],
+      "confidence_pct": 100
+    },
+    {
+      "name": "Security Monitor",
+      "status": "healthy",
+      "connected": true,
+      "last_verified_at": "2026-08-03T03:25:16.388880",
+      "coverage": [
+        "Endpoints",
+        "Network Logs"
+      ],
+      "missing_visibility": [
+        "Firewall Rules"
+      ],
+      "confidence_pct": 100
+    }
+  ],
+  "verification": {
+    "confidence_pct": 100,
+    "reasons": [
+      {
+        "icon": "check",
+        "text": "Microsoft 365 synchronized 18 minutes ago."
+      },
+      {
+        "icon": "check",
+        "text": "Backup System synchronized 18 minutes ago."
+      },
+      {
+        "icon": "check",
+        "text": "Security Monitor synchronized 18 minutes ago."
+      },
+      {
+        "icon": "check",
+        "text": "No connector failures detected."
+      }
+    ]
+  },
+  "trend": {
+    "points": [],
+    "improving": true
+  },
+  "value": {
+    "period_label": "Last 30 Days",
+    "accounts_protected": 8,
+    "devices_protected": 12,
+    "backups_verified": 21,
+    "problems_prevented": 21,
+    "estimated_downtime_avoided_hours": 4.666666666666666,
+    "estimated_hipaa_records_protected": 1800
+  },
+  "audit_snapshot_id": "946d60e9-0c49-41a4-8bde-3371c570994c",
+  "checks_performed": 3,
+  "devices_checked": 12,
+  "accounts_checked": 8,
+  "backups_verified": 3
+}

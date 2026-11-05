@@ -1,5 +1,6 @@
 # SQLAlchemy models
 # Import all models to register them with SQLAlchemy
+from app.models.evidence import EvidenceLedger, NormalizedEvidenceRecord
 from app.models.organization import Organization
 from app.models.assessment import Assessment, AssessmentStatus
 from app.models.answer import Answer
@@ -42,6 +43,7 @@ from app.models.ai_asset import (
 )
 from app.models.telemetry_event import TelemetryEvent
 from app.models.score_snapshot import ScoreSnapshot, SnapshotTrigger
+from app.models.readiness_ledger import ReadinessLedgerEntry
 from app.models.simulation_result import SimulationResult, SimulationCategory
 from app.models.governance_policy import (
     GovernancePolicy, PolicyEvaluationLog,
@@ -59,8 +61,29 @@ from app.models.verification import (
 )
 from app.sentinel.evidence.models import TelemetryEvidence
 from app.sentinel.twin.models import SentinelSimulation
+from app.models.discovery import TechnologyInventory, InstalledProduct, EvidenceSource, HostAsset
+from app.models.clinic_moment import ClinicMomentRecord, MomentStatus
+
+# Clinic Product Layer Models
+from app.models.clinic.staff import ClinicStaff
+from app.models.clinic.device import ClinicDevice
+from app.models.clinic.critical_system import CriticalSystem
+from app.models.clinic.msp import MSPRelationship
+from app.models.clinic.value_metric import ClinicValueMetric
+from app.models.clinic.readiness_snapshot import ReadinessSnapshot
+
+# Lifecycle Intelligence Models
+from app.models.lifecycle_catalog import (
+    GlobalSoftwareCatalog,
+    SoftwareVersion,
+    LifecycleReference,
+)
+from app.models.agent_audit import AgentAudit
 
 __all__ = [
+    "AgentAudit",
+    "ClinicMomentRecord",
+    "MomentStatus",
     "DiscoveredAsset",
     "Organization",
     "Assessment",
@@ -109,6 +132,7 @@ __all__ = [
     "TelemetryEvent",
     "ScoreSnapshot",
     "SnapshotTrigger",
+    "ReadinessLedgerEntry",
     "SimulationResult",
     "SimulationCategory",
     "GovernancePolicy",
@@ -124,4 +148,13 @@ __all__ = [
     "VerificationConfidence",
     "TelemetryEvidence",
     "SentinelSimulation",
+    "ClinicStaff",
+    "ClinicDevice",
+    "CriticalSystem",
+    "MSPRelationship",
+    "ClinicValueMetric",
+    "ReadinessSnapshot",
+    "GlobalSoftwareCatalog",
+    "SoftwareVersion",
+    "LifecycleReference",
 ]

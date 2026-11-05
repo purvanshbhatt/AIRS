@@ -1,155 +1,177 @@
 @import "tailwindcss";
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@custom-variant dark (&:where(.dark, .dark *));
+/* Import Inter & Material Symbols fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block');
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', 'Material Symbols Outlined Filled', sans-serif !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'liga';
+  user-select: none;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+@custom-variant dark (&:where(.dark, [data-theme="dark"], .dark *, [data-theme="dark"] *));
+
+/* Stitch & Material Design 3 System Variables */
+:root {
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-dim: #f1f5f9;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #ffffff;
+  --color-surface-container: #f8fafc;
+  --color-surface-container-high: #f1f5f9;
+  --color-surface-container-highest: #e2e8f0;
+  --color-surface-bright: #e2e8f0;
+  --color-ready-emerald: #10B981;
+  --color-drift-amber: #F59E0B;
+  --color-critical-red: #EF4444;
+  --color-on-surface: #0f172a;
+  --color-on-background: #0f172a;
+  --color-on-surface-variant: #475569;
+  --color-outline: #94a3b8;
+  --color-outline-variant: #e2e8f0;
+  --color-primary: #059669;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #d1fae5;
+  --color-on-primary-container: #065f46;
+  --color-secondary: #475569;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #f1f5f9;
+  --color-on-secondary-container: #0f172a;
+  --color-tertiary: #0d9488;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #ccfbf1;
+  --color-on-tertiary-container: #134e4a;
+}
+
+html.dark,
+[data-theme="dark"] {
+  --color-background: #0b1326;
+  --color-surface: #0b1326;
+  --color-surface-dim: #0b1326;
+  --color-surface-container-lowest: #060e20;
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+  --color-surface-bright: #31394d;
+  --color-ready-emerald: #10B981;
+  --color-drift-amber: #F59E0B;
+  --color-critical-red: #EF4444;
+  --color-on-surface: #dae2fd;
+  --color-on-background: #dae2fd;
+  --color-on-surface-variant: #bbcabf;
+  --color-outline: #86948a;
+  --color-outline-variant: #3c4a42;
+  --color-primary: #4edea3;
+  --color-on-primary: #003824;
+  --color-primary-container: #065f46;
+  --color-on-primary-container: #6ffbbe;
+  --color-secondary: #94a3b8;
+  --color-on-secondary: #0b1326;
+  --color-secondary-container: #1e293b;
+  --color-on-secondary-container: #f1f5f9;
+  --color-tertiary: #2dd4bf;
+  --color-on-tertiary: #042f2e;
+  --color-tertiary-container: #115e59;
+  --color-on-tertiary-container: #ccfbf1;
+}
 
 /* Custom theme configuration */
 @theme {
-  --color-primary-50: #e5faf0;
-  --color-primary-100: #ccf5db;
-  --color-primary-200: #99eab9;
-  --color-primary-300: #66df97;
-  --color-primary-400: #33d375;
-  --color-primary-500: #00C853; /* Emerald Green (Primary) */
-  --color-primary-600: #00b047;
-  --color-primary-700: #00963c;
-  --color-primary-800: #007c31;
-  --color-primary-900: #006326;
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-dim: var(--color-surface-dim);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container: var(--color-surface-container);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-container-highest: var(--color-surface-container-highest);
+  --color-surface-bright: var(--color-surface-bright);
+  --color-ready-emerald: var(--color-ready-emerald);
+  --color-drift-amber: var(--color-drift-amber);
+  --color-critical-red: var(--color-critical-red);
+  --color-on-surface: var(--color-on-surface);
+  --color-on-background: var(--color-on-background);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+  --color-outline: var(--color-outline);
+  --color-outline-variant: var(--color-outline-variant);
+  --color-primary: var(--color-primary);
+  --color-on-primary: var(--color-on-primary);
+  --color-primary-container: var(--color-primary-container);
+  --color-on-primary-container: var(--color-on-primary-container);
+  --color-secondary: var(--color-secondary);
+  --color-on-secondary: var(--color-on-secondary);
+  --color-secondary-container: var(--color-secondary-container);
+  --color-on-secondary-container: var(--color-on-secondary-container);
+  --color-tertiary: var(--color-tertiary);
+  --color-on-tertiary: var(--color-on-tertiary);
+  --color-tertiary-container: var(--color-tertiary-container);
+  --color-on-tertiary-container: var(--color-on-tertiary-container);
 
-  --color-success-50: #e5faf0;
-  --color-success-100: #ccf5db;
-  --color-success-200: #99eab9;
-  --color-success-300: #66df97;
-  --color-success-400: #33d375;
-  --color-success-500: #00e676;
-  --color-success-600: #00C853;
-  --color-success-700: #00a845;
-  --color-success-800: #008b39;
-  --color-success-900: #006228;
-
-  --color-warning-50: #fffbeb;
-  --color-warning-100: #fef3c7;
-  --color-warning-200: #fde68a;
-  --color-warning-300: #fcd34d;
-  --color-warning-400: #fbbf24;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
-  --color-warning-800: #92400e;
-  --color-warning-900: #78350f;
-
-  --color-danger-50: #fef2f2;
-  --color-danger-100: #fee2e2;
-  --color-danger-200: #fecaca;
-  --color-danger-300: #fca5a5;
-  --color-danger-400: #f87171;
-  --color-danger-500: #ef4444;
-  --color-danger-600: #dc2626;
-  --color-danger-700: #b91c1c;
-  --color-danger-800: #991b1b;
-  --color-danger-900: #7f1d1d;
-
-  /* Overrides for secondary/accent (Titanium Blue mapped to blue and indigo) */
-  --color-blue-50: #ecf3ff;
-  --color-blue-100: #dbe7ff;
-  --color-blue-200: #bfd6ff;
-  --color-blue-300: #93bbfd;
-  --color-blue-400: #609bfb;
-  --color-blue-500: #2979FF; /* Titanium Blue */
-  --color-blue-600: #1c64e6;
-  --color-blue-700: #144ec4;
-  --color-blue-800: #103ea3;
-  --color-blue-900: #0d3282;
-
-  --color-indigo-50: #ecf3ff;
-  --color-indigo-100: #dbe7ff;
-  --color-indigo-200: #bfd6ff;
-  --color-indigo-300: #93bbfd;
-  --color-indigo-400: #609bfb;
-  --color-indigo-500: #2979FF; /* Titanium Blue */
-  --color-indigo-600: #1c64e6;
-  --color-indigo-700: #144ec4;
-  --color-indigo-800: #103ea3;
-  --color-indigo-900: #0d3282;
-
-  /* Overrides for surface/background (Deep Charcoal mapped to slate and gray for dark mode) */
-  --color-slate-950: #121212;
-  --color-slate-900: #1A1A1A; /* Deep Charcoal background */
-  --color-slate-800: #242424; /* Card surface background */
-  --color-slate-700: #2d2d2d;
-  --color-slate-600: #3d3d3d;
-  --color-slate-500: #6b6b6b;
-  --color-slate-400: #9e9e9e;
-
-  --color-gray-950: #121212;
-  --color-gray-900: #1A1A1A; /* Deep Charcoal background */
-  --color-gray-800: #242424; /* Card surface background */
-  --color-gray-700: #2d2d2d;
-  --color-gray-600: #3d3d3d;
-  --color-gray-500: #6b6b6b;
-  --color-gray-400: #9e9e9e;
+  /* Primary color palette for Tailwind v4 compatibility */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
 
   --font-family-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   
   --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
   --shadow-medium: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+  /* Material Design 3 Elevation Shadows */
+  --shadow-m3-1: 0 1px 3px 1px rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-m3-2: 0 2px 6px 2px rgba(0, 0, 0, 0.12), 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  --shadow-m3-3: 0 4px 8px 3px rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-m3-4: 0 6px 10px 4px rgba(0, 0, 0, 0.14), 0 2px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* Base styles */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
   font-family: var(--font-family-sans);
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--color-background, #f8fafc);
+  color: var(--color-on-surface, #0f172a);
   transition: background-color 200ms ease, color 200ms ease;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 html.dark body {
-  background-color: #1A1A1A; /* Deep Charcoal */
-  color: #e2e8f0;
+  background-color: var(--color-background, #0b1326);
+  color: var(--color-on-surface, #dae2fd);
 }
 
-/* Dark-mode fallback mappings for legacy classes without explicit dark: variants */
-html.dark [class~="text-gray-900"]:not([class*="dark:text-"]) { color: #f8fafc; }
-html.dark [class~="text-gray-800"]:not([class*="dark:text-"]) { color: #e2e8f0; }
-html.dark [class~="text-gray-700"]:not([class*="dark:text-"]) { color: #cbd5e1; }
-html.dark [class~="text-gray-600"]:not([class*="dark:text-"]) { color: #94a3b8; }
-html.dark [class~="text-gray-500"]:not([class*="dark:text-"]) { color: #94a3b8; }
-html.dark [class~="text-gray-400"]:not([class*="dark:text-"]) { color: #64748b; }
-html.dark [class~="text-slate-900"]:not([class*="dark:text-"]) { color: #f8fafc; }
-html.dark [class~="text-slate-800"]:not([class*="dark:text-"]) { color: #e2e8f0; }
-html.dark [class~="text-slate-700"]:not([class*="dark:text-"]) { color: #cbd5e1; }
-html.dark [class~="text-slate-600"]:not([class*="dark:text-"]) { color: #94a3b8; }
-html.dark [class~="text-slate-500"]:not([class*="dark:text-"]) { color: #64748b; }
-html.dark [class~="bg-white"]:not([class*="dark:bg-"]) { background-color: #242424; } /* Charcoal Card */
-html.dark [class~="bg-gray-50"]:not([class*="dark:bg-"]) { background-color: #1A1A1A; }
-html.dark [class~="bg-gray-100"]:not([class*="dark:bg-"]) { background-color: #2a2a2a; }
-html.dark [class~="bg-slate-50"]:not([class*="dark:bg-"]) { background-color: #242424; }
-html.dark [class~="bg-slate-100"]:not([class*="dark:bg-"]) { background-color: #1A1A1A; }
-html.dark [class~="border-gray-100"]:not([class*="dark:border-"]) { border-color: #242424; }
-html.dark [class~="border-gray-200"]:not([class*="dark:border-"]) { border-color: #2d2d2d; }
-html.dark [class~="border-gray-300"]:not([class*="dark:border-"]) { border-color: #404040; }
-html.dark [class~="border-slate-100"]:not([class*="dark:border-"]) { border-color: #242424; }
-html.dark [class~="border-slate-200"]:not([class*="dark:border-"]) { border-color: #2d2d2d; }
-html.dark [class~="border-slate-300"]:not([class*="dark:border-"]) { border-color: #404040; }
-
-/* Ensure form controls stay readable in dark mode even on legacy pages. */
-html.dark input:not([type="checkbox"]):not([type="radio"]),
-html.dark textarea,
-html.dark select {
-  color: #f8fafc;
-  border-color: #475569;
-}
-
-html.dark input:not([type="checkbox"]):not([type="radio"])::placeholder,
-html.dark textarea::placeholder {
-  color: #94a3b8;
-}
+/* Legacy fallback mappings can stay for now if they don't override semantics */
 
 /* ─── 4px / 8px Grid Spacing Helpers ─── */
 .section-gap   { gap: 24px; }   /* 8×3 */
@@ -178,13 +200,13 @@ html.dark textarea::placeholder {
 }
 
 @keyframes pulse-ai {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.5); }
-  50%      { box-shadow: 0 0 0 6px rgba(0, 200, 83, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.5); }
+  50%      { box-shadow: 0 0 0 6px rgba(14, 165, 233, 0); }
 }
 
 @keyframes pulse-siem {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.6); }
-  50%      { box-shadow: 0 0 0 8px rgba(0, 200, 83, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.6); }
+  50%      { box-shadow: 0 0 0 8px rgba(14, 165, 233, 0); }
 }
 
 @keyframes fade-up {
@@ -204,10 +226,29 @@ html.dark textarea::placeholder {
   animation: fade-up 0.4s ease-out both;
 }
 
-/* Focus ring utility */
+/* Accessible Motion: Respect user preference for reduced motion (WCAG 2.1 AA - 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Standardized Accessible Focus Visible Rings (WCAG 2.1 AA - 2.4.7) */
+:focus-visible {
+  outline: 2px solid var(--color-ready-emerald, #10B981) !important;
+  outline-offset: 2px !important;
+}
+
+.focus-ring:focus-visible,
 .focus-ring:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--color-primary-500), 0 0 0 4px rgba(0, 200, 83, 0.2);
+  outline: 2px solid var(--color-ready-emerald, #10B981) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25) !important;
 }
 
 /* Push fixed sidebar and sticky header down when environment banner is present */
@@ -216,13 +257,19 @@ aside.fixed {
   height: calc(100vh - var(--banner-height, 0px)) !important;
 }
 
-header.sticky, nav.fixed {
+header.sticky, nav.fixed:not(.bottom-0) {
   top: var(--banner-height, 0px) !important;
 }
 
+nav.fixed.bottom-0,
+nav[aria-label="Mobile Bottom Navigation"] {
+  bottom: 0 !important;
+  top: auto !important;
+}
+
 @keyframes roi-flash {
-  0% { color: #00C853; text-shadow: 0 0 12px rgba(0, 200, 83, 0.8); transform: scale(1.05); }
-  50% { color: #00C853; text-shadow: 0 0 6px rgba(0, 200, 83, 0.4); transform: scale(1.02); }
+  0% { color: #0ea5e9; text-shadow: 0 0 12px rgba(14, 165, 233, 0.8); transform: scale(1.05); }
+  50% { color: #0ea5e9; text-shadow: 0 0 6px rgba(14, 165, 233, 0.4); transform: scale(1.02); }
   100% { }
 }
 
@@ -230,5 +277,118 @@ header.sticky, nav.fixed {
   animation: roi-flash 1.2s ease-out;
   display: inline-block;
   transition: all 0.3s ease;
+}
+
+/* Material Design 3 Utilities */
+.m3-elevation-0 { box-shadow: none; }
+.m3-elevation-1 { box-shadow: var(--shadow-m3-1); }
+.m3-elevation-2 { box-shadow: var(--shadow-m3-2); }
+.m3-elevation-3 { box-shadow: var(--shadow-m3-3); }
+.m3-elevation-4 { box-shadow: var(--shadow-m3-4); }
+
+/* Material 3 State Layer Transitions */
+.m3-state-layer {
+  position: relative;
+  overflow: hidden;
+  transition: background-color 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms cubic-bezier(0.2, 0, 0, 1), transform 150ms cubic-bezier(0.2, 0, 0, 1);
+}
+.m3-state-layer:hover {
+  filter: brightness(1.03);
+}
+.m3-state-layer:active {
+  transform: scale(0.98);
+}
+
+/* Mobile & Foldable Safe Area & Touch Ergonomics */
+.min-touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+.pb-safe {
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+/* ========================================================================= */
+/* Material 3 & ResilAI Heading Gradient Textures                           */
+/* In light mode: High-contrast rich tones (#020617 -> #1e3a8a -> #065f46). */
+/* ZERO white or pale stops against light backgrounds.                      */
+/* In dark mode: High-contrast luminous tones (#ffffff -> #93c5fd -> #5eead4). */
+/* ========================================================================= */
+.heading-gradient-general {
+  background-image: linear-gradient(135deg, #020617 0%, #1e3a8a 50%, #065f46 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #020617;
+}
+html.dark .heading-gradient-general,
+[data-theme="dark"] .heading-gradient-general {
+  background-image: linear-gradient(135deg, #ffffff 0%, #93c5fd 50%, #5eead4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+}
+
+.heading-gradient-healthcare {
+  background-image: linear-gradient(135deg, #020617 0%, #065f46 50%, #0d9488 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #020617;
+}
+html.dark .heading-gradient-healthcare,
+[data-theme="dark"] .heading-gradient-healthcare {
+  background-image: linear-gradient(135deg, #ffffff 0%, #6ee7b7 50%, #2dd4bf 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+}
+
+.heading-gradient-legal {
+  background-image: linear-gradient(135deg, #020617 0%, #312e81 50%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #020617;
+}
+html.dark .heading-gradient-legal,
+[data-theme="dark"] .heading-gradient-legal {
+  background-image: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+}
+
+/* Ambient Glow & Pulse Animations (Stitch M3 Design System) */
+.ambient-glow {
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.18);
+}
+
+.ambient-glow-amber {
+  box-shadow: 0 0 35px rgba(245, 158, 11, 0.18);
+}
+
+.glass-panel {
+  background: var(--color-surface-container-low);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.96); opacity: 0.4; }
+  50% { transform: scale(1.04); opacity: 0.8; }
+  100% { transform: scale(0.96); opacity: 0.4; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 

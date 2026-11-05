@@ -13,18 +13,19 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 from app.connectors.base import (
-    BaseConnector,
+    Connector,
     ConnectorHealth,
-    NormalizedEvent,
+    RawEvent,
     PermissionResult,
 )
+from app.services.clinic_engine.v2.schema import ConnectorCapability
 from app.connectors.registry import register_connector
 
 logger = logging.getLogger("airs.connectors.aws_security_hub")
 
 
 @register_connector
-class AWSSecurityHubConnector(BaseConnector):
+class AWSSecurityHubConnector(Connector):
     """AWS Security Hub connector for cloud security posture telemetry.
 
     Credentials:
@@ -42,6 +43,7 @@ class AWSSecurityHubConnector(BaseConnector):
         "securityhub:DescribeHub",
         "securityhub:GetEnabledStandards",
     ]
+    CAPABILITIES = [ConnectorCapability.CLOUD_ASSETS]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -65,19 +67,31 @@ class AWSSecurityHubConnector(BaseConnector):
             secret_key = self._credentials.get("aws_secret_access_key", "")
             role_arn = self._credentials.get("role_arn")
 
+            session_kwargs = {"region_name": self._region}
+            if access_key and secret_key:
+                session_kwargs["aws_access_key_id"] = access_key
+                session_kwargs["aws_secret_access_key"] = secret_key
+                if self._credentials.get("aws_session_token"):
+                    session_kwargs["aws_session_token"] = self._credentials["aws_session_token"]
+
             if role_arn:
                 # Assume role via STS
-                sts = boto3.client(
-                    "sts",
-                    aws_access_key_id=access_key,
-                    aws_secret_access_key=secret_key,
-                    region_name=self._region,
-                )
-                assumed = sts.assume_role(
-                    RoleArn=role_arn,
-                    RoleSessionName=f"resilai-connector-{self.connector_id[:8]}",
-                    DurationSeconds=3600,
-                )
+                sts_kwargs = {"region_name": self._region}
+                if access_key and secret_key:
+                    sts_kwargs["aws_access_key_id"] = access_key
+                    sts_kwargs["aws_secret_access_key"] = secret_key
+                    if self._credentials.get("aws_session_token"):
+                        sts_kwargs["aws_session_token"] = self._credentials["aws_session_token"]
+                sts = boto3.client("sts", **sts_kwargs)
+                assume_params = {
+                    "RoleArn": role_arn,
+                    "RoleSessionName": f"resilai-connector-{self.connector_id[:8]}",
+                    "DurationSeconds": 3600,
+                }
+                external_id = self._credentials.get("external_id") or self._config.get("external_id")
+                if external_id:
+                    assume_params["ExternalId"] = external_id
+                assumed = sts.assume_role(**assume_params)
                 creds = assumed["Credentials"]
                 self._session = boto3.Session(
                     aws_access_key_id=creds["AccessKeyId"],
@@ -86,11 +100,7 @@ class AWSSecurityHubConnector(BaseConnector):
                     region_name=self._region,
                 )
             else:
-                self._session = boto3.Session(
-                    aws_access_key_id=access_key,
-                    aws_secret_access_key=secret_key,
-                    region_name=self._region,
-                )
+                self._session = boto3.Session(**session_kwargs)
 
             self._hub_client = self._session.client("securityhub")
             # Verify connectivity
@@ -107,12 +117,12 @@ class AWSSecurityHubConnector(BaseConnector):
     # Sync
     # ------------------------------------------------------------------
 
-    async def sync(self) -> List[NormalizedEvent]:
+    async def sync(self) -> List[RawEvent]:
         if not self._hub_client:
-            self.logger.error("Hub client not initialized — authenticate first")
+            self.logger.error("Hub client not initialized - authenticate first")
             return []
 
-        events: List[NormalizedEvent] = []
+        events: List[RawEvent] = []
 
         try:
             filters = {
@@ -133,8 +143,8 @@ class AWSSecurityHubConnector(BaseConnector):
         self.logger.info("AWS Security Hub sync: %d events", len(events))
         return events
 
-    def _normalize_finding(self, finding: Dict[str, Any]) -> NormalizedEvent:
-        """Convert an AWS Security Hub finding to a NormalizedEvent."""
+    def _normalize_finding(self, finding: Dict[str, Any]) -> RawEvent:
+        """Convert an AWS Security Hub finding to a RawEvent."""
         finding_id = finding.get("Id", str(uuid.uuid4()))
         severity = finding.get("Severity", {})
         severity_label = severity.get("Label", "MEDIUM").lower()
@@ -143,7 +153,7 @@ class AWSSecurityHubConnector(BaseConnector):
         resources = finding.get("Resources", [])
         resource_ids = [r.get("Id", "") for r in resources]
 
-        return NormalizedEvent(
+        return RawEvent(
             event_type="aws.securityhub.finding",
             source_system="aws_security_hub",
             source_event_id=finding_id,
@@ -174,10 +184,12 @@ class AWSSecurityHubConnector(BaseConnector):
         start = time.monotonic()
         try:
             if not self._hub_client:
-                return ConnectorHealth(
-                    status="unreachable",
-                    message="Not authenticated",
-                )
+                ok = await self.authenticate()
+                if not ok or not self._hub_client:
+                    return ConnectorHealth(
+                        status="unreachable",
+                        message="Not authenticated: AWS Security Hub client not initialized",
+                    )
             self._hub_client.describe_hub()
             latency = int((time.monotonic() - start) * 1000)
             return ConnectorHealth(
@@ -199,7 +211,12 @@ class AWSSecurityHubConnector(BaseConnector):
 
     async def validate_permissions(self) -> PermissionResult:
         if not self._hub_client:
-            return PermissionResult(valid=False, message="Not authenticated")
+            ok = await self.authenticate()
+            if not ok or not self._hub_client:
+                return PermissionResult(
+                    valid=False,
+                    message="Not authenticated: AWS Security Hub client not initialized",
+                )
 
         missing = []
         try:

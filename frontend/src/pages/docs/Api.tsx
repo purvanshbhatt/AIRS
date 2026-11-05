@@ -328,8 +328,8 @@ export default function DocsApi() {
                     <span
                       className={`px-2.5 py-1 text-[10px] font-mono font-bold rounded-lg ${
                         endpoint.method === 'GET'
-                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-350'
-                          : 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-350'
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                          : 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
                       }`}
                     >
                       {endpoint.method}
@@ -340,7 +340,7 @@ export default function DocsApi() {
                   </div>
                   <div className="flex items-center gap-2">
                     {endpoint.auth && (
-                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/30 border border-amber-250/30 dark:border-amber-900/30 text-amber-700 dark:text-amber-400 rounded-md">
+                      <span className="px-2 py-0.5 text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/30 border border-amber-300/30 dark:border-amber-900/30 text-amber-700 dark:text-amber-400 rounded-md">
                         Auth Token Required
                       </span>
                     )}

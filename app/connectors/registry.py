@@ -33,6 +33,7 @@ class ConnectorType(str, Enum):
     GITHUB = "github"
     WAZUH = "wazuh"
     AWS_SECURITY_HUB = "aws_security_hub"
+    AWS = "aws"
     OKTA = "okta"
     GITLAB = "gitlab"
     GCP_SCC = "gcp_scc"
@@ -43,6 +44,9 @@ class ConnectorType(str, Enum):
     AWS_BEDROCK = "aws_bedrock"
     AZURE_OPENAI = "azure_openai"
     MICROSOFT = "microsoft"
+    VEEAM = "veeam"
+    DUO = "duo"
+    WEBHOOK = "webhook"
 
 
 # ---------------------------------------------------------------------------
@@ -75,8 +79,13 @@ class ConnectorRegistry:
 
         Raises ``KeyError`` if the type is not registered.
         """
+        # Support common aliases and enum instances
+        resolved_type = connector_type.value if hasattr(connector_type, "value") else str(connector_type)
+        if resolved_type == "aws":
+            resolved_type = "aws_security_hub"
+
         try:
-            return cls._registry[connector_type]
+            return cls._registry[resolved_type]
         except KeyError:
             available = ", ".join(sorted(cls._registry)) or "(none)"
             raise KeyError(

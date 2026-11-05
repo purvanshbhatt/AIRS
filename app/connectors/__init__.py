@@ -7,10 +7,12 @@ with the ConnectorRegistry via the @register_connector decorator.
 
 from app.connectors.base import (  # noqa: F401
     BaseConnector,
+    Connector,
     ConnectorHealth,
     ConnectorSyncResult,
     NormalizedEvent,
     PermissionResult,
+    RawEvent,
 )
 from app.connectors.registry import (  # noqa: F401
     ConnectorRegistry,
@@ -24,3 +26,7 @@ from app.connectors import wazuh  # noqa: F401
 from app.connectors import aws_security_hub  # noqa: F401
 from app.connectors import azure_security_center  # noqa: F401
 from app.connectors import microsoft  # noqa: F401
+from app.connectors import splunk  # noqa: F401
+from app.connectors import veeam  # noqa: F401
+from app.connectors import duo  # noqa: F401
+from app.connectors import webhook  # noqa: F401

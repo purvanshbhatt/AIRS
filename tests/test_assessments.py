@@ -58,8 +58,18 @@ class TestOrganizations:
         response = client.get(f"/api/orgs/{org_id}")
         assert response.status_code == 404
 
-    def test_demo_mode_auto_seeds_demo_org_and_splunk(self, client, monkeypatch):
+    def test_demo_mode_auto_seeds_demo_org_and_splunk(self, client, monkeypatch, db_session):
+        """Verify ensure_demo_seed_data works when invoked explicitly in demo mode.
+
+        NOTE: ensure_demo_seed_data is no longer called from the org/assessment
+        listing endpoints (removed to prevent demo contamination in production).
+        This test invokes it directly to confirm the function still works.
+        """
         monkeypatch.setattr(settings, "DEMO_MODE", True, raising=False)
+
+        # Call demo seed directly (not via org listing)
+        from app.services.demo_seed import ensure_demo_seed_data
+        ensure_demo_seed_data(db_session, owner_uid="dev-user")
 
         response = client.get("/api/orgs")
         assert response.status_code == 200

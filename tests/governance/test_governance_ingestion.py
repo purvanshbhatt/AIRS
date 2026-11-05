@@ -63,8 +63,8 @@ def org(db_session) -> Organization:
     """Create a test organisation."""
     o = Organization(
         id=str(uuid.uuid4()),
-        name="AcmeCorp Security",
-        owner_uid="uid-acme-001",
+        name="sandbox Security",
+        owner_uid="uid-sandbox-001",
     )
     db_session.add(o)
     db_session.commit()

@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Badge } from './ui';
 import { ShieldCheck, TrendingUp, AlertTriangle, AlertCircle, FileText, Download, Shield, Brain } from 'lucide-react';
+import { getBoardStoryPdfUrl } from '../api';
 
 interface ExecutiveRiskMatrixProps {
   ghi: number;
   grade: string;
   wazuhStatus: string;
   splunkStatus: string;
+  /** org_id used to construct the server-side PDF download URL (required for PRODUCT_MOAT compliance) */
+  orgId?: string;
 }
 
 interface RiskCell {
@@ -20,41 +23,47 @@ interface RiskCell {
 const RISK_MATRIX_DATA: Record<string, Record<string, RiskCell[]>> = {
   High: {
     High: [
-      { title: 'Tech Stack Version Drift', category: 'Lifecycle Health', desc: 'Outdated Node.js runtime and database major versions behind.', severity: 'Critical' },
+      { title: 'Outdated Critical Software', category: 'Software Health', desc: 'Outdated server runtimes and databases expose systems to known security vulnerabilities.', severity: 'Critical' },
     ],
     Medium: [
-      { title: 'Wazuh Agent Disconnections', category: 'SIEM Connectivity', desc: 'Temporary loss of SOC agent heartbeat logs.', severity: 'High' },
+      { title: 'Security Monitoring Interruption', category: 'Monitoring Reliability', desc: 'Temporary loss of telemetry heartbeat from security monitoring agents.', severity: 'High' },
     ],
     Low: [
-      { title: 'Shadow AI Ingestion Gaps', category: 'Shadow AI Governance', desc: 'Unsanctioned LLM prompt requests detected in local staging.', severity: 'High' },
+      { title: 'Unmonitored AI Tool Usage', category: 'AI Risk Governance', desc: 'Staff using unapproved external AI tools with potential data exposure.', severity: 'High' },
     ],
   },
   Medium: {
     High: [
-      { title: 'SLA Uptime Drift', category: 'Service SLA', desc: 'SLA target below Tier 1 threshold in staging telemetry.', severity: 'High' },
+      { title: 'System Uptime Below Target', category: 'Service Availability', desc: 'Core business services are falling below 99.9% availability targets.', severity: 'High' },
     ],
     Medium: [
-      { title: 'MFA Enforcement Audits', category: 'Identity Visibility', desc: 'Partially verified MFA rules on staging developer environments.', severity: 'Medium' },
+      { title: 'Incomplete Two-Step Verification', category: 'Login Security', desc: 'Some staff accounts have not turned on two-step login verification.', severity: 'Medium' },
     ],
     Low: [
-      { title: 'Drift Assessment Overdue', category: 'Audit Readiness', desc: 'Baseline compliance check pending active verification.', severity: 'Medium' },
+      { title: 'Security Review Overdue', category: 'Audit Readiness', desc: 'Baseline compliance check pending active verification.', severity: 'Medium' },
     ],
   },
   Low: {
     High: [
-      { title: 'Dev Database Unencrypted', category: 'Encryption Standards', desc: 'SQLite backup logs not explicitly rotated or encrypted.', severity: 'Medium' },
+      { title: 'Unencrypted Database Backups', category: 'Data Protection', desc: 'Database backups must have full encryption enabled at rest.', severity: 'Medium' },
     ],
     Medium: [
-      { title: 'API Key Lifecycle Drift', category: 'API Security', desc: 'Multiple staging keys older than 90 days.', severity: 'Low' },
+      { title: 'Old API Keys Need Rotation', category: 'Access Credentials', desc: 'Multiple API connection keys are older than 90 days and should be rotated.', severity: 'Low' },
     ],
     Low: [
-      { title: 'Documentation Outdated', category: 'Audit Compliance', desc: 'Documentation of NIST framework coverage matches baseline v1 only.', severity: 'Low' },
+      { title: 'Policy Documentation Outdated', category: 'Compliance Records', desc: 'Documentation of security framework coverage matches baseline v1 only.', severity: 'Low' },
     ],
   },
 };
 
-export default function ExecutiveRiskMatrix({ ghi, grade, wazuhStatus, splunkStatus }: ExecutiveRiskMatrixProps) {
+export default function ExecutiveRiskMatrix({ ghi, grade, wazuhStatus, splunkStatus, orgId }: ExecutiveRiskMatrixProps) {
   const [selectedCell, setSelectedCell] = useState<{ impact: string; likelihood: string } | null>(null);
+
+  /**
+   * S1.8-AUDIT-FIX-A01 (CRITICAL): PDF is generated server-side.
+   * All numbers in the PDF body trace to the scoring snapshot — never fabricated in the browser.
+   */
+  const pdfDownloadUrl = orgId ? getBoardStoryPdfUrl(orgId) : null;
 
   const getCellColor = (impact: string, likelihood: string) => {
     if (impact === 'High' && likelihood === 'High') {
@@ -83,94 +92,6 @@ export default function ExecutiveRiskMatrix({ ghi, grade, wazuhStatus, splunkSta
     ? RISK_MATRIX_DATA[selectedCell.impact]?.[selectedCell.likelihood] || []
     : [];
 
-  const handleDownloadBoardStory = () => {
-    const dateStr = new Date().toLocaleDateString();
-    
-    // Construct a beautifully formatted minimal PDF binary dynamically
-    const pdfContent = `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
-endobj
-4 0 obj
-<< /Length 750 >>
-stream
-BT
-/F1 20 Tf
-50 780 Td
-(ResilAI Boardroom Interpreter - Executive Narrative) Tj
-/F1 10 Tf
-0 -30 Td
-(Generated on: ${dateStr} | Environment: STAGING) Tj
-0 -40 Td
-(Governance Health Index [GHI] Posture Snapshot:) Tj
-/F1 14 Tf
-0 -25 Td
-(GHI Score: ${ghi.toFixed(1)}% | Grade Rating: ${grade}) Tj
-/F1 10 Tf
-0 -40 Td
-(SYSTEM STATUS SUMMARY:) Tj
-0 -20 Td
-(- Wazuh Integration Status: ${wazuhStatus.toUpperCase()}) Tj
-0 -15 Td
-(- Splunk HEC Status: ${splunkStatus.toUpperCase()}) Tj
-0 -45 Td
-(EXECUTIVE RISK EXPOSURE ANALYSIS:) Tj
-0 -20 Td
-(Total Systemic Exposure: Mitigated to Moderate) Tj
-0 -15 Td
-(Average Response Velocity: 3.0 Days (mitigated from 14.0 days)) Tj
-0 -40 Td
-(CONCENTRATION METRICS & DRIFT ANALYSIS:) Tj
-0 -20 Td
-(1. Version Drift Risk concentration: 42% (Critical Risk - Red Badge)) Tj
-0 -15 Td
-(2. SIEM Telemetry Verification: 80% coverage verified via Splunk HEC) Tj
-0 -45 Td
-(CONFIDENTIALITY NOTICE:) Tj
-0 -20 Td
-(This document is proprietary information compiled dynamically via machine-to-machine) Tj
-0 -15 Td
-(telemetry and audit logs. Not for public redistribution.) Tj
-ET
-streamendstream
-endobj
-5 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
-endobj
-xref
-0 6
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000244 00000 n 
-0000001045 00000 n 
-trailer
-<< /Size 6 /Root 1 0 R >>
-startxref
-1124
-%%EOF`;
-
-    // Convert PDF string to binary array
-    const bytes = new Uint8Array(pdfContent.length);
-    for (let i = 0; i < pdfContent.length; i++) {
-      bytes[i] = pdfContent.charCodeAt(i);
-    }
-
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `resilai_board_story_${new Date().toISOString().slice(0,10)}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const getSeverityBadgeColor = (severity: string) => {
     switch (severity) {
@@ -194,13 +115,24 @@ startxref
             Dynamic risk matrix mapping likelihood and impact of compliance posture drift and vulnerabilities.
           </CardDescription>
         </div>
-        <Button
-          onClick={handleDownloadBoardStory}
-          className="bg-[#00C853] hover:bg-[#00C853]/90 text-white rounded-xl font-bold shadow-md hover:scale-[1.01] transition-all flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Board Story
-        </Button>
+        {pdfDownloadUrl ? (
+          <a
+            href={pdfDownloadUrl}
+            download
+            className="bg-[#00C853] hover:bg-[#00C853]/90 text-white rounded-xl font-bold shadow-md hover:scale-[1.01] transition-all flex items-center gap-2 px-4 py-2 text-sm"
+          >
+            <Download className="w-4 h-4" />
+            Board Story PDF
+          </a>
+        ) : (
+          <button
+            disabled
+            className="bg-slate-200 dark:bg-slate-800 text-slate-400 rounded-xl font-bold flex items-center gap-2 px-4 py-2 text-sm cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            Board Story PDF
+          </button>
+        )}
       </CardHeader>
       
       <CardContent className="space-y-6 pt-4">

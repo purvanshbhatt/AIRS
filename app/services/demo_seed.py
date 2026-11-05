@@ -63,11 +63,11 @@ def ensure_demo_seed_data(db: Session, owner_uid: Optional[str]) -> None:
     else:
         org = org_service.create(
             OrganizationCreate(
-                name="Acme Health Systems",
+                name="ResilAI Sandbox Clinic",
                 industry="Healthcare",
                 size="201-1000",
                 contact_name="Security Operations",
-                contact_email="security@acmehealth.example",
+                contact_email="security@sandbox.resilai.org",
             )
         )
 

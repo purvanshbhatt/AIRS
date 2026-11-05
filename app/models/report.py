@@ -12,7 +12,7 @@ from app.db.database import Base
 
 class Report(Base):
     """
-    Report entity - represents a generated report for an assessment.
+    Report entity - persistent executive report with snapshot data and lifecycle tracking.
     
     Reports store a snapshot of the assessment data at generation time,
     ensuring report consistency even if the rubric or scoring changes later.
@@ -46,6 +46,12 @@ class Report(Base):
     maturity_level = Column(Integer, nullable=True)
     maturity_name = Column(String(50), nullable=True)
     findings_count = Column(Integer, nullable=True, default=0)
+    
+    # V2 fields: report lifecycle
+    created_by = Column(String(128), nullable=True)  # Firebase UID of creator
+    report_version = Column(String(20), nullable=False, default="1.0")
+    generated_at = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String(20), nullable=False, default="completed")  # completed, generating, failed
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

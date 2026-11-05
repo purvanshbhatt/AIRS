@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createOrganization, ApiRequestError } from '../api';
-import { useIsReadOnly } from '../contexts';
 import { 
   Card, 
   CardHeader, 
@@ -15,14 +14,8 @@ import {
 import { Building2, ArrowRight } from 'lucide-react';
 
 const industries = [
-  { value: 'technology', label: 'Technology' },
-  { value: 'healthcare', label: 'Healthcare' },
-  { value: 'financial', label: 'Financial Services' },
-  { value: 'manufacturing', label: 'Manufacturing' },
-  { value: 'retail', label: 'Retail' },
-  { value: 'government', label: 'Government' },
-  { value: 'education', label: 'Education' },
-  { value: 'other', label: 'Other' },
+  { value: 'healthcare', label: 'Healthcare & Clinical Operations' },
+  { value: 'legal', label: 'Legal Practice & Client Confidentiality' },
 ];
 
 const sizes = [
@@ -34,19 +27,11 @@ const sizes = [
 
 export default function NewOrg() {
   const navigate = useNavigate();
-  const isReadOnly = useIsReadOnly();
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
   const [size, setSize] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // Redirect if in read-only (demo) mode
-  useEffect(() => {
-    if (isReadOnly) {
-      navigate('/dashboard/organizations', { replace: true });
-    }
-  }, [isReadOnly, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

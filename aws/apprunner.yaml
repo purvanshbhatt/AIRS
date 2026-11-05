@@ -1,0 +1,34 @@
+version: 1.0
+# AWS App Runner Configuration for ResilAI Standby Backend
+# Uses the identical production container image built from root Dockerfile.
+runtime: image
+image:
+  type: ecr
+  port: 8000
+  env:
+    ENV: "prod"
+    CLOUD_PROVIDER: "aws"
+    AWS_REGION: "us-east-1"
+    AWS_STANDBY: "true"
+    DEMO_MODE: "false"
+    AUTH_REQUIRED: "true"
+    AIRS_USE_LLM: "true"
+    LLM_PROVIDER: "gemini"
+    LLM_MODEL: "gemini-3-flash"
+    CORS_ALLOW_ORIGINS: "https://resilai.org,https://www.resilai.org,https://app.resilai.org,https://backup-api.resilai.org"
+instance:
+  cpu: "1 vCPU"
+  memory: "2 GB"
+observability:
+  detailedMetrics: true
+healthCheck:
+  protocol: HTTP
+  path: /health
+  interval: 10
+  timeout: 5
+  healthyThreshold: 1
+  unhealthyThreshold: 3
+tags:
+  Project: "ResilAI"
+  Role: "Standby-Compute"
+  CostCenter: "AWS-Activate-Credits"

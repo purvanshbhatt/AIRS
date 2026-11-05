@@ -7,6 +7,10 @@ interface DemoModeContextValue {
   isDemoMode: boolean;
   /** Whether writes are disabled (demo mode = read-only) */
   isReadOnly: boolean;
+  /** Default organization name */
+  organizationName: string;
+  /** Whether this organization is managed by an MSP */
+  isMspTenant: boolean;
   /** Full system status from backend */
   systemStatus: SystemStatus | null;
   /** Whether the context is still loading */
@@ -42,13 +46,22 @@ export function DemoModeProvider({ children }: DemoModeProviderProps) {
     fetchStatus();
   }, []);
 
-  const value = useMemo<DemoModeContextValue>(() => ({
-    isDemoMode: systemStatus?.demo_mode ?? false,
-    isReadOnly: systemStatus?.is_read_only ?? false,
-    systemStatus,
-    isLoading,
-    refresh: fetchStatus,
-  }), [systemStatus, isLoading]);
+  const value = useMemo<DemoModeContextValue>(() => {
+    const isLocalDemo = typeof window !== 'undefined' && (
+      localStorage.getItem('resilai_demo_user') === 'true' ||
+      window.location.search.includes('env=demo') ||
+      window.location.hostname.includes('demo')
+    );
+    return {
+      isDemoMode: Boolean(systemStatus?.demo_mode || isLocalDemo),
+      isReadOnly: systemStatus?.is_read_only ?? false,
+      organizationName: 'ResilAI Sandbox Clinic',
+      isMspTenant: true, // Hardcoded for MVP validation
+      systemStatus,
+      isLoading,
+      refresh: fetchStatus,
+    };
+  }, [systemStatus, isLoading]);
 
   return (
     <DemoModeContext.Provider value={value}>

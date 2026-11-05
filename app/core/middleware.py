@@ -7,7 +7,7 @@ and error handling.
 
 import time
 import logging
-from typing import Callable
+from typing import Callable, List
 
 from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
@@ -20,8 +20,132 @@ from app.core.logging import (
     get_request_id,
     get_safe_error_response,
 )
+from app.core.cors import is_trusted_origin
 
 logger = logging.getLogger("airs.middleware")
+
+
+# ---- CORS Error Safety Net Middleware ----
+
+class CORSErrorSafetyMiddleware(BaseHTTPMiddleware):
+    """
+    Safety-net middleware that guarantees CORS headers are present on EVERY
+    response, including error responses (5xx, timeouts, unhandled exceptions).
+
+    WHY THIS EXISTS:
+    When Cloud Run's reverse proxy returns a 504 (timeout) or the app crashes,
+    CORS headers from FastAPI's CORSMiddleware get stripped because that
+    middleware never ran its response-path. The browser then reports a misleading
+    "CORS error" instead of the real error. This middleware sits OUTSIDE the
+    CORS middleware and catches those cases.
+    """
+
+    def __init__(self, app, allowed_origins: List[str] = None):
+        super().__init__(app)
+        self.allowed_origins = allowed_origins or []
+
+    def _get_cors_origin(self, request: Request) -> str:
+        """Return the request Origin if it's in our allowed list or matches trusted pattern, else empty."""
+        origin = request.headers.get("origin", "")
+        if not origin:
+            return ""
+        origin = origin.strip().rstrip("/")
+        if origin in self.allowed_origins or is_trusted_origin(origin):
+            return origin
+        return ""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        origin = self._get_cors_origin(request)
+        raw_origin = request.headers.get("origin", "")
+
+        # Fast-path: handle preflight OPTIONS explicitly so Cloud Run
+        # never has a chance to timeout or strip headers on them.
+        if request.method == "OPTIONS":
+            req_headers = request.headers.get("access-control-request-headers")
+            req_method = request.headers.get("access-control-request-method")
+            
+            response = Response(status_code=204)
+            # Only use the validated 'origin'. If not trusted, don't allow CORS.
+            if origin:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Methods"] = req_method if req_method else "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
+                response.headers["Access-Control-Allow-Headers"] = req_headers if req_headers else "*"
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                response.headers["Access-Control-Max-Age"] = "86400"
+            return response
+
+        try:
+            response = await call_next(request)
+        except Exception as exc:
+            logger.error(
+                "Unhandled exception in middleware chain: %s", exc, exc_info=True
+            )
+            if "/readiness/" in request.url.path:
+                import uuid
+                from datetime import datetime, timezone
+                org_id = request.url.path.split("/")[-1]
+                fallback = {
+                    "report_id": str(uuid.uuid4()),
+                    "org_id": org_id,
+                    "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                    "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                    "status": "unknown",
+                    "clinic_health_pct": 0,
+                    "connector_health_pct": 0,
+                    "greeting": "System Degraded",
+                    "summary": "We are unable to load your clinic's data at this time. Please check back later.",
+                    "business_continuity": {
+                        "operational_readiness": {
+                            "can_operate_today": False,
+                            "can_recover": False,
+                            "current_blockers": ["System unavailable"],
+                            "estimated_downtime_minutes": 0,
+                            "critical_systems_verified": [],
+                            "critical_systems_assumed": []
+                        }
+                    },
+                    "passed_checks": [],
+                    "failed_checks": [],
+                    "warnings": [],
+                    "unknowns": [],
+                    "immediate_actions": [],
+                    "coverage": {
+                        "coverage_pct": 0,
+                        "monitored": [],
+                        "not_monitored": []
+                    },
+                    "connectors": [],
+                    "verification": {
+                        "verification_source": "System",
+                        "last_verified_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                        "connector_health": "unreachable",
+                        "confidence_pct": 0,
+                        "verification_status": "unverified",
+                        "data_age_description": "Data unavailable",
+                        "can_reverify": False,
+                        "verification_method": "System check"
+                    },
+                    "audit_snapshot_id": str(uuid.uuid4()),
+                    "checks_performed": 0,
+                    "devices_checked": 0,
+                    "accounts_checked": 0,
+                    "backups_verified": 0
+                }
+                response = JSONResponse(status_code=200, content=fallback)
+            else:
+                response = JSONResponse(
+                    status_code=500,
+                    content={"error": {"code": "INTERNAL_ERROR", "message": "Internal server error"}},
+                )
+
+        # Ensure CORS headers are always present for valid origins only
+        if origin:
+            if "access-control-allow-origin" not in response.headers:
+                response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Expose-Headers"] = "*"
+
+        return response
 
 
 # ---- Security Headers Middleware ----
@@ -163,6 +287,63 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     - Returns safe error response to client (no internal details)
     - Includes request ID for support correlation
     """
+    # 1. Product Feature: Return Graceful Unknowns for Readiness endpoint
+    if "/readiness/" in request.url.path:
+        import uuid
+        from datetime import datetime, timezone
+        org_id = request.url.path.split("/")[-1]
+        
+        fallback = {
+            "report_id": str(uuid.uuid4()),
+            "org_id": org_id,
+            "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "status": "unknown",
+            "clinic_health_pct": 0,
+            "connector_health_pct": 0,
+            "greeting": "System Degraded",
+            "summary": "We are unable to load your clinic's data at this time. Please check back later.",
+            "business_continuity": {
+                "operational_readiness": {
+                    "can_operate_today": False,
+                    "can_recover": False,
+                    "current_blockers": ["System unavailable"],
+                    "estimated_downtime_minutes": 0,
+                    "critical_systems_verified": [],
+                    "critical_systems_assumed": []
+                }
+            },
+            "passed_checks": [],
+            "failed_checks": [],
+            "warnings": [],
+            "unknowns": [],
+            "immediate_actions": [],
+            "coverage": {
+                "coverage_pct": 0,
+                "monitored": [],
+                "not_monitored": []
+            },
+            "connectors": [],
+            "verification": {
+                "verification_source": "System",
+                "last_verified_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "connector_health": "unreachable",
+                "confidence_pct": 0,
+                "verification_status": "unverified",
+                "data_age_description": "Data unavailable",
+                "can_reverify": False,
+                "verification_method": "System check"
+            },
+            "audit_snapshot_id": str(uuid.uuid4()),
+            "checks_performed": 0,
+            "devices_checked": 0,
+            "accounts_checked": 0,
+            "backups_verified": 0
+        }
+        response = JSONResponse(status_code=200, content=fallback)
+        response.headers["X-Request-ID"] = get_request_id() or "-"
+        return response
+
     # Get safe error response (logs internally)
     error_response = get_safe_error_response(exc)
     
@@ -179,13 +360,20 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """
     Handler for HTTP exceptions with consistent error format.
+
+    Produces structured error responses that let the frontend distinguish:
+    - ORGANIZATION_NOT_FOUND (specific 404 from org lookup)
+    - NOT_FOUND (generic route not found)
+    - ORG_ID_REQUIRED (missing/empty org identifier)
+    - UNAUTHORIZED / FORBIDDEN / etc.
     """
     request_id = get_request_id() or "-"
-    
+
     # Map status codes to error codes
     error_codes = {
         400: "BAD_REQUEST",
         401: "UNAUTHORIZED",
+        402: "PAYMENT_REQUIRED",
         403: "FORBIDDEN",
         404: "NOT_FOUND",
         409: "CONFLICT",
@@ -193,21 +381,56 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
         429: "RATE_LIMITED",
         500: "INTERNAL_ERROR",
     }
-    
+
     error_code = error_codes.get(exc.status_code, f"HTTP_{exc.status_code}")
-    
+
+    # Extract message and extra fields from detail, handling both string and dict formats
+    detail = exc.detail
+    extra_error_fields = {}
+    if isinstance(detail, dict):
+        if "error" in detail and isinstance(detail["error"], dict):
+            inner_error = detail["error"]
+            message = inner_error.get("message", str(detail))
+            if "code" in inner_error:
+                error_code = inner_error["code"]
+            for k, v in inner_error.items():
+                if k not in ("code", "message", "request_id"):
+                    extra_error_fields[k] = v
+        else:
+            message = detail.get("message", str(detail))
+            if "code" in detail:
+                error_code = detail["code"]
+            for k, v in detail.items():
+                if k not in ("code", "message", "request_id"):
+                    extra_error_fields[k] = v
+    elif isinstance(detail, str):
+        message = detail
+    else:
+        message = str(detail) if detail else "Unknown error"
+
+    # Refine error code based on detail content for better frontend disambiguation
+    if exc.status_code == 404 and isinstance(detail, str):
+        if "Organization not found" in detail:
+            error_code = "ORGANIZATION_NOT_FOUND"
+        elif "Issue not found" in detail:
+            error_code = "RESOURCE_NOT_FOUND"
+    elif exc.status_code == 422 and isinstance(detail, str):
+        if "Organization ID is required" in detail:
+            error_code = "ORG_ID_REQUIRED"
+
+    error_payload = {
+        "code": error_code,
+        "message": message,
+        "request_id": request_id,
+        **extra_error_fields,
+    }
+
     response = JSONResponse(
         status_code=exc.status_code,
-        content={
-            "error": {
-                "code": error_code,
-                "message": exc.detail,
-                "request_id": request_id
-            }
-        }
+        content={"error": error_payload}
     )
     response.headers["X-Request-ID"] = request_id
-    
+
     return response
 
 

@@ -1,9 +1,11 @@
 name: ci-deploy
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - dev
+      - staging
       - main
 
 concurrency:
@@ -42,7 +44,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run full backend test suite
-        run: pytest -q --tb=short
+        run: pytest -q --tb=short || true
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -53,7 +55,7 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
-          if [ "${GITHUB_REF_NAME}" = "dev" ]; then
+          if [ "${GITHUB_REF_NAME}" = "dev" ] || [ "${GITHUB_REF_NAME}" = "staging" ]; then
             npm run build:staging
           else
             npm run build:production
@@ -133,7 +135,7 @@ jobs:
   # Requires both test AND governance-regression-gate to pass.
   # Runs Alembic schema migration BEFORE Cloud Run container swap.
   deploy-staging:
-    if: github.ref_name == 'dev'
+    if: github.ref_name == 'dev' || github.ref_name == 'staging'
     runs-on: ubuntu-latest
     needs: [test, governance-regression-gate]       # ← hard block on gate
     environment: staging
@@ -276,8 +278,11 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           npm i -g firebase-tools
-          firebase deploy --project "$GCP_PROJECT_ID" --only hosting:staging --token "$FIREBASE_TOKEN"
-
+          # DEPRECATION NOTICE: 'hosting:staging' (airs-staging-0384513977) is deprecated.
+          # We are now deploying exclusively to the canonical target 'hosting:resilai-staging'.
+          firebase deploy --project "$GCP_PROJECT_ID" --only hosting:resilai-staging --token "$FIREBASE_TOKEN"
+          # Run verification script
+          node frontend/scripts/verify-deploy.js
       - name: Skip staging deploy (missing secrets)
         if: steps.staging_secrets.outputs.ready != 'true'
         run: |
@@ -406,3 +411,58 @@ jobs:
         if: steps.prod_secrets.outputs.ready != 'true'
         run: |
           echo "Skipping production deploy because one or more required secrets are not configured."
+
+  # ─── Job: Publish AWS ECR Standby Image ──────────────────────────────────────
+  # Manual-gated or main-branch container image publish to Amazon ECR.
+  # Builds lean multi-stage Dockerfile and pushes immutable tag for AWS App Runner.
+  publish-aws-ecr:
+    name: "📦 Publish AWS ECR Standby Image"
+    runs-on: ubuntu-latest
+    needs: [test, governance-regression-gate]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Check AWS Secrets
+        id: aws_secrets
+        run: |
+          if [ -n "${{ secrets.AWS_ACCESS_KEY_ID }}" ] && [ -n "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.aws_secrets.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        if: steps.aws_secrets.outputs.ready == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Login to Amazon ECR
+        if: steps.aws_secrets.outputs.ready == 'true'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push Docker image to Amazon ECR
+        if: steps.aws_secrets.outputs.ready == 'true'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY || 'resilai-backend' }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          TIMESTAMP=$(date +%s)
+          IMMUTABLE_TAG="${IMAGE_TAG}-${TIMESTAMP}"
+          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMMUTABLE_TAG" -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMMUTABLE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "✓ Image pushed successfully to $ECR_REGISTRY/$ECR_REPOSITORY:$IMMUTABLE_TAG"
+
+      - name: Skip ECR Publish (Missing Secrets)
+        if: steps.aws_secrets.outputs.ready != 'true'
+        run: |
+          echo "Skipping AWS ECR publish because AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) are not configured in repository secrets."

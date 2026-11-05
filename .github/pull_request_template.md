@@ -1,22 +1,23 @@
-﻿## Summary
-- [ ] Describe what changed
-- [ ] Link related issue(s)
+## Summary
+
+Brief description of the PR changes.
 
 ## Type of Change
-- [ ] Documentation
-- [ ] CI/CD
+
 - [ ] Bug fix
-- [ ] Feature
-- [ ] Breaking change
+- [ ] New feature (non-breaking)
+- [ ] Documentation update
+- [ ] DevOps / Infrastructure update
+- [ ] Deterministic engine calibration
 
-## Validation
-- [ ] Backend tests pass (`pytest -q`)
-- [ ] Frontend build passes (`npm run build:staging`)
-- [ ] No secrets added to repository
+## Verification & Testing
 
-## Security and Compliance
-- [ ] Changes follow `SECURITY.md`
-- [ ] Sensitive config stays in env/secret manager
+- [ ] `pytest` passed locally
+- [ ] Frontend build compiled without errors (`npm run build`)
+- [ ] Zero LLM scoring invariant verified (`—` used for null states)
 
-## Notes
-- Additional rollout or migration notes:
+## Checklist
+
+- [ ] Code conforms to `.editorconfig` rules
+- [ ] Security scan passed
+- [ ] No secrets committed

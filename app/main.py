@@ -9,6 +9,7 @@ from app.core.config import settings, Environment, validate_deployment, Deployme
 from app.core.logging import setup_logging, event_logger
 from app.core.cors import get_allowed_origins, log_cors_config
 from app.core.middleware import (
+    CORSErrorSafetyMiddleware,
     RequestIdMiddleware,
     SecurityHeadersMiddleware,
     global_exception_handler,
@@ -23,6 +24,8 @@ import secrets
 from app.db.database import engine, Base
 from app.api.routes.health import router as health_router
 from app.api import router as api_router
+from app.api.clinic.router import router as clinic_router
+from app.api.public import router as public_router
 from app.services.audit import register_system_auditor
 
 import logging
@@ -64,7 +67,13 @@ def _validate_environment():
 _validate_environment()
 
 # ── Rate Limiter ──
-limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+def extract_real_ip(request: Request) -> str:
+    x_forwarded_for = request.headers.get("X-Forwarded-For")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.client.host if request.client else "127.0.0.1"
+
+limiter = Limiter(key_func=extract_real_ip, default_limits=["200/minute"])
 
 # Initialize Firebase Admin SDK (for token verification)
 def init_firebase():
@@ -109,6 +118,9 @@ except Exception as e:
 # since there is no persistent migration state to track.
 def _auto_create_sqlite_tables():
     """Create all tables for SQLite databases (ephemeral filesystem on Cloud Run)."""
+    import os
+    if os.environ.get("TESTING") == "true":
+        return
     if settings.DATABASE_URL.startswith("sqlite"):
         import app.models  # noqa: F401 — registers all models with Base
         Base.metadata.create_all(bind=engine)
@@ -142,6 +154,30 @@ _sync_firestore_on_startup()
 # Register the system auditing trace to record all configuration mutations
 register_system_auditor()
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifecycle event handler for background tasks."""
+    import asyncio
+    
+    # --- Startup ---
+    poll_task = asyncio.create_task(poll_wazuh_telemetry())
+    
+    from app.tasks.scheduler import scheduler
+    scheduler.start()
+
+    from app.tasks.intelligence_task import start_intelligence_scheduler
+    start_intelligence_scheduler()
+    
+    yield
+    
+    # --- Shutdown ---
+    scheduler.stop()
+    from app.tasks.intelligence_task import stop_intelligence_scheduler
+    stop_intelligence_scheduler()
+    poll_task.cancel()
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="ResilAI - AI Incident Readiness Score API",
@@ -150,6 +186,7 @@ app = FastAPI(
     docs_url=None,
     redoc_url=None,
     openapi_url=None,
+    lifespan=lifespan,
 )
 
 async def poll_wazuh_telemetry():
@@ -213,33 +250,18 @@ async def poll_wazuh_telemetry():
             
         await asyncio.sleep(60)
 
-@app.on_event("startup")
-async def start_background_tasks():
-    """Start background tasks and schedulers."""
-    import asyncio
-    asyncio.create_task(poll_wazuh_telemetry())
-    
-    # Start the global task scheduler
-    from app.tasks.scheduler import scheduler
-    scheduler.start()
 
-    # Start the intelligence task scheduler
-    from app.tasks.intelligence_task import start_intelligence_scheduler
-    start_intelligence_scheduler()
-
-@app.on_event("shutdown")
-async def stop_background_tasks():
-    """Stop all background tasks."""
-    from app.tasks.scheduler import scheduler
-    scheduler.stop()
-
-    # Stop the intelligence task scheduler
-    from app.tasks.intelligence_task import stop_intelligence_scheduler
-    stop_intelligence_scheduler()
 
 security = HTTPBasic()
 
+_DEFAULT_DOCS_PASSWORD = "resilai_docs_admin"
+
+
 def get_docs_username(credentials: HTTPBasicCredentials = Depends(security)):
+    # In prod-like environments the docs stay hidden unless an operator set a
+    # real DOCS_PASSWORD; the shipped default must never guard a live service.
+    if settings.is_prod and settings.DOCS_PASSWORD == _DEFAULT_DOCS_PASSWORD:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     correct_username = secrets.compare_digest(credentials.username, settings.DOCS_USERNAME)
     correct_password = secrets.compare_digest(credentials.password, settings.DOCS_PASSWORD)
     if not (correct_username and correct_password):
@@ -262,10 +284,19 @@ async def get_redoc_documentation(username: str = Depends(get_docs_username)):
 async def openapi(username: str = Depends(get_docs_username)):
     return get_openapi(title=app.title, version=app.version, routes=app.routes)
 
+@app.get("/debug/ip", include_in_schema=False)
+async def debug_ip(request: Request):
+    return {
+        "x_forwarded_for": request.headers.get("X-Forwarded-For"),
+        "client_host": request.client.host if request.client else None,
+        "extracted_ip": extract_real_ip(request)
+    }
+
 
 # Attach rate limiter
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# app.state.limiter = limiter
+# app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# app.add_middleware(SlowAPIMiddleware)
 
 # Add request ID middleware (must be first to capture all requests)
 app.add_middleware(RequestIdMiddleware)
@@ -288,15 +319,20 @@ cors_origins = get_allowed_origins(
 log_cors_config(cors_origins, is_production=is_strict_cors)
 
 # Configure CORS middleware
-# Explicitly allow Authorization header for Firebase token auth
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
+    allow_origin_regex=r"^https://([a-zA-Z0-9\-]+\.)*(resilai\.org|web\.app|firebaseapp\.com|run\.app)$",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
-    expose_headers=["X-Request-ID"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+# CORS Error Safety Net — MUST be added LAST so it wraps EVERYTHING.
+# Starlette processes middleware in reverse-add order, so this runs FIRST.
+# Catches errors/timeouts that would otherwise strip CORS headers.
+app.add_middleware(CORSErrorSafetyMiddleware, allowed_origins=cors_origins)
 
 # Register exception handlers for consistent error format
 app.add_exception_handler(Exception, global_exception_handler)
@@ -305,7 +341,9 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 # Include API routes
 app.include_router(health_router)
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api", deprecated=True, include_in_schema=False)
+app.include_router(clinic_router, prefix="/api/clinic")
+app.include_router(public_router, prefix="/api/public", tags=["Public"])
 
 # Internal assurance endpoints (staging-only, gated by ENV check)
 from app.api.internal import router as internal_router

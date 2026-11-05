@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-def test_create_asset(client: TestClient):
+def test_create_asset(client_with_org: TestClient):
     payload = {
         "name": "Test LLM",
         "asset_type": "model",
@@ -8,14 +8,14 @@ def test_create_asset(client: TestClient):
         "exposure_level": "internal",
         "lifecycle_stage": "production"
     }
-    response = client.post("/api/v1/inventory/assets", json=payload)
+    response = client_with_org.post("/api/v1/inventory/assets", json=payload)
     assert response.status_code == 201
     data = response.json()
     assert data["name"] == "Test LLM"
     assert data["asset_type"] == "model"
     assert "id" in data
 
-def test_list_assets(client: TestClient):
+def test_list_assets(client_with_org: TestClient):
     # First create an asset
     payload = {
         "name": "Another Model",
@@ -24,15 +24,15 @@ def test_list_assets(client: TestClient):
         "exposure_level": "internal",
         "lifecycle_stage": "development"
     }
-    client.post("/api/v1/inventory/assets", json=payload)
+    client_with_org.post("/api/v1/inventory/assets", json=payload)
     
-    response = client.get("/api/v1/inventory/assets")
+    response = client_with_org.get("/api/v1/inventory/assets")
     assert response.status_code == 200
     data = response.json()
     assert "assets" in data
     assert len(data["assets"]) >= 1
 
-def test_get_asset(client: TestClient):
+def test_get_asset(client_with_org: TestClient):
     # First create an asset
     payload = {
         "name": "Model to Get",
@@ -41,16 +41,16 @@ def test_get_asset(client: TestClient):
         "exposure_level": "public",
         "lifecycle_stage": "production"
     }
-    create_resp = client.post("/api/v1/inventory/assets", json=payload)
+    create_resp = client_with_org.post("/api/v1/inventory/assets", json=payload)
     asset_id = create_resp.json()["id"]
     
-    response = client.get(f"/api/v1/inventory/assets/{asset_id}")
+    response = client_with_org.get(f"/api/v1/inventory/assets/{asset_id}")
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == asset_id
     assert data["name"] == "Model to Get"
 
-def test_update_asset(client: TestClient):
+def test_update_asset(client_with_org: TestClient):
     # First create an asset
     payload = {
         "name": "Model to Update",
@@ -59,7 +59,7 @@ def test_update_asset(client: TestClient):
         "exposure_level": "internal",
         "lifecycle_stage": "testing"
     }
-    create_resp = client.post("/api/v1/inventory/assets", json=payload)
+    create_resp = client_with_org.post("/api/v1/inventory/assets", json=payload)
     asset_id = create_resp.json()["id"]
     
     # Update it
@@ -67,14 +67,14 @@ def test_update_asset(client: TestClient):
         "name": "Updated Model",
         "lifecycle_stage": "production"
     }
-    update_resp = client.patch(f"/api/v1/inventory/assets/{asset_id}", json=update_payload)
+    update_resp = client_with_org.patch(f"/api/v1/inventory/assets/{asset_id}", json=update_payload)
     assert update_resp.status_code == 200
     data = update_resp.json()
     assert data["name"] == "Updated Model"
     assert data["lifecycle_stage"] == "production"
     assert data["version"] == 2
 
-def test_get_asset_versions(client: TestClient):
+def test_get_asset_versions(client_with_org: TestClient):
     # First create an asset
     payload = {
         "name": "Versioned Model",
@@ -83,23 +83,23 @@ def test_get_asset_versions(client: TestClient):
         "exposure_level": "internal",
         "lifecycle_stage": "testing"
     }
-    create_resp = client.post("/api/v1/inventory/assets", json=payload)
+    create_resp = client_with_org.post("/api/v1/inventory/assets", json=payload)
     asset_id = create_resp.json()["id"]
     
     # Update it
     update_payload = {
         "name": "Versioned Model Updated",
     }
-    client.patch(f"/api/v1/inventory/assets/{asset_id}", json=update_payload)
+    client_with_org.patch(f"/api/v1/inventory/assets/{asset_id}", json=update_payload)
     
-    response = client.get(f"/api/v1/inventory/assets/{asset_id}/versions")
+    response = client_with_org.get(f"/api/v1/inventory/assets/{asset_id}/versions")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
     assert data[0]["version_number"] == 2
     assert data[1]["version_number"] == 1
 
-def test_asset_relationships(client: TestClient):
+def test_asset_relationships(client_with_org: TestClient):
     # Create source asset
     src_payload = {
         "name": "Source Model",
@@ -108,7 +108,7 @@ def test_asset_relationships(client: TestClient):
         "exposure_level": "internal",
         "lifecycle_stage": "production"
     }
-    src_resp = client.post("/api/v1/inventory/assets", json=src_payload)
+    src_resp = client_with_org.post("/api/v1/inventory/assets", json=src_payload)
     src_id = src_resp.json()["id"]
     
     # Create target asset
@@ -119,7 +119,7 @@ def test_asset_relationships(client: TestClient):
         "exposure_level": "internal",
         "lifecycle_stage": "development"
     }
-    tgt_resp = client.post("/api/v1/inventory/assets", json=tgt_payload)
+    tgt_resp = client_with_org.post("/api/v1/inventory/assets", json=tgt_payload)
     tgt_id = tgt_resp.json()["id"]
     
     # Create relationship
@@ -127,11 +127,11 @@ def test_asset_relationships(client: TestClient):
         "target_asset_id": tgt_id,
         "relationship_type": "feeds_into"
     }
-    rel_resp = client.post(f"/api/v1/inventory/assets/{src_id}/relationships", json=rel_payload)
+    rel_resp = client_with_org.post(f"/api/v1/inventory/assets/{src_id}/relationships", json=rel_payload)
     assert rel_resp.status_code == 201
     
     # Get graph
-    graph_resp = client.get("/api/v1/inventory/graph")
+    graph_resp = client_with_org.get("/api/v1/inventory/graph")
     assert graph_resp.status_code == 200
     graph = graph_resp.json()
     assert len(graph["nodes"]) >= 2

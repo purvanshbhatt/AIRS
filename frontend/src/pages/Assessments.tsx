@@ -5,9 +5,23 @@ import {
   Card,
   CardContent,
   Button,
-  EmptyState,
   ListSkeleton,
 } from '../components/ui';
+
+function EmptyState({ icon: Icon, title, description, action }: { icon?: any; title: string; description?: string; action?: { label: string; href?: string; onClick?: () => void } }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      {Icon && <Icon className="w-12 h-12 text-slate-400 mb-4" />}
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+      {description && <p className="text-sm text-slate-500 max-w-sm mt-1">{description}</p>}
+      {action && (
+        <a href={action.href} className="mt-4 inline-block bg-primary-600 text-white px-4 py-2 rounded-xl text-sm font-medium">
+          {action.label}
+        </a>
+      )}
+    </div>
+  );
+}
 import {
   ClipboardList,
   Plus,
@@ -17,8 +31,9 @@ import {
   Clock,
   ChevronRight,
   PlugZap,
+  Archive,
 } from 'lucide-react';
-import { getAssessments, ApiRequestError } from '../api';
+import { getAssessments, deleteAssessment, ApiRequestError } from '../api';
 import { useIsReadOnly } from '../contexts';
 import type { Assessment } from '../types';
 
@@ -55,6 +70,18 @@ export default function Assessments() {
     loadData();
   }, []);
 
+  // Handle Archive
+  const handleArchive = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await deleteAssessment(id);
+      setAssessments(assessments.filter((a) => a.id !== id));
+    } catch (err) {
+      console.error('Failed to archive assessment:', err);
+    }
+  };
+
   // Filter assessments
   const filteredAssessments = assessments.filter((a) => {
     // Status filter
@@ -65,8 +92,8 @@ export default function Assessments() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
-        a.title.toLowerCase().includes(query) ||
-        a.organization_name?.toLowerCase().includes(query)
+        (a.title?.toLowerCase().includes(query) ?? false) ||
+        (a.organization_name?.toLowerCase().includes(query) ?? false)
       );
     }
     return true;
@@ -123,7 +150,7 @@ export default function Assessments() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Assessments</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-              {assessments.length} assessment{assessments.length !== 1 ? 's' : ''}
+              How is our compliance posture trending? ({assessments.length} assessment{assessments.length !== 1 ? 's' : ''})
             </p>
           </div>
         </div>
@@ -273,7 +300,15 @@ export default function Assessments() {
                             {assessment.status === 'completed' ? 'Completed' : 'Resume Draft'}
                           </span>
 
-                          <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                          <button
+                            onClick={(e) => handleArchive(e, assessment.id)}
+                            className="p-1.5 ml-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                            title="Archive Assessment"
+                          >
+                            <Archive className="w-5 h-5" />
+                          </button>
+
+                          <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500 ml-2" />
                         </div>
                       </div>
                     </CardContent>

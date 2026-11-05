@@ -6,15 +6,64 @@ Calculates readiness scores based on assessment answers.
 Includes a "visibility penalty" for critical metrics where "Unknown/Not Measured"
 responses indicate a governance gap. These are penalized more heavily than
 low-but-measured values to incentivize instrumentation and measurement.
+
+INVARIANT — Deterministic Scoring (ADR-001, ADR-007):
+    This module is the single source of all readiness scoring calculations.
+    It MUST NOT import any narrative, AI, or LLM client modules. Scoring
+    remains purely rule-based and traceable. Tests in
+    ``tests/test_llm_isolation.py`` enforce this at CI time.
+
+    ``calculate_readiness_delta()`` below is the single entry-point exposed
+    to the rest of the codebase for delta computation. Other modules
+    (``readiness_drivers.py``, ``readiness_ledger.py``,
+    ``decision_engine.py``) MUST consume its output rather than reimplement
+    scoring logic.
 """
 
 from typing import Dict, Any, List, Optional, Tuple
 from app.core.rubric import RUBRIC, get_question
 
 
+# ── Isolation guard (ADR-007) ─────────────────────────────────────────
+# If any forbidden LLM/narrative module slips into this file's import graph,
+# fail fast at module load time. This is a unit-test-enforced invariant;
+# tests/test_llm_isolation.py asserts the absence of these names at byte
+# code level. The runtime guard is a belt-and-suspenders defense.
+_FORBIDDEN_IMPORT_HINTS = (
+    "google.genai",
+    "google.generativeai",
+    "ai_narrative",
+    "llm_narrative",
+    "app.services.intelligence",
+)
+_own_module_globals = set(globals().keys())
+
+
+def __verify_no_llm_imports() -> None:
+    import sys as _sys
+    loaded = {n for n in _sys.modules.keys()}
+    forbidden_in_load = [n for n in loaded if any(h in n for h in _FORBIDDEN_IMPORT_HINTS)]
+    # Filter: only flag if the forbidden module was loaded by this scoring module
+    # (pure presence in sys.modules is not a violation, but as a stricter posture
+    # we disallow any of the well-known LLM modules being in the loaded set at all).
+    forbidden_loaded = [
+        n for n in forbidden_in_load
+        if any(n == h or n.endswith("." + h) for h in _FORBIDDEN_IMPORT_HINTS)
+    ]
+    if forbidden_loaded:
+        raise RuntimeError(
+            "Deterministic scoring invariant violated (ADR-007): "
+            f"scoring.py and its imports loaded forbidden modules: {forbidden_loaded}"
+        )
+
+
+__verify_no_llm_imports()
+
+
 class ScoringError(Exception):
     """Raised when scoring encounters an error."""
     pass
+
 
 
 # Questions that are critical for operational visibility. When these are
@@ -383,3 +432,172 @@ def calculate_scores(answers: Dict[str, Any], verification_statuses: Dict[str, s
     base_result["stale_finding_count"] = len(stale_findings)
     
     return base_result
+
+
+def calculate_readiness_delta(
+    assessment_score: float,
+    verified_controls: List[Dict[str, Any]],
+    verified_coverages: List[Dict[str, Any]],
+    lifecycle_risks: List[Dict[str, Any]],
+    exposure_risks: List[Dict[str, Any]],
+    previous_readiness_score: Optional[float] = None
+) -> Dict[str, Any]:
+    """
+    Readiness Impact Engine.
+
+    Single source of readiness delta computation per ADR-007. All other
+    consumers (readiness drivers, ledger writes, decision engine what-if
+    projections) MUST call this function rather than reimplement scoring.
+
+    Overlays Verification, Coverage, Lifecycle, and Exposure modifiers
+    onto the baseline Assessment Score to calculate Final Readiness.
+
+    Returns a dict with:
+        - ``assessment_score`` (float, 0-100)
+        - ``modifiers`` (dict): verification_bonus, coverage_bonus,
+          lifecycle_penalty, exposure_penalty (each a float, signed).
+        - ``final_readiness`` (float, 0-100, clamped).
+        - ``previous_readiness`` (float | None).
+        - ``readiness_delta`` (float | None) — equal to
+          final_readiness - previous_readiness_score when previous is
+          supplied. Equality with ``calculate_readiness_delta`` after a
+          real database state change is enforced by
+          ``tests/test_decision_drift_guard.py``.
+        - ``reasons`` (list[dict]): structured `{category, control_family,
+          item, impact, reason}` records for each modifier applied.
+    """
+    reasons = []
+
+    # 1. Verification Modifier (Max +15)
+    verification_modifier = 0.0
+    for control in verified_controls:
+        severity = control.get("severity", "standard").lower()
+        if severity == "critical":
+            bonus = 3.0
+            desc = "Critical Control Verified"
+        elif severity == "important":
+            bonus = 2.0
+            desc = "Important Control Verified"
+        else:
+            bonus = 1.0
+            desc = "Standard Control Verified"
+            
+        verification_modifier += bonus
+        reasons.append({
+            "category": "Verification",
+            "control_family": control.get("family", "General"),
+            "item": control.get("name", "Unknown Control"),
+            "impact": bonus,
+            "reason": desc
+        })
+    verification_modifier = min(15.0, verification_modifier)
+
+    # 2. Coverage Modifier (Max +10)
+    coverage_modifier = 0.0
+    for cov in verified_coverages:
+        coverage_pct = cov.get("coverage_percentage", 0.0)
+        # e.g., mapping 100% to +3, 90% to +2, 80% to +1, etc.
+        # Deterministic rule for this iteration:
+        if coverage_pct >= 98.0:
+            bonus = 3.0
+        elif coverage_pct >= 90.0:
+            bonus = 2.0
+        elif coverage_pct >= 80.0:
+            bonus = 1.0
+        else:
+            bonus = 0.0
+            
+        if bonus > 0:
+            coverage_modifier += bonus
+            reasons.append({
+                "category": "Coverage",
+                "control_family": cov.get("family", "Deployment"),
+                "item": cov.get("name", "Unknown Asset"),
+                "impact": bonus,
+                "reason": f"Coverage Verified at {coverage_pct}%"
+            })
+    coverage_modifier = min(10.0, coverage_modifier)
+
+    # 3. Lifecycle Modifier (Max -15)
+    lifecycle_modifier = 0.0
+    for risk in lifecycle_risks:
+        is_eol = risk.get("lifecycle_status", "").upper() == "END_OF_LIFE"
+        is_deprecated = risk.get("lifecycle_status", "").upper() == "DEPRECATED"
+        name = risk.get("software_name", "Unknown Asset")
+        
+        penalty = 0.0
+        reason_desc = ""
+        
+        if is_eol:
+            penalty = 2.0
+            reason_desc = "Reached End of Life"
+        elif is_deprecated:
+            penalty = 1.0
+            reason_desc = "Deprecated Software"
+            
+        if penalty > 0:
+            lifecycle_modifier += penalty
+            reasons.append({
+                "category": "Lifecycle",
+                "control_family": "Technology Stack",
+                "item": name,
+                "impact": -penalty,
+                "reason": reason_desc
+            })
+    lifecycle_modifier = min(15.0, lifecycle_modifier)
+
+    # 4. Exposure Modifier (Max -20)
+    exposure_modifier = 0.0
+    for risk in exposure_risks:
+        has_kev = risk.get("kev_count", 0) > 0
+        if not has_kev:
+            continue
+            
+        is_internet_facing = risk.get("is_internet_facing", False)
+        is_critical_asset = risk.get("is_critical_asset", False)
+        name = risk.get("software_name", "Unknown Asset")
+        
+        penalty = 2.0  # Base KEV penalty
+        reason_desc = "Known Exploited Vulnerability Present"
+        
+        if is_internet_facing and is_critical_asset:
+            penalty = 7.0
+            reason_desc = "Known Exploited Vulnerability on Critical Internet-Facing Asset"
+        elif is_critical_asset:
+            penalty = 5.0
+            reason_desc = "Known Exploited Vulnerability on Critical Asset"
+        elif is_internet_facing:
+            penalty = 4.0
+            reason_desc = "Known Exploited Vulnerability on Internet-Facing Asset"
+            
+        exposure_modifier += penalty
+        reasons.append({
+            "category": "Exposure",
+            "control_family": "Technology Stack",
+            "item": name,
+            "impact": -penalty,
+            "reason": reason_desc
+        })
+    exposure_modifier = min(20.0, exposure_modifier)
+    
+    # Calculate Final Readiness (clamped between 0 and 100)
+    raw_readiness = assessment_score + verification_modifier + coverage_modifier - lifecycle_modifier - exposure_modifier
+    final_readiness = max(0.0, min(100.0, round(raw_readiness, 2)))
+    
+    delta = None
+    if previous_readiness_score is not None:
+        delta = round(final_readiness - previous_readiness_score, 2)
+        
+    return {
+        "assessment_score": round(assessment_score, 2),
+        "modifiers": {
+            "verification_bonus": round(verification_modifier, 2),
+            "coverage_bonus": round(coverage_modifier, 2),
+            "lifecycle_penalty": -round(lifecycle_modifier, 2),
+            "exposure_penalty": -round(exposure_modifier, 2)
+        },
+        "final_readiness": final_readiness,
+        "previous_readiness": previous_readiness_score,
+        "readiness_delta": delta,
+        "reasons": reasons
+    }

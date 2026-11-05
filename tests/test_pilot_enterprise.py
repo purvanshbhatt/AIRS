@@ -6,8 +6,8 @@ import pytest
 
 VALID_LEAD = {
     "contact_name": "Jane Smith",
-    "company_name": "Acme Corp",
-    "email": "jane@acme.example",
+    "company_name": "sandbox Corp",
+    "email": "jane@sandbox.example",
     "industry": "Technology / SaaS",
     "company_size": "51-200",
     "team_size": "5-10",

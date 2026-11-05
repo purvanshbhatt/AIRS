@@ -16,8 +16,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
 
-from app.core.auth import User, require_auth
+from app.core.auth import User, require_auth, get_user_org_id
+from app.core.entitlements import require_entitlement
 from app.db.database import get_db
+from app.services.billing.entitlements import Entitlement
 from app.models.telemetry_event import TelemetryEvent
 from app.schemas.telemetry_event import (
     TelemetryBatchIngestRequest,
@@ -32,8 +34,8 @@ logger = logging.getLogger("airs.api.telemetry_events")
 router = APIRouter(prefix="/telemetry-events", tags=["telemetry-events"])
 
 
-def _get_org_id(user: User) -> str:
-    return getattr(user, "org_id", "default-org")
+def _get_org_id(user: User, db: Session) -> str:
+    return get_user_org_id(user, db)
 
 
 # =============================================================================
@@ -51,8 +53,9 @@ async def batch_ingest(
     body: TelemetryBatchIngestRequest,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
+    _ent: None = Depends(require_entitlement(Entitlement.TELEMETRY_INGESTION)),
 ):
-    org_id = _get_org_id(user)
+    org_id = _get_org_id(user, db)
     ingested = 0
     duplicates = 0
     errors = 0

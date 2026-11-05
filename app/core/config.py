@@ -8,7 +8,7 @@ Loads .env file only in local environment mode.
 import os
 import sys
 from enum import Enum
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from functools import lru_cache
 
 from pydantic import field_validator, model_validator
@@ -50,17 +50,34 @@ def validate_deployment() -> None:
         DeploymentValidationError: If ENV doesn't match expected project ID
     """
     env = os.environ.get("ENV", "local").lower()
+    
+    # Detect cloud provider from CLOUD_PROVIDER or ENVIRONMENT
+    cloud_provider = os.environ.get("CLOUD_PROVIDER", "").lower()
+    if not cloud_provider:
+        env_raw = os.environ.get("ENVIRONMENT", "").lower()
+        if env_raw in ("aws", "amazon"):
+            cloud_provider = "aws"
+        elif env_raw in ("gcp", "google"):
+            cloud_provider = "gcp"
+    if not cloud_provider and (os.environ.get("AWS_REGION") or os.environ.get("AWS_EXECUTION_ENV")):
+        cloud_provider = "aws"
+
+    # AWS standby deployment validation
+    if cloud_provider == "aws":
+        print(f"✓ AWS deployment validation passed: PROVIDER=aws, ENV={env}", file=sys.stderr)
+        return
+
+    # Skip validation for local development or standby
+    if env in ("local", "standby", "aws_standby"):
+        print(f"INFO: {env.capitalize()} environment — deployment validation skipped.", file=sys.stderr)
+        return
+
     project_id = os.environ.get("GCP_PROJECT_ID") or os.environ.get("FIREBASE_PROJECT_ID")
     
-    # Skip validation for local development
-    if env == "local":
-        print("INFO: Local environment — deployment validation skipped.", file=sys.stderr)
-        return
-    
     # Validate ENV is recognized
-    if env not in ("demo", "staging", "local", "prod"):
+    if env not in ("demo", "staging", "local", "prod", "standby", "aws_standby"):
         raise DeploymentValidationError(
-            f"Invalid ENV='{env}'. Must be one of: demo, staging, local, prod"
+            f"Invalid ENV='{env}'. Must be one of: demo, staging, local, prod, standby, aws_standby"
         )
     
     # Assert environment constraints
@@ -85,12 +102,21 @@ def validate_deployment() -> None:
     print(f"INFO: Startup assertion passed — ENV={env}, PROJECT={project_id}", file=sys.stderr)
 
 
+class CloudProvider(str, Enum):
+    """Cloud runtime provider."""
+    GCP = "gcp"
+    AWS = "aws"
+    LOCAL = "local"
+
+
 class Environment(str, Enum):
     """Application environment."""
     LOCAL = "local"
     STAGING = "staging"
     DEMO = "demo"
     PROD = "prod"
+    STANDBY = "standby"
+    AWS_STANDBY = "aws_standby"
 
 
 class Settings(BaseSettings):
@@ -105,6 +131,11 @@ class Settings(BaseSettings):
     # Core Settings
     # ===========================================
     ENV: Environment = Environment.LOCAL
+    ENVIRONMENT: Optional[str] = None
+    CLOUD_PROVIDER: CloudProvider = CloudProvider.GCP
+    AWS_REGION: str = "us-east-1"
+    AWS_STANDBY: bool = False
+    DR_DATABASE_RESTORED: bool = False
     APP_NAME: str = "ResilAI"
     APP_VERSION: Optional[str] = None
     DEPLOYED_AT: Optional[str] = None
@@ -142,6 +173,12 @@ class Settings(BaseSettings):
     FIREBASE_AUTH_EMULATOR_HOST: Optional[str] = None
     DOCS_USERNAME: str = "admin"
     DOCS_PASSWORD: str = "resilai_docs_admin"
+    ADMIN_EMAILS: str = "purvansh95b@gmail.com,purvansh@resilai.org"
+    # Firebase UIDs that are exempt from the paywall even when the token has no email claim.
+    ADMIN_UIDS: str = ""
+    # Operator kill-switch: when true, every authenticated user bypasses the paywall.
+    # Never enable in production; account-level exemption uses ADMIN_EMAILS / ADMIN_UIDS.
+    BYPASS_PAYWALL: bool = False
     
     
     # ===========================================
@@ -193,10 +230,44 @@ class Settings(BaseSettings):
     #   python -c "from app.core.security.encryption import generate_encryption_key; print(generate_encryption_key())"
     ENCRYPTION_SECRET: Optional[str] = None
 
+    # ===========================================
+    # Stripe Billing Configuration
+    # ===========================================
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_PRICE_FOUNDING_SYSADMIN: Optional[str] = None  # $149/mo locked seat; falls back to design-partner price
+    STRIPE_PRICE_DESIGN_PARTNER: Optional[str] = None
+    STRIPE_PRICE_GROWTH: Optional[str] = None
+    STRIPE_PRICE_ENTERPRISE: Optional[str] = None
+    # Self-serve checkout behaviour
+    STRIPE_TRIAL_DAYS: int = 14                 # 0 disables the free trial
+    STRIPE_AUTOMATIC_TAX: bool = False          # enable only after Stripe Tax registrations exist
+    STRIPE_PORTAL_CONFIGURATION: Optional[str] = None  # optional billing-portal configuration id
+    FOUNDING_SEATS_TOTAL: int = 50              # cap for the $149 founding-sysadmin plan
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         # env_file is set dynamically in settings_customise_sources
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_cloud_and_env(cls, values: Any) -> Any:
+        """Normalize CLOUD_PROVIDER and ENVIRONMENT aliases."""
+        if isinstance(values, dict):
+            env_raw = str(values.get("ENVIRONMENT") or "").lower()
+            cp_raw = str(values.get("CLOUD_PROVIDER") or "").lower()
+            
+            if env_raw in ("aws", "amazon") or cp_raw in ("aws", "amazon"):
+                values["CLOUD_PROVIDER"] = CloudProvider.AWS
+                if not values.get("ENV") or values.get("ENV") == "local":
+                    values["ENV"] = Environment.STANDBY
+            elif env_raw in ("gcp", "google") or cp_raw in ("gcp", "google"):
+                values["CLOUD_PROVIDER"] = CloudProvider.GCP
+            elif env_raw in ("prod", "staging", "demo", "local", "standby", "aws_standby"):
+                values["ENV"] = env_raw
+        return values
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
@@ -228,7 +299,9 @@ class Settings(BaseSettings):
                 )
 
         if self.ENV in (Environment.PROD, Environment.STAGING, Environment.DEMO):
-            if not self.ENCRYPTION_SECRET:
+            # Allow AWS standby mode without requiring ENCRYPTION_SECRET unless active writes are enabled
+            is_standby_mode = self.AWS_STANDBY or self.ENV == Environment.STANDBY or (self.CLOUD_PROVIDER == CloudProvider.AWS and not self.ENCRYPTION_SECRET)
+            if not self.ENCRYPTION_SECRET and not is_standby_mode:
                 errors.append(
                     f"ENCRYPTION_SECRET is required in {self.ENV.value}. "
                     "Set it via Secret Manager and bind it at deploy time."
@@ -313,6 +386,53 @@ class Settings(BaseSettings):
         return self.AUTH_REQUIRED or self.ENV in (Environment.PROD, Environment.STAGING)
 
     @property
+    def admin_emails_list(self) -> List[str]:
+        """Return parsed list of administrator and testing exempt emails."""
+        return [e.strip().lower() for e in self.ADMIN_EMAILS.split(",") if e.strip()]
+
+    @property
+    def admin_uids_list(self) -> List[str]:
+        """Return parsed list of administrator Firebase UIDs."""
+        return [u.strip() for u in self.ADMIN_UIDS.split(",") if u.strip()]
+
+    def is_admin_email(self, email: Optional[str]) -> bool:
+        """Check if an email qualifies for administrator and paywall testing exemption.
+
+        Exact match against ADMIN_EMAILS, or any address on the resilai.org domain.
+        """
+        if not email or not isinstance(email, str):
+            return False
+        clean = email.strip().lower()
+        if clean in self.admin_emails_list:
+            return True
+        if clean.endswith("@resilai.org"):
+            return True
+        return False
+
+    def is_admin_uid(self, uid: Optional[str]) -> bool:
+        """Check if a Firebase UID is in the ADMIN_UIDS exemption list."""
+        if not uid or not isinstance(uid, str):
+            return False
+        return uid.strip() in self.admin_uids_list
+
+    def is_paywall_exempt_user(self, uid: Optional[str], email: Optional[str]) -> bool:
+        """Single source of truth for the account-level paywall exemption.
+
+        True when:
+          - BYPASS_PAYWALL is explicitly enabled (operator kill-switch), or
+          - the user's email is an administrator email, or
+          - the user's UID is in ADMIN_UIDS.
+
+        Local development with AUTH_REQUIRED=false is NOT exempt, so paywall
+        tests stay meaningful; set BYPASS_PAYWALL=true locally if needed.
+        """
+        if self.BYPASS_PAYWALL:
+            return True
+        if self.is_admin_email(email) or self.is_admin_uid(uid):
+            return True
+        return False
+
+    @property
     def is_llm_enabled(self) -> bool:
         """
         Check if LLM narrative generation is enabled.
@@ -353,6 +473,26 @@ class Settings(BaseSettings):
         accidental data corruption during investor demos or presentations.
         """
         return self.ENV == Environment.DEMO
+
+
+    @property
+    def is_aws(self) -> bool:
+        """Check if running in AWS environment."""
+        return self.CLOUD_PROVIDER == CloudProvider.AWS
+
+    @property
+    def is_gcp(self) -> bool:
+        """Check if running in GCP environment."""
+        return self.CLOUD_PROVIDER == CloudProvider.GCP
+
+    @property
+    def is_aws_standby_locked(self) -> bool:
+        """
+        In AWS Standby mode, stateful database operations are blocked
+        until an operator explicitly performs disaster-recovery database restoration
+        (DR_DATABASE_RESTORED=true).
+        """
+        return self.CLOUD_PROVIDER == CloudProvider.AWS and self.AWS_STANDBY and not self.DR_DATABASE_RESTORED
 
 
 def _load_env_file() -> Optional[str]:
@@ -406,6 +546,7 @@ except Exception as e:
 __all__ = [
     "Settings", 
     "Environment", 
+    "CloudProvider",
     "settings", 
     "get_settings",
     "DeploymentValidationError",

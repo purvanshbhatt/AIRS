@@ -4,6 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
 
+import os
+from sqlalchemy.pool import StaticPool
+
 def get_engine_args():
     """
     Get SQLAlchemy engine configuration based on database type.
@@ -15,9 +18,10 @@ def get_engine_args():
     
     # SQLite configuration
     if db_url.startswith("sqlite"):
-        return {
-            "connect_args": {"check_same_thread": False},
-        }
+        args = {"connect_args": {"check_same_thread": False}}
+        if db_url == "sqlite://" or db_url == "sqlite:///:memory:" or os.environ.get("TESTING") == "true":
+            args["poolclass"] = StaticPool
+        return args
     
     # PostgreSQL configuration (Cloud SQL / standard Postgres)
     # Pool settings optimized for Cloud Run's autoscaling
@@ -55,7 +59,22 @@ Base = declarative_base()
 
 
 def get_db():
-    """Dependency to get primary database session (Read/Write)."""
+    """Dependency to get primary database session (Read/Write).
+    
+    In AWS Standby mode prior to explicit disaster recovery restoration,
+    state-dependent endpoints fail safely with 503 Service Unavailable.
+    """
+    if getattr(settings, "is_aws_standby_locked", False):
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": {
+                    "code": "DISASTER_RECOVERY_DATABASE_NOT_READY",
+                    "message": "Disaster recovery standby is active. Database restoration from S3 backup has not yet been activated.",
+                }
+            }
+        )
     db = SessionLocal()
     try:
         yield db
@@ -64,8 +83,20 @@ def get_db():
 
 def get_replica_db():
     """Dependency to get replica database session (Read-Only)."""
+    if getattr(settings, "is_aws_standby_locked", False):
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": {
+                    "code": "DISASTER_RECOVERY_DATABASE_NOT_READY",
+                    "message": "Disaster recovery standby is active. Database restoration from S3 backup has not yet been activated.",
+                }
+            }
+        )
     db = ReplicaSessionLocal()
     try:
         yield db
     finally:
         db.close()
+

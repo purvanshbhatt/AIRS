@@ -202,7 +202,8 @@ async def list_assessments(
     user: User = Depends(require_auth)
 ):
     """List assessments owned by the current user, optionally filtered by organization."""
-    ensure_demo_seed_data(db, user.uid if user else None)
+    # NOTE: ensure_demo_seed_data removed — demo seeding belongs in demo
+    # environment startup, not in production API paths.
     service = get_assessment_service(db, user)
     assessments = service.get_all(organization_id=organization_id, skip=skip, limit=limit)
     
@@ -347,9 +348,9 @@ async def delete_assessment(
     user: User = Depends(require_auth),
     _: None = Depends(require_writable)
 ):
-    """Delete an assessment (must be owned by current user)."""
+    """Archive an assessment (soft delete - must be owned by current user)."""
     service = get_assessment_service(db, user)
-    if not service.delete(assessment_id):
+    if not service.archive(assessment_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Assessment not found: {assessment_id}"

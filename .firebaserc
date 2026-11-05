@@ -13,6 +13,9 @@
         ],
         "staging": [
           "airs-staging-0384513977"
+        ],
+        "resilai-staging": [
+          "resilai-staging"
         ]
       }
     }

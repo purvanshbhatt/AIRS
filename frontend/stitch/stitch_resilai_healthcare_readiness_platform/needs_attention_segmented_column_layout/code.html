@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ResilAI - Needs Attention</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-primary": "#006c49",
+                      "surface-bright": "#31394d",
+                      "outline": "#86948a",
+                      "on-secondary-fixed": "#2a1700",
+                      "ready-emerald": "#10B981",
+                      "on-error": "#690005",
+                      "on-primary-fixed-variant": "#005236",
+                      "surface-container": "#171f33",
+                      "primary-fixed": "#6ffbbe",
+                      "on-secondary-fixed-variant": "#653e00",
+                      "secondary-fixed-dim": "#ffb95f",
+                      "tertiary-fixed-dim": "#c0c1ff",
+                      "critical-red": "#EF4444",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed-dim": "#4edea3",
+                      "on-secondary": "#472a00",
+                      "inverse-surface": "#dae2fd",
+                      "background": "#0b1326",
+                      "error-container": "#93000a",
+                      "slate-800": "#1E293B",
+                      "surface-container-low": "#131b2e",
+                      "surface-tint": "#4edea3",
+                      "primary-container": "#10b981",
+                      "on-primary-container": "#00422b",
+                      "on-secondary-container": "#5b3800",
+                      "secondary-fixed": "#ffddb8",
+                      "tertiary-container": "#9699ff",
+                      "outline-variant": "#3c4a42",
+                      "on-tertiary-fixed-variant": "#2f2ebe",
+                      "slate-900": "#0F172A",
+                      "on-primary-fixed": "#002113",
+                      "on-background": "#dae2fd",
+                      "surface-container-high": "#222a3d",
+                      "inverse-on-surface": "#283044",
+                      "slate-50": "#F8FAFC",
+                      "drift-amber": "#F59E0B",
+                      "on-tertiary-container": "#1d17b2",
+                      "secondary-container": "#ee9800",
+                      "primary": "#4edea3",
+                      "surface-dim": "#0b1326",
+                      "tertiary": "#c0c1ff",
+                      "tertiary-fixed": "#e1e0ff",
+                      "surface-container-lowest": "#060e20",
+                      "secondary": "#ffb95f",
+                      "on-tertiary-fixed": "#07006c",
+                      "on-primary": "#003824",
+                      "error": "#ffb4ab",
+                      "surface": "#0b1326",
+                      "on-surface": "#dae2fd",
+                      "surface-container-highest": "#2d3449",
+                      "surface-variant": "#2d3449",
+                      "on-tertiary": "#1000a9",
+                      "on-surface-variant": "#bbcabf"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "page-margin": "2rem",
+                      "container-max": "1200px",
+                      "gutter": "1.5rem",
+                      "stack-md": "1rem",
+                      "stack-sm": "0.5rem",
+                      "section-gap": "3rem"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "title-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "mono-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "title-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "13px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "mono-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: theme('colors.slate-900');
+            color: theme('colors.on-background');
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .glass-card {
+            background-color: theme('colors.slate-800');
+            border: 1px solid theme('colors.outline-variant');
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: theme('colors.surface-variant');
+        }
+        
+        .status-indicator-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(var(--color-critical-red), 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(var(--color-critical-red), 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(var(--color-critical-red), 0);
+            }
+        }
+      </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+<!-- SideNavBar -->
+<nav class="hidden md:flex h-screen w-64 fixed left-0 top-0 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant flex-col py-6 z-50">
+<div class="px-6 mb-8 flex items-center gap-4 text-title-md font-title-md font-bold text-primary dark:text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">security</span>
+            ResilAI
+        </div>
+<div class="flex-1 flex flex-col gap-1 px-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg text-label-sm font-label-sm opacity-80 scale-[0.99]" href="#">
+<span class="material-symbols-outlined">today</span>
+                Today
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary-container/10 border-r-4 border-primary rounded-lg text-label-sm font-label-sm" href="#">
+<span class="material-symbols-outlined">warning</span>
+                Needs Attention
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg text-label-sm font-label-sm opacity-80 scale-[0.99]" href="#">
+<span class="material-symbols-outlined">restore</span>
+                Recovery
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg text-label-sm font-label-sm opacity-80 scale-[0.99]" href="#">
+<span class="material-symbols-outlined">description</span>
+                Documents
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg text-label-sm font-label-sm opacity-80 scale-[0.99]" href="#">
+<span class="material-symbols-outlined">gavel</span>
+                Governance
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg text-label-sm font-label-sm opacity-80 scale-[0.99]" href="#">
+<span class="material-symbols-outlined">extension</span>
+                Connectors
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg text-label-sm font-label-sm opacity-80 scale-[0.99]" href="#">
+<span class="material-symbols-outlined">hub</span>
+                Operations Center
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors duration-200 rounded-lg text-label-sm font-label-sm opacity-80 scale-[0.99] mt-auto" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</div>
+<div class="px-6 mt-6 flex items-center gap-3 border-t border-outline-variant pt-6">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-primary font-bold overflow-hidden">
+<img alt="Executive User Profile" class="w-full h-full object-cover" data-alt="A close up, cinematic portrait of a professional executive in a dark, modern corporate setting. Soft, dramatic rim lighting outlines their profile against a deep slate background. The mood is serious, confident, and highly refined, reflecting premium corporate identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4iKBAHmUl35Gb6o7KYMiVHi-13R7wHhkr2s4Dng9Zi0gwOAOcYREqb7gFeVItuMZUWchBad7XxVP1-k6dyfGmkT9OcfwnKJTYbkGJ4MtmEJlONo_8i66kgqNjxyYUnJbjLjwZFdd0g3pFX5bEIMOL5OOP4Y_QV-1du9PqYEzQdCszxtPKdbNLnTiZ4ivyYi6A2xlwEd-_LqDvApE22vooSJwAdzenxMNCrZ9qrca89Kxw2eOwqCEk"/>
+</div>
+<div class="flex flex-col">
+<span class="text-label-sm font-label-sm text-on-surface font-semibold">Executive Health</span>
+</div>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="hidden md:flex fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-background/80 dark:bg-background/80 backdrop-blur-md justify-between items-center px-page-margin h-20 border-b border-outline-variant">
+<div class="flex-1 flex items-center">
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 text-body-md font-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900 transition-all outline-none" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:text-primary transition-colors focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900 rounded-full p-2">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900 rounded-full p-2">
+<span class="material-symbols-outlined text-2xl">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 pt-6 md:pt-28 px-4 md:px-page-margin pb-24 w-full max-w-[1600px] mx-auto">
+<!-- Header Section -->
+<div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-on-surface mb-2 tracking-tight">Needs Attention</h1>
+<p class="text-body-md font-body-md text-on-surface-variant max-w-2xl">Triage view for active compliance and security issues requiring immediate resolution.</p>
+</div>
+</div>
+<!-- Split Pane Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Left Column: Critical Triage Section -->
+<section>
+<div class="flex items-center gap-3 mb-6 border-b border-outline-variant pb-2">
+<div class="w-3 h-3 rounded-full bg-critical-red animate-pulse"></div>
+<h2 class="text-title-md font-title-md text-on-surface">Critical Actions</h2>
+<span class="ml-auto text-label-sm font-label-sm text-critical-red bg-critical-red/10 px-2 py-1 rounded-full">2 Blocking</span>
+<button class="ml-2 px-3 py-1.5 bg-slate-800 text-on-surface rounded-lg text-label-sm font-label-sm border border-outline-variant hover:border-surface-variant transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filter
+                    </button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Critical Card 1 -->
+<article class="glass-card rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-critical-red"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-critical-red">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">error</span>
+                                Critical Blocking
+                            </div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant">Just now</span>
+</div>
+<div>
+<h3 class="text-body-md font-medium text-on-surface mb-1">MFA Compliance Failure</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant leading-relaxed">Multi-factor authentication is currently disabled for 2 new executive users. This violates core access policies and prevents sign-on.</p>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant bg-surface-container-low px-3 py-2 rounded-lg">
+<span class="material-symbols-outlined text-sm">cloud</span>
+                            Source: Google Workspace Sync
+                        </div>
+<div class="flex justify-end gap-3 mt-2 pt-3 border-t border-outline-variant">
+<button class="px-3 py-1.5 rounded-lg text-label-sm font-label-sm text-on-surface hover:bg-surface-container-high transition-colors">Dismiss</button>
+<button class="px-4 py-1.5 rounded-lg text-label-sm font-label-sm text-white bg-slate-700 hover:bg-slate-600 border border-slate-600 transition-colors flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-sm">assignment_ind</span>
+                                Assign to IT
+                            </button>
+</div>
+</article>
+<!-- Critical Card 2 -->
+<article class="glass-card rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-critical-red"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-critical-red">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">error</span>
+                                Critical Blocking
+                            </div>
+<span class="text-mono-sm font-mono-sm text-on-surface-variant">2h ago</span>
+</div>
+<div>
+<h3 class="text-body-md font-medium text-on-surface mb-1">Endpoint Protection Offline</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant leading-relaxed">Primary EDR agent is unresponsive on 4 clinical workstations. Telemetry stream has been interrupted.</p>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant bg-surface-container-low px-3 py-2 rounded-lg">
+<span class="material-symbols-outlined text-sm">monitor_heart</span>
+                            Source: CrowdStrike Falcon
+                        </div>
+<div class="flex justify-end gap-3 mt-2 pt-3 border-t border-outline-variant">
+<button class="px-3 py-1.5 rounded-lg text-label-sm font-label-sm text-on-surface hover:bg-surface-container-high transition-colors">Dismiss</button>
+<button class="px-4 py-1.5 rounded-lg text-label-sm font-label-sm text-white bg-slate-700 hover:bg-slate-600 border border-slate-600 transition-colors flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-sm">assignment_ind</span>
+                                Assign to IT
+                            </button>
+</div>
+</article>
+</div>
+</section>
+<!-- Right Column: Warnings Triage Section -->
+<section>
+<div class="flex items-center gap-3 mb-6 border-b border-outline-variant pb-2">
+<div class="w-3 h-3 rounded-full bg-drift-amber"></div>
+<h2 class="text-title-md font-title-md text-on-surface">Warnings &amp; Deviations</h2>
+<span class="ml-auto text-label-sm font-label-sm text-drift-amber bg-drift-amber/10 px-2 py-1 rounded-full">3 Minor</span>
+<button class="ml-2 px-3 py-1.5 bg-slate-800 text-on-surface rounded-lg text-label-sm font-label-sm border border-outline-variant hover:border-surface-variant transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">sort</span>
+                        Sort
+                    </button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Warning List Item 1 -->
+<div class="glass-card rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 border-l-drift-amber">
+<div class="flex-1">
+<div class="flex items-center gap-2 text-mono-sm font-mono-sm text-drift-amber mb-1">
+<span class="material-symbols-outlined text-xs">warning</span>
+                                Warning
+                            </div>
+<h3 class="text-body-md font-medium text-on-surface">Policy Update Required</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1">Annual Data Processing Agreement template is 30 days past review date.</p>
+</div>
+<div class="flex flex-wrap items-center gap-3 w-full md:w-auto mt-1 md:mt-0">
+<div class="text-label-sm font-label-sm text-on-surface-variant bg-surface-container-low px-2 py-1 rounded">Governance</div>
+<button class="ml-auto md:ml-0 px-3 py-1.5 rounded-lg text-label-sm font-label-sm text-on-surface border border-outline-variant hover:bg-surface-container-high transition-colors">Review</button>
+</div>
+</div>
+<!-- Warning List Item 2 -->
+<div class="glass-card rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 border-l-drift-amber">
+<div class="flex-1">
+<div class="flex items-center gap-2 text-mono-sm font-mono-sm text-drift-amber mb-1">
+<span class="material-symbols-outlined text-xs">warning</span>
+                                Warning
+                            </div>
+<h3 class="text-body-md font-medium text-on-surface">Unusual Login Pattern</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1">Multiple authentications from unexpected geography (Toronto, CA) for user Dr. Smith.</p>
+</div>
+<div class="flex flex-wrap items-center gap-3 w-full md:w-auto mt-1 md:mt-0">
+<div class="text-label-sm font-label-sm text-on-surface-variant bg-surface-container-low px-2 py-1 rounded">Okta Identity</div>
+<button class="ml-auto md:ml-0 px-3 py-1.5 rounded-lg text-label-sm font-label-sm text-on-surface border border-outline-variant hover:bg-surface-container-high transition-colors">Investigate</button>
+</div>
+</div>
+<!-- Warning List Item 3 -->
+<div class="glass-card rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 border-l-drift-amber">
+<div class="flex-1">
+<div class="flex items-center gap-2 text-mono-sm font-mono-sm text-drift-amber mb-1">
+<span class="material-symbols-outlined text-xs">warning</span>
+                                Warning
+                            </div>
+<h3 class="text-body-md font-medium text-on-surface">Backup Verification Delayed</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1">Routine integrity check on nightly database snapshot took longer than threshold.</p>
+</div>
+<div class="flex flex-wrap items-center gap-3 w-full md:w-auto mt-1 md:mt-0">
+<div class="text-label-sm font-label-sm text-on-surface-variant bg-surface-container-low px-2 py-1 rounded">AWS Storage</div>
+<button class="ml-auto md:ml-0 px-3 py-1.5 rounded-lg text-label-sm font-label-sm text-on-surface border border-outline-variant hover:bg-surface-container-high transition-colors">Acknowledge</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Ask ResilAI Bar -->
+<div class="fixed bottom-0 md:left-64 right-0 p-4 md:p-6 bg-gradient-to-t from-background via-background/90 to-transparent z-40 pointer-events-none">
+<div class="max-w-3xl mx-auto pointer-events-auto">
+<div class="relative group">
+<div class="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-tertiary-container/30 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+<div class="relative flex items-center bg-slate-900 border border-outline-variant rounded-full px-6 py-3 shadow-lg">
+<span class="material-symbols-outlined text-primary mr-3" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<input class="w-full bg-transparent border-none text-body-md font-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-0 outline-none" placeholder="Ask ResilAI to analyze recent incidents..." type="text"/>
+<button class="ml-3 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

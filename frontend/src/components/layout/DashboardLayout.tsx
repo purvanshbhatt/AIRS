@@ -17,15 +17,8 @@ import {
   BookOpen,
   Activity,
   Info,
-  ShieldCheck,
-  Calendar,
-  Cpu,
-  Rocket,
-  TrendingDown,
-  Zap,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useDemoMode } from '../../contexts';
 import { Footer } from './Footer';
 import ThemeToggle from '../ui/ThemeToggle';
 
@@ -33,22 +26,15 @@ interface NavItem {
   name: string;
   href: string;
   icon: typeof LayoutDashboard;
-  stagingOnly?: boolean;
 }
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Assessments', href: '/dashboard/assessments', icon: ClipboardList },
   { name: 'Results', href: '/dashboard/reports', icon: FileText },
-  { name: 'Integrations', href: '/dashboard/integrations', icon: Settings, stagingOnly: true },
+  { name: 'Integrations', href: '/dashboard/integrations', icon: Settings },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Organizations', href: '/dashboard/organizations', icon: Building2 },
-  { name: 'Governance', href: '/dashboard/governance', icon: ShieldCheck },
-  { name: 'Compliance Drift', href: '/dashboard/compliance-drift', icon: TrendingDown, stagingOnly: true },
-  { name: 'Reliability', href: '/dashboard/reliability', icon: Zap, stagingOnly: true },
-  { name: 'Audit Calendar', href: '/dashboard/audit-calendar', icon: Calendar },
-  { name: 'Tech Stack', href: '/dashboard/tech-stack', icon: Cpu },
-  { name: 'Pilot Program', href: '/dashboard/pilot-program', icon: Rocket },
   { name: 'Settings', href: '/dashboard/settings', icon: SlidersHorizontal },
   { name: 'Status', href: '/status', icon: Activity },
   { name: 'About', href: '/about', icon: Info },
@@ -65,13 +51,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, isConfigured } = useAuth();
-  const { systemStatus } = useDemoMode();
-  const isStaging = systemStatus?.environment === 'staging';
-
-  // Filter out staging-only nav items when not in staging
-  const visibleNavigation = isStaging
-    ? navigation
-    : navigation.filter((item) => !item.stagingOnly);
 
   const handleSignOut = async () => {
     await signOut();
@@ -96,7 +75,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const activeNavItem =
-    visibleNavigation.find((item) => isNavItemActive(item.href, location.pathname))?.name || 'Page';
+    navigation.find((item) => isNavItemActive(item.href, location.pathname))?.name || 'Page';
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -111,19 +90,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar - Off-white with blue accents */}
       <aside
         className={clsx(
-          'fixed left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-sm',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-sm',
           'transform transition-transform duration-200 ease-in-out lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
-        style={{
-          top: 'var(--banner-height, 0px)',
-          height: 'calc(100vh - var(--banner-height, 0px))',
-        }}
       >
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
-          <Link to="/" className="flex items-center">
-            <img src="/logo_header.svg" alt="ResilAI Logo" className="h-11 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-lg font-semibold text-slate-800 dark:text-slate-100">ResilAI</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -135,7 +113,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {visibleNavigation.map((item) => {
+          {navigation.map((item) => {
             const isActive = isNavItemActive(item.href, location.pathname);
             return (
               <Link
@@ -185,10 +163,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content wrapper */}
       <div className="flex-1 flex flex-col lg:ml-64">
         {/* Top header */}
-        <header 
-          className="sticky z-30 flex items-center h-16 px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 lg:px-6 shrink-0 shadow-sm"
-          style={{ top: 'var(--banner-height, 0px)' }}
-        >
+        <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 lg:px-6 shrink-0 shadow-sm">
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 -ml-2 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"

@@ -59,10 +59,10 @@ export default function EvidenceTimeline({ trendData, events }: EvidenceTimeline
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2 tracking-tight">
               <TrendingUp className="w-5 h-5 text-[#00C853]" />
-              Trust Verification Trend
+              Trust Health Check Trend
             </CardTitle>
             <Badge className="bg-[#00C853]/10 text-[#00C853] border-[#00C853]/20 text-[9px] font-bold">
-              VERIFICATION OVER TIME
+              HEALTH CHECK OVER TIME
             </Badge>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
@@ -138,14 +138,14 @@ export default function EvidenceTimeline({ trendData, events }: EvidenceTimeline
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2 tracking-tight">
               <Activity className="w-5 h-5 text-indigo-500" />
-              Cryptographic Verification Logs
+              Cryptographic Health Check Logs
             </CardTitle>
             <span className="text-[9px] bg-slate-800 border border-slate-700 text-slate-400 font-mono px-2 py-0.5 rounded font-bold uppercase tracking-wider">
               TTY: VERIFIED_DAEMON_V2
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
-            Deterministic record of control verification updates matching incoming SIEM alerts and active hooks.
+            Deterministic record of control health check updates matching incoming SIEM alerts and active hooks.
           </p>
         </CardHeader>
         <CardContent>

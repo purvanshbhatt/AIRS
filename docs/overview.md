@@ -1,10 +1,10 @@
-# ResilAI Overview
+﻿# ResilAI Overview
 
 <p align="center">
-  <img src="assets/resilai_logo.svg" alt="ResilAI logo" width="150" />
+  <img src="assets/airs-logo-dark.png" alt="ResilAI logo" width="150" />
 </p>
 
-ResilAI is a **Deterministic Governance Factory** that helps organizations evaluate readiness, execute automated compliance validations, and programmatically verify their overall security compliance posture.
+ResilAI is an **AI Incident Readiness Platform** that helps organizations evaluate readiness, prioritize risk reduction, and communicate posture to executives.
 
 ## Audience
 
@@ -57,7 +57,7 @@ graph TD
 
 ## Links
 
-- Live Demo: `https://demo.resilai.org`
-- Staging API health: `https://api-staging.resilai.org/health`
-- Staging API docs: `https://api-staging.resilai.org/docs`
+- Public Beta: `https://airs-staging-0384513977.web.app`
+- Staging API health: `https://airs-api-staging-227825933697.us-central1.run.app/health`
+- Staging API docs: `https://airs-api-staging-227825933697.us-central1.run.app/docs`
 - Docs index: `index.md`

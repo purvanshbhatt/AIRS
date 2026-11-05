@@ -7,9 +7,23 @@ import {
   CardDescription,
   CardContent,
   Button,
-  EmptyState,
   ListSkeleton,
 } from '../components/ui';
+
+function EmptyState({ icon: Icon, title, description, action }: { icon?: any; title: string; description?: string; action?: { label: string; href?: string; onClick?: () => void } }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      {Icon && <Icon className="w-12 h-12 text-slate-400 mb-4" />}
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+      {description && <p className="text-sm text-slate-500 max-w-sm mt-1">{description}</p>}
+      {action && (
+        <a href={action.href} className="mt-4 inline-block bg-primary-600 text-white px-4 py-2 rounded-xl text-sm font-medium">
+          {action.label}
+        </a>
+      )}
+    </div>
+  );
+}
 import {
   Building2,
   Plus,
@@ -124,7 +138,7 @@ export default function Organizations() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Organizations</h1>
             <p className="text-gray-500 dark:text-slate-400 text-sm">
-              {organizations.length} organization{organizations.length !== 1 ? 's' : ''}
+              Which business units need attention?
             </p>
           </div>
         </div>

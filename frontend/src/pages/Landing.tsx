@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield,
@@ -22,68 +23,238 @@ import {
   Check,
   Lock,
   Layers,
+  Sparkles,
+  Activity,
+  Scale,
+  BookOpen,
 } from 'lucide-react';
-import ThemeToggle from '../components/ui/ThemeToggle';
+import { PublicNavbar } from '../components/layout/PublicNavbar';
+import { Footer } from '../components/layout/Footer';
+import { SEOHead } from '../components/common/SEOHead';
+import { useVertical, detectVerticalFromLocation } from '../contexts/VerticalContext';
+import { DEFAULT_VERTICAL, getVerticalConfig, isVerticalKey } from '../config/verticals';
+import type { VerticalKey, VerticalConfig } from '../types/vertical';
 
-const features = [
-  {
-    icon: Target,
-    title: 'Comprehensive Assessment',
-    description:
-      'Evaluate your security posture across 5 critical domains with 30+ targeted questions designed by incident response experts.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Compliance Intelligence',
-    description:
-      'Auto-detect applicable frameworks — SOC 2, HIPAA, PCI-DSS, CMMC, GDPR — based on your organization profile. Know what\'s mandatory vs. recommended.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Instant Scoring & Insights',
-    description:
-      'Get immediate visibility into your readiness level with weighted scores, maturity ratings, and prioritized findings.',
-  },
-  {
-    icon: Calendar,
-    title: 'Audit Calendar & Forecasts',
-    description:
-      'Schedule upcoming audits, get countdown alerts, and run pre-audit risk forecasts that cross-reference your live findings.',
-  },
-  {
-    icon: FileText,
-    title: 'Executive-Ready Reports',
-    description:
-      'Generate professional PDF reports with AI-powered narratives, actionable recommendations, and benchmark comparisons.',
-  },
-  {
-    icon: Cpu,
-    title: 'Tech Stack Lifecycle',
-    description:
-      'Track component versions and LTS status. Get deterministic risk classification for EOL, deprecated, and outdated dependencies.',
-  },
+export interface LandingProps {
+  defaultVertical?: VerticalKey;
+}
+
+const getPersonasForVertical = (vertical: VerticalKey) => {
+  if (vertical === 'healthcare') {
+    return [
+      {
+        icon: Shield,
+        title: 'Executive (L1) — "Can we treat patients and stay open?"',
+        description:
+          'Get a deterministic, board-ready answer on clinical continuity and ransomware resilience without interpreting complex technical logs.',
+      },
+      {
+        icon: Target,
+        title: 'Clinic Manager (L2) — "What EHR or backup controls drifted?"',
+        description:
+          'Understand how clinical workstation, Veeam backup, and Entra ID configurations drifted, with concrete remediation paths.',
+      },
+      {
+        icon: TerminalIcon,
+        title: 'Clinical IT / MSP (L3) — "What telemetry proves our readiness?"',
+        description:
+          'Trace findings directly to immutable backup verification, EHR uptime telemetry, and Active Directory audit logs.',
+      },
+    ];
+  }
+  if (vertical === 'legal') {
+    return [
+      {
+        icon: Shield,
+        title: 'Managing Partner (L1) — "Is client confidentiality protected?"',
+        description:
+          'Obtain verifiable confirmation that client matters, financial records, and firm operations withstand ransomware without breach.',
+      },
+      {
+        icon: Target,
+        title: 'Practice Director (L2) — "What document vault risks need action?"',
+        description:
+          'Pinpoint privileged access drift, document management system policy violations, and unencrypted attorney endpoints.',
+      },
+      {
+        icon: TerminalIcon,
+        title: 'Legal IT / MSP (L3) — "What evidence proves ABA compliance?"',
+        description:
+          'Cryptographic evidence connecting NetDocuments access logs, MFA enforcement, and secure repository retention.',
+      },
+    ];
+  }
+  return [
+    {
+      icon: Shield,
+      title: 'Executive (L1) — "Are we ready?"',
+      description:
+        'Get a deterministic, board-ready answer to your most critical question without navigating complex technical dashboards or interpreting raw logs.',
+    },
+    {
+      icon: Target,
+      title: 'Manager (L2) — "What changed and what needs action?"',
+      description:
+        'Understand exactly how your readiness posture drifted, why it matters to the business, and the clear remediation steps required to fix it.',
+    },
+    {
+      icon: TerminalIcon,
+      title: 'IT & Security (L3) — "What evidence proves it?"',
+      description:
+        'Trace every finding down to the raw evidence block, timestamp, and connector source. No more guesswork — just cryptographic proof of your operational state.',
+    },
+  ];
+};
+
+const loopSteps = [
+  { title: 'CONNECT', description: 'Connect the security and operational systems your organization already uses.', icon: Layers },
+  { title: 'VERIFY', description: 'ResilAI deterministically verifies operational evidence against readiness requirements.', icon: ShieldCheck },
+  { title: 'UNDERSTAND', description: 'Translate verified technical gaps into clear business impact.', icon: BarChart3 },
+  { title: 'ACT', description: 'Remediate the problem and verify that the remediation actually worked.', icon: CheckCircle },
 ];
 
-const stats = [
-  { value: '9+', label: 'Compliance Frameworks' },
-  { value: '5', label: 'Security Domains' },
-  { value: '30+', label: 'Assessment Questions' },
-  { value: '<5min', label: 'Time to Complete' },
-];
 
-export default function Landing() {
+export default function Landing({ defaultVertical }: LandingProps = {}) {
+  let navigate: ReturnType<typeof useNavigate> | undefined;
+  try {
+    navigate = useNavigate();
+  } catch {
+    // Graceful fallback if outside router
+  }
+
+  let locationSearch = '';
+  let locationPathname = '';
+  try {
+    const loc = useLocation();
+    locationSearch = loc.search;
+    locationPathname = loc.pathname;
+  } catch {
+    // Outside Router
+  }
+
+  const { signInAsDemo, clearError } = useAuth();
+
+  const detectedFromRoute = useMemo(() => {
+    return detectVerticalFromLocation({
+      search: locationSearch,
+      pathname: locationPathname,
+    });
+  }, [locationSearch, locationPathname]);
+
+  let vContext: ReturnType<typeof useVertical> | undefined;
+  try {
+    vContext = useVertical();
+  } catch {
+    // Graceful fallback when rendered outside VerticalProvider
+  }
+
+  const effectiveVertical: VerticalKey = useMemo(() => {
+    // 1. Query parameter (?vertical=...) has highest precedence
+    if (detectedFromRoute.source === 'query') {
+      return detectedFromRoute.vertical;
+    }
+    // 2. Explicit prop defaultVertical (e.g. from <Route path="/healthcare" ...>)
+    if (defaultVertical && isVerticalKey(defaultVertical)) {
+      return defaultVertical;
+    }
+    // 3. Path prefix (/healthcare, /legal, /general)
+    if (detectedFromRoute.source === 'path') {
+      return detectedFromRoute.vertical;
+    }
+    // 4. From VerticalContext (subdomain or active state)
+    if (vContext?.currentVertical) {
+      return vContext.currentVertical;
+    }
+    // 5. Default fallback
+    return DEFAULT_VERTICAL;
+  }, [detectedFromRoute, defaultVertical, vContext?.currentVertical]);
+
+  const effectiveConfig: VerticalConfig = useMemo(() => {
+    if (vContext && vContext.currentVertical === effectiveVertical) {
+      return vContext.config;
+    }
+    return getVerticalConfig(effectiveVertical);
+  }, [vContext, effectiveVertical]);
+
+  const currentVertical = effectiveVertical;
+  const config = effectiveConfig;
+
+  useEffect(() => {
+    if (vContext?.setVertical && vContext.currentVertical !== effectiveVertical) {
+      vContext.setVertical(effectiveVertical);
+    }
+  }, [effectiveVertical, vContext]);
+
+  const handleEnterSandbox = async () => {
+    clearError();
+    try {
+      await signInAsDemo();
+    } catch {
+      // ignore
+    } finally {
+      localStorage.setItem('resilai_demo_user', 'true');
+      localStorage.setItem('resilai_selected_org_id', config.demoOrgId);
+      if (navigate) {
+        navigate(`/morning-brief?vertical=${currentVertical}`, { replace: true });
+      } else if (typeof window !== 'undefined') {
+        window.location.href = `/morning-brief?vertical=${currentVertical}`;
+      }
+    }
+  };
+
   const [terminalTab, setTerminalTab] = useState<'telemetry' | 'request' | 'response'>('telemetry');
   const [copied, setCopied] = useState(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
 
-  const [telemetryLogs, setTelemetryLogs] = useState<string[]>([
-    `[2026-05-23T21:15:23Z] INITIALIZING TELEMETRY STREAM...`,
-    `[2026-05-23T21:15:24Z] CONNECTED TO DAEMON // HOST: api.resilai.io`,
-    `[2026-05-23T21:15:25Z] SYNCHRONIZING NIST CSF 2.0 CONTROL SETS...`
-  ]);
+  const initialLogs =
+    currentVertical === 'healthcare'
+      ? [
+          `[2026-05-23T21:15:23Z] INITIALIZING HEALTHCARE TELEMETRY STREAM...`,
+          `[2026-05-23T21:15:24Z] CONNECTED TO CLINICAL DAEMON // HOST: api.resilai.io`,
+          `[2026-05-23T21:15:25Z] SYNCHRONIZING HIPAA & NIST CSF 2.0 CONTROL SETS...`,
+        ]
+      : currentVertical === 'legal'
+      ? [
+          `[2026-05-23T21:15:23Z] INITIALIZING LEGAL PRACTICE TELEMETRY STREAM...`,
+          `[2026-05-23T21:15:24Z] CONNECTED TO DOCUMENT VAULT DAEMON // HOST: api.resilai.io`,
+          `[2026-05-23T21:15:25Z] SYNCHRONIZING ABA 477R & SOC 2 CONTROL SETS...`,
+        ]
+      : [
+          `[2026-05-23T21:15:23Z] INITIALIZING TELEMETRY STREAM...`,
+          `[2026-05-23T21:15:24Z] CONNECTED TO DAEMON // HOST: api.resilai.io`,
+          `[2026-05-23T21:15:25Z] SYNCHRONIZING NIST CSF 2.0 CONTROL SETS...`,
+        ];
+
+  const [telemetryLogs, setTelemetryLogs] = useState<string[]>(initialLogs);
 
   useEffect(() => {
-    const events = [
+    setTelemetryLogs(initialLogs);
+  }, [currentVertical]);
+
+  useEffect(() => {
+    const healthcareEvents = [
+      () => `[${new Date().toISOString()}] [INFO] Checked Epic EHR Clinical API - 200 OK`,
+      () => `[${new Date().toISOString()}] [SYNC] Synced Veeam Cloud Connect Immutable Snapshot ID v-9481`,
+      () => `[${new Date().toISOString()}] [POLL] Fetched clinical workstation posture: Score=86.5%`,
+      () => `[${new Date().toISOString()}] [INFO] HIPAA Security Rule §164.312(a)(2)(iv) verified`,
+      () => `[${new Date().toISOString()}] [WARN] Endpoint latency drift: Clinic Workstation 04 (3.2d since scan)`,
+      () => `[${new Date().toISOString()}] [SYNC] Microsoft 365 Entra ID conditional access policy matched`,
+      () => `[${new Date().toISOString()}] [INFO] Re-validating PACS imaging recovery SLA...`,
+      () => `[${new Date().toISOString()}] [SUCCESS] All 340 clinical telemetry loops validated`,
+    ];
+
+    const legalEvents = [
+      () => `[${new Date().toISOString()}] [INFO] Checked NetDocuments Vault API - 200 OK`,
+      () => `[${new Date().toISOString()}] [SYNC] Synced ABA Formal Opinion 477R Control ID L-204`,
+      () => `[${new Date().toISOString()}] [POLL] Fetched partner laptop disk encryption posture: Score=89.0%`,
+      () => `[${new Date().toISOString()}] [INFO] Elite 3E practice management ledger sync completed`,
+      () => `[${new Date().toISOString()}] [WARN] Privileged share link expiration warning: 24h remaining`,
+      () => `[${new Date().toISOString()}] [SYNC] Azure AD MFA enforcement matched for litigation team`,
+      () => `[${new Date().toISOString()}] [INFO] Re-validating client document vault backup snapshot...`,
+      () => `[${new Date().toISOString()}] [SUCCESS] All 340 firm telemetry loops validated`,
+    ];
+
+    const generalEvents = [
       () => `[${new Date().toISOString()}] [INFO] Checked /health/system - 200 OK`,
       () => `[${new Date().toISOString()}] [SYNC] Synced MITRE ATT&CK Control ID T1548`,
       () => `[${new Date().toISOString()}] [POLL] Fetched latest GHI domain metrics: Score=82.0%`,
@@ -91,8 +262,15 @@ export default function Landing() {
       () => `[${new Date().toISOString()}] [WARN] Endpoint latency drift warning: min 14d, current 3.0d`,
       () => `[${new Date().toISOString()}] [SYNC] Telemetry logs matched OWASP AI Top 10 guidelines`,
       () => `[${new Date().toISOString()}] [INFO] Re-validating FastAPI core runtime status...`,
-      () => `[${new Date().toISOString()}] [SUCCESS] All 340 engineering log loops validated`
+      () => `[${new Date().toISOString()}] [SUCCESS] All 340 engineering log loops validated`,
     ];
+
+    const events =
+      currentVertical === 'healthcare'
+        ? healthcareEvents
+        : currentVertical === 'legal'
+        ? legalEvents
+        : generalEvents;
 
     const interval = setInterval(() => {
       setTelemetryLogs(prev => {
@@ -105,7 +283,7 @@ export default function Landing() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [currentVertical]);
 
   useEffect(() => {
     if (logContainerRef.current) {
@@ -113,13 +291,13 @@ export default function Landing() {
     }
   }, [telemetryLogs]);
 
-  const requestText = `curl -X GET "https://api.resilai.io/api/assessments/latest/summary" \\
+  const requestText = `curl -X GET "https://api.resilai.io/api/verification/latest/summary" \\
   -H "Accept: application/json" \\
   -H "Authorization: Bearer resil_live_83fa9b12a819cd6f"`;
 
   const responseText = `{
   "status": "ready",
-  "overall_readiness_score": 84.5,
+  "readiness_score": 84.5,
   "compliance_rating": "managed",
   "frameworks": ["SOC 2 Type II", "NIST CSF 2.0", "GDPR"],
   "dimensions": {
@@ -144,189 +322,289 @@ export default function Landing() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const seoConfig = useMemo(() => {
+    if (currentVertical === 'healthcare') {
+      return {
+        title: 'Incident Readiness for Healthcare Organizations | ResilAI',
+        description: 'Deterministic incident readiness and ransomware defense for healthcare clinics. Protect clinical EHR systems, guarantee 4-hour RTO, and verify continuous HIPAA compliance.',
+        keywords: 'how to stop attacks on healthcare businesses, healthcare ransomware protection, clinical continuity, protect clinic EHR, HIPAA Security Rule, ResilAI',
+        canonicalUrl: 'https://resilai.org/healthcare',
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          name: 'ResilAI Healthcare Incident Readiness Platform',
+          applicationCategory: 'SecurityApplication',
+          operatingSystem: 'Cloud, Web',
+          description: 'Deterministic continuous incident readiness and ransomware defense for healthcare clinics.',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+        }
+      };
+    }
+    if (currentVertical === 'legal') {
+      return {
+        title: 'Incident Readiness for Legal Firms & Law Practices | ResilAI',
+        description: 'Deterministic incident readiness and client confidentiality verification for law practices. Protect document vaults, prevent ransomware, and comply with ABA Formal Opinion 477R.',
+        keywords: 'how to stop attacks on legal firms, law firm cybersecurity, protect client confidentiality, law firm ransomware, ABA Formal Opinion 477R, ResilAI',
+        canonicalUrl: 'https://resilai.org/legal',
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          name: 'ResilAI Legal Incident Readiness Platform',
+          applicationCategory: 'SecurityApplication',
+          operatingSystem: 'Cloud, Web',
+          description: 'Deterministic continuous incident readiness and client confidentiality verification for law practices.',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+        }
+      };
+    }
+    return {
+      title: 'ResilAI — Continuous Incident Readiness & Cybersecurity Verification Platform',
+      description: 'Transform fragmented security telemetry into deterministic readiness scoring, continuous compliance verification, and plain-English executive impact translation.',
+      keywords: 'how to stop attacks on legal firms, how to stop attacks on healthcare businesses, AI incident readiness, cybersecurity verification, continuous security audit, NIST CSF 2.0, ResilAI',
+      canonicalUrl: 'https://resilai.org/',
+      schema: {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'ResilAI Incident Readiness Platform',
+        applicationCategory: 'SecurityApplication',
+        operatingSystem: 'Cloud, Web',
+        description: 'Continuous incident readiness and deterministic cybersecurity verification platform.',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+      }
+    };
+  }, [currentVertical]);
+
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-blue-500/20 transition-colors duration-300">
-      {/* Navigation */}
-      <nav 
-        className="fixed left-0 right-0 z-50 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300"
-        style={{ top: 'var(--banner-height, 0px)' }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <img src="/logo_header.svg" alt="ResilAI Logo" className="h-11 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-5">
-                <Link
-                  to="/about"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  About
-                </Link>
-                <Link
-                  to="/security"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  Security
-                </Link>
-                <Link
-                  to="/status"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  Status
-                </Link>
-                <Link
-                  to="/pilot"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  Request Pilot
-                </Link>
-                <Link
-                  to="/dashboard"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  Dashboard
-                </Link>
-              </div>
-
-              <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
-
-              <ThemeToggle />
-
-              <Link
-                to="/assessment/quick"
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 text-sm font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-sm"
-              >
-                Get Started
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-background text-on-surface selection:bg-primary-500/20 transition-colors duration-300 flex flex-col">
+      <SEOHead {...seoConfig} />
+      {/* Unified Public Navigation */}
+      <PublicNavbar transparent currentVertical={effectiveVertical} />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 overflow-hidden px-4 sm:px-6 lg:px-8">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-cyan-500/10 rounded-full blur-[80px] pointer-events-none" />
+      <section className="relative pt-16 sm:pt-20 pb-24 overflow-hidden px-4 sm:px-6 lg:px-8">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center relative z-10">
           <div className="lg:col-span-7 space-y-6 text-left">
+            {/* Two Industry Buttons: Healthcare & Legal */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-wrap items-center gap-2.5"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (vContext?.setVertical) vContext.setVertical('healthcare');
+                  if (navigate) navigate('/healthcare');
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-all cursor-pointer m3-state-layer shadow-xs ${
+                  currentVertical === 'healthcare'
+                    ? 'bg-ready-emerald/15 text-emerald-900 dark:text-ready-emerald border-ready-emerald/50 shadow-sm shadow-ready-emerald/15 font-bold'
+                    : 'bg-surface-container-low text-on-surface-variant border-outline-variant/60 hover:bg-surface-container-high hover:text-on-surface'
+                }`}
+              >
+                <Activity className="w-4 h-4 text-ready-emerald shrink-0" />
+                <span>Healthcare & Clinical Continuity</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (vContext?.setVertical) vContext.setVertical('legal');
+                  if (navigate) navigate('/legal');
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold border transition-all cursor-pointer m3-state-layer shadow-xs ${
+                  currentVertical === 'legal'
+                    ? 'bg-blue-500/15 text-blue-950 dark:text-blue-400 border-blue-500/50 shadow-sm shadow-blue-500/15 font-bold'
+                    : 'bg-surface-container-low text-on-surface-variant border-outline-variant/60 hover:bg-surface-container-high hover:text-on-surface'
+                }`}
+              >
+                <Scale className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>Legal Practice & Client Vault</span>
+              </button>
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold tracking-wide border border-blue-100 dark:border-blue-900/50"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-primary-50 dark:bg-primary-950/40 text-primary-800 dark:text-primary-300 rounded-full text-xs font-semibold tracking-wide border border-primary-200 dark:border-primary-900/50 shadow-xs"
+              data-testid="hero-badge"
             >
-              <Zap className="w-3.5 h-3.5" />
-              Continuous Readiness & AI Security Lifecycle
+              <Zap className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
+              {currentVertical === 'healthcare'
+                ? 'Deterministic Verification for Healthcare'
+                : currentVertical === 'legal'
+                ? 'Deterministic Verification for Law Firms'
+                : 'Deterministic Verification · AI Incident Readiness'}
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-slate-900 dark:text-slate-50"
+              className={`text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.12] ${
+                currentVertical === 'healthcare'
+                  ? 'heading-gradient-healthcare'
+                  : currentVertical === 'legal'
+                  ? 'heading-gradient-legal'
+                  : 'heading-gradient-general'
+              }`}
+              data-testid="landing-headline"
             >
-              Neutralizing Subjectivity <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">
-                in Compliance Audits
-              </span>
+              {config.headline}
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed"
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="text-lg sm:text-2xl font-semibold text-primary-700 dark:text-primary-400 leading-snug"
+              data-testid="landing-core-question"
             >
-              ResilAI continuously validates your system perimeters against active framework targets. Turn subjective readiness checks into deterministic, auditable compliance telemetry.
+              {config.coreQuestion}
             </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-base sm:text-lg text-slate-700 dark:text-slate-300 max-w-2xl leading-relaxed"
+            >
+              {currentVertical === 'healthcare'
+                ? "ResilAI continuously tests whether your clinic's most critical EHR, backup, and clinical operational controls actually work—and maintains the mathematical evidence proving you can keep caring for patients."
+                : currentVertical === 'legal'
+                ? "ResilAI continuously tests whether your firm's critical client document repositories, partner credentials, and privileged workflows actually work—and maintains the evidence proving client confidentiality is preserved."
+                : "Universal incident readiness, deterministic scoring, evidence pipeline, and business impact translation without healthcare-only constraints. ResilAI continuously tests whether your organization's most critical cloud, identity, and SaaS controls actually work—and maintains mathematical evidence proving it."}
+            </motion.p>
+
+            {/* Focus Areas */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="pt-2 space-y-2"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Priority Focus Areas ({config.displayName})
+              </p>
+              <div className="flex flex-wrap gap-2" data-testid="landing-focus-areas">
+                {config.focusAreas.map((area, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-surface-container border border-outline-variant/60 text-on-surface"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    {area}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-wrap items-center gap-4 pt-4"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-4 w-full"
             >
               <Link
-                to="/pilot"
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-br from-blue-600 to-cyan-500 text-white font-semibold rounded-2xl hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 active:scale-[0.98]"
+                to={currentVertical === 'general' ? '/login' : `/login?vertical=${currentVertical}`}
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-gradient-to-r from-primary-600 to-emerald-600 hover:from-primary-500 hover:to-emerald-500 text-white font-bold rounded-full sm:rounded-2xl shadow-md hover:shadow-lg hover:shadow-primary-500/25 transition-all duration-300 active:scale-[0.98] min-h-[48px] text-center"
               >
-                Request Enterprise Pilot
+                <span>Get Started</span>
                 <ChevronRight className="w-5 h-5" />
               </Link>
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 px-6 py-3.5 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-all active:scale-[0.98]"
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-on-surface font-semibold rounded-full sm:rounded-2xl border border-outline-variant/60 bg-surface-container-low hover:bg-surface-container-high transition-all active:scale-[0.98] min-h-[48px] text-center"
               >
-                Launch Sandbox Demo
-                <ArrowRight className="w-4 h-4 text-slate-400" />
-              </Link>
+                See How It Works
+              </a>
+              <button
+                onClick={handleEnterSandbox}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 text-on-surface font-semibold rounded-full sm:rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all text-sm cursor-pointer min-h-[48px] text-center"
+                data-testid="hero-demo-cta"
+              >
+                <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Explore Demo ({config.demoOrgName})</span>
+              </button>
             </motion.div>
           </div>
 
-          {/* Interactive Mock Terminal */}
+          {/* Live Telemetry & Deterministic Verification Stream */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-5 relative"
           >
-            <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-[28px] blur-xl opacity-20 dark:opacity-30" />
-            <div className="relative rounded-[24px] bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden font-mono text-left">
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-slate-900 bg-slate-900/40">
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-rose-500" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+            <div className="absolute -inset-2 bg-gradient-to-r from-primary-500 to-emerald-400 rounded-[28px] blur-xl opacity-20 dark:opacity-30" />
+            
+            <div className="relative rounded-[24px] bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden text-left font-mono">
+              {/* Terminal Window Top Bar */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="hidden xs:flex items-center gap-1.5 mr-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+                  </div>
+                  <div className="flex items-center gap-1 p-0.5 bg-slate-950 rounded-xl border border-slate-800/80 text-[11px] sm:text-xs">
+                    <button
+                      onClick={() => setTerminalTab('telemetry')}
+                      className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                        terminalTab === 'telemetry'
+                          ? 'bg-slate-800 text-emerald-400 font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      Live Stream
+                    </button>
+                    <button
+                      onClick={() => setTerminalTab('request')}
+                      className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                        terminalTab === 'request'
+                          ? 'bg-slate-800 text-primary-400 font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      cURL
+                    </button>
+                    <button
+                      onClick={() => setTerminalTab('response')}
+                      className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                        terminalTab === 'response'
+                          ? 'bg-slate-800 text-emerald-400 font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      JSON
+                    </button>
+                  </div>
                 </div>
-                <div className="text-xs text-slate-400 font-semibold flex items-center gap-1.5 select-none">
-                  <TerminalIcon className="w-3.5 h-3.5 text-blue-400" />
-                  api.resilai.io
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] sm:text-[11px] text-emerald-400 font-bold flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="hidden xs:inline">ENGINE ACTIVE</span>
+                    <span className="xs:hidden">ACTIVE</span>
+                  </span>
+                  <button
+                    onClick={handleCopy}
+                    className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                    title="Copy to clipboard"
+                    aria-label="Copy to clipboard"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
-                <button
-                  onClick={handleCopy}
-                  className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
-                  title="Copy to clipboard"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                </button>
               </div>
 
-              {/* Tabs */}
-              <div className="flex bg-slate-900/10 border-b border-slate-900 text-xs text-slate-400">
-                <button
-                  onClick={() => setTerminalTab('telemetry')}
-                  className={`px-4 py-2 border-r border-slate-900 hover:text-slate-100 transition-colors ${
-                    terminalTab === 'telemetry' ? 'bg-slate-950 text-blue-400 font-semibold border-b border-b-blue-500' : ''
-                  }`}
-                >
-                  Live Telemetry
-                </button>
-                <button
-                  onClick={() => setTerminalTab('request')}
-                  className={`px-4 py-2 border-r border-slate-900 hover:text-slate-100 transition-colors ${
-                    terminalTab === 'request' ? 'bg-slate-950 text-blue-400 font-semibold border-b border-b-blue-500' : ''
-                  }`}
-                >
-                  cURL Request
-                </button>
-                <button
-                  onClick={() => setTerminalTab('response')}
-                  className={`px-4 py-2 hover:text-slate-100 transition-colors ${
-                    terminalTab === 'response' ? 'bg-slate-950 text-blue-400 font-semibold border-b border-b-blue-500' : ''
-                  }`}
-                >
-                  JSON Response
-                </button>
-              </div>
-
-              {/* Console Body */}
-              <div ref={logContainerRef} className="p-5 h-[230px] overflow-auto text-xs leading-relaxed text-slate-300 select-text scrollbar-thin">
+              {/* Terminal Body */}
+              <div ref={logContainerRef} className="p-4 h-[280px] overflow-auto text-xs leading-relaxed text-slate-300 select-text scrollbar-thin">
                 <AnimatePresence mode="wait">
                   {terminalTab === 'telemetry' ? (
                     <motion.div
@@ -334,16 +612,16 @@ export default function Landing() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="space-y-1 font-mono text-[11px]"
+                      className="space-y-1.5 text-[11px]"
                     >
                       {telemetryLogs.map((log, index) => {
                         let color = 'text-slate-300';
                         if (log.includes('[WARN]')) color = 'text-amber-400 font-semibold';
                         if (log.includes('[SUCCESS]') || log.includes('Score=')) color = 'text-emerald-400';
-                        if (log.includes('[SYNC]')) color = 'text-blue-400';
+                        if (log.includes('[SYNC]')) color = 'text-primary-400';
                         return (
                           <div key={index} className={color}>
-                            <span className="text-slate-500 select-none">&gt;</span> {log}
+                            <span className="text-slate-600 select-none">&gt;</span> {log}
                           </div>
                         );
                       })}
@@ -354,9 +632,9 @@ export default function Landing() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="whitespace-pre-wrap text-blue-300 font-mono text-[11px]"
+                      className="whitespace-pre-wrap text-primary-300 text-[11px]"
                     >
-                      <span className="text-slate-500">$</span> {requestText}
+                      <span className="text-slate-600 select-none">$</span> {requestText}
                     </motion.pre>
                   ) : (
                     <motion.pre
@@ -364,36 +642,49 @@ export default function Landing() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="whitespace-pre text-emerald-400 font-mono text-[11px]"
+                      className="whitespace-pre text-emerald-400 text-[11px]"
                     >
                       {responseText}
                     </motion.pre>
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Terminal Footer */}
+              <div className="px-4 py-2 bg-slate-900/60 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Continuous Control Verification</span>
+                </span>
+                <span className="text-emerald-400 font-semibold">100% Deterministic</span>
+              </div>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section className="py-12 bg-slate-50 dark:bg-slate-900/60 border-y border-slate-200/60 dark:border-slate-800/80 transition-colors duration-300">
+      {/* Core Loop Section */}
+      <section id="how-it-works" className="py-16 bg-surface-container border-y border-outline-variant/40 transition-colors duration-300 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 relative">
+            <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-outline-variant via-primary-300 to-outline-variant dark:from-outline-variant/40 dark:via-primary-800 dark:to-outline-variant/40" />
+            {loopSteps.map((step, i) => (
               <motion.div
-                key={stat.label}
+                key={step.title}
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="text-center"
+                className="relative text-center z-10"
               >
-                <p className="text-3xl sm:text-4xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">
-                  {stat.value}
-                </p>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
-                  {stat.label}
+                <div className="w-16 h-16 mx-auto bg-surface-container-low border-2 border-primary-500/20 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                  <step.icon className="w-7 h-7 text-primary-600 dark:text-primary-400" />
+                </div>
+                <h3 className="text-xl font-extrabold text-on-surface tracking-tight">
+                  {step.title}
+                </h3>
+                <p className="text-sm font-medium text-on-surface-variant mt-2 leading-relaxed max-w-[250px] mx-auto">
+                  {step.description}
                 </p>
               </motion.div>
             ))}
@@ -401,36 +692,36 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Value Pillars */}
+      {/* Value Pillars - Personas */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-              Readiness, Compliance & Risk — Unified
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-on-surface">
+              One truth, translated for every leader.
             </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-              Built by GRC professionals for modern engineering teams. Deterministic scoring you can verify, with AI summaries where they matter most.
+            <p className="text-lg text-on-surface-variant leading-relaxed">
+              ResilAI provides a unified, continuous readiness posture that speaks the right language to the right stakeholder.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, i) => (
+          <div className="grid md:grid-cols-3 gap-8">
+            {getPersonasForVertical(currentVertical).map((persona, i) => (
               <motion.div
-                key={feature.title}
+                key={persona.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="group p-8 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-[24px] hover:border-blue-450 hover:bg-white dark:hover:bg-slate-900/80 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300"
+                className="group p-8 bg-surface-container-low border border-outline-variant/60 rounded-[24px] hover:border-primary-500 hover:bg-surface-container hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300"
               >
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/40 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:scale-105 transition-all duration-300">
-                  <feature.icon className="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
+                <div className="w-12 h-12 bg-primary-100 dark:bg-primary-950/40 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:scale-105 transition-all duration-300">
+                  <persona.icon className="w-6 h-6 text-primary-600 dark:text-primary-400 group-hover:text-white transition-colors" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-3">
-                  {feature.title}
+                <h3 className="text-lg font-bold text-on-surface mb-3">
+                  {persona.title}
                 </h3>
-                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-                  {feature.description}
+                <p className="text-on-surface-variant text-sm leading-relaxed">
+                  {persona.description}
                 </p>
               </motion.div>
             ))}
@@ -439,7 +730,7 @@ export default function Landing() {
       </section>
 
       {/* Report Preview Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-200/50 dark:border-slate-800/40">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface-container-low/60 border-t border-outline-variant/40">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-6 text-left">
@@ -448,10 +739,18 @@ export default function Landing() {
                 AI-Powered Executive Summaries
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                Executive-Ready Audits
+                {currentVertical === 'healthcare'
+                  ? 'Clinical Continuity Audits'
+                  : currentVertical === 'legal'
+                  ? 'Firm & Client Confidentiality Audits'
+                  : 'Executive-Ready Audits'}
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                Generate comprehensive PDF reports that executives and auditors trust. Includes compliance thermal maps, score charts, and real-time posture indicators.
+                {currentVertical === 'healthcare'
+                  ? 'Generate comprehensive audit reports that healthcare boards, insurers, and regulators trust. Verifies ransomware recovery SLAs, EHR resilience, and immutable backup integrity.'
+                  : currentVertical === 'legal'
+                  ? 'Generate comprehensive audit reports that managing partners, clients, and underwriters trust. Verifies document vault isolation, attorney access controls, and ABA compliance.'
+                  : 'Generate comprehensive PDF reports that executives and auditors trust. Includes compliance thermal maps, score charts, and real-time posture indicators.'}
               </p>
               <ul className="space-y-3.5">
                 {[
@@ -470,17 +769,19 @@ export default function Landing() {
 
             {/* Interactive Report View */}
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-[32px] blur-2xl opacity-15 dark:opacity-25" />
-              <div className="relative bg-white dark:bg-slate-900 rounded-[24px] shadow-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden text-left">
+              <div className="absolute -inset-4 bg-gradient-to-r from-primary-500 to-emerald-500 rounded-[32px] blur-2xl opacity-15 dark:opacity-25" />
+              <div className="relative bg-surface-container-low rounded-[24px] shadow-2xl border border-outline-variant/60 overflow-hidden text-left">
                 {/* Banner header */}
-                <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-5">
+                <div className="bg-gradient-to-r from-primary-600 to-emerald-600 px-6 py-5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm">
                       <Shield className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-white font-bold text-sm tracking-wide">ResilAI Assessment Report</p>
-                      <p className="text-white/80 text-xs">AI Incident Readiness Score (GHI)</p>
+                      <p className="text-white font-bold text-sm tracking-wide">
+                        ResilAI Readiness Verification — {config.displayName}
+                      </p>
+                      <p className="text-white/80 text-xs">Readiness Intelligence OS</p>
                     </div>
                   </div>
                 </div>
@@ -489,30 +790,26 @@ export default function Landing() {
                   {/* Score Ring */}
                   <div className="flex items-center gap-6">
                     <div className="w-20 h-20 rounded-full border-[6px] border-emerald-500 flex items-center justify-center shadow-inner">
-                      <span className="text-2xl font-bold text-slate-800 dark:text-slate-100">84%</span>
+                      <span className="text-2xl font-bold text-on-surface">84%</span>
                     </div>
                     <div>
-                      <p className="font-bold text-slate-900 dark:text-slate-50">Maturity Level: Managed</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Recalculated 2 minutes ago</p>
+                      <p className="font-bold text-on-surface">Maturity Level: Managed</p>
+                      <p className="text-xs text-on-surface-variant mt-1">Recalculated 2 minutes ago</p>
                     </div>
                   </div>
 
                   {/* Domain bars */}
                   <div className="space-y-3.5">
-                    {[
-                      { name: 'Telemetry & Logging', score: 92 },
-                      { name: 'Identity & Access Visibility', score: 88 },
-                      { name: 'Detection Coverage', score: 81 },
-                    ].map((d) => (
-                      <div key={d.name}>
-                        <div className="flex justify-between text-xs font-semibold mb-1 text-slate-700 dark:text-slate-300">
-                          <span>{d.name}</span>
-                          <span className="font-bold">{d.score}%</span>
+                    {config.criticalSystems.slice(0, 3).map((sys, idx) => (
+                      <div key={sys}>
+                        <div className="flex justify-between text-xs font-semibold mb-1 text-on-surface-variant">
+                          <span>{sys}</span>
+                          <span className="font-bold">{92 - idx * 5}%</span>
                         </div>
-                        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-2 bg-surface-container-high rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-blue-500 rounded-full"
-                            style={{ width: `${d.score}%` }}
+                            className="h-full bg-primary-500 rounded-full"
+                            style={{ width: `${92 - idx * 5}%` }}
                           />
                         </div>
                       </div>
@@ -520,15 +817,25 @@ export default function Landing() {
                   </div>
 
                   {/* Sample Alert Card */}
-                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-250/50 dark:border-amber-900/50">
+                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/50">
                     <div className="flex gap-3">
                       <div className="w-5 h-5 bg-amber-500 rounded-lg text-white flex items-center justify-center text-xs font-bold shrink-0">
                         !
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-amber-950 dark:text-amber-300">Identity Provider Idle Timeouts</p>
+                        <p className="text-xs font-bold text-amber-950 dark:text-amber-300">
+                          {currentVertical === 'healthcare'
+                            ? 'Immutable Backup Air-Gap Verification'
+                            : currentVertical === 'legal'
+                            ? 'Privileged Document Vault Access Drift'
+                            : 'Identity Provider Idle Timeouts'}
+                        </p>
                         <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
-                          Idle sessions exceed 15-minute SLA limits inside Okta configurations.
+                          {currentVertical === 'healthcare'
+                            ? 'Veeam Cloud Connect repository sync delayed by 2 hours on EHR imaging archive.'
+                            : currentVertical === 'legal'
+                            ? 'Unrestricted share link active on confidential litigation folder in NetDocuments.'
+                            : 'Idle sessions exceed 15-minute SLA limits inside Okta configurations.'}
                         </p>
                       </div>
                     </div>
@@ -540,71 +847,151 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200/50 dark:border-slate-800/40">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold border border-blue-100 dark:border-blue-900/50">
-            <Clock className="w-3.5 h-3.5" />
-            Full audit ready in under 5 minutes
+      {/* Industry Cyber Defense Playbooks & Solutions Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 border-t border-outline-variant/40 bg-surface-container-low/60">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 dark:bg-primary-950/60 text-primary-800 dark:text-primary-300 rounded-full text-xs font-semibold border border-primary-200 dark:border-primary-800/60">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Cyber Defense Guides & Solutions</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-on-surface">
+              How to Stop Attacks on High-Risk Organizations
+            </h2>
+            <p className="text-base text-on-surface-variant">
+              Battle-tested operational playbooks designed specifically for legal firms and healthcare practices facing targeted ransomware and sophisticated threat actors.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-            Assess Your Cybersecurity Posture
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Run a sandbox audit using our synthetic templates, or register your organization to link real-time integrations and track compliance drift.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Link
-              to="/assessment/quick"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-base font-semibold rounded-2xl hover:bg-slate-800 dark:hover:bg-slate-100 shadow-lg transition-all active:scale-[0.98]"
-            >
-              Start Free Assessment
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              to="/org/new"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-base font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-all active:scale-[0.98]"
-            >
-              Create Organization
-            </Link>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Legal Guide Card */}
+            <div className="p-8 rounded-2xl bg-surface-container-low border border-outline-variant/60 shadow-xs hover:border-primary-500/40 transition-all flex flex-col justify-between group">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                    Legal Sector Playbook
+                  </span>
+                  <Scale className="w-5 h-5 text-indigo-500" />
+                </div>
+                <h3 className="text-xl font-bold text-on-surface group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                  How to Stop Attacks on Legal Firms
+                </h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">
+                  Protect confidential client matters, satisfy ABA Formal Opinion 477R, enforce FIDO2 hardware MFA, and secure document vaults (NetDocuments/iManage) against double-extortion ransomware.
+                </p>
+                <ul className="space-y-2 text-xs text-on-surface pt-2">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Ethical wall & matter-level Zero Trust access segregation</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Immutable air-gapped backups (WORM storage) for case files</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Continuous automated telemetry verification vs annual checklists</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-6">
+                <Link
+                  to="/solutions/legal-firm-cyber-attacks"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-primary-600 dark:text-primary-400 group-hover:translate-x-1 transition-transform"
+                >
+                  <span>Read Complete Legal Defense Guide</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Healthcare Guide Card */}
+            <div className="p-8 rounded-2xl bg-surface-container-low border border-outline-variant/60 shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between group">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    Healthcare Playbook
+                  </span>
+                  <Activity className="w-5 h-5 text-emerald-500" />
+                </div>
+                <h3 className="text-xl font-bold text-on-surface group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  How to Stop Attacks on Healthcare Businesses
+                </h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">
+                  Prevent clinical EHR shutdowns, isolate vulnerable medical IoT & diagnostic imaging systems, guarantee 4-hour RTO, and enforce continuous HIPAA Security Rule compliance.
+                </p>
+                <ul className="space-y-2 text-xs text-on-surface pt-2">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Clinical EHR micro-segmentation & Zero Trust network isolation</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>3-2-1-1-0 Veeam & AWS S3 immutable backups ransomware cannot delete</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Daily executive "Morning Brief" answering: "Can we safely treat patients?"</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-6">
+                <Link
+                  to="/solutions/healthcare-cyber-attacks"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400 group-hover:translate-x-1 transition-transform"
+                >
+                  <span>Read Complete Healthcare Defense Guide</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800/80 py-12 transition-colors duration-300 text-xs text-slate-500 dark:text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex flex-col items-center md:items-start gap-3">
-              <img src="/logo_footer_and github.svg" alt="ResilAI Logo" className="h-20 w-auto dark:brightness-0 dark:invert transition-all duration-300" />
-              <span className="font-medium text-slate-500 dark:text-slate-400">Continuous Readiness Intelligence</span>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <a
-                href="https://www.github.com/purvanshbhatt/AIRS"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-              >
-                <Github className="w-4.5 h-4.5" />
-                <span>GitHub</span>
-              </a>
-              <a
-                href="mailto:purvansh95b@gmail.com"
-                className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-              >
-                <Mail className="w-4.5 h-4.5" />
-                <span>Contact</span>
-              </a>
-            </div>
-
-            <p className="text-slate-400 dark:text-slate-500">
-              &copy; {new Date().getFullYear()} ResilAI. Open source under GNU AGPL-3.0 license.
-            </p>
+      {/* CTA Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-outline-variant/40 bg-surface-container-low/40">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-950/40 text-primary-700 dark:text-primary-300 rounded-full text-xs font-semibold border border-primary-100 dark:border-primary-900/50">
+            <Clock className="w-3.5 h-3.5" />
+            Deterministic verification in minutes
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-on-surface">
+            {currentVertical === 'healthcare'
+              ? 'Verify Your Clinic’s Operational Readiness'
+              : currentVertical === 'legal'
+              ? 'Verify Your Firm’s Incident Readiness Posture'
+              : 'Verify Your Operational Readiness Posture'}
+          </h2>
+          <p className="text-base sm:text-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
+            {currentVertical === 'healthcare'
+              ? 'Verify whether the controls protecting your clinic operations and patient care actually work. Explore the pre-populated Northstar Family Health demo.'
+              : currentVertical === 'legal'
+              ? 'Verify whether the controls protecting your client documents and practice management systems actually work. Explore the pre-populated Northstar & Cole LLP demo.'
+              : 'Verify whether the controls protecting your critical operations actually work. Establish an isolated workspace or explore our pre-populated demo.'}
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <Link
+              to={currentVertical === 'general' ? '/login' : `/login?vertical=${currentVertical}`}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-emerald-600 hover:from-primary-500 hover:to-emerald-500 text-white text-base font-bold rounded-full sm:rounded-2xl shadow-md hover:shadow-lg hover:shadow-primary-500/25 transition-all active:scale-[0.98] min-touch-target m3-state-layer text-center"
+            >
+              <span>Get Started</span>
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <button
+              onClick={handleEnterSandbox}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-surface-container-low text-on-surface text-base font-semibold rounded-full sm:rounded-2xl border border-outline-variant/60 hover:bg-surface-container-high transition-all active:scale-[0.98] cursor-pointer min-touch-target m3-state-layer text-center"
+              data-testid="bottom-demo-cta"
+            >
+              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Explore Demo Sandbox ({config.demoOrgName})</span>
+            </button>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Unified Public Footer */}
+      <Footer />
     </div>
   );
 }

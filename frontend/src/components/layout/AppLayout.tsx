@@ -1,0 +1,215 @@
+import { useState } from 'react';
+import { Outlet, NavLink } from 'react-router-dom';
+import { AppSidebar } from './AppSidebar';
+import { ReadinessHeader } from '../readiness/ReadinessHeader';
+import { useDemoMode } from '../../contexts/DemoModeContext';
+import { useToast } from '../ui';
+import { Sparkles, ArrowUp, Calendar, AlertTriangle, RotateCcw, Layers, X } from 'lucide-react';
+
+export default function AppLayout() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { isMspTenant } = useDemoMode();
+  const { addToast } = useToast();
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    addToast({ title: 'Search Query Logged', message: 'Telemetry query recorded in audit history.', type: "info" });
+    setSearchQuery('');
+  };
+
+  return (
+    <div className="min-h-screen bg-background text-on-background antialiased flex font-sans selection:bg-ready-emerald/30 selection:text-ready-emerald">
+      {/* Fixed Sidebar for Desktop & Tablets */}
+      <AppSidebar />
+
+      {/* Main Content Area */}
+      <div className="flex-1 md:ml-20 lg:ml-64 min-h-screen pb-20 md:pb-8 flex flex-col relative w-full overflow-x-hidden">
+        <ReadinessHeader 
+          isMspTenant={isMspTenant}
+          onMenuClick={() => setMobileMenuOpen(true)} 
+        />
+        
+        <main className="flex-1 w-full max-w-[1200px] mx-auto px-3 sm:px-6 md:px-8 pt-3 sm:pt-4 pb-20 md:pb-12">
+          <Outlet />
+        </main>
+
+        {/* Desktop / Tablet Persistent Ask ResilAI Bar */}
+        <div className="hidden md:block fixed bottom-4 left-20 lg:left-64 right-0 p-3 md:px-8 z-30 pointer-events-none">
+          <div className="max-w-3xl mx-auto pointer-events-auto">
+            <form onSubmit={handleSearchSubmit} className="relative flex items-center bg-surface-container-high/95 backdrop-blur-lg rounded-full p-1.5 border border-outline-variant/50 shadow-2xl shadow-black/50">
+              <Sparkles className="w-4 h-4 text-ready-emerald ml-3 shrink-0" />
+              <input 
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Ask ResilAI to analyze drift, generate reports, or query telemetry..."
+                aria-label="Ask ResilAI to analyze drift, generate reports, or query telemetry"
+                className="w-full bg-transparent border-none text-sm text-on-surface focus:outline-none focus:ring-0 placeholder-on-surface-variant/60 ml-2.5"
+              />
+              <button 
+                type="submit"
+                className="bg-ready-emerald text-on-primary-container w-8 h-8 rounded-full flex items-center justify-center hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ready-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all shrink-0 cursor-pointer min-touch-target"
+                title="Send query"
+                aria-label="Send query"
+              >
+                <ArrowUp className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Mobile Floating Action Button (Compact M3 Small FAB) */}
+        {!mobileSearchOpen && (
+          <button
+            onClick={() => setMobileSearchOpen(true)}
+            className="md:hidden fixed bottom-16 right-3 z-40 flex items-center justify-center w-11 h-11 rounded-full bg-ready-emerald text-slate-950 shadow-lg shadow-ready-emerald/25 hover:shadow-ready-emerald/40 active:scale-95 transition-all cursor-pointer m3-state-layer m3-elevation-3"
+            aria-label="Ask ResilAI"
+            title="Ask ResilAI"
+          >
+            <Sparkles className="w-5 h-5 text-slate-950 shrink-0" />
+          </button>
+        )}
+
+        {/* Mobile Ask ResilAI Bottom Sheet Modal */}
+        {mobileSearchOpen && (
+          <div 
+            className="md:hidden fixed inset-0 z-50 flex flex-col justify-end bg-background/80 backdrop-blur-sm animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Ask ResilAI Search"
+          >
+            <div 
+              className="fixed inset-0"
+              onClick={() => setMobileSearchOpen(false)}
+              aria-hidden="true"
+            />
+            <div className="relative bg-surface-container-low border-t border-outline-variant rounded-t-3xl p-4 pb-safe shadow-2xl z-10 space-y-3">
+              <div className="flex items-center justify-between pb-1 border-b border-outline-variant/30">
+                <div className="flex items-center gap-2 text-ready-emerald font-bold text-sm">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Ask ResilAI</span>
+                </div>
+                <button
+                  onClick={() => setMobileSearchOpen(false)}
+                  className="p-1 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"
+                  aria-label="Close search"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form 
+                onSubmit={(e) => { 
+                  handleSearchSubmit(e); 
+                  setMobileSearchOpen(false); 
+                }} 
+                className="relative flex items-center bg-surface-container-high rounded-full p-1.5 border border-outline-variant/60 shadow-inner"
+              >
+                <input 
+                  type="text"
+                  value={searchQuery}
+                  autoFocus
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Ask for a situation report, drift, or metrics..."
+                  aria-label="Ask ResilAI query"
+                  className="w-full bg-transparent border-none text-sm text-on-surface focus:outline-none focus:ring-0 placeholder-on-surface-variant/60 ml-3"
+                />
+                <button 
+                  type="submit"
+                  className="bg-ready-emerald text-on-primary-container w-8 h-8 rounded-full flex items-center justify-center hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ready-emerald transition-all shrink-0 cursor-pointer mr-0.5"
+                  title="Search"
+                  aria-label="Submit search"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </button>
+              </form>
+
+              {/* Quick Prompt Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 text-[11px] text-on-surface-variant scrollbar-none">
+                {[
+                  'What needs triage today?',
+                  'Check Veeam immutability',
+                  'Summarize clinical risk',
+                ].map((prompt) => (
+                  <button
+                    key={prompt}
+                    onClick={() => {
+                      setSearchQuery(prompt);
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-surface-container border border-outline-variant/50 hover:bg-surface-container-high hover:text-on-surface whitespace-nowrap transition-colors"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation Menu"
+        >
+          <div 
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity" 
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true" 
+          />
+          <div className="relative w-4/5 max-w-xs bg-surface-container-low h-full flex flex-col z-50 shadow-2xl overflow-hidden border-r border-outline-variant">
+            <AppSidebar mobile onClose={() => setMobileMenuOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Bottom Navigation Bar - Material 3 NavigationBar */}
+      <nav 
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-low/95 dark:bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/60 z-40 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)]"
+        style={{ bottom: 0, top: 'auto' }}
+        aria-label="Mobile Bottom Navigation"
+      >
+        <ul className="flex justify-around items-center h-14 max-w-md mx-auto px-1">
+          {[
+            { to: '/morning-brief', icon: Calendar, label: 'Today' },
+            { to: '/needs-attention', icon: AlertTriangle, label: 'Triage' },
+            { to: '/recovery', icon: RotateCcw, label: 'Recovery' },
+            { to: '/operations', icon: Layers, label: 'Ops' },
+          ].map(({ to, icon: Icon, label }) => (
+            <li key={to} className="flex-1">
+              <NavLink 
+                to={to} 
+                className={({ isActive }) => 
+                  `flex flex-col items-center justify-center py-0.5 w-full text-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ready-emerald rounded-xl ${
+                    isActive ? 'text-ready-emerald font-bold' : 'text-on-surface-variant hover:text-on-surface'
+                  }`
+                }
+                aria-label={label}
+              >
+                {({ isActive }) => (
+                  <>
+                    <div className={`px-3 py-0.5 rounded-full transition-all duration-200 flex items-center justify-center ${
+                      isActive 
+                        ? 'bg-ready-emerald/20 text-ready-emerald font-bold shadow-[0_0_10px_rgba(16,185,129,0.25)] ring-1 ring-ready-emerald/30' 
+                        : 'text-on-surface-variant hover:bg-surface-container-high/60'
+                    }`}>
+                      <Icon className="w-4.5 h-4.5 shrink-0" />
+                    </div>
+                    <span className={`text-[9.5px] tracking-tight mt-0.5 font-medium ${isActive ? 'text-ready-emerald font-bold' : 'text-on-surface-variant'}`}>{label}</span>
+                  </>
+                )}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  );
+}

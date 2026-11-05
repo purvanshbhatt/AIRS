@@ -6,9 +6,8 @@ This guide documents safe deployment flow with strict staging and production sep
 
 - Staging backend (Cloud Run): `airs-api-staging`
 - Production backend (Cloud Run): `airs-api`
-- Staging frontend (Firebase Hosting target): `staging` (staging.resilai.org)
-- Production frontend (Firebase Hosting target): `marketing` (resilai.org)
-- Demo frontend (Firebase Hosting target): `demo` (demo.resilai.org)
+- Staging frontend (Firebase Hosting target): `staging`
+- Production frontend (Firebase Hosting target): `airs`
 
 ## 2. Preconditions
 
@@ -43,9 +42,9 @@ bash ./scripts/deploy_cloud_run.sh --service airs-api-staging --region us-centra
 Validate:
 
 ```powershell
-curl https://api-staging.resilai.org/health
-curl https://api-staging.resilai.org/health/system
-curl https://api-staging.resilai.org/health/llm
+curl https://airs-api-staging-227825933697.us-central1.run.app/health
+curl https://airs-api-staging-227825933697.us-central1.run.app/health/system
+curl https://airs-api-staging-227825933697.us-central1.run.app/health/llm
 ```
 
 ## 5. Deploy Frontend to Staging
@@ -59,7 +58,7 @@ firebase deploy --only hosting:staging
 ```
 
 Validate:
-- Open `https://staging.resilai.org`
+- Open `https://airs-staging-0384513977.web.app`
 - Confirm API diagnostics point to staging backend URL
 - Confirm Firebase auth works for staging domain
 
@@ -84,12 +83,11 @@ cd frontend
 npm ci
 npm run build:production
 cd ..
-firebase deploy --only hosting:marketing,hosting:demo
+firebase deploy --only hosting:airs
 ```
 
-Production & Demo URLs:
-- `https://resilai.org`
-- `https://demo.resilai.org`
+Production URL:
+- `https://gen-lang-client-0384513977.web.app/`
 
 ## 8. CORS Alignment Checklist
 

@@ -1,0 +1,38 @@
+# ResilAI Showcase Notes
+
+Concise handoff for advisors, design partners, and pilot conversations.
+
+## Positioning
+
+ResilAI is a Deterministic Governance Factory that helps organizations measure compliance posture, enforce environment-locked governance policies, and programmatically verify their overall security compliance posture.
+
+## Public Beta Links
+
+- Frontend: `https://demo.resilai.org`
+- API health: `https://api-staging.resilai.org/health`
+- API docs: `https://api-staging.resilai.org/docs`
+
+## 5-Minute Product Walkthrough
+
+1. Dashboard: readiness snapshot and trend context
+2. Assessment: complete a control pass
+3. Results: review top risks and remediation priorities
+4. Executive Summary: download one-page PDF
+5. Integrations: API key, webhook, external findings flow
+6. Status: verify environment and runtime health
+
+## Enterprise Trust Signals
+
+- Deterministic scoring model
+- Framework alignment (MITRE, CIS, OWASP)
+- API key and webhook integration support
+- Environment separation and guarded deployment
+- Security and privacy documentation
+
+## Design Partner CTA
+
+Design partner inquiries: `purvansh95b@gmail.com`
+
+## License
+
+GNU AGPL-3.0

@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from app.connectors.base import (
-    BaseConnector,
+    Connector,
     ConnectorHealth,
     NormalizedEvent,
     PermissionResult,
@@ -248,13 +248,14 @@ class DefenderService:
 # ---------------------------------------------------------------------------
 
 @register_connector
-class MicrosoftConnector(BaseConnector):
+class MicrosoftConnector(Connector):
     """Microsoft Graph security telemetry connector.
 
     Connects to the MS Graph API (Intune, Entra ID, Defender) via client credentials flow.
     """
 
     CONNECTOR_TYPE = "microsoft"
+    CAPABILITIES = ["users", "devices", "security_alerts"]
     REQUIRED_PERMISSIONS = [
         "DeviceManagementManagedDevices.Read.All",
         "Policy.Read.All",
