@@ -236,6 +236,7 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_PUBLISHABLE_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_PRICE_FOUNDING_SYSADMIN: Optional[str] = None  # $149/mo locked seat; falls back to design-partner price
     STRIPE_PRICE_DESIGN_PARTNER: Optional[str] = None
     STRIPE_PRICE_GROWTH: Optional[str] = None
     STRIPE_PRICE_ENTERPRISE: Optional[str] = None

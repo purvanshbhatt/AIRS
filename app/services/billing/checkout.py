@@ -122,6 +122,9 @@ class CheckoutService:
         from app.core.config import settings
 
         price_id = getattr(settings, self._PRICE_SETTING_FOR_PLAN[plan], None)
+        if plan == "founding-sysadmin":
+            # Founding seats carry their own locked price when configured.
+            price_id = getattr(settings, "STRIPE_PRICE_FOUNDING_SYSADMIN", None) or price_id
         payload = {
             "mode": "subscription",
             "success_url": success_url if "{CHECKOUT_SESSION_ID}" in success_url else f"{success_url}?session_id={{CHECKOUT_SESSION_ID}}",
