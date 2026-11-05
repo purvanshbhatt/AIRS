@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - dev
+      - staging
       - main
 
 concurrency:
@@ -54,7 +55,7 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
-          if [ "${GITHUB_REF_NAME}" = "dev" ]; then
+          if [ "${GITHUB_REF_NAME}" = "dev" ] || [ "${GITHUB_REF_NAME}" = "staging" ]; then
             npm run build:staging
           else
             npm run build:production
@@ -134,7 +135,7 @@ jobs:
   # Requires both test AND governance-regression-gate to pass.
   # Runs Alembic schema migration BEFORE Cloud Run container swap.
   deploy-staging:
-    if: github.ref_name == 'dev'
+    if: github.ref_name == 'dev' || github.ref_name == 'staging'
     runs-on: ubuntu-latest
     needs: [test, governance-regression-gate]       # ← hard block on gate
     environment: staging
