@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   getIntegrationStatus, 
@@ -8,7 +8,8 @@ import {
   updateConnector,
   checkConnectorHealth, 
   syncConnectorNow, 
-  deleteConnector 
+  deleteConnector,
+  createBillingPortalSession,
 } from '../api';
 import { useActiveOrg } from '../hooks/useActiveOrg';
 import { useCapabilities } from '../hooks/useCapabilities';
@@ -34,7 +35,8 @@ import {
   Cloud,
   Layers,
   Lock,
-  ArrowRight
+  ArrowRight,
+  CreditCard
 } from 'lucide-react';
 
 type ConnectorStatus = 'CONNECTED' | 'DEGRADED' | 'NOT CONFIGURED' | 'AUTHENTICATION FAILED' | 'NO RECENT EVIDENCE';
@@ -171,11 +173,93 @@ const PASSWORD_SAVED_PLACEHOLDER = '•••• saved, enter to replace';
 export default function ConnectorsPage() {
   const navigate = useNavigate();
   const { orgId, orgName, isDemo } = useActiveOrg();
-  const { has: hasCapability, plan } = useCapabilities(orgId);
+  const { has: hasCapability, plan, capabilities, isPaid, isExempt, refresh: refreshCapabilities } = useCapabilities(orgId);
   const { addToast } = useToast();
 
   // Backend decides: paid plan or admin-exempt account both grant connectors_manage.
   const canManageConnectors = isDemo || hasCapability('connectors_manage');
+
+  // Payment failed but grace period still open — nudge to update the card.
+  const isPastDue = !isDemo && capabilities?.status === 'past_due';
+
+  // ---------------------------------------------------------------------------
+  // Stripe Checkout return (`?checkout=success`): the webhook that flips the org
+  // to paid can land a few seconds after the redirect, so poll capabilities
+  // every 2s (max 10 tries) until paid/exempt, then scrub the query params.
+  // ---------------------------------------------------------------------------
+  const CHECKOUT_POLL_INTERVAL_MS = 2000;
+  const CHECKOUT_POLL_MAX = 10;
+  const [awaitingCheckout, setAwaitingCheckout] = useState<boolean>(() =>
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('checkout') === 'success'
+  );
+  const [checkoutPollTick, setCheckoutPollTick] = useState(0);
+  const checkoutPollCount = useRef(0);
+  const checkoutToastShown = useRef(false);
+
+  const clearCheckoutParams = () => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    params.delete('checkout');
+    params.delete('session_id');
+    const qs = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`);
+  };
+
+  useEffect(() => {
+    if (!awaitingCheckout) return;
+    if (!checkoutToastShown.current) {
+      checkoutToastShown.current = true;
+      addToast({
+        title: 'Payment received',
+        message: 'Payment received — unlocking your workspace…',
+        type: 'success',
+      });
+    }
+    if (isPaid || isExempt) {
+      setAwaitingCheckout(false);
+      clearCheckoutParams();
+      return;
+    }
+    if (checkoutPollCount.current >= CHECKOUT_POLL_MAX) {
+      setAwaitingCheckout(false);
+      clearCheckoutParams();
+      addToast({
+        title: 'Still activating',
+        message: 'Your payment went through, but activation is taking longer than usual. Refresh in a minute or contact support if connectors stay locked.',
+        type: 'warning',
+      });
+      return;
+    }
+    const timer = setTimeout(async () => {
+      checkoutPollCount.current += 1;
+      try {
+        await refreshCapabilities();
+      } finally {
+        setCheckoutPollTick((t) => t + 1);
+      }
+    }, CHECKOUT_POLL_INTERVAL_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awaitingCheckout, isPaid, isExempt, checkoutPollTick, refreshCapabilities]);
+
+  // Stripe Customer Portal: update card, download invoices, cancel.
+  const [openingPortal, setOpeningPortal] = useState(false);
+  const handleManageBilling = async () => {
+    if (!orgId || openingPortal) return;
+    setOpeningPortal(true);
+    try {
+      const res = await createBillingPortalSession(orgId, window.location.href);
+      if (!res?.url) throw new Error('Billing portal returned no URL.');
+      window.location.href = res.url;
+    } catch (err: any) {
+      addToast({
+        title: 'Billing portal unavailable',
+        message: err?.message || 'Could not open the billing portal. Please contact support.',
+        type: 'error',
+      });
+      setOpeningPortal(false);
+    }
+  };
 
   const [loading, setLoading] = useState(true);
   const [confidenceData, setConfidenceData] = useState<any>(null);
@@ -536,6 +620,33 @@ export default function ConnectorsPage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
+      {/* Past-due billing warning (grace period) */}
+      {isPastDue && (
+        <div
+          role="alert"
+          className="p-4 bg-amber-500/10 border border-amber-500/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-on-surface">Your last payment failed.</p>
+              <p className="text-on-surface-variant text-xs mt-0.5">
+                Access continues for a short grace period — update your card to keep connectors running.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleManageBilling}
+            disabled={openingPortal}
+            className="px-4 py-2 bg-amber-500 text-slate-950 rounded-xl hover:brightness-110 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 disabled:opacity-50"
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>{openingPortal ? 'Opening…' : 'Manage billing'}</span>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/40 pb-6">
         <div>
@@ -567,6 +678,17 @@ export default function ConnectorsPage() {
             <span className={`w-2 h-2 rounded-full ${activeCount > 0 ? 'bg-ready-emerald animate-pulse' : 'bg-on-surface-variant/40'}`} />
             <strong>{activeCount}</strong> / {CONNECTOR_DEFINITIONS.length} Active
           </span>
+          {isPaid && !isDemo && (
+            <button
+              type="button"
+              onClick={handleManageBilling}
+              disabled={openingPortal}
+              className="px-3.5 py-2 bg-surface-container border border-outline-variant/40 text-on-surface rounded-xl hover:bg-surface-container-high font-semibold text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>{openingPortal ? 'Opening…' : 'Manage billing'}</span>
+            </button>
+          )}
           <button 
             onClick={() => handleOpenConfig(CONNECTOR_DEFINITIONS[0])}
             className="px-4 py-2 bg-ready-emerald text-on-primary-container rounded-xl hover:brightness-110 font-semibold text-xs transition-all flex items-center gap-1.5 shadow-sm"

@@ -111,3 +111,16 @@ class TestOrganizationMode:
         org = service.create(OrganizationCreate(name="Test", industry="healthcare"))
         mode = getattr(org, "org_mode", "production")
         assert mode != "demo", f"New org should not be in demo mode, got: {mode}"
+
+
+def test_demo_readiness_readable_without_token_when_auth_required(client):
+    """Explicit demo orgs must stay readable for the public sandbox even when
+    AUTH_REQUIRED is on; real orgs still require a token."""
+    from unittest.mock import patch, PropertyMock
+    with patch("app.core.config.Settings.is_auth_required", new_callable=PropertyMock, return_value=True):
+        demo = client.get("/api/clinic/readiness/demo-health-org")
+        assert demo.status_code == 200, demo.text
+        body = demo.json()
+        assert "aws" in str(body).lower() or body.get("failed_checks") is not None
+        real = client.get("/api/clinic/readiness/not-a-demo-org")
+        assert real.status_code == 401

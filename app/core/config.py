@@ -239,6 +239,11 @@ class Settings(BaseSettings):
     STRIPE_PRICE_DESIGN_PARTNER: Optional[str] = None
     STRIPE_PRICE_GROWTH: Optional[str] = None
     STRIPE_PRICE_ENTERPRISE: Optional[str] = None
+    # Self-serve checkout behaviour
+    STRIPE_TRIAL_DAYS: int = 14                 # 0 disables the free trial
+    STRIPE_AUTOMATIC_TAX: bool = False          # enable only after Stripe Tax registrations exist
+    STRIPE_PORTAL_CONFIGURATION: Optional[str] = None  # optional billing-portal configuration id
+    FOUNDING_SEATS_TOTAL: int = 50              # cap for the $149 founding-sysadmin plan
 
     model_config = SettingsConfigDict(
         case_sensitive=True,

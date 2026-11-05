@@ -93,8 +93,12 @@ PLAN_ENTITLEMENTS: Dict[str, List[Entitlement]] = {
     "enterprise": _ENTERPRISE_ENTITLEMENTS,
 }
 
-# Active subscription statuses that unlock paid entitlements
-_ACTIVE_STATUSES = {"active", "trialing"}
+# Subscription statuses that unlock paid entitlements. ``past_due`` is a
+# grace period while Stripe Smart Retries run; the UI shows a billing banner
+# (GET /capabilities returns status) instead of locking the workspace.
+_ACTIVE_STATUSES = {"active", "trialing", "past_due"}
+# Plans that consume a founding-sysadmin seat
+FOUNDING_PLANS = {"founding-sysadmin", "design-partner"}
 
 
 class EntitlementService:
@@ -201,6 +205,32 @@ class EntitlementService:
             "is_exempt": False,
             "exemption_type": None,
             "entitlements": {e.value: (e in allowed) for e in Entitlement},
+        }
+
+    def founding_seats(self) -> Dict[str, Any]:
+        """Live count of founding-sysadmin seats taken (never a hardcoded number)."""
+        from app.core.config import settings
+        from app.models.organization import Organization
+
+        total = int(getattr(settings, "FOUNDING_SEATS_TOTAL", 50))
+        try:
+            claimed = (
+                self.db.query(Organization)
+                .filter(
+                    Organization.subscription_plan.in_(sorted(FOUNDING_PLANS)),
+                    Organization.subscription_status.in_(sorted(_ACTIVE_STATUSES)),
+                )
+                .count()
+            )
+        except Exception as exc:
+            # Never block checkout on a counting failure; log and treat as open.
+            logger.warning("Founding seat count failed: %s", exc)
+            claimed = 0
+        return {
+            "total": total,
+            "claimed": claimed,
+            "remaining": max(0, total - claimed),
+            "sold_out": claimed >= total,
         }
 
     def activate_plan(self, org_id: str, plan: str, subscription_id: str = None,

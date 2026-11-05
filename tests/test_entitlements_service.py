@@ -138,8 +138,15 @@ class TestEffectivePlan:
         svc, _ = _create_service(org)
         assert svc.get_effective_plan("test-org-1") == "free"
 
-    def test_past_due_falls_back_to_free(self):
+    def test_past_due_keeps_plan_during_grace_period(self):
+        # Stripe Smart Retries run for days after a failed charge; access
+        # continues and the UI shows a billing banner instead of a lock.
         org = _create_mock_org(subscription_plan="growth", subscription_status="past_due")
+        svc, _ = _create_service(org)
+        assert svc.get_effective_plan("test-org-1") == "growth"
+
+    def test_unpaid_falls_back_to_free(self):
+        org = _create_mock_org(subscription_plan="growth", subscription_status="unpaid")
         svc, _ = _create_service(org)
         assert svc.get_effective_plan("test-org-1") == "free"
 

@@ -254,7 +254,14 @@ async def poll_wazuh_telemetry():
 
 security = HTTPBasic()
 
+_DEFAULT_DOCS_PASSWORD = "resilai_docs_admin"
+
+
 def get_docs_username(credentials: HTTPBasicCredentials = Depends(security)):
+    # In prod-like environments the docs stay hidden unless an operator set a
+    # real DOCS_PASSWORD; the shipped default must never guard a live service.
+    if settings.is_prod and settings.DOCS_PASSWORD == _DEFAULT_DOCS_PASSWORD:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
     correct_username = secrets.compare_digest(credentials.username, settings.DOCS_USERNAME)
     correct_password = secrets.compare_digest(credentials.password, settings.DOCS_PASSWORD)
     if not (correct_username and correct_password):

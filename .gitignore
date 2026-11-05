@@ -93,3 +93,9 @@ archive/logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Root temporary dumps & scratch scripts
+/*_staging.html
+/staging_*.html
+/scratch_*.py
+archive/scratch/

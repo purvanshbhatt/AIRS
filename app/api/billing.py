@@ -159,6 +159,7 @@ async def create_checkout_session(
         success_url=body.success_url,
         cancel_url=body.cancel_url,
         customer_email=user.email if user else None,
+        org=org,
     )
     if not result.get("success"):
         raise HTTPException(
@@ -166,6 +167,75 @@ async def create_checkout_session(
             detail={"error": {"code": "CHECKOUT_FAILED", "message": result.get("error", "Failed to create checkout session")}},
         )
     return result
+
+
+# ── Stripe Customer Portal ──────────────────────────────────────────
+
+class PortalSessionRequest(BaseModel):
+    return_url: str = Field(..., description="Where Stripe sends the user back after managing billing")
+
+
+@router.post(
+    "/orgs/{org_id}/billing/portal",
+    summary="Create Stripe Customer Portal Session",
+    description="Returns a Stripe-hosted portal URL for invoices, card updates, plan changes and cancellation.",
+    responses={
+        200: {"description": "Portal session created"},
+        400: {"description": "Portal unavailable (no billing account or Stripe not configured)"},
+        401: {"description": "Authentication required"},
+        404: {"description": "Organization not found"},
+    },
+)
+async def create_portal_session(
+    org_id: str,
+    body: PortalSessionRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+):
+    """Create a Stripe billing portal session for an organization the user owns."""
+    org_service = OrganizationService(db, owner_uid=user.uid if user else None)
+    org = org_service.get(org_id)
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "ORGANIZATION_NOT_FOUND", "message": "Organization not found."}},
+        )
+
+    checkout = CheckoutService(db)
+    result = await checkout.create_portal_session(org_id=org_id, return_url=body.return_url)
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": {"code": result.get("code", "PORTAL_FAILED"), "message": result.get("error", "Failed to create portal session")}},
+        )
+    return result
+
+
+# ── Public billing configuration (no auth; drives the pricing page) ──
+
+@router.get(
+    "/billing/public-config",
+    summary="Public Billing Configuration",
+    description="Live founding-seat availability and trial terms for the public pricing page.",
+)
+async def get_public_billing_config(db: Session = Depends(get_db)):
+    from app.core.config import settings
+
+    svc = EntitlementService(db)
+    try:
+        seats = svc.founding_seats()
+    except Exception as exc:  # pragma: no cover - defensive; pricing page must never 500
+        logger.warning("Founding seat count unavailable: %s", exc)
+        seats = {"total": settings.FOUNDING_SEATS_TOTAL, "claimed": 0, "remaining": settings.FOUNDING_SEATS_TOTAL, "sold_out": False}
+
+    return {
+        "founding_seats": seats,
+        "trial_days": int(getattr(settings, "STRIPE_TRIAL_DAYS", 0) or 0),
+        "card_required_for_trial": False,
+        "automatic_tax": bool(getattr(settings, "STRIPE_AUTOMATIC_TAX", False)),
+        "billing_provider": "stripe",
+        "cancel_anytime": True,
+    }
 
 
 # ── Plan Activation (Staging / Design Partner) ──────────────────────

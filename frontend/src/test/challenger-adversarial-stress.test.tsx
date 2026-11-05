@@ -100,7 +100,7 @@ describe('Challenger 1: Empirical Adversarial Stress Testing', () => {
 
       expect(screen.getByText('Welcome to your ResilAI Readiness Workspace')).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /Connect Security System/i })).toHaveAttribute('href', '/connectors');
-      expect(screen.getByRole('link', { name: /Explore Live Sandbox Demo/i })).toHaveAttribute('href', 'https://demo.resilai.org');
+      expect(screen.getByRole('link', { name: /Explore Live Sandbox Demo/i })).toHaveAttribute('href', '/demo');
       expect(screen.getByText('The Path to Measurable Readiness')).toBeInTheDocument();
     });
 

@@ -56,6 +56,9 @@ function _getCandidateUrls(): string[] {
     } else if (host === 'resilai.org' || host === 'www.resilai.org') {
       candidates.push('https://api.resilai.org');
     } else if (host === 'demo.resilai.org') {
+      // No dedicated demo API service exists; the read-only demo organizations
+      // (demo-*) are served by the production API with simulated telemetry.
+      candidates.push('https://api.resilai.org');
       candidates.push('https://api-demo.resilai.org');
     }
   }

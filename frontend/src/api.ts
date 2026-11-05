@@ -26,12 +26,15 @@ export interface ApiError {
   status?: number;
   requestId?: string;
   detail?: string;
+  /** Machine-readable backend error code (e.g. SUBSCRIPTION_EXISTS, NO_CUSTOMER), when provided. */
+  code?: string;
 }
 
 export class ApiRequestError extends Error {
   status?: number;
   requestId?: string;
   detail?: string;
+  code?: string;
 
   constructor(error: ApiError) {
     super(error.message);
@@ -39,6 +42,7 @@ export class ApiRequestError extends Error {
     this.status = error.status;
     this.requestId = error.requestId;
     this.detail = error.detail;
+    this.code = error.code;
   }
 
   /**
@@ -227,6 +231,7 @@ async function request<T>(
         message: String(paywallDetail.message || 'An active subscription is required to access this feature.'),
         status: 402,
         detail: JSON.stringify(paywallDetail),
+        code: paywallDetail.code ? String(paywallDetail.code) : undefined,
       });
     }
 
@@ -234,6 +239,7 @@ async function request<T>(
       let errorMessage = `Request failed`;
       let requestId: string | undefined;
       let detail: string | undefined;
+      let code: string | undefined;
       
       try {
         const errorBody = await response.json();
@@ -252,6 +258,9 @@ async function request<T>(
             if (nested.request_id) {
               requestId = String(nested.request_id);
             }
+            if (nested.code) {
+              code = String(nested.code);
+            }
           } else {
             // Direct error properties
             if (err.detail) {
@@ -261,6 +270,9 @@ async function request<T>(
             }
             if (err.request_id) {
               requestId = String(err.request_id);
+            }
+            if (err.code) {
+              code = String(err.code);
             }
           }
         }
@@ -295,6 +307,7 @@ async function request<T>(
         status: response.status,
         requestId,
         detail,
+        code,
       });
     }
 
@@ -1914,10 +1927,23 @@ export const getDailyReadinessReport = async (orgId: string): Promise<DailyReadi
                             orgId === 'demo-acme-technologies' ||
                             orgId.startsWith('demo-');
 
-  // Invariant: Demo data is ALWAYS returned for explicit demo organization IDs.
-  // Real organizations with real IDs MUST ALWAYS call the backend API to reflect real verification status.
+  // Invariant: demo organizations never show a real customer's data.
+  // The backend serves demo orgs from recorded telemetry (Microsoft 365,
+  // Veeam and the AWS test-account Security Hub / IAM findings captured in
+  // tests/aws_integration/e2e_results.json); the bundled mock is only a
+  // fallback when the API is unreachable, so the public sandbox never blanks.
+  // Real organizations MUST ALWAYS call the backend to reflect real verification status.
   if (isExplicitDemoOrg) {
-    console.log('[API] Returning Acme Health Systems demo readiness report for demo org:', orgId);
+    try {
+      const live = await request<DailyReadinessReport>(`/api/clinic/readiness/${orgId}`);
+      if (live && Array.isArray(live.failed_checks)) {
+        return live;
+      }
+    } catch (err) {
+      if (import.meta.env.MODE !== 'test') {
+        console.warn('[API] Demo readiness unavailable from backend, using bundled sandbox data:', err);
+      }
+    }
     return MOCK_ACME_DAILY_READINESS;
   }
 
@@ -2125,6 +2151,44 @@ export async function getCapabilities(orgId: string): Promise<CapabilitiesRespon
 
 export async function getBillingStatus(orgId: string): Promise<BillingStatusResponse> {
   return request<BillingStatusResponse>(`/api/orgs/${orgId}/billing`);
+}
+
+export interface PublicBillingConfig {
+  founding_seats: {
+    total: number;
+    claimed: number;
+    remaining: number;
+    sold_out: boolean;
+  };
+  trial_days: number;
+  card_required_for_trial: boolean;
+  automatic_tax: boolean;
+  billing_provider: string;
+  cancel_anytime: boolean;
+}
+
+/** Public (unauthenticated) billing configuration: founding-seat counter, trial terms. */
+export async function getPublicBillingConfig(): Promise<PublicBillingConfig> {
+  return request<PublicBillingConfig>('/api/billing/public-config');
+}
+
+export interface BillingPortalSessionResponse {
+  success: boolean;
+  url: string;
+}
+
+/**
+ * Create a Stripe Customer Portal session for the org. Fails with HTTP 400 and
+ * `err.code` of NO_CUSTOMER or PORTAL_NOT_CONFIGURED when the portal is unavailable.
+ */
+export async function createBillingPortalSession(
+  orgId: string,
+  returnUrl: string
+): Promise<BillingPortalSessionResponse> {
+  return request<BillingPortalSessionResponse>(`/api/orgs/${orgId}/billing/portal`, {
+    method: 'POST',
+    body: JSON.stringify({ return_url: returnUrl }),
+  });
 }
 
 export async function activatePlan(orgId: string, plan: string): Promise<{ success: boolean; plan: string; status: string }> {

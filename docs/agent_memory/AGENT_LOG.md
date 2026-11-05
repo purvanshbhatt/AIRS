@@ -2865,3 +2865,32 @@ Affected Teams:
 * Backend
 * Frontend
 * Security
+
+
+---
+
+Date: 2026-11-05
+Agent: Claude Fable 5.1 (Claude Code)
+Task: Billing checkout fields (LLM council), demo sandbox on AWS telemetry, AI SEO pricing files, secret hygiene
+Changes Made:
+* Checkout: invoice-friendly Stripe Checkout payload (address, tax ID, promo codes, trial, customer reuse), Stripe Customer Portal endpoint, public billing config endpoint with DB-backed founding-seat counter, past_due grace period, production requires real price IDs.
+* Demo: tokenless read of demo-* readiness, demo namespace treated as demo telemetry, frontend demo readiness served by backend (AWS e2e findings) with mock fallback, demo host uses production API, in-app /demo link.
+* AI SEO: public/pricing.md, llms.txt pricing summary, robots allow, FAQPage + Product JSON-LD on /pricing.
+* Security: scrubbed local ENCRYPTION_SECRET from run_server.bat; API docs hidden in prod unless DOCS_PASSWORD changed.
+Files Modified:
+* app/core/config.py, app/core/auth.py, app/api/billing.py, app/api/clinic/router.py, app/services/billing/checkout.py, app/services/billing/entitlements.py, app/main.py, run_server.bat
+* frontend/src/api.ts, frontend/src/pages/Pricing.tsx, frontend/src/pages/Connectors.tsx, frontend/src/runtimeConfig.ts, frontend/src/features/readiness/TodayPage.tsx, frontend/public/pricing.md (new), frontend/public/llms.txt, frontend/public/robots.txt
+* tests/test_billing_checkout_fields.py (new), tests/test_entitlements_service.py, tests/test_demo_isolation.py, frontend/src/test/* (demo link assertions)
+* .claude/launch.json (new; local backend + frontend dev servers)
+Dependencies Created/Updated:
+* None
+Business Impact:
+* A practice manager can expense the subscription (invoice with legal name, address, tax ID), a solo admin gets a 14-day card-free approval window, subscribers self-serve invoices and cancellation through Stripe, and the public sandbox shows findings recorded from the real AWS test account.
+Next Recommended Task:
+* Create Stripe prices and bind STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET / STRIPE_PRICE_* on the production Cloud Run service; configure the Customer Portal in the Stripe dashboard; rotate the staging ENCRYPTION_SECRET into Secret Manager.
+Blocked By:
+* Stripe production keys not present in Secret Manager (only ENCRYPTION_SECRET, airs-db-password, gemini-api-key exist).
+Affected Teams:
+* Backend
+* Frontend
+* Growth

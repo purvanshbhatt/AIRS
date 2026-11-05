@@ -13,7 +13,7 @@ Tests the exact scenarios specified in the agent task cue:
 import pytest
 from unittest.mock import patch
 from app.models.organization import Organization
-from app.core.auth import get_current_user, User
+from app.core.auth import get_current_user, User, get_optional_user
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -257,6 +257,7 @@ class TestOrganizationIsolation:
         settings.AUTH_REQUIRED = True
         fastapi_app.dependency_overrides[get_db] = override_get_db
         fastapi_app.dependency_overrides[get_current_user] = override_auth
+        fastapi_app.dependency_overrides[get_optional_user] = override_auth
 
         try:
             from fastapi.testclient import TestClient
@@ -292,6 +293,7 @@ class TestOrganizationIsolation:
         settings.AUTH_REQUIRED = True
         fastapi_app.dependency_overrides[get_db] = override_get_db
         fastapi_app.dependency_overrides[get_current_user] = override_auth
+        fastapi_app.dependency_overrides[get_optional_user] = override_auth
 
         try:
             from fastapi.testclient import TestClient
@@ -323,6 +325,7 @@ class TestOrganizationIsolation:
         settings.AUTH_REQUIRED = True
         fastapi_app.dependency_overrides[get_db] = override_get_db
         fastapi_app.dependency_overrides[get_current_user] = override_auth
+        fastapi_app.dependency_overrides[get_optional_user] = override_auth
 
         try:
             from fastapi.testclient import TestClient

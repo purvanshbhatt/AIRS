@@ -9,7 +9,7 @@ from app.services.clinic_engine.v2.schema import RawEvent
 from app.services.clinic_engine.v2.engine import ClinicEvaluationEngine
 from app.services.clinic_engine.v2.morning_check import MorningCheckGeneratorV2, MorningCheckV2
 from app.services.clinic_engine.v2.providers import ProviderRegistry
-from app.core.auth import get_current_user, User
+from app.core.auth import get_current_user, User, get_optional_user
 from app.core.config import settings
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -211,7 +211,9 @@ async def get_morning_summary(db: Session = Depends(get_db)):
 async def get_clinic_readiness(
     org_id: str,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user)
+    # Optional so explicit demo organizations stay readable without a token;
+    # the isolation guard below still returns 401 for real organizations.
+    current_user: Optional[User] = Depends(get_optional_user)
 ):
     """The product endpoint. Returns the immutable DailyReadinessReport.
 
@@ -275,7 +277,10 @@ async def get_clinic_readiness(
     # Missing mode, null mode, "pilot", "production" → ALL treated as real.
     pilot = PilotService(db)
     org_mode = pilot.get_mode(org_id)
-    is_demo_org = (org_mode == OrgMode.DEMO)
+    # Explicit demo organizations: either flagged demo in the lifecycle store or
+    # using the reserved "demo-" id namespace (public sandbox orgs that may not
+    # be seeded in this environment). Real organizations always have UUID ids.
+    is_demo_org = (org_mode == OrgMode.DEMO) or org_id.startswith("demo-")
 
     logger.info(
         "Readiness request: org_id=%s, mode=%s, is_demo=%s",

@@ -63,6 +63,7 @@ User-agent: Meta-ExternalAgent
 Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt
+Allow: /pricing.md
 Allow: /healthcare
 Allow: /legal
 Allow: /general
@@ -90,6 +91,7 @@ Allow: /contact
 Allow: /docs/
 Allow: /llms.txt
 Allow: /llms-full.txt
+Allow: /pricing.md
 Disallow: /morning-brief
 Disallow: /needs-attention
 Disallow: /recovery
