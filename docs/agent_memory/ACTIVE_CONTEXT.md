@@ -1,8 +1,28 @@
 # Active Context
 Date: 2026-11-05
-Status: Connector MVP hardening (org-scoped routes, real webhook ingestion, encrypted credentials, no fabricated telemetry) and account-scoped paywall exemption
+Status: Polished and deployed the complete ResilAI official brand asset suite across all orientations (horizontal, stacked, standalone emblem) and backgrounds (light transparent, dark transparent, solid white, solid cyber navy, monochrome) using the authentic hexagonal node network / cyber snowflake emblem, deployed to header, footer, favicons, reports, docs, and GitHub.
 
 ## Recent Actions
+- Brand Logo Polish & Multi-Orientation Suite (2026-11-05):
+  - Preserved authentic ResilAI company emblem geometry: the official 6-fold radial snowflake/circuit node network with center regular hexagon, 6 radiating node branches, outer chevrons, and interconnecting dumbbells (exact geometry from user reference files).
+  - Executed master upscaling and layer-separation pipeline (`scripts/generate_polished_logos.py`) utilizing 6x-8x Lanczos interpolation, anti-aliased alpha blending, and exact corporate brand colors:
+    - Corporate Navy: `#182939` (RGB: `24, 41, 57`)
+    - Vibrant Emerald Accent: `#6ED975` (RGB: `110, 217, 117`)
+    - Crisp White (Dark Mode): `#FFFFFF`
+    - Deep Cyber Navy Canvas: `#0B1326`
+  - Generated comprehensive multi-orientation & multi-background suite (PNGs up to 3120px, responsive SVGs, static SVGs):
+    - **Horizontal Lockups** (`brand/horizontal/`): `resilai_horizontal_light_trans.png` (3120x1122), `resilai_horizontal_dark_trans.png`, `resilai_horizontal_light_solid.png`, `resilai_horizontal_dark_solid.png`, `resilai_horizontal_white_mono.png`, `resilai_horizontal_black_mono.png`, `resilai_horizontal_adaptive.svg`, `resilai_horizontal_light.svg`, `resilai_horizontal_dark.svg`.
+    - **Stacked / Vertical Lockups** (`brand/stacked/`): `resilai_stacked_light_trans.png` (1695x2445), `resilai_stacked_dark_trans.png`, `resilai_stacked_light_solid.png`, `resilai_stacked_dark_solid.png`, `resilai_stacked_white_mono.png`, `resilai_stacked_black_mono.png`, `resilai_stacked_adaptive.svg`, `resilai_stacked_light.svg`, `resilai_stacked_dark.svg`.
+    - **Standalone Emblems** (`brand/emblem/`): `resilai_emblem_light_trans.png` (1632x2080), `resilai_emblem_dark_trans.png`, `resilai_emblem_light_solid.png`, `resilai_emblem_dark_solid.png`, `resilai_emblem_white_mono.png`, `resilai_emblem_black_mono.png`, `resilai_emblem_adaptive.svg`, `resilai_emblem_light.svg`, `resilai_emblem_dark.svg`.
+    - **Favicons & App Icons** (`brand/favicons/` & `frontend/public/`): Multi-resolution `favicon.ico` (16, 32, 48), `favicon-16.png`, `favicon-32.png`, `favicon-48.png`, `favicon-64.png`, `favicon-128.png`, `favicon-180.png`, `favicon-192.png`, `favicon-512.png`, `apple-touch-icon.png`, `favicon-dark.png`, `favicon-light.png`, and adaptive `favicon.svg`.
+  - Deployed assets across all application touchpoints:
+    - Nav bar header: `logo_header_light.png`, `logo_header_dark.png`, `logo_header.svg` in `PublicNavbar.tsx`, `DocsLayout.tsx`, `Onboarding.tsx`.
+    - Footer: `logo_footer_light.png`, `logo_footer_dark.png`, `logo_footer_and_github.svg` in `Footer.tsx`.
+    - Reports & Docs: `docs/assets/brand/`, `docs/assets/airs-logo-dark.png`, `docs/assets/airs-logo-light.png`, `docs/images/logo.jpg`, and updated `app/reports/pdf.py` to use `favicon-light.png`.
+    - GitHub: `.github/assets/logo_header_dark.png`, `logo_header_light.png`, `logo.svg`, `avatar_dark.png`, `avatar_light.png`, and updated `README.md`.
+    - Synchronized into distribution packages (`dist-demo`, `dist-production`, `dist-staging`).
+  - Validation: Frontend production build (`tsc -b && vite build`) passed with 0 errors; all 15 vitest test suites (334/334 tests) passed; `graphify update .` completed.
+
 - Deployed 2026-11-05 (commits 33a9c80, 1c7764a, 211a555 on `staging`): Cloud Run `airs-api-staging` revision 00071 and `airs-api` revision 00101 (traffic moved from pinned 00098 to latest), Firebase Hosting `resilai-staging`, `marketing` (resilai.org) and `demo`. Verified live: `GET /api/billing/public-config` on prod and staging, demo readiness `critical_risk` with AWS-derived findings without a token, `/docs` 404 with the default password, pricing bundle carries trial copy, portal and founding-seat strings, `pricing.md` and `llms.txt` pricing section served. Production has no Stripe secrets bound yet (checkout returns a configuration error until `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*` are added via `--set-secrets`).
 - Billing / payment fields (council-reviewed, 2026-11-05):
   - Stripe Checkout payload (`CheckoutService.build_checkout_payload`) now collects `billing_address_collection=required`, `tax_id_collection`, `customer_update[name|address]=auto`, `allow_promotion_codes`, `subscription_data[metadata]`, a card-optional trial (`STRIPE_TRIAL_DAYS`, default 14, `payment_method_collection=if_required`), optional `automatic_tax` (`STRIPE_AUTOMATIC_TAX`), reuses `org.customer_id`, refuses a second subscription (`SUBSCRIPTION_EXISTS`) and refuses founding seats when sold out (`FOUNDING_SOLD_OUT`). Dynamic `price_data` fallback is disabled in production (real `STRIPE_PRICE_*` ids required).
