@@ -394,17 +394,23 @@ async def get_integration_status(
     splunk_status = "not_configured"
     
     if org_id:
+        # Tenant isolation: the caller must own the organization they query.
+        from app.services.organization import OrganizationService
+        owned = OrganizationService(db, owner_uid=user.uid if user else None).get(org_id)
+        if not owned:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
         cfg = db.query(WazuhConfig).filter(WazuhConfig.org_id == org_id).first()
         if cfg:
             wazuh_status = "configured"
             wazuh_host = cfg.wazuh_host
             wazuh_port = cfg.wazuh_port
-        from app.models.connector import Connector, ConnectorType
+        from app.models.connector import Connector, ConnectorType, ConnectorStatus
         conn = db.query(Connector).filter(
             Connector.org_id == org_id,
-            Connector.connector_type == ConnectorType.splunk
+            Connector.connector_type == ConnectorType.splunk,
+            Connector.status != ConnectorStatus.inactive,
         ).first()
-        if conn and conn.status == "active":
+        if conn:
             splunk_status = "configured"
             
     return {

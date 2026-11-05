@@ -109,11 +109,11 @@ export function AIPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-3">
-              <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 flex items-center justify-between">
                 <span className="text-xs font-semibold">Real-Time PHI Sanitizer</span>
                 <TrustBadge status="verified" text="Active" />
               </div>
-              <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 flex items-center justify-between">
                 <span className="text-xs font-semibold">Zero Training Opt-Out</span>
                 <TrustBadge status="verified" text="Verified" />
               </div>
@@ -140,7 +140,7 @@ export function AIPage() {
           </CardHeader>
           <CardContent className="p-0">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-900 text-xs font-bold uppercase text-slate-500 border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-900 text-xs font-bold uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="px-6 py-3">Model / Endpoint</th>
                   <th className="px-6 py-3">Architecture</th>

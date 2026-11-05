@@ -85,13 +85,20 @@ _ENTERPRISE_ENTITLEMENTS = _GROWTH_ENTITLEMENTS + [
 
 PLAN_ENTITLEMENTS: Dict[str, List[Entitlement]] = {
     "free": _FREE_ENTITLEMENTS,
+    "solo-it": _DESIGN_PARTNER_ENTITLEMENTS,
+    "founding-sysadmin": _DESIGN_PARTNER_ENTITLEMENTS,
+    "starter": _DESIGN_PARTNER_ENTITLEMENTS,
     "design-partner": _DESIGN_PARTNER_ENTITLEMENTS,
     "growth": _GROWTH_ENTITLEMENTS,
     "enterprise": _ENTERPRISE_ENTITLEMENTS,
 }
 
-# Active subscription statuses that unlock paid entitlements
-_ACTIVE_STATUSES = {"active", "trialing"}
+# Subscription statuses that unlock paid entitlements. ``past_due`` is a
+# grace period while Stripe Smart Retries run; the UI shows a billing banner
+# (GET /capabilities returns status) instead of locking the workspace.
+_ACTIVE_STATUSES = {"active", "trialing", "past_due"}
+# Plans that consume a founding-sysadmin seat
+FOUNDING_PLANS = {"founding-sysadmin", "design-partner"}
 
 
 class EntitlementService:
@@ -111,16 +118,18 @@ class EntitlementService:
         return self.db.query(Organization).filter(Organization.id == org_id).first()
 
     def is_exempt_org(self, org_id: str) -> bool:
-        """Check if an organization is owned by or associated with an administrator account."""
+        """Check if an organization is exempt from paywall gating."""
         from app.core.config import settings
+        if settings.BYPASS_PAYWALL:
+            return True
         org = self._get_org(org_id)
         if not org:
             return False
         owner_uid = getattr(org, "owner_uid", None)
         created_by = getattr(org, "created_by", None)
-        if isinstance(owner_uid, str) and settings.is_admin_email(owner_uid):
+        if isinstance(owner_uid, str) and (settings.is_admin_uid(owner_uid) or settings.is_admin_email(owner_uid)):
             return True
-        if isinstance(created_by, str) and settings.is_admin_email(created_by):
+        if isinstance(created_by, str) and (settings.is_admin_uid(created_by) or settings.is_admin_email(created_by)):
             return True
         return False
 
@@ -196,6 +205,32 @@ class EntitlementService:
             "is_exempt": False,
             "exemption_type": None,
             "entitlements": {e.value: (e in allowed) for e in Entitlement},
+        }
+
+    def founding_seats(self) -> Dict[str, Any]:
+        """Live count of founding-sysadmin seats taken (never a hardcoded number)."""
+        from app.core.config import settings
+        from app.models.organization import Organization
+
+        total = int(getattr(settings, "FOUNDING_SEATS_TOTAL", 50))
+        try:
+            claimed = (
+                self.db.query(Organization)
+                .filter(
+                    Organization.subscription_plan.in_(sorted(FOUNDING_PLANS)),
+                    Organization.subscription_status.in_(sorted(_ACTIVE_STATUSES)),
+                )
+                .count()
+            )
+        except Exception as exc:
+            # Never block checkout on a counting failure; log and treat as open.
+            logger.warning("Founding seat count failed: %s", exc)
+            claimed = 0
+        return {
+            "total": total,
+            "claimed": claimed,
+            "remaining": max(0, total - claimed),
+            "sold_out": claimed >= total,
         }
 
     def activate_plan(self, org_id: str, plan: str, subscription_id: str = None,

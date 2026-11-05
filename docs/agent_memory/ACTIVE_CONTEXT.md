@@ -1,16 +1,98 @@
 # Active Context
-Date: 2026-10-01
-Status: Daily Backup Sync & Remote Backup Branch Push Completed (backup, staging, daily-sync, backup-sync synchronized at 47b4890 / ca798ba)
+Date: 2026-11-05
+Status: Polished and deployed the complete ResilAI official brand asset suite across all orientations (horizontal, stacked, standalone emblem) and backgrounds (light transparent, dark transparent, solid white, solid cyber navy, monochrome) using the authentic hexagonal node network / cyber snowflake emblem, deployed to header, footer, favicons, reports, docs, and GitHub.
 
 ## Recent Actions
-- Daily Backup Sync & Branch Push (`backup`, `staging`, `daily-sync`, `backup-sync`):
-  - Workflow Specification Audit & Hardening: Validated `.github/workflows/daily-backup-sync.yml` against all required specifications: cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST), `workflow_dispatch` manual trigger, repository checkout (`fetch-depth: 0`, `contents: write`), branch synchronization (`staging` -> `daily-sync`), strict branch protection (blocking `main` and `demo-stable` via both local pre-push hook and step guard), and `$GITHUB_STEP_SUMMARY` audit logging.
-  - Resolved Ref Collisions: Cleaned up legacy hierarchical ref `backup/daily-sync` and `backup/dev-before-sync` locally and on origin to resolve Git Directory/File (D/F) ref locking conflicts, enabling first-class canonical `backup` branch creation.
-  - Committed & Pushed Working Tree Updates to `backup`: Staged and committed 15 frontend component and styling improvements plus workflow enhancements on `backup` (commit `ca798ba`), and pushed upstream to `origin/backup`.
-  - Merged & Synchronized `staging`: Merged `backup` into `staging` (fast-forward to `ca798ba`), pushed `origin/staging`.
-  - Daily Snapshot Sync & Remote Parity: Merged `origin/staging` into `daily-sync` (merge commit `47b4890`), pushed `origin/daily-sync`, and synchronized remote mirrors `origin/backup` and `origin/backup-sync` at `47b4890`.
-  - Test Suite & Build Verification: `npm run build` cleanly compiled (`dist-production/` exit code 0); `pytest tests/test_daily_git_sync.py` passed with 35/35 tests (100%).
-  - Working Tree Integrity: Cleanly returned active working branch to `staging`.
+- Brand Logo Polish & Multi-Orientation Suite (2026-11-05):
+  - Preserved authentic ResilAI company emblem geometry: the official 6-fold radial snowflake/circuit node network with center regular hexagon, 6 radiating node branches, outer chevrons, and interconnecting dumbbells (exact geometry from user reference files).
+  - Executed master upscaling and layer-separation pipeline (`scripts/generate_polished_logos.py`) utilizing 6x-8x Lanczos interpolation, anti-aliased alpha blending, and exact corporate brand colors:
+    - Corporate Navy: `#182939` (RGB: `24, 41, 57`)
+    - Vibrant Emerald Accent: `#6ED975` (RGB: `110, 217, 117`)
+    - Crisp White (Dark Mode): `#FFFFFF`
+    - Deep Cyber Navy Canvas: `#0B1326`
+  - Generated comprehensive multi-orientation & multi-background suite (PNGs up to 3120px, responsive SVGs, static SVGs):
+    - **Horizontal Lockups** (`brand/horizontal/`): `resilai_horizontal_light_trans.png` (3120x1122), `resilai_horizontal_dark_trans.png`, `resilai_horizontal_light_solid.png`, `resilai_horizontal_dark_solid.png`, `resilai_horizontal_white_mono.png`, `resilai_horizontal_black_mono.png`, `resilai_horizontal_adaptive.svg`, `resilai_horizontal_light.svg`, `resilai_horizontal_dark.svg`.
+    - **Stacked / Vertical Lockups** (`brand/stacked/`): `resilai_stacked_light_trans.png` (1695x2445), `resilai_stacked_dark_trans.png`, `resilai_stacked_light_solid.png`, `resilai_stacked_dark_solid.png`, `resilai_stacked_white_mono.png`, `resilai_stacked_black_mono.png`, `resilai_stacked_adaptive.svg`, `resilai_stacked_light.svg`, `resilai_stacked_dark.svg`.
+    - **Standalone Emblems** (`brand/emblem/`): `resilai_emblem_light_trans.png` (1632x2080), `resilai_emblem_dark_trans.png`, `resilai_emblem_light_solid.png`, `resilai_emblem_dark_solid.png`, `resilai_emblem_white_mono.png`, `resilai_emblem_black_mono.png`, `resilai_emblem_adaptive.svg`, `resilai_emblem_light.svg`, `resilai_emblem_dark.svg`.
+    - **Favicons & App Icons** (`brand/favicons/` & `frontend/public/`): Multi-resolution `favicon.ico` (16, 32, 48), `favicon-16.png`, `favicon-32.png`, `favicon-48.png`, `favicon-64.png`, `favicon-128.png`, `favicon-180.png`, `favicon-192.png`, `favicon-512.png`, `apple-touch-icon.png`, `favicon-dark.png`, `favicon-light.png`, and adaptive `favicon.svg`.
+  - Deployed assets across all application touchpoints:
+    - Nav bar header: `logo_header_light.png`, `logo_header_dark.png`, `logo_header.svg` in `PublicNavbar.tsx`, `DocsLayout.tsx`, `Onboarding.tsx`.
+    - Footer: `logo_footer_light.png`, `logo_footer_dark.png`, `logo_footer_and_github.svg` in `Footer.tsx`.
+    - Reports & Docs: `docs/assets/brand/`, `docs/assets/airs-logo-dark.png`, `docs/assets/airs-logo-light.png`, `docs/images/logo.jpg`, and updated `app/reports/pdf.py` to use `favicon-light.png`.
+    - GitHub: `.github/assets/logo_header_dark.png`, `logo_header_light.png`, `logo.svg`, `avatar_dark.png`, `avatar_light.png`, and updated `README.md`.
+    - Synchronized into distribution packages (`dist-demo`, `dist-production`, `dist-staging`).
+  - Validation: Frontend production build (`tsc -b && vite build`) passed with 0 errors; all 15 vitest test suites (334/334 tests) passed; `graphify update .` completed.
+
+- Deployed 2026-11-05 (commits 33a9c80, 1c7764a, 211a555 on `staging`): Cloud Run `airs-api-staging` revision 00071 and `airs-api` revision 00101 (traffic moved from pinned 00098 to latest), Firebase Hosting `resilai-staging`, `marketing` (resilai.org) and `demo`. Verified live: `GET /api/billing/public-config` on prod and staging, demo readiness `critical_risk` with AWS-derived findings without a token, `/docs` 404 with the default password, pricing bundle carries trial copy, portal and founding-seat strings, `pricing.md` and `llms.txt` pricing section served. Production has no Stripe secrets bound yet (checkout returns a configuration error until `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*` are added via `--set-secrets`).
+- Billing / payment fields (council-reviewed, 2026-11-05):
+  - Stripe Checkout payload (`CheckoutService.build_checkout_payload`) now collects `billing_address_collection=required`, `tax_id_collection`, `customer_update[name|address]=auto`, `allow_promotion_codes`, `subscription_data[metadata]`, a card-optional trial (`STRIPE_TRIAL_DAYS`, default 14, `payment_method_collection=if_required`), optional `automatic_tax` (`STRIPE_AUTOMATIC_TAX`), reuses `org.customer_id`, refuses a second subscription (`SUBSCRIPTION_EXISTS`) and refuses founding seats when sold out (`FOUNDING_SOLD_OUT`). Dynamic `price_data` fallback is disabled in production (real `STRIPE_PRICE_*` ids required).
+  - New `POST /api/orgs/{org_id}/billing/portal` (Stripe Customer Portal: invoices, card update, plan change, cancel) and public `GET /api/billing/public-config` (live founding-seat count from the DB, trial days). `past_due` keeps entitlements as a grace period; the Connectors page shows a billing banner with "Manage billing".
+  - Frontend: Pricing page reads live founding seats and trial terms, handles `?checkout=cancelled`, routes existing subscribers to the portal, and emits `FAQPage` + `Product/AggregateOffer` JSON-LD via `SEOHead`; Connectors page polls capabilities after `?checkout=success` (webhook race) and shows "Manage billing" for paid orgs. Styling reuses existing components; no visual redesign.
+  - Tests: `tests/test_billing_checkout_fields.py` (7 tests). `past_due` test in `tests/test_entitlements_service.py` updated to the grace-period rule.
+- Demo sandbox served from recorded AWS telemetry:
+  - `GET /api/clinic/readiness/{org_id}` uses `get_optional_user` so `demo-*` orgs are readable without a token when `AUTH_REQUIRED=true`; `demo-` namespaced ids are treated as demo for telemetry even when unseeded. Demo telemetry already merges `tests/aws_integration/e2e_results.json` (AWS Config, root credential use, IAM stale keys) via `app/services/demo/aws_demo_telemetry.py`.
+  - Frontend `getDailyReadinessReport` calls the backend for demo orgs first and only falls back to the bundled mock if the API is unreachable. `demo.resilai.org` now resolves its API to `https://api.resilai.org` (no `api-demo` service exists). "Explore Live Sandbox Demo" opens the in-app `/demo` route instead of a separate site.
+- AI SEO / GEO: added `frontend/public/pricing.md` (machine-readable pricing), a pricing summary in `llms.txt`, `Allow: /pricing.md` in `robots.txt`, and pricing-page structured data.
+- Secret hygiene: `run_server.bat` no longer carries a real `ENCRYPTION_SECRET`; `/docs`, `/redoc`, `/openapi.json` return 404 in prod-like envs unless `DOCS_PASSWORD` was changed from the shipped default. Still open: `gcp/env.staging.yaml` carries the staging `ENCRYPTION_SECRET` inline (it is the value the staging service runs on; rotate via Secret Manager before removing). Production config is clean (secret bound from Secret Manager). Firebase web API keys in `frontend/.env.*` are public by design.
+- Local verification (2026-11-05): webhook receiver 401 without/with wrong secret, 200 + telemetry row with the right secret, idempotent re-delivery, secret rotation via PATCH, `config` scrubbed in API and at rest (AES-GCM envelope), org scoping 404 for foreign org ids, demo readiness returning AWS findings.
+
+- Connector / Integration MVP fixes (`staging` branch, uncommitted):
+  - Org scoping: every `/api/v1/connectors*` route accepts `?org_id=` and verifies the signed-in user owns that organization (`_get_org_id` in `app/api/v1/connectors.py`); falls back to the user's first org. `GET /api/integrations/status` now rejects org IDs the caller does not own (404) and reports Splunk as configured for any non-inactive connector.
+  - Webhook receiver (`POST /api/v1/connectors/webhook/{type}?org_id=`): looks up the org's webhook (or GitHub) connector, authenticates with `X-Webhook-Secret` (constant-time compare against the encrypted `webhook_secret` credential) or `X-Hub-Signature-256`, stores the payload as a `TelemetryEvent` + evidence ledger row via `ConnectorManager._ingest_events`, and flips the connector to `active`. Previously it logged and discarded payloads.
+  - Credential encryption: `ConnectorManager._encrypt_credentials/_decrypt_credentials` now use `app.core.security.connector_encryption` (AES-256-GCM). `CONNECTOR_ENCRYPTION_KEY` preferred, falls back to `ENCRYPTION_SECRET`, plaintext only when neither is set (warning logged). `app/db/types.py::EncryptedString` no longer swallows app-layer envelopes it cannot decrypt. Legacy plaintext JSON rows still decrypt.
+  - Secret hygiene: new `app/core/security/connector_secrets.py` strips credential-looking keys (`api_key`, `client_secret`, `*token*`, `*secret*`, `*password*`, `aws_secret_access_key`, `webhook_secret`, ...) from the plain `config` column on register/update, and `ConnectorResponse` scrubs `config` on the way out. `ConnectorResponse` now returns non-secret `config` so the UI can prefill; `PATCH /connectors/{id}` accepts `credentials` to rotate secrets (resets to `pending_auth`).
+  - Honesty fixes: `WebhookConnector.sync()` returns `[]` (no fabricated `webhook.heartbeat` evidence); `wazuh_client.get_agent_status()` no longer invents a `lab-node` agent for empty managers; `WazuhConnector.authenticate()` validates bearer tokens against `GET /agents?limit=1` instead of assuming success; `/api/v1/integrations/status` derives `siem_verified_controls` / percentage from `VerificationResult` rows instead of `2 * connected_count` and `count * 16.6`.
+  - Entitlement guard: `require_entitlement` now also reads `org_id` from JSON bodies (fixes 404 on `POST /api/integrations/wazuh/configure`).
+  - Frontend (`Connectors.tsx`, `api.ts`, `Step2Connectors.tsx`): all connector calls pass the active `orgId`; saving an existing connector type PATCHes instead of creating duplicate rows; password fields are never prefilled and blank password fields keep stored secrets; webhook card has a `webhook_secret` field and shows the real receiver URL built from `VITE_API_BASE_URL`; sync toast no longer claims "Score updated"; header badge shows `NO CONNECTORS YET` until a connector is active; onboarding Step 2 real-mode test now calls `checkConnectorHealth` for registered connectors and links to `/connectors` otherwise. Deleted the static, unrouted `frontend/src/pages/clinic/Integrations.tsx`.
+- Paywall exemption made account-scoped (`app/core/config.py`):
+  - New `Settings.is_paywall_exempt_user(uid, email)` is the single source of truth, used by `require_entitlement`, `GET /capabilities`, and `POST /billing/activate`. Exempt when `BYPASS_PAYWALL=true`, email is in `ADMIN_EMAILS` (default `purvansh95b@gmail.com,purvansh@resilai.org`) or on `@resilai.org`, or UID is in new `ADMIN_UIDS`.
+  - Removed the uncommitted blanket bypasses that unlocked every user on staging (`is_staging` in `is_admin_email` / `is_exempt_org`), the `"purvansh" in uid` and `"purvansh" in email` substring hacks, and the frontend hostname/`?bypass=true`/`localStorage` overrides in `useCapabilities.ts`, `Connectors.tsx`, `Reports.tsx`. Backend is authoritative again; the UI unlocks when `/capabilities` returns `is_exempt: true`.
+- Verification:
+  - Backend: `pytest tests/test_all_connectors_e2e.py tests/test_microsoft_connector.py tests/test_connector_progress.py tests/connectors tests/test_paywall_enforcement.py tests/test_entitlements_service.py tests/test_fresh_account_isolation.py tests/test_webhook_receiver.py ...` 135 passed. New `tests/test_webhook_receiver.py` (5 tests) covers secret scrubbing, 401/404 paths, idempotent ingestion, credential rotation.
+  - Pre-existing failures left as-is: `tests/test_integrations.py` (3 tests expect API-key creation on a free org; paywall returns 402) and `tests/test_backend_contract_verification.py::test_cross_org_access_denied_when_auth_required` (expects 403, clinic readiness returns 404).
+  - Frontend: `npx tsc -b` 0 errors; `npx vitest run` 15 files, 334 tests passed.
+- Known gaps still open: AWS asset discovery returns mock data (`AWSDiscoveryService.discover_from_aws`); AWS findings not mapped to control IDs; `azure_security_center` connector is an explicit mock (not exposed in UI); `/api/integrations/wazuh/configure` and Splunk HEC config are gated at `ADVANCED_INTEGRATIONS` (enterprise) while the Connectors page allows Wazuh/Splunk at design-partner level; `gcp/env.staging.yaml` commits a plaintext `ENCRYPTION_SECRET`.
+
+## Previous Actions (2026-10-15)
+- Solo IT Self-Serve Pricing & Founding Sysadmin Program ($149/mo Lifetime):
+  - Backend Entitlements & Pricing (`app/services/billing/entitlements.py`, `app/services/billing/checkout.py`, `app/api/billing.py`):
+    - Added `solo-it`, `founding-sysadmin`, and `starter` aliases mapped to core paid entitlements in `PLAN_ENTITLEMENTS`.
+    - Configured self-serve pricing in `CheckoutService`: $149/mo for `founding-sysadmin`, $199/mo for `solo-it`/`starter`/`design-partner`, and $399/mo for `growth`.
+    - Added schema descriptions for all self-serve and early adopter plans.
+  - Transparent Self-Serve Pricing Page (`frontend/src/pages/Pricing.tsx`):
+    - Added prominent Founding Sysadmin Program Banner: *"Claim a Founding Sysadmin Seat: $149/mo Locked for Life (normally $199/mo). 38 of 50 Claimed"*, with live progress bar and direct start button.
+    - Updated Design Partner Program tier with strikethrough pricing (`$199` -> `$149/mo`), up to 250 endpoints, 100% agentless ingestion, 1-page boss reports, and cyber insurance binder.
+    - Updated Growth tier with transparent `$399/mo` ($3,990/yr) self-serve checkout and direct plan activation.
+    - Added comprehensive FAQs clarifying the $149/mo founding member terms, zero-agent requirement, and cancel-anytime policy.
+- Automated Monday Morning "1-Page Boss Report" (PDF) & Cyber Insurance Binder:
+  - Report Center Expansion (`frontend/src/pages/Reports.tsx`):
+    - Added `boss_report` template: 1-page executive export proving zero lateral breach paths, active backup isolation, and deterministic readiness score for clinic leadership and law partners.
+    - Added `cyber_insurance` template: Telemetry-backed evidence packet pre-mapped to standard underwriter questionnaires (Coalition, Chubb, Travelers).
+  - One-Click Export from Network Map (`frontend/src/components/network/NetworkTopologyGraph.tsx`):
+    - Added "Export 1-Page Boss Report" button to top toolbar that generates and downloads an executive readiness brief in one click.
+- 1-Click Agentless Quick-Start Ingestion Scripts:
+  - Added "Agentless Quick Ingestion" modal to `NetworkTopologyGraph.tsx` with copy-paste PowerShell (for Microsoft 365 / Entra ID / Defender) and AWS CloudFormation YAML.
+  - Highlights: 100% agentless, zero software installed on workstations, read-only audit scopes, <15 minute setup.
+- Verification & Test Passing:
+  - Frontend production build (`npm run build`): Passed cleanly in 19.30s.
+  - Vitest test suite (`npm test`): 15 test files, 334 tests passed with 0 failures.
+  - Pytest backend test suite (`pytest tests/test_entitlements_service.py tests/test_paywall_enforcement.py`): 37 tests passed in 2.05s.
+  - Knowledge graph updated via `graphify update .` (11,162 nodes, 24,873 edges, 562 communities).
+- GitHub Actions Daily Snapshot & Remote Backup Synchronization (`backup`, `daily-sync`, `backup-sync`):
+  - Workflow Specification Verification: Audited `.github/workflows/daily-backup-sync.yml` against all required specifications:
+    - Trigger: Cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+    - Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out or creating remote branch `daily-sync`, merging latest commits from `staging` into `daily-sync`, pushing `daily-sync` to `origin`, mirroring pushes to `backup` and `backup-sync`, and explicitly blocking pushes to `main` and `demo-stable` via both local pre-push git hook and step-level validation guards.
+    - Audit Log: Commit SHA, sync status, and metadata table echoed in `$GITHUB_STEP_SUMMARY` and workflow logs.
+  - Test Suite & Script Synchronization:
+    - Verified `tests/test_daily_git_sync.py` with `test_workflow_backup_branch_mirroring` enforcing `backup` branch push verification.
+    - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch when origin is present.
+    - Verified workflow YAML trigger parsing and branch behavior assertions.
+  - Remote Branch Verification via GitHub API:
+    - Confirmed remote branch `backup` on `origin` is at commit `81b259d6d8006fb4b005fd963f602207d08573e2`, fully synchronized with `daily-sync` and `backup-sync`.
+    - Confirmed zero unmerged commits between `staging` and `daily-sync`/`backup`.
+  - Branch Protection Enforcement: Strictly preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Working Tree Integrity: Active working branch cleanly maintained on `staging`.
+
 
 - Light Mode Visibility, Contrast, and Theme Consistency Overhaul (`staging` branch):
   - Fixed Landing & Docs Low-Contrast / White-on-White Text:

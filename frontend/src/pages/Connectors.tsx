@@ -1,13 +1,15 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   getIntegrationStatus, 
   getEvidenceConfidence, 
   getConnectorsList, 
   createConnector, 
+  updateConnector,
   checkConnectorHealth, 
   syncConnectorNow, 
-  deleteConnector 
+  deleteConnector,
+  createBillingPortalSession,
 } from '../api';
 import { useActiveOrg } from '../hooks/useActiveOrg';
 import { useCapabilities } from '../hooks/useCapabilities';
@@ -33,7 +35,8 @@ import {
   Cloud,
   Layers,
   Lock,
-  ArrowRight
+  ArrowRight,
+  CreditCard
 } from 'lucide-react';
 
 type ConnectorStatus = 'CONNECTED' | 'DEGRADED' | 'NOT CONFIGURED' | 'AUTHENTICATION FAILED' | 'NO RECENT EVIDENCE';
@@ -116,8 +119,11 @@ const CONNECTOR_DEFINITIONS: ConnectorCardDef[] = [
     missing: ['CloudTrail Ingestion', 'S3 Encryption State'],
     icon: 'cloud_done',
     configFields: [
-      { key: 'role_arn', label: 'Cross-Account IAM Role ARN *', placeholder: 'arn:aws:iam::123456789012:role/ResilAI-Audit-Role' },
-      { key: 'external_id', label: 'External ID', placeholder: 'resilai-org-external-id' },
+      { key: 'role_arn', label: 'Cross-Account IAM Role ARN', placeholder: 'arn:aws:iam::505467908065:role/resilai-test-connector-role', defaultValue: 'arn:aws:iam::505467908065:role/resilai-test-connector-role' },
+      { key: 'external_id', label: 'External ID (Optional)', placeholder: 'resilai-org-external-id' },
+      { key: 'aws_region', label: 'AWS Region', placeholder: 'us-east-1', defaultValue: 'us-east-1' },
+      { key: 'aws_access_key_id', label: 'Access Key ID (Optional / Direct Auth)', placeholder: 'AKIA...' },
+      { key: 'aws_secret_access_key', label: 'Secret Access Key (Optional / Direct Auth)', placeholder: '••••••••', type: 'password' },
     ],
   },
   {
@@ -144,15 +150,116 @@ const CONNECTOR_DEFINITIONS: ConnectorCardDef[] = [
     icon: 'api',
     configFields: [
       { key: 'webhook_name', label: 'Integration Name', placeholder: 'My MSP Telemetry Feed', defaultValue: 'Primary MSP Webhook' },
+      { key: 'webhook_secret', label: 'Shared Secret *', placeholder: 'Generate a long random string', type: 'password', help: 'Senders must include this value in the X-Webhook-Secret header.' },
     ],
   },
 ];
 
+// Keys that must only travel in `credentials`, never in the non-secret `config` blob.
+const SECRET_CONFIG_KEYS = new Set([
+  'api_key',
+  'client_secret',
+  'secret_key',
+  'aws_secret_access_key',
+  'aws_access_key_id',
+  'webhook_secret',
+]);
+
+const isSecretField = (def: ConnectorCardDef, key: string) =>
+  SECRET_CONFIG_KEYS.has(key) || def.configFields.some(f => f.key === key && f.type === 'password');
+
+const PASSWORD_SAVED_PLACEHOLDER = '•••• saved, enter to replace';
+
 export default function ConnectorsPage() {
   const navigate = useNavigate();
   const { orgId, orgName, isDemo } = useActiveOrg();
-  const { has: hasCapability, plan } = useCapabilities(orgId);
+  const { has: hasCapability, plan, capabilities, isPaid, isExempt, refresh: refreshCapabilities } = useCapabilities(orgId);
   const { addToast } = useToast();
+
+  // Backend decides: paid plan or admin-exempt account both grant connectors_manage.
+  const canManageConnectors = isDemo || hasCapability('connectors_manage');
+
+  // Payment failed but grace period still open — nudge to update the card.
+  const isPastDue = !isDemo && capabilities?.status === 'past_due';
+
+  // ---------------------------------------------------------------------------
+  // Stripe Checkout return (`?checkout=success`): the webhook that flips the org
+  // to paid can land a few seconds after the redirect, so poll capabilities
+  // every 2s (max 10 tries) until paid/exempt, then scrub the query params.
+  // ---------------------------------------------------------------------------
+  const CHECKOUT_POLL_INTERVAL_MS = 2000;
+  const CHECKOUT_POLL_MAX = 10;
+  const [awaitingCheckout, setAwaitingCheckout] = useState<boolean>(() =>
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('checkout') === 'success'
+  );
+  const [checkoutPollTick, setCheckoutPollTick] = useState(0);
+  const checkoutPollCount = useRef(0);
+  const checkoutToastShown = useRef(false);
+
+  const clearCheckoutParams = () => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    params.delete('checkout');
+    params.delete('session_id');
+    const qs = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`);
+  };
+
+  useEffect(() => {
+    if (!awaitingCheckout) return;
+    if (!checkoutToastShown.current) {
+      checkoutToastShown.current = true;
+      addToast({
+        title: 'Payment received',
+        message: 'Payment received — unlocking your workspace…',
+        type: 'success',
+      });
+    }
+    if (isPaid || isExempt) {
+      setAwaitingCheckout(false);
+      clearCheckoutParams();
+      return;
+    }
+    if (checkoutPollCount.current >= CHECKOUT_POLL_MAX) {
+      setAwaitingCheckout(false);
+      clearCheckoutParams();
+      addToast({
+        title: 'Still activating',
+        message: 'Your payment went through, but activation is taking longer than usual. Refresh in a minute or contact support if connectors stay locked.',
+        type: 'warning',
+      });
+      return;
+    }
+    const timer = setTimeout(async () => {
+      checkoutPollCount.current += 1;
+      try {
+        await refreshCapabilities();
+      } finally {
+        setCheckoutPollTick((t) => t + 1);
+      }
+    }, CHECKOUT_POLL_INTERVAL_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awaitingCheckout, isPaid, isExempt, checkoutPollTick, refreshCapabilities]);
+
+  // Stripe Customer Portal: update card, download invoices, cancel.
+  const [openingPortal, setOpeningPortal] = useState(false);
+  const handleManageBilling = async () => {
+    if (!orgId || openingPortal) return;
+    setOpeningPortal(true);
+    try {
+      const res = await createBillingPortalSession(orgId, window.location.href);
+      if (!res?.url) throw new Error('Billing portal returned no URL.');
+      window.location.href = res.url;
+    } catch (err: any) {
+      addToast({
+        title: 'Billing portal unavailable',
+        message: err?.message || 'Could not open the billing portal. Please contact support.',
+        type: 'error',
+      });
+      setOpeningPortal(false);
+    }
+  };
 
   const [loading, setLoading] = useState(true);
   const [confidenceData, setConfidenceData] = useState<any>(null);
@@ -173,7 +280,7 @@ export default function ConnectorsPage() {
       const [integ, conf, connList] = await Promise.all([
         getIntegrationStatus(orgId).catch(() => null),
         getEvidenceConfidence(orgId).catch(() => null),
-        getConnectorsList().catch(() => ({ connectors: [], total: 0 })),
+        getConnectorsList(orgId).catch(() => ({ connectors: [], total: 0 })),
       ]);
       setIntegrationStatus(integ);
       setConfidenceData(conf);
@@ -195,6 +302,11 @@ export default function ConnectorsPage() {
     const initial: Record<string, string> = {};
     
     def.configFields.forEach(field => {
+      if (field.type === 'password') {
+        // Secrets are never returned by the backend; leave blank so a saved value is kept unless replaced.
+        initial[field.key] = '';
+        return;
+      }
       initial[field.key] = existing?.config?.[field.key] || field.defaultValue || '';
     });
     
@@ -227,10 +339,13 @@ export default function ConnectorsPage() {
 
       switch (connectorType) {
         case 'aws':
-          authMethod = 'iam_role';
+          authMethod = formData.role_arn ? 'iam_role' : 'api_key';
           credentials = {
             role_arn: formData.role_arn || '',
             external_id: formData.external_id || '',
+            aws_region: formData.aws_region || 'us-east-1',
+            aws_access_key_id: formData.aws_access_key_id || '',
+            aws_secret_access_key: formData.aws_secret_access_key || '',
           };
           break;
         case 'microsoft':
@@ -279,6 +394,7 @@ export default function ConnectorsPage() {
           authMethod = 'webhook';
           credentials = {
             webhook_name: formData.webhook_name || 'Primary MSP Webhook',
+            webhook_secret: formData.webhook_secret || '',
           };
           break;
         default:
@@ -290,7 +406,7 @@ export default function ConnectorsPage() {
           break;
       }
 
-      if (!isDemo && !hasCapability('connectors_manage')) {
+      if (!canManageConnectors) {
         const errorMsg = `Connecting live security infrastructure (${activeConfigDef.name}) requires an active ResilAI subscription. Unpaid workspaces can preview connector schemas, but live credential persistence and automated telemetry ingestion are gated.`;
         setModalPaywallError(errorMsg);
         addToast({
@@ -301,18 +417,46 @@ export default function ConnectorsPage() {
         return;
       }
 
-      await createConnector({
-        connector_type: connectorType,
-        display_name: activeConfigDef.name,
-        auth_method: authMethod,
-        credentials,
-        config: formData,
-        sync_interval_minutes: parseInt(formData.sync_interval_minutes || '15', 10),
+      // Secrets go only in `credentials`; strip them from the stored config blob.
+      const nonSecretConfig: Record<string, string> = {};
+      Object.entries(formData).forEach(([key, value]) => {
+        if (!isSecretField(activeConfigDef, key)) nonSecretConfig[key] = value;
       });
+      const syncIntervalMinutes = parseInt(formData.sync_interval_minutes || '15', 10);
+
+      // Re-use the existing row for this connector type instead of creating a duplicate per Save.
+      const existing = registeredConnectors.find(
+        c => c.connector_type === connectorType && c.status !== 'inactive'
+      );
+
+      if (existing) {
+        // Blank password fields mean "keep the saved secret"; only send credentials the user re-entered.
+        const credentialsToSend: Record<string, string> = {};
+        Object.entries(credentials).forEach(([key, value]) => {
+          if (!isSecretField(activeConfigDef, key) || value) credentialsToSend[key] = value;
+        });
+        await updateConnector(existing.id, {
+          credentials: credentialsToSend,
+          config: nonSecretConfig,
+          sync_interval_minutes: syncIntervalMinutes,
+          display_name: activeConfigDef.name,
+        }, orgId);
+      } else {
+        await createConnector({
+          connector_type: connectorType,
+          display_name: activeConfigDef.name,
+          auth_method: authMethod,
+          credentials,
+          config: nonSecretConfig,
+          sync_interval_minutes: syncIntervalMinutes,
+        }, orgId);
+      }
 
       addToast({
-        title: 'Connector Configured',
-        message: `${activeConfigDef.name} has been successfully registered and encrypted at rest.`,
+        title: existing ? 'Connector Updated' : 'Connector Configured',
+        message: existing
+          ? `${activeConfigDef.name} credentials re-encrypted and configuration updated.`
+          : `${activeConfigDef.name} has been successfully registered and encrypted at rest.`,
         type: 'ready',
       });
 
@@ -366,7 +510,7 @@ export default function ConnectorsPage() {
         return;
       }
 
-      const res = await checkConnectorHealth(registered.id);
+      const res = await checkConnectorHealth(registered.id, orgId);
       addToast({
         title: `Health Check: ${res.status.toUpperCase()}`,
         message: `${res.message || 'Connected successfully'}. Latency: ${res.latency_ms || 0}ms.`,
@@ -409,11 +553,11 @@ export default function ConnectorsPage() {
         return;
       }
 
-      const res = await syncConnectorNow(registered.id);
+      const res = await syncConnectorNow(registered.id, orgId);
       if (res.success) {
         addToast({
           title: 'Telemetry Ingested',
-          message: `Ingested ${res.events_ingested} evidence events in ${res.duration_ms}ms. Score updated.`,
+          message: `Ingested ${res.events_ingested} evidence events in ${res.duration_ms}ms. Readiness recalculates on the next scoring run.`,
           type: 'ready',
         });
       } else {
@@ -472,9 +616,37 @@ export default function ConnectorsPage() {
   };
 
   const activeCount = CONNECTOR_DEFINITIONS.filter(d => getConnectorStatus(d) === 'CONNECTED').length;
+  const hasLiveConnector = registeredConnectors.some(c => c.status === 'active' || c.status === 'syncing');
 
   return (
     <div className="space-y-8 animate-fade-up">
+      {/* Past-due billing warning (grace period) */}
+      {isPastDue && (
+        <div
+          role="alert"
+          className="p-4 bg-amber-500/10 border border-amber-500/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-on-surface">Your last payment failed.</p>
+              <p className="text-on-surface-variant text-xs mt-0.5">
+                Access continues for a short grace period — update your card to keep connectors running.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleManageBilling}
+            disabled={openingPortal}
+            className="px-4 py-2 bg-amber-500 text-slate-950 rounded-xl hover:brightness-110 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 disabled:opacity-50"
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>{openingPortal ? 'Opening…' : 'Manage billing'}</span>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/40 pb-6">
         <div>
@@ -486,9 +658,13 @@ export default function ConnectorsPage() {
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold uppercase bg-amber-500/20 text-amber-500 border border-amber-500/30">
                 SIMULATED TELEMETRY
               </span>
-            ) : (
+            ) : hasLiveConnector ? (
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold uppercase bg-ready-emerald/15 text-ready-emerald border border-ready-emerald/30">
                 LIVE PRODUCTION
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold uppercase bg-surface-container-high text-on-surface-variant border border-outline-variant/40">
+                NO CONNECTORS YET
               </span>
             )}
           </div>
@@ -502,6 +678,17 @@ export default function ConnectorsPage() {
             <span className={`w-2 h-2 rounded-full ${activeCount > 0 ? 'bg-ready-emerald animate-pulse' : 'bg-on-surface-variant/40'}`} />
             <strong>{activeCount}</strong> / {CONNECTOR_DEFINITIONS.length} Active
           </span>
+          {isPaid && !isDemo && (
+            <button
+              type="button"
+              onClick={handleManageBilling}
+              disabled={openingPortal}
+              className="px-3.5 py-2 bg-surface-container border border-outline-variant/40 text-on-surface rounded-xl hover:bg-surface-container-high font-semibold text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>{openingPortal ? 'Opening…' : 'Manage billing'}</span>
+            </button>
+          )}
           <button 
             onClick={() => handleOpenConfig(CONNECTOR_DEFINITIONS[0])}
             className="px-4 py-2 bg-ready-emerald text-on-primary-container rounded-xl hover:brightness-110 font-semibold text-xs transition-all flex items-center gap-1.5 shadow-sm"
@@ -513,7 +700,7 @@ export default function ConnectorsPage() {
       </div>
 
       {/* Paywall Gate Notice for Unpaid Organizations */}
-      {!isDemo && !hasCapability('connectors_manage') && (
+      {!canManageConnectors && (
         <PaywallLockCard
           feature="Live Telemetry Connector Management"
           description="Connecting live security infrastructure (Splunk, Wazuh, Microsoft 365, AWS, Veeam) requires an active ResilAI subscription. Unpaid workspaces can preview connector schemas and evidence mappings, but live credential persistence and automated telemetry ingestion are gated."
@@ -606,7 +793,7 @@ export default function ConnectorsPage() {
                     <span className={`px-2.5 py-1 rounded-full text-[11px] font-mono uppercase font-bold border shrink-0 ${getStatusBadge(status)}`}>
                       {status}
                     </span>
-                    {!isConnected && !isDemo && !hasCapability('connectors_manage') && (
+                    {!isConnected && !canManageConnectors && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
                         <Lock className="w-3 h-3" />
                         Plan Required
@@ -741,7 +928,7 @@ export default function ConnectorsPage() {
               )}
 
               {/* Paywall Banner for Unpaid Workspaces */}
-              {!isDemo && !hasCapability('connectors_manage') && (
+              {!canManageConnectors && (
                 <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
@@ -813,8 +1000,15 @@ export default function ConnectorsPage() {
                     type={field.type || 'text'}
                     value={formData[field.key] || ''}
                     onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-                    placeholder={field.placeholder}
-                    required={field.label.includes('*')}
+                    placeholder={
+                      field.type === 'password' && registeredConnectors.some(c => c.connector_type === activeConfigDef.type)
+                        ? PASSWORD_SAVED_PLACEHOLDER
+                        : field.placeholder
+                    }
+                    required={
+                      field.label.includes('*') &&
+                      !(field.type === 'password' && registeredConnectors.some(c => c.connector_type === activeConfigDef.type))
+                    }
                     className="w-full bg-surface-container text-xs text-on-surface rounded-xl px-3.5 py-2.5 border border-outline-variant/40 focus:outline-none focus:ring-2 focus:ring-ready-emerald/50 font-mono"
                   />
                   {field.help && (
@@ -827,13 +1021,16 @@ export default function ConnectorsPage() {
                 <div className="p-3 bg-surface-container rounded-xl border border-surface-bright space-y-2 text-xs">
                   <span className="font-mono text-ready-emerald font-bold block">Webhook Endpoint URL:</span>
                   <div className="p-2 bg-surface-container-high rounded font-mono text-[11px] select-all break-all text-on-surface">
-                    {`https://api.resilai.io/api/v1/connectors/webhook/custom?org_id=${orgId || 'your-org-id'}`}
+                    {`${import.meta.env.VITE_API_BASE_URL || window.location.origin}/api/v1/connectors/webhook/webhook?org_id=${orgId || 'your-org-id'}`}
                   </div>
+                  <p className="text-[11px] text-on-surface-variant">
+                    POST JSON to this URL with header <code className="font-mono text-on-surface">X-Webhook-Secret</code> set to the Shared Secret above.
+                  </p>
                 </div>
               )}
 
               <div className="pt-4 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-3">
-                {!isDemo && !hasCapability('connectors_manage') ? (
+                {!canManageConnectors ? (
                   <button
                     type="button"
                     onClick={() => {

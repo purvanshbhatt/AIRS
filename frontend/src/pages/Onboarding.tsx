@@ -218,7 +218,9 @@ export default function Onboarding() {
       {/* Top Navbar */}
       <header className="h-16 border-b border-outline-variant/40 bg-surface-container-low/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between z-30">
         <div className="flex items-center gap-3">
-          <img src="/logo_header.svg" alt="ResilAI" className="h-7 w-auto" />
+          <img src="/brand/horizontal/resilai_horizontal_light_trans.png" alt="ResilAI" className="h-7 w-auto object-contain block dark:hidden" />
+          <img src="/brand/horizontal/resilai_horizontal_dark_trans.png" alt="ResilAI" className="h-7 w-auto object-contain hidden dark:block" />
+          <span className="sr-only">ResilAI</span>
           <span className="hidden sm:inline-block h-4 w-[1px] bg-outline-variant/50" />
           <span className="hidden sm:inline-block text-xs font-mono font-bold uppercase tracking-wider text-ready-emerald">
             Getting Started Guided Setup

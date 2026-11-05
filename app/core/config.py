@@ -174,6 +174,11 @@ class Settings(BaseSettings):
     DOCS_USERNAME: str = "admin"
     DOCS_PASSWORD: str = "resilai_docs_admin"
     ADMIN_EMAILS: str = "purvansh95b@gmail.com,purvansh@resilai.org"
+    # Firebase UIDs that are exempt from the paywall even when the token has no email claim.
+    ADMIN_UIDS: str = ""
+    # Operator kill-switch: when true, every authenticated user bypasses the paywall.
+    # Never enable in production; account-level exemption uses ADMIN_EMAILS / ADMIN_UIDS.
+    BYPASS_PAYWALL: bool = False
     
     
     # ===========================================
@@ -231,9 +236,15 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_PUBLISHABLE_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_PRICE_FOUNDING_SYSADMIN: Optional[str] = None  # $149/mo locked seat; falls back to design-partner price
     STRIPE_PRICE_DESIGN_PARTNER: Optional[str] = None
     STRIPE_PRICE_GROWTH: Optional[str] = None
     STRIPE_PRICE_ENTERPRISE: Optional[str] = None
+    # Self-serve checkout behaviour
+    STRIPE_TRIAL_DAYS: int = 14                 # 0 disables the free trial
+    STRIPE_AUTOMATIC_TAX: bool = False          # enable only after Stripe Tax registrations exist
+    STRIPE_PORTAL_CONFIGURATION: Optional[str] = None  # optional billing-portal configuration id
+    FOUNDING_SEATS_TOTAL: int = 50              # cap for the $149 founding-sysadmin plan
 
     model_config = SettingsConfigDict(
         case_sensitive=True,
@@ -379,8 +390,16 @@ class Settings(BaseSettings):
         """Return parsed list of administrator and testing exempt emails."""
         return [e.strip().lower() for e in self.ADMIN_EMAILS.split(",") if e.strip()]
 
+    @property
+    def admin_uids_list(self) -> List[str]:
+        """Return parsed list of administrator Firebase UIDs."""
+        return [u.strip() for u in self.ADMIN_UIDS.split(",") if u.strip()]
+
     def is_admin_email(self, email: Optional[str]) -> bool:
-        """Check if an email qualifies for administrator and paywall testing exemption."""
+        """Check if an email qualifies for administrator and paywall testing exemption.
+
+        Exact match against ADMIN_EMAILS, or any address on the resilai.org domain.
+        """
         if not email or not isinstance(email, str):
             return False
         clean = email.strip().lower()
@@ -388,7 +407,28 @@ class Settings(BaseSettings):
             return True
         if clean.endswith("@resilai.org"):
             return True
-        if clean == "purvansh" or clean.startswith("purvansh@") or clean.startswith("purvansh95b@") or "purvansh" in clean:
+        return False
+
+    def is_admin_uid(self, uid: Optional[str]) -> bool:
+        """Check if a Firebase UID is in the ADMIN_UIDS exemption list."""
+        if not uid or not isinstance(uid, str):
+            return False
+        return uid.strip() in self.admin_uids_list
+
+    def is_paywall_exempt_user(self, uid: Optional[str], email: Optional[str]) -> bool:
+        """Single source of truth for the account-level paywall exemption.
+
+        True when:
+          - BYPASS_PAYWALL is explicitly enabled (operator kill-switch), or
+          - the user's email is an administrator email, or
+          - the user's UID is in ADMIN_UIDS.
+
+        Local development with AUTH_REQUIRED=false is NOT exempt, so paywall
+        tests stay meaningful; set BYPASS_PAYWALL=true locally if needed.
+        """
+        if self.BYPASS_PAYWALL:
+            return True
+        if self.is_admin_email(email) or self.is_admin_uid(uid):
             return True
         return False
 

@@ -162,6 +162,32 @@ async def get_current_user(
         raise _create_auth_error("INVALID_TOKEN", "Invalid or expired authentication token")
 
 
+async def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+) -> Optional[User]:
+    """Like get_current_user, but never raises for a MISSING token.
+
+    Returns the verified user when a Bearer token is present (invalid tokens
+    still fail with 401), and None when no token was sent. Routes that serve
+    public read-only data (explicit demo organizations) use this and apply
+    their own authorization for everything else.
+    """
+    if not credentials or not credentials.credentials:
+        return None
+    try:
+        user_data = verify_firebase_token(credentials.credentials)
+        return User(**user_data)
+    except HTTPException:
+        if not settings.is_auth_required:
+            return None
+        raise
+    except Exception as e:
+        if not settings.is_auth_required:
+            return None
+        logger.error(f"Token verification failed: {e}")
+        raise _create_auth_error("INVALID_TOKEN", "Invalid or expired authentication token")
+
+
 async def require_auth(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> User:
@@ -258,6 +284,7 @@ def get_user_org_id(user: User, db) -> str:
 __all__ = [
     "User",
     "get_current_user",
+    "get_optional_user",
     "require_auth",
     "require_org_admin",
     "require_role",

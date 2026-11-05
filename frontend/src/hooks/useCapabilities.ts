@@ -31,6 +31,26 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
       return;
     }
 
+    const fullEntitlements = {
+      demo_access: true,
+      simulated_data: true,
+      public_product_preview: true,
+      account_management: true,
+      real_organization: true,
+      telemetry_ingestion: true,
+      evidence_collection: true,
+      readiness_scoring: true,
+      connectors_manage: true,
+      executive_reports: true,
+      api_keys: true,
+      webhooks: true,
+      advanced_reporting: true,
+      additional_users: true,
+      advanced_integrations: true,
+      enterprise_controls: true,
+      custom_frameworks: true,
+    };
+
     // Skip for demo sessions
     const hasAuthToken = Boolean(user && user.uid && user.uid !== 'demo-executive-uid');
     const isDemo = !hasAuthToken && typeof window !== 'undefined' && (
@@ -73,7 +93,8 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
     try {
       setLoading(true);
       setError(null);
-      // Backend is authoritative: it checks organization state and user admin tokens
+      // Backend is authoritative: it checks organization subscription state and
+      // the signed-in account's admin exemption (ADMIN_EMAILS / ADMIN_UIDS).
       const data = await getCapabilities(orgId);
       if (data && data.entitlements) {
         setCapabilities(data);
@@ -84,25 +105,7 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
           is_paid: true,
           is_exempt: false,
           exemption_type: null,
-          entitlements: {
-            demo_access: true,
-            simulated_data: true,
-            public_product_preview: true,
-            account_management: true,
-            real_organization: true,
-            telemetry_ingestion: true,
-            evidence_collection: true,
-            readiness_scoring: true,
-            connectors_manage: true,
-            executive_reports: true,
-            api_keys: true,
-            webhooks: true,
-            advanced_reporting: true,
-            additional_users: true,
-            advanced_integrations: true,
-            enterprise_controls: true,
-            custom_frameworks: true,
-          },
+          entitlements: fullEntitlements,
         });
       }
     } catch (err) {
@@ -117,25 +120,7 @@ export function useCapabilities(orgId: string): UseCapabilitiesResult {
           is_paid: true,
           is_exempt: false,
           exemption_type: null,
-          entitlements: {
-            demo_access: true,
-            simulated_data: true,
-            public_product_preview: true,
-            account_management: true,
-            real_organization: true,
-            telemetry_ingestion: true,
-            evidence_collection: true,
-            readiness_scoring: true,
-            connectors_manage: true,
-            executive_reports: true,
-            api_keys: true,
-            webhooks: true,
-            advanced_reporting: true,
-            additional_users: true,
-            advanced_integrations: true,
-            enterprise_controls: true,
-            custom_frameworks: true,
-          },
+          entitlements: fullEntitlements,
         });
       } else {
         // On error, assume free plan for safety

@@ -8,7 +8,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from app.core.security.connector_secrets import scrub_secrets
 
 
 # =============================================================================
@@ -37,6 +39,9 @@ class ConnectorUpdateRequest(BaseModel):
     """Update connector configuration (partial update)."""
     display_name: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
+    credentials: Optional[Dict[str, Any]] = Field(
+        None, description="Replace the stored credentials (re-encrypted at rest)"
+    )
     sync_interval_minutes: Optional[int] = None
     status: Optional[str] = None
 
@@ -53,6 +58,9 @@ class ConnectorResponse(BaseModel):
     display_name: str
     auth_method: str
     status: str
+    config: Optional[Dict[str, Any]] = Field(
+        None, description="Non-secret connector configuration (secret keys are stripped)"
+    )
     last_sync_at: Optional[datetime] = None
     sync_interval_minutes: int
     health_status: Optional[str] = None
@@ -62,6 +70,12 @@ class ConnectorResponse(BaseModel):
     created_by: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("config", mode="before")
+    @classmethod
+    def _strip_secret_config(cls, value):
+        """Defense in depth: never echo credential-looking keys from config."""
+        return scrub_secrets(value) if isinstance(value, dict) else value
 
 
 class ConnectorListResponse(BaseModel):

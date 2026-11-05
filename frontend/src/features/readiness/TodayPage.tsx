@@ -252,7 +252,7 @@ export default function TodayPage() {
             </Link>
 
             <a
-              href="https://demo.resilai.org"
+              href="/demo"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3.5 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/40 text-sm font-semibold rounded-xl transition-all"

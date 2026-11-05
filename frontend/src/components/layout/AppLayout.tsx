@@ -27,13 +27,13 @@ export default function AppLayout() {
       <AppSidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 md:ml-20 lg:ml-64 min-h-screen pb-24 sm:pb-28 md:pb-8 flex flex-col relative w-full overflow-x-hidden">
+      <div className="flex-1 md:ml-20 lg:ml-64 min-h-screen pb-20 md:pb-8 flex flex-col relative w-full overflow-x-hidden">
         <ReadinessHeader 
           isMspTenant={isMspTenant}
           onMenuClick={() => setMobileMenuOpen(true)} 
         />
         
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-16 md:pb-12">
+        <main className="flex-1 w-full max-w-[1200px] mx-auto px-3 sm:px-6 md:px-8 pt-3 sm:pt-4 pb-20 md:pb-12">
           <Outlet />
         </main>
 
@@ -62,16 +62,15 @@ export default function AppLayout() {
           </div>
         </div>
 
-        {/* Mobile Floating Action Button (M3 Extended FAB) */}
+        {/* Mobile Floating Action Button (Compact M3 Small FAB) */}
         {!mobileSearchOpen && (
           <button
             onClick={() => setMobileSearchOpen(true)}
-            className="md:hidden fixed bottom-20 right-4 z-40 flex items-center gap-2 h-12 px-4 rounded-full bg-ready-emerald text-slate-950 font-bold shadow-lg shadow-ready-emerald/25 hover:shadow-ready-emerald/40 active:scale-95 transition-all min-touch-target cursor-pointer m3-state-layer m3-elevation-3"
+            className="md:hidden fixed bottom-16 right-3 z-40 flex items-center justify-center w-11 h-11 rounded-full bg-ready-emerald text-slate-950 shadow-lg shadow-ready-emerald/25 hover:shadow-ready-emerald/40 active:scale-95 transition-all cursor-pointer m3-state-layer m3-elevation-3"
             aria-label="Ask ResilAI"
             title="Ask ResilAI"
           >
-            <Sparkles className="w-4 h-4 text-slate-950 shrink-0" />
-            <span className="text-xs font-bold text-slate-950">Ask ResilAI</span>
+            <Sparkles className="w-5 h-5 text-slate-950 shrink-0" />
           </button>
         )}
 
@@ -121,21 +120,27 @@ export default function AppLayout() {
                 />
                 <button 
                   type="submit"
-                  className="bg-ready-emerald text-slate-950 w-9 h-9 rounded-full flex items-center justify-center hover:brightness-110 active:scale-95 transition-all shrink-0 cursor-pointer min-touch-target"
-                  title="Send query"
-                  aria-label="Send query"
+                  className="bg-ready-emerald text-on-primary-container w-8 h-8 rounded-full flex items-center justify-center hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ready-emerald transition-all shrink-0 cursor-pointer mr-0.5"
+                  title="Search"
+                  aria-label="Submit search"
                 >
                   <ArrowUp className="w-4 h-4" />
                 </button>
               </form>
 
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {['Situation Report', 'Backup Verification', 'MFA Drift', 'RTO Status'].map((prompt) => (
+              {/* Quick Prompt Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 text-[11px] text-on-surface-variant scrollbar-none">
+                {[
+                  'What needs triage today?',
+                  'Check Veeam immutability',
+                  'Summarize clinical risk',
+                ].map((prompt) => (
                   <button
                     key={prompt}
-                    type="button"
-                    onClick={() => setSearchQuery(prompt)}
-                    className="text-[11px] px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant border border-outline-variant/40 transition-colors"
+                    onClick={() => {
+                      setSearchQuery(prompt);
+                    }}
+                    className="px-2.5 py-1 rounded-full bg-surface-container border border-outline-variant/50 hover:bg-surface-container-high hover:text-on-surface whitespace-nowrap transition-colors"
                   >
                     {prompt}
                   </button>
@@ -171,7 +176,7 @@ export default function AppLayout() {
         style={{ bottom: 0, top: 'auto' }}
         aria-label="Mobile Bottom Navigation"
       >
-        <ul className="flex justify-around items-center h-16 px-2">
+        <ul className="flex justify-around items-center h-14 max-w-md mx-auto px-1">
           {[
             { to: '/morning-brief', icon: Calendar, label: 'Today' },
             { to: '/needs-attention', icon: AlertTriangle, label: 'Triage' },
@@ -182,7 +187,7 @@ export default function AppLayout() {
               <NavLink 
                 to={to} 
                 className={({ isActive }) => 
-                  `flex flex-col items-center justify-center py-1 w-full text-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ready-emerald rounded-2xl min-touch-target ${
+                  `flex flex-col items-center justify-center py-0.5 w-full text-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ready-emerald rounded-xl ${
                     isActive ? 'text-ready-emerald font-bold' : 'text-on-surface-variant hover:text-on-surface'
                   }`
                 }
@@ -190,14 +195,14 @@ export default function AppLayout() {
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`px-4 py-1 rounded-full transition-all duration-200 flex items-center justify-center ${
+                    <div className={`px-3 py-0.5 rounded-full transition-all duration-200 flex items-center justify-center ${
                       isActive 
-                        ? 'bg-ready-emerald/20 text-ready-emerald font-bold shadow-[0_0_12px_rgba(16,185,129,0.25)] ring-1 ring-ready-emerald/30' 
+                        ? 'bg-ready-emerald/20 text-ready-emerald font-bold shadow-[0_0_10px_rgba(16,185,129,0.25)] ring-1 ring-ready-emerald/30' 
                         : 'text-on-surface-variant hover:bg-surface-container-high/60'
                     }`}>
-                      <Icon className="w-5 h-5 shrink-0" />
+                      <Icon className="w-4.5 h-4.5 shrink-0" />
                     </div>
-                    <span className={`text-[10px] tracking-tight mt-0.5 font-medium ${isActive ? 'text-ready-emerald font-bold' : 'text-on-surface-variant'}`}>{label}</span>
+                    <span className={`text-[9.5px] tracking-tight mt-0.5 font-medium ${isActive ? 'text-ready-emerald font-bold' : 'text-on-surface-variant'}`}>{label}</span>
                   </>
                 )}
               </NavLink>
@@ -208,4 +213,3 @@ export default function AppLayout() {
     </div>
   );
 }
-

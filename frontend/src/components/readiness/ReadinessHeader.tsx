@@ -66,20 +66,29 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
   };
 
   return (
-    <header className="h-20 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-outline-variant/40 flex items-center justify-between px-4 md:px-8 z-40 sticky top-0">
-      <div className="flex items-center gap-3">
+    <header className="h-14 sm:h-16 md:h-20 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-outline-variant/40 flex items-center justify-between px-3 sm:px-4 md:px-8 z-40 sticky top-0 transition-all duration-200">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={onMenuClick}
           className="md:hidden p-2 text-on-surface-variant hover:text-on-surface rounded-xl min-touch-target flex items-center justify-center cursor-pointer m3-state-layer"
           aria-label="Toggle menu"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <Link to="/morning-brief" className="flex items-center gap-2 shrink-0 group focus-visible:outline-none" aria-label="ResilAI Home">
-            <img src="/favicon.png" alt="ResilAI" className="w-8 h-8 rounded-xl object-contain shadow-xs shrink-0 group-hover:scale-105 transition-transform" />
-            <span className="font-extrabold text-base tracking-tight text-on-surface">ResilAI</span>
+            <img
+              src="/brand/horizontal/resilai_horizontal_light_trans.png"
+              alt="ResilAI"
+              className="h-6 sm:h-7 md:h-8 w-auto object-contain block dark:hidden group-hover:scale-105 transition-transform shrink-0"
+            />
+            <img
+              src="/brand/horizontal/resilai_horizontal_dark_trans.png"
+              alt="ResilAI"
+              className="h-6 sm:h-7 md:h-8 w-auto object-contain hidden dark:block group-hover:scale-105 transition-transform shrink-0"
+            />
+            <span className="sr-only">ResilAI</span>
           </Link>
           <span className="text-outline-variant/60 text-sm font-light">/</span>
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald font-bold text-xs shadow-sm shrink-0">

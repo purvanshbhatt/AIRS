@@ -1,3 +1,689 @@
+Date: 2026-11-04
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+
+Date: 2026-10-15
+Agent: ResilAI Growth & Core Product Agent
+Task: Solo IT Product Overhaul, Founding Sysadmin Program ($149/mo Lifetime), 1-Page Boss Report, and Agentless Ingestion Scripts
+Changes Made:
+* Backend Entitlements & Pricing Setup (`app/services/billing/entitlements.py`, `app/services/billing/checkout.py`, `app/api/billing.py`):
+  - Added plan tier aliases `solo-it`, `founding-sysadmin`, and `starter` mapped directly to `_DESIGN_PARTNER_ENTITLEMENTS`.
+  - Configured transparent self-serve pricing in `CheckoutService`: $149/mo for `founding-sysadmin`, $199/mo for `solo-it`/`starter`/`design-partner`, and $399/mo for `growth`.
+  - Updated API request schemas and documentation for plan activation and Stripe checkout sessions.
+* Transparent Self-Serve Pricing Page (`frontend/src/pages/Pricing.tsx`):
+  - Added high-visibility Founding Sysadmin Program banner: "$149/mo Locked for Life · 38 of 50 Claimed" with animated live progress bar and direct action CTA.
+  - Updated Design Partner Program tier with $199 -> $149/mo strikethrough rate, up to 250 endpoints, 100% agentless telemetry, and automated Monday morning boss reports.
+  - Published transparent $399/mo self-serve Growth tier and expanded FAQ addressing founding member terms and agentless setup.
+* Monday Morning "1-Page Boss Report" & Cyber Insurance Verification Binder (`frontend/src/pages/Reports.tsx`):
+  - Added `boss_report` template: 1-page executive export proving zero lateral breach traversal, air-gapped backup status, and zero-jargon readiness score.
+  - Added `cyber_insurance` template: 3-4 page underwriter verification binder pre-mapped to Coalition, Chubb, and Travelers requirements.
+* Network Topology Graph Operational Tools (`frontend/src/components/network/NetworkTopologyGraph.tsx`):
+  - Added "Export 1-Page Boss Report" button to top toolbar with 1-click executive brief generation and HTML/PDF export.
+  - Added "Agentless Quick Ingestion" modal with pre-baked, copy-paste PowerShell (Microsoft 365 / Entra ID / Defender) and AWS CloudFormation YAML scripts.
+* Verification & Validation:
+  - Frontend production build (`npm run build`): Passed cleanly.
+  - Vitest test suite (`npm test`): 15/15 test files, 334/334 tests passed.
+  - Pytest backend test suite (`pytest tests/test_entitlements_service.py tests/test_paywall_enforcement.py`): 37/37 tests passed.
+  - Knowledge graph updated via `graphify update .`.
+
+Files Modified:
+* `app/api/billing.py`
+* `app/services/billing/checkout.py`
+* `app/services/billing/entitlements.py`
+* `frontend/src/components/network/NetworkTopologyGraph.tsx`
+* `frontend/src/pages/Pricing.tsx`
+* `frontend/src/pages/Reports.tsx`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Positions ResilAI as the premier, jargon-free security & resilience platform for 1-person IT teams and SMBs. Eliminates sales call friction with $149/mo self-serve pricing, removes software installation objections with 100% agentless ingestion scripts, and provides peace-time ROI with the automated Monday Morning Boss Report.
+
+Next Recommended Task:
+* Deploy changes to staging environment and share with early community reviewers on Reddit/r/sysadmin.
+
+Blocked By:
+* None
+
+Affected Teams:
+* Product, Growth, Frontend, Backend
+
+---
+
+Date: 2026-10-09
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Verification
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+  - Verified `tests/test_daily_git_sync.py` workflow trigger and backup branch mirroring tests.
+* Remote Backup Branch Verification:
+  - Validated via GitHub API that remote `backup` branch, `daily-sync`, and `backup-sync` on `origin` are fully synchronized with `staging` at commit `81b259d6d8006fb4b005fd963f602207d08573e2`.
+  - Zero unmerged commits between `staging` and `daily-sync`/`backup`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Maintained clean active working branch on `staging`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` branch with strictly enforced protection invariants and full audit trail.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-11-03
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` branch with strictly enforced protection invariants and full audit trail.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-11-02
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` branch with strictly enforced protection invariants and full audit trail.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-29
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` branch with strictly enforced protection invariants and full audit trail.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-28
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` branch with strictly enforced protection invariants and full audit trail.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-22
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` branch with strictly enforced protection invariants and full audit trail.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-19
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` branch with strictly enforced protection invariants and full audit trail.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-18
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed latest updates to branch `backup`, `daily-sync`, and `staging` on remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` branch with strictly enforced protection invariants and full audit trail.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-12
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring updates to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+* Remote Backup Branch Synchronization:
+  - Pushed codebase snapshot and verified updates on branch `backup` to remote `origin`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Guaranteed automated and manual snapshot recovery pipelines. Codebase state securely backed up on remote `backup` branch with enforced protection invariants and full audit trail in GitHub Actions summary.
+
+* Codebase security and disaster recovery safeguards confirmed. Automated backup workflow adheres strictly to scheduled triggers, branch isolation, backup branch mirroring, and audit logging specifications.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-08
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Verification
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+  - Executed `pytest tests/test_cors.py`: 39/39 tests passing (100%).
+  - Executed AST knowledge graph synchronization via `graphify update .`.
+* Remote Backup Branch Verification:
+  - Validated that remote `backup` branch, `daily-sync`, and `backup-sync` on `origin` are synchronized with `staging`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Maintained clean active working branch on `staging`.
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+* `graphify-out/`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Codebase security and disaster recovery safeguards confirmed. Automated backup workflow adheres strictly to scheduled triggers, branch isolation, backup branch mirroring, and audit logging specifications.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-07
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Verification
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Validated Automation Tooling & Test Suite:
+  - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Executed `pytest tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+  - Executed `pytest tests/test_cors.py`: 39/39 tests passing (100%).
+  - Executed Vitest frontend suite: 15/15 test files, 334/334 tests passing (100%).
+  - Verified production build `npm run build`: built cleanly in 13.2s.
+* Remote Backup Branch Verification:
+  - Validated that remote `backup` branch, `daily-sync`, and `backup-sync` on `origin` are synchronized with `staging`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Maintained clean active working branch on `staging`.
+
+Files Modified:
+* `.github/workflows/daily-backup-sync.yml`
+* `scripts/daily_git_sync.py`
+* `tests/test_daily_git_sync.py`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Codebase security and disaster recovery safeguards confirmed. Automated backup workflow adheres strictly to scheduled triggers, branch isolation, backup branch mirroring, and audit logging specifications.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-06
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Verification
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Synchronized Automation Tooling & Test Suite:
+  - Updated `scripts/daily_git_sync.py` to mirror snapshots directly to remote `backup` branch.
+  - Added `test_workflow_backup_branch_mirroring` in `tests/test_daily_git_sync.py` to continuously enforce backup branch coverage (36/36 tests passing).
+* Remote Backup Branch Verification:
+  - Validated that remote `backup` branch, `daily-sync`, and `backup-sync` on `origin` are synchronized with `staging`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Maintained clean active working branch on `staging`.
+
+Files Modified:
+* `.github/workflows/daily-backup-sync.yml`
+* `scripts/daily_git_sync.py`
+* `tests/test_daily_git_sync.py`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Codebase security and disaster recovery safeguards confirmed. Automated backup workflow adheres strictly to scheduled triggers, branch isolation, backup branch mirroring, and audit logging specifications.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-05
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Synchronization Audit and Verification
+
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout with `fetch-depth: 0` and `contents: write` permissions, checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Remote Backup Branch Verification:
+  - Validated that remote `backup` branch and `daily-sync` branch on `origin` are synchronized with `staging`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Maintained clean active working branch on `staging`.
+* Test Suite & AST Knowledge Graph Verification:
+  - Executed `pytest tests/test_daily_git_sync.py`: 35/35 tests passing cleanly (100%).
+  - Ran `graphify update .` to keep knowledge graph current (11,153 nodes, 24,814 edges, 550 communities).
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Codebase security and disaster recovery safeguards confirmed. Automated backup workflow adheres strictly to scheduled triggers, branch isolation, and audit logging specifications.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-04
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Synchronization Audit and Verification
+
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout with `fetch-depth: 0` and `contents: write` permissions, checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Remote Backup Branch Verification:
+  - Validated that remote `backup` branch and `daily-sync` branch on `origin` are synchronized with `staging`.
+  - Preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Maintained clean active working branch on `staging`.
+* Test Suite & AST Knowledge Graph Verification:
+  - Executed `pytest tests/test_daily_git_sync.py`: 35/35 tests passing cleanly (100%).
+  - Ran `graphify update .` to keep knowledge graph current (11,153 nodes, 24,814 edges, 550 communities).
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Codebase security and disaster recovery safeguards confirmed. Automated backup workflow adheres strictly to scheduled triggers, branch isolation, and audit logging specifications.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-03
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Synchronization Execution
+
+Changes Made:
+* Verified GitHub Actions Daily Backup Sync Workflow Specifications (`.github/workflows/daily-backup-sync.yml`):
+  - Trigger Specifications: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+  - Git Synchronization Behavior: Repository checkout with `fetch-depth: 0` and `contents: write` permissions, checking out/creating remote branch `daily-sync`, merging latest commits from `staging`, pushing `daily-sync` to `origin`, and mirroring to `backup` and `backup-sync`.
+  - Branch Protection Enforcement: Strictly blocked pushes to `main` and `demo-stable` via both pre-push git hook and step validation guards.
+  - Audit Log Publishing: Commit SHA, sync status, and run metadata written to `$GITHUB_STEP_SUMMARY`.
+* Executed Remote Backup Synchronization & Push:
+  - Reconciled branch histories between `daily-sync` and `backup`.
+  - Successfully pushed fast-forward commit `1850372` to `origin/daily-sync`, `origin/backup`, and `origin/backup-sync`.
+  - Updated local branch pointers for `backup` and `backup-sync`.
+  - Maintained zero changes to protected branches `main` and `demo-stable`.
+  - Restored active working branch cleanly to `staging`.
+* Test Suite Verification:
+  - Executed `pytest tests/test_daily_git_sync.py`: 35/35 tests passing cleanly (100%).
+
+Files Modified:
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Continuous code security and off-site disaster recovery ensured. Remote branches `backup`, `daily-sync`, and `backup-sync` are aligned with `staging` with full audit traceability and protected branch guardrails.
+
+Next Recommended Task:
+* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
+Date: 2026-10-02
+Agent: ResilAI DevOps Agent
+Task: GitHub Actions Daily Snapshot & Remote Backup Sync Execution
+
+Changes Made:
+* Audited and Verified GitHub Actions Daily Backup Sync Workflow (`.github/workflows/daily-backup-sync.yml`):
+  - Confirmed Triggers: Scheduled cron `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger).
+  - Confirmed Git Synchronization Behavior: Repository checkout with `fetch-depth: 0` and `contents: write` permissions, checks out or creates remote branch `daily-sync`, merges latest commits from `staging`, and pushes `daily-sync` to `origin`.
+  - Confirmed Branch Protection: Strictly blocked pushes to `main` and `demo-stable` via both local pre-push hook and step-level validation guard.
+  - Confirmed Audit Log: Summary report written to `$GITHUB_STEP_SUMMARY` with commit SHA, sync status, and metadata table.
+* Maintained Codebase Security & Remote Backup:
+  - Staged and verified pending connector enhancements (`Connectors.tsx`), test fixtures (`test_negative_cases.py`, `e2e_results.json`), and AST knowledge graph (`graphify-out/`).
+  - Executed automated tests: `npm run build` cleanly compiled (exit code 0); `pytest tests/test_daily_git_sync.py` passed 35/35 (100%); `pytest tests/aws_integration/` passed 74/74 (100%).
+  - Synchronized and pushed updates to `backup`, `staging`, `daily-sync`, and `backup-sync` on `origin`.
+  - Preserved protected branch invariants (`main` and `demo-stable` completely untouched).
+
+Files Modified:
+* `frontend/src/pages/Connectors.tsx`
+* `tests/aws_integration/test_negative_cases.py`
+* `tests/aws_integration/e2e_results.json`
+* `graphify-out/`
+* `docs/agent_memory/ACTIVE_CONTEXT.md`
+* `docs/agent_memory/AGENT_LOG.md`
+
+Dependencies Created/Updated:
+* None
+
+Business Impact:
+* Continuous code security and off-site disaster recovery ensured. Staging, daily sync, and backup branch mirrors are synchronized with zero risk to production branches.
+
+Next Recommended Task:
+* Monitor next scheduled cron execution at 04:00 UTC or trigger manually via GitHub Actions workflow dispatch.
+
+Blocked By:
+* None
+
+Affected Teams:
+* DevOps, Engineering Leadership
+
+---
+
 Date: 2026-09-29
 Agent: ResilAI DevOps Agent
 Task: GitHub Actions Daily Snapshot & Remote Backup Sync Execution
@@ -2146,3 +2832,65 @@ Affected Teams:
 * DevOps
 * Backend
 * Frontend
+
+
+---
+
+Date: 2026-11-05
+Agent: Claude Fable 5.1 (Claude Code)
+Task: Connector/Integration MVP hardening and account-scoped paywall exemption
+Changes Made:
+* Connector routes (`app/api/v1/connectors.py`): optional `?org_id=` on every route with ownership verification; real webhook receiver that authenticates via `X-Webhook-Secret` / `X-Hub-Signature-256` against the connector's encrypted `webhook_secret` and persists payloads as telemetry + evidence; `PATCH` accepts `credentials` for secret rotation.
+* Credential security: wired AES-256-GCM `connector_encryption` into `ConnectorManager` (fallback `ENCRYPTION_SECRET`), fixed `EncryptedString` to pass through foreign envelopes, added `app/core/security/connector_secrets.py` to keep secrets out of the plaintext `config` column and out of API responses.
+* Honesty: removed fabricated webhook heartbeat events, fake Wazuh `lab-node` agent, unverified Wazuh token auth, and invented SIEM verified-control counts; `GET /api/integrations/status` now enforces org ownership.
+* Entitlements: `require_entitlement` reads `org_id` from JSON bodies; paywall exemption centralised in `Settings.is_paywall_exempt_user` (ADMIN_EMAILS / ADMIN_UIDS / BYPASS_PAYWALL) and the blanket staging/hostname bypasses were removed from backend and frontend.
+* Frontend: org-scoped connector API calls, PATCH-on-resave (no duplicate rows), no password prefill, webhook secret field + real receiver URL, honest sync toast and header badge, working onboarding Step 2 health test; deleted unrouted `pages/clinic/Integrations.tsx`.
+* Tests: new `tests/test_webhook_receiver.py`; updated `tests/test_all_connectors_e2e.py` (webhook sync returns []), `tests/test_connector_progress.py` (grants entitlement for Wazuh configure).
+Files Modified:
+* app/api/billing.py, app/api/integrations.py, app/api/v1/connectors.py, app/api/v1/integrations.py
+* app/connectors/wazuh.py, app/connectors/webhook.py, app/services/wazuh_client.py, app/services/connector_manager.py
+* app/core/config.py, app/core/entitlements.py, app/core/security/connector_encryption.py, app/core/security/connector_secrets.py (new), app/db/types.py, app/schemas/connector.py
+* app/services/billing/checkout.py, app/services/billing/entitlements.py
+* frontend/src/api.ts, frontend/src/hooks/useCapabilities.ts, frontend/src/pages/Connectors.tsx, frontend/src/pages/Reports.tsx, frontend/src/components/onboarding/Step2Connectors.tsx, frontend/src/pages/clinic/Integrations.tsx (deleted)
+* tests/test_webhook_receiver.py (new), tests/test_all_connectors_e2e.py, tests/test_connector_progress.py, tests/test_remediation_and_elastic.py, .env.example, .env.dev.example
+Dependencies Created/Updated:
+* pytest-asyncio installed for the system interpreter (dev only; async connector tests were silently failing without it).
+Business Impact:
+* A paying or exempt customer can register a connector once, re-save it without duplicates, push MSP telemetry into the webhook receiver, and see only real ingested evidence; credentials are encrypted at rest and never echoed. The founder account is exempt from the paywall by email without unlocking every staging user.
+Next Recommended Task:
+* Decide whether Wazuh/Splunk legacy config endpoints should be gated at `CONNECTORS_MANAGE` instead of `ADVANCED_INTEGRATIONS`; rotate and move the committed staging `ENCRYPTION_SECRET` into Secret Manager; replace mock AWS asset discovery.
+Blocked By:
+* None
+Affected Teams:
+* Backend
+* Frontend
+* Security
+
+
+---
+
+Date: 2026-11-05
+Agent: Claude Fable 5.1 (Claude Code)
+Task: Billing checkout fields (LLM council), demo sandbox on AWS telemetry, AI SEO pricing files, secret hygiene
+Changes Made:
+* Checkout: invoice-friendly Stripe Checkout payload (address, tax ID, promo codes, trial, customer reuse), Stripe Customer Portal endpoint, public billing config endpoint with DB-backed founding-seat counter, past_due grace period, production requires real price IDs.
+* Demo: tokenless read of demo-* readiness, demo namespace treated as demo telemetry, frontend demo readiness served by backend (AWS e2e findings) with mock fallback, demo host uses production API, in-app /demo link.
+* AI SEO: public/pricing.md, llms.txt pricing summary, robots allow, FAQPage + Product JSON-LD on /pricing.
+* Security: scrubbed local ENCRYPTION_SECRET from run_server.bat; API docs hidden in prod unless DOCS_PASSWORD changed.
+Files Modified:
+* app/core/config.py, app/core/auth.py, app/api/billing.py, app/api/clinic/router.py, app/services/billing/checkout.py, app/services/billing/entitlements.py, app/main.py, run_server.bat
+* frontend/src/api.ts, frontend/src/pages/Pricing.tsx, frontend/src/pages/Connectors.tsx, frontend/src/runtimeConfig.ts, frontend/src/features/readiness/TodayPage.tsx, frontend/public/pricing.md (new), frontend/public/llms.txt, frontend/public/robots.txt
+* tests/test_billing_checkout_fields.py (new), tests/test_entitlements_service.py, tests/test_demo_isolation.py, frontend/src/test/* (demo link assertions)
+* .claude/launch.json (new; local backend + frontend dev servers)
+Dependencies Created/Updated:
+* None
+Business Impact:
+* A practice manager can expense the subscription (invoice with legal name, address, tax ID), a solo admin gets a 14-day card-free approval window, subscribers self-serve invoices and cancellation through Stripe, and the public sandbox shows findings recorded from the real AWS test account.
+Next Recommended Task:
+* Create Stripe prices and bind STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET / STRIPE_PRICE_* on the production Cloud Run service; configure the Customer Portal in the Stripe dashboard; rotate the staging ENCRYPTION_SECRET into Secret Manager.
+Blocked By:
+* Stripe production keys not present in Secret Manager (only ENCRYPTION_SECRET, airs-db-password, gemini-api-key exist).
+Affected Teams:
+* Backend
+* Frontend
+* Growth

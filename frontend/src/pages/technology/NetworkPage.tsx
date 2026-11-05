@@ -55,9 +55,10 @@ const MOCK_INVENTORY = [
 ];
 
 import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+import { NetworkTopologyGraph } from '../../components/network/NetworkTopologyGraph';
 
 export function NetworkPage() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
+  const [activeTab, setActiveTab] = useState<'topology' | 'overview' | 'events' | 'issues' | 'inventory'>('topology');
 
   return (
     <motion.div
@@ -84,7 +85,7 @@ export function NetworkPage() {
       />
 
       <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-6 text-sm font-bold text-slate-500 dark:text-slate-400">
-        {(['overview', 'events', 'issues', 'inventory'] as const).map((tab) => (
+        {(['topology', 'overview', 'events', 'issues', 'inventory'] as const).map((tab) => (
           <button
             key={tab}
             className={`pb-3 capitalize border-b-2 transition-all ${
@@ -92,10 +93,12 @@ export function NetworkPage() {
             }`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab}
+            {tab === 'topology' ? 'Whole Network Map' : tab}
           </button>
         ))}
       </div>
+
+      {activeTab === 'topology' && <NetworkTopologyGraph />}
 
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

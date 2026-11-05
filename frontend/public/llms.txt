@@ -91,6 +91,13 @@ Healthcare organizations, medical practices, diagnostic centers, and hospital ne
 - **AI Architecture**: https://resilai.org/ai
 - **Public Results & Case Studies**: https://resilai.org/results
 - **Pricing & Tiering**: https://resilai.org/pricing
+- **Machine-readable pricing**: https://resilai.org/pricing.md
+
+## Pricing (summary, USD, updated 2026-11-05)
+- **Founding Sysadmin / Design Partner**: $149/month locked for life for the first 50 customers (regular $199/month). Up to 250 endpoints, 1 admin. Agentless ingestion, 1-page boss report, cyber-insurance binder, continuous deterministic scoring.
+- **Growth**: $399/month (regular $499/month; $3,990/year reference). Up to 500 endpoints, 5 admins, all 7 technology domains, multi-cloud telemetry, drift alerting, SHA-256 evidence ledger.
+- **Enterprise**: custom contract. Unlimited assets, private deployment, SSO/SAML, SCIM, custom frameworks, 99.9% SLA.
+- **Free demo**: $0, simulated data only. Cancel anytime on self-serve tiers; billed through Stripe.
 - **Security & Data Handling**: https://resilai.org/security
 - **Live Staging & Demo Sandbox**: https://resilai-staging.web.app/
 - **GitHub Repository**: https://github.com/purvanshbhatt/AIRS

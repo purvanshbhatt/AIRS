@@ -74,10 +74,30 @@ class WazuhConnector(Connector):
             if ":" in api_key:
                 username, password = api_key.split(":", 1)
             else:
-                self._token = api_key
-                self._authenticated = True
-                self.logger.info("Wazuh authentication successful using API token")
-                return True
+                # Bearer token supplied directly: prove it against the manager
+                # instead of assuming it works (failures used to surface only at sync).
+                if not self._base_url:
+                    self.logger.error("Missing Wazuh URL for token authentication")
+                    return False
+                try:
+                    async with httpx.AsyncClient(
+                        timeout=15.0, verify=self._verify_ssl
+                    ) as client:
+                        resp = await client.get(
+                            f"{self._base_url}/agents",
+                            params={"limit": 1},
+                            headers={"Authorization": f"Bearer {api_key}"},
+                        )
+                    if resp.status_code == 200:
+                        self._token = api_key
+                        self._authenticated = True
+                        self.logger.info("Wazuh authentication successful using API token")
+                        return True
+                    self.logger.warning("Wazuh API token rejected: HTTP %d", resp.status_code)
+                    return False
+                except Exception as exc:
+                    self.logger.error("Wazuh token validation error: %s", exc)
+                    return False
 
         if not self._base_url or not username:
             self.logger.error("Missing Wazuh URL or username")

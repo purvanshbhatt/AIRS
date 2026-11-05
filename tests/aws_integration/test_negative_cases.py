@@ -111,7 +111,9 @@ class TestNegativeCases:
 
     def test_not_authenticated_validate_permissions(self):
         """Permissions check on unauthenticated connector returns valid=False."""
-        connector = self._make_connector()
+        connector = self._make_connector(
+            {"aws_access_key_id": "INVALID", "aws_secret_access_key": "INVALID"}
+        )
         result = _run(connector.validate_permissions())
         assert result.valid is False
         assert "Not authenticated" in result.message

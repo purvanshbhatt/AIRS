@@ -317,7 +317,7 @@ describe('Tier 3: Cross-Feature Navigation & State Interaction', () => {
     });
 
     const link = screen.getByRole('link', { name: /Explore Live Sandbox Demo/i });
-    expect(link).toHaveAttribute('href', 'https://demo.resilai.org');
+    expect(link).toHaveAttribute('href', '/demo');
   });
 
   it('T3.CF.12: NeedsAttentionPage -> "Re-evaluate Gaps" button re-invokes getDailyReadinessReport', async () => {

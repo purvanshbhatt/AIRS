@@ -76,8 +76,12 @@ class ConnectorManager:
         """
         from app.models.connector import Connector, ConnectorStatus
 
+        from app.core.security.connector_secrets import scrub_secrets
+
         # Encrypt credentials for storage
         encrypted_creds = self._encrypt_credentials(credentials)
+        # Secrets live only in the encrypted blob, never in the plain config column.
+        safe_config = scrub_secrets(config) if config else None
 
         connector = Connector(
             org_id=self.org_id,
@@ -85,7 +89,7 @@ class ConnectorManager:
             display_name=display_name,
             auth_method=auth_method,
             encrypted_credentials=encrypted_creds,
-            config=config if config else None,
+            config=safe_config if safe_config else None,
             sync_interval_minutes=sync_interval_minutes,
             status=ConnectorStatus.pending_auth.value,
             health_status="unknown",
@@ -301,20 +305,34 @@ class ConnectorManager:
         config: Optional[Dict[str, Any]] = None,
         sync_interval_minutes: Optional[int] = None,
         status: Optional[str] = None,
+        credentials: Optional[Dict[str, Any]] = None,
     ):
         """Update a connector's configuration.
+
+        Passing ``credentials`` replaces the encrypted secret blob and resets
+        the connector to ``pending_auth`` so the next health check / sync
+        re-validates the new secrets (unless ``status`` is given explicitly).
 
         Returns:
             Updated Connector ORM instance.
         """
+        from app.core.security.connector_secrets import scrub_secrets
+        from app.models.connector import ConnectorStatus
+
         connector = self._get_connector(connector_id)
 
         if display_name is not None:
             connector.display_name = display_name
         if config is not None:
-            connector.config = config
+            connector.config = scrub_secrets(config)
         if sync_interval_minutes is not None:
             connector.sync_interval_minutes = sync_interval_minutes
+        if credentials:
+            connector.encrypted_credentials = self._encrypt_credentials(credentials)
+            connector.permissions_validated = False
+            connector.health_status = "unknown"
+            if status is None:
+                connector.status = ConnectorStatus.pending_auth.value
         if status is not None:
             connector.status = status
 
@@ -394,26 +412,34 @@ class ConnectorManager:
     def _encrypt_credentials(self, credentials: Dict[str, Any]) -> str:
         """Encrypt credentials for database storage.
 
-        Currently stores as JSON string. AES-256-GCM encryption will be
-        added in Phase 4 via app.core.security.connector_encryption.
+        AES-256-GCM via app.core.security.connector_encryption when
+        CONNECTOR_ENCRYPTION_KEY (or the Secret Manager key) is configured.
+        Falls back to plaintext JSON only when no key is available, and
+        connector_encryption logs a warning in that case.
         """
-        # TODO(Phase 4): Replace with AES-256-GCM encryption
-        # from app.core.security.connector_encryption import encrypt
-        # return encrypt(json.dumps(credentials))
-        return json.dumps(credentials)
+        from app.core.security.connector_encryption import encrypt_value
+        return encrypt_value(json.dumps(credentials))
 
     def _decrypt_credentials(self, encrypted: Optional[str]) -> Dict[str, Any]:
         """Decrypt credentials from database storage.
 
-        Currently parses JSON string. AES-256-GCM decryption will be
-        added in Phase 4 via app.core.security.connector_encryption.
+        Accepts both AES-256-GCM envelopes and legacy plaintext JSON rows
+        written before encryption was enabled.
         """
         if not encrypted:
             return {}
-        # TODO(Phase 4): Replace with AES-256-GCM decryption
-        # from app.core.security.connector_encryption import decrypt
-        # return json.loads(decrypt(encrypted))
-        return json.loads(encrypted)
+        from app.core.security.connector_encryption import decrypt_value
+        try:
+            plaintext = decrypt_value(encrypted)
+        except Exception as exc:
+            logger.error("Connector credential decryption failed: %s", exc)
+            return {}
+        try:
+            data = json.loads(plaintext)
+        except (json.JSONDecodeError, TypeError):
+            logger.error("Connector credentials are not valid JSON after decryption")
+            return {}
+        return data if isinstance(data, dict) else {}
 
     async def _ingest_events(self, connector_id: str, events) -> int:
         """Ingest normalized events into the telemetry + evidence pipelines.

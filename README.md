@@ -2,8 +2,15 @@
   <img src="docs/images/banner.jpg" alt="ResilAI Banner" width="100%" />
 </p>
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo_header_dark.png">
+    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo_header_light.png">
+    <img src=".github/assets/logo_header_dark.png" alt="ResilAI Logo" width="380" />
+  </picture>
+</p>
+
 <h1 align="center">
-  <img src="docs/images/logo.jpg" alt="ResilAI Logo" width="40" height="40" valign="middle" />
   ResilAI — AI Incident Readiness & Clinic Operations Platform
 </h1>
 
@@ -15,8 +22,8 @@
   <a href="https://github.com/purvanshbhatt/AIRS/actions"><img src="https://img.shields.io/badge/CI%2FCD-Active-brightgreen.svg" alt="CI/CD Status"></a>
   <a href="https://resilai.org"><img src="https://img.shields.io/badge/Production-resilai.org-blue.svg" alt="Production"></a>
   <a href="https://staging.resilai.org"><img src="https://img.shields.io/badge/Staging-staging.resilai.org-orange.svg" alt="Staging"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-red.svg" alt="License"></a>
-  <a href="docs/SECURITY.md"><img src="https://img.shields.io/badge/Security-Audit%20Passed-emerald.svg" alt="Security Status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-blue.svg" alt="License"></a>
+  <a href="SECURITY.md"><img src="https://img.shields.io/badge/Scoring-Deterministic%20Evidence-emerald.svg" alt="Deterministic Scoring"></a>
 </p>
 
 ---
@@ -91,7 +98,10 @@ npm run dev
 
 ## 📜 License & Compliance
 
-Copyright © 2026 ResilAI Inc. All rights reserved. Proprietary software.
-## Deployment Restrictions
+Copyright © 2026 ResilAI Inc. All rights reserved. Proprietary software. See [LICENSE](LICENSE) for evaluation and audit licensing terms.
 
-**DEPRECATION WARNING:** The Firebase Hosting target staging (mapped to irs-staging-0384513977) is strictly deprecated. Do NOT deploy to it. The canonical staging target is esilai-staging.
+---
+
+## ⚠️ Deployment Notice
+
+**DEPRECATION WARNING:** The legacy Firebase Hosting target `staging` (mapped to `airs-staging-0384513977`) is strictly deprecated. The canonical staging target is `resilai-staging` (`https://staging.resilai.org`).

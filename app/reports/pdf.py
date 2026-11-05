@@ -493,8 +493,10 @@ class ProfessionalPDFGenerator:
         elements.append(Spacer(1, 1 * inch))
         
         # Add product logo
-        logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
-                                  'frontend', 'public', 'favicon.png')
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        logo_path = os.path.join(base_dir, 'frontend', 'public', 'favicon-light.png')
+        if not os.path.exists(logo_path):
+            logo_path = os.path.join(base_dir, 'frontend', 'public', 'favicon.png')
         if os.path.exists(logo_path):
             try:
                 logo = Image(logo_path, width=1.5 * inch, height=1.5 * inch)

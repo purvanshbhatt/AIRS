@@ -194,10 +194,9 @@ async def test_webhook_connector_lifecycle(db_session, test_org):
     health = await connector.health_check()
     assert health.status == "healthy"
 
+    # Push-based: pull sync must not fabricate heartbeat evidence.
     events = await connector.sync()
-    assert len(events) == 1
-    assert events[0].event_type == "webhook.heartbeat"
-    assert events[0].payload["webhook_name"] == "Clinic MSP Feed"
+    assert events == []
 
 
 @pytest.mark.asyncio

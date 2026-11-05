@@ -80,12 +80,18 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 pb-12 border-b border-outline-variant/60">
           {/* Brand & Mission Column (Spans 2 cols on desktop) */}
           <div className="lg:col-span-2 space-y-4">
-            <Link to="/" className="inline-block">
+            <Link to="/" className="inline-block group" aria-label="ResilAI Home">
               <img
-                src="/logo_footer_and github.svg"
-                alt="ResilAI Brand Logo"
-                className="h-12 w-auto dark:brightness-0 dark:invert transition-all duration-300"
+                src="/brand/horizontal/resilai_horizontal_light_trans.png"
+                alt="ResilAI"
+                className="h-10 w-auto object-contain block dark:hidden transition-all duration-300 group-hover:scale-105"
               />
+              <img
+                src="/brand/horizontal/resilai_horizontal_dark_trans.png"
+                alt="ResilAI"
+                className="h-10 w-auto object-contain hidden dark:block transition-all duration-300 group-hover:scale-105"
+              />
+              <span className="sr-only">ResilAI</span>
             </Link>
             <p className="text-sm text-on-surface-variant max-w-sm leading-relaxed">
               Continuous AI & cybersecurity incident readiness for healthcare and legal organizations. Transform fragmented telemetry into verifiable executive understanding and operational resilience.

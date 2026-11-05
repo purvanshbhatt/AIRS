@@ -17,7 +17,10 @@ import {
   Activity,
   Check,
 } from 'lucide-react';
+import { Link, useInRouterContext } from 'react-router-dom';
 import type { SecurityConnectorState, OnboardingMode } from '../../types/onboarding';
+import { getConnectorsList, checkConnectorHealth } from '../../api';
+import { useActiveOrgId } from '../../hooks/useActiveOrgId';
 
 interface Step2ConnectorsProps {
   connectors: SecurityConnectorState[];
@@ -25,6 +28,36 @@ interface Step2ConnectorsProps {
   mode: OnboardingMode;
   onNext: () => void;
   onPrev: () => void;
+  /** Optional explicit org scope; falls back to the active org from useActiveOrgId. */
+  orgId?: string;
+}
+
+// Maps onboarding card types to backend connector_type values. Types without a
+// backend connector (CrowdStrike, SentinelOne) resolve to null.
+const ONBOARDING_TYPE_TO_BACKEND: Record<SecurityConnectorState['type'], string | null> = {
+  microsoft365: 'microsoft',
+  veeam: 'veeam',
+  splunk: 'splunk',
+  wazuh: 'wazuh',
+  aws: 'aws',
+  crowdstrike: null,
+  sentinelone: null,
+};
+
+const NOT_CONNECTED_MESSAGE = 'Not connected yet. Configure live credentials in the Connectors workspace.';
+
+function ConnectorsWorkspaceLink() {
+  const inRouter = useInRouterContext();
+  const className = 'inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:opacity-80';
+  return inRouter ? (
+    <Link to="/connectors" className={className}>
+      Open Connectors <ExternalLink className="w-3 h-3" />
+    </Link>
+  ) : (
+    <a href="/connectors" className={className}>
+      Open Connectors <ExternalLink className="w-3 h-3" />
+    </a>
+  );
 }
 
 export function Step2Connectors({
@@ -33,11 +66,14 @@ export function Step2Connectors({
   mode,
   onNext,
   onPrev,
+  orgId: orgIdProp,
 }: Step2ConnectorsProps) {
   const isDemo = mode === 'demo';
+  const activeOrgId = useActiveOrgId();
+  const orgId = orgIdProp || activeOrgId || undefined;
   const [activeConfigId, setActiveConfigId] = useState<string | null>(null);
   const [testingId, setTestingId] = useState<string | null>(null);
-  const [testResult, setTestResult] = useState<{ id: string; success: boolean; message: string } | null>(null);
+  const [testResult, setTestResult] = useState<{ id: string; success: boolean; message: string; notConnected?: boolean } | null>(null);
 
   const getConnectorIcon = (iconName: string) => {
     switch (iconName) {
@@ -70,16 +106,44 @@ export function Step2Connectors({
           lastSync: 'Just now',
         });
       }, 500);
-    } else {
-      setTimeout(() => {
-        setTestingId(null);
+      return;
+    }
+
+    void (async () => {
+      try {
+        const backendType = ONBOARDING_TYPE_TO_BACKEND[connector.type];
+        const list = backendType ? await getConnectorsList(orgId) : { connectors: [], total: 0 };
+        const registered = list.connectors.find(
+          (c) => c.connector_type === backendType && c.status !== 'inactive'
+        );
+
+        if (!registered) {
+          setTestResult({ id: connector.id, success: false, notConnected: true, message: NOT_CONNECTED_MESSAGE });
+          return;
+        }
+
+        const health = await checkConnectorHealth(registered.id, orgId);
+        const healthy = health.status === 'healthy' || health.status === 'active';
+        setTestResult({
+          id: connector.id,
+          success: healthy,
+          message: `${health.status.toUpperCase()}: ${health.message || (healthy ? 'Connected successfully.' : 'Health check did not pass.')}`,
+        });
+        if (healthy) {
+          onUpdateConnector(connector.id, { status: 'connected', lastSync: 'Just now' });
+        } else {
+          onUpdateConnector(connector.id, { status: 'error' });
+        }
+      } catch (err: any) {
         setTestResult({
           id: connector.id,
           success: false,
-          message: `Real telemetry integration with ${connector.name} requires an active subscription plan and verified cloud credentials. You can configure live credentials in the Connectors workspace.`,
+          message: err?.message || `Health check failed for ${connector.name}.`,
         });
-      }, 500);
-    }
+      } finally {
+        setTestingId(null);
+      }
+    })();
   };
 
   const connectedCount = connectors.filter((c) => c.status === 'connected').length;
@@ -218,9 +282,22 @@ export function Step2Connectors({
                     ))}
 
                     {testResult && testResult.id === conn.id && (
-                      <div className="p-2.5 bg-ready-emerald/10 border border-ready-emerald/30 rounded-lg text-ready-emerald text-xs flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        <span>{testResult.message}</span>
+                      <div
+                        className={`p-2.5 rounded-lg text-xs flex items-center gap-2 border ${
+                          testResult.success
+                            ? 'bg-ready-emerald/10 border-ready-emerald/30 text-ready-emerald'
+                            : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                        }`}
+                      >
+                        {testResult.success ? (
+                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                        )}
+                        <span className="flex flex-wrap items-center gap-x-2">
+                          <span>{testResult.message}</span>
+                          {testResult.notConnected && <ConnectorsWorkspaceLink />}
+                        </span>
                       </div>
                     )}
 

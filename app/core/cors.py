@@ -40,6 +40,7 @@ DEV_LOCALHOST_ORIGINS = [
 # Trusted domain patterns for ResilAI, Firebase Hosting, and Cloud Run deployments
 TRUSTED_ORIGIN_PATTERNS = [
     re.compile(r"^https://([a-zA-Z0-9\-]+\.)*resilai\.org$"),
+    re.compile(r"^https://([a-zA-Z0-9\-]+\.)*resilai\.net$"),
     re.compile(r"^https://([a-zA-Z0-9\-]+\.)*web\.app$"),
     re.compile(r"^https://([a-zA-Z0-9\-]+\.)*firebaseapp\.com$"),
     re.compile(r"^https://([a-zA-Z0-9\-]+\.)*run\.app$"),

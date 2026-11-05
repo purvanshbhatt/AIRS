@@ -204,6 +204,9 @@ class TestIsTrustedOrigin:
         assert is_trusted_origin("https://www.resilai.org") is True
         assert is_trusted_origin("https://app.resilai.org") is True
         assert is_trusted_origin("https://staging.resilai.org") is True
+        assert is_trusted_origin("https://resilai.net") is True
+        assert is_trusted_origin("https://www.resilai.net") is True
+        assert is_trusted_origin("https://staging.resilai.net") is True
 
     def test_firebase_web_app_domain(self):
         from app.core.cors import is_trusted_origin
