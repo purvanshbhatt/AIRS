@@ -48,6 +48,8 @@ import {
   Key,
   Lock,
   Sparkles,
+  LogOut,
+  Download,
 } from 'lucide-react';
 import type { OrganizationProfile, ApplicableFramework, OrganizationProfileUpdate } from '../types';
 
@@ -449,6 +451,20 @@ export default function Settings() {
                     {user?.providerId || (isDemo ? 'Sandbox Session' : 'Firebase Auth')}
                   </span>
                 </div>
+
+                <div className="pt-3 border-t border-outline-variant/60 flex items-center justify-between">
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      window.location.href = '/login';
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-semibold text-rose-600 dark:text-rose-400 border border-outline-variant/60 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>{isDemo ? 'Exit Demo Sandbox' : 'Sign Out of Account'}</span>
+                  </button>
+                  <span className="text-[10px] text-on-surface-variant/70 font-mono">Session Active</span>
+                </div>
               </div>
             </div>
           </div>
@@ -746,6 +762,49 @@ export default function Settings() {
               </div>
             </div>
           </div>
+
+          {/* Release & Build Manifest Card */}
+          <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/60 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant/60">
+              <div className="flex items-center gap-2.5">
+                <Terminal className="w-5 h-5 text-ready-emerald" />
+                <div>
+                  <h3 className="text-sm font-bold text-on-surface">Release & Build Manifest</h3>
+                  <p className="text-[11px] text-on-surface-variant">Continuous integration build telemetry</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-mono font-bold text-ready-emerald bg-ready-emerald/10 border border-ready-emerald/20 px-2 py-0.5 rounded-full uppercase">
+                Verified Engine
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                <span className="text-on-surface-variant text-[10px] uppercase font-mono block mb-1">Git Commit</span>
+                <span className="font-mono font-bold text-on-surface text-xs truncate block">
+                  {((window as any).__RESILAI_BUILD__?.commit) || 'main (HEAD)'}
+                </span>
+              </div>
+              <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                <span className="text-on-surface-variant text-[10px] uppercase font-mono block mb-1">Target Environment</span>
+                <span className="font-mono font-bold text-on-surface text-xs capitalize">
+                  {((window as any).__RESILAI_BUILD__?.environment) || (isDemo ? 'Sandbox Demo' : 'Cloud Run Live')}
+                </span>
+              </div>
+              <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                <span className="text-on-surface-variant text-[10px] uppercase font-mono block mb-1">Scoring Mode</span>
+                <span className="font-mono font-bold text-ready-emerald text-xs">
+                  Deterministic
+                </span>
+              </div>
+              <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                <span className="text-on-surface-variant text-[10px] uppercase font-mono block mb-1">Build Timestamp</span>
+                <span className="font-mono text-on-surface text-xs truncate block">
+                  {((window as any).__RESILAI_BUILD__?.buildTime) ? new Date((window as any).__RESILAI_BUILD__.buildTime).toLocaleDateString() : 'Live Cloud'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -863,6 +922,49 @@ export default function Settings() {
                 <p className="text-[10px] text-on-surface-variant/70 text-right leading-tight max-w-[220px]">
                   Flushing cache resets temporary client states without affecting server verification data.
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Release & Build Manifest Card */}
+          <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/60 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant/60">
+              <div className="flex items-center gap-2.5">
+                <Terminal className="w-5 h-5 text-ready-emerald" />
+                <div>
+                  <h3 className="text-sm font-bold text-on-surface">Release & Build Manifest</h3>
+                  <p className="text-[11px] text-on-surface-variant">Continuous integration build telemetry</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-mono font-bold text-ready-emerald bg-ready-emerald/10 border border-ready-emerald/20 px-2 py-0.5 rounded-full uppercase">
+                Verified Engine
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                <span className="text-on-surface-variant text-[10px] uppercase font-mono block mb-1">Git Commit</span>
+                <span className="font-mono font-bold text-on-surface text-xs truncate block">
+                  {((window as any).__RESILAI_BUILD__?.commit) || 'main (HEAD)'}
+                </span>
+              </div>
+              <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                <span className="text-on-surface-variant text-[10px] uppercase font-mono block mb-1">Target Environment</span>
+                <span className="font-mono font-bold text-on-surface text-xs capitalize">
+                  {((window as any).__RESILAI_BUILD__?.environment) || (isDemo ? 'Sandbox Demo' : 'Cloud Run Live')}
+                </span>
+              </div>
+              <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                <span className="text-on-surface-variant text-[10px] uppercase font-mono block mb-1">Scoring Mode</span>
+                <span className="font-mono font-bold text-ready-emerald text-xs">
+                  Deterministic
+                </span>
+              </div>
+              <div className="p-3 bg-surface-container rounded-xl border border-outline-variant/60">
+                <span className="text-on-surface-variant text-[10px] uppercase font-mono block mb-1">Build Timestamp</span>
+                <span className="font-mono text-on-surface text-xs truncate block">
+                  {((window as any).__RESILAI_BUILD__?.buildTime) ? new Date((window as any).__RESILAI_BUILD__.buildTime).toLocaleDateString() : 'Live Cloud'}
+                </span>
               </div>
             </div>
           </div>
