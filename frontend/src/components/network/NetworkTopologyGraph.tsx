@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../ui';
 import { useVertical } from '../../contexts/VerticalContext';
+import { useActiveOrgId } from '../../hooks/useActiveOrgId';
+import { generateReport, downloadReportById } from '../../api';
 
 export interface NetworkNode {
   id: string;
@@ -264,124 +266,39 @@ export function NetworkTopologyGraph() {
     setTimeout(() => setCopiedScript(null), 2500);
   };
 
-  const handleExportBossReport = () => {
+  // The 1-page boss report is generated server-side from live readiness data
+  // (deterministic numbers, never assembled in the browser).
+  const activeOrgId = useActiveOrgId();
+  const handleExportBossReport = async () => {
+    if (!activeOrgId) {
+      window.alert('Select an organization first.');
+      return;
+    }
     setIsExportingBossReport(true);
-    setTimeout(() => {
-      const orgLabel = currentVertical === 'legal' ? 'Northstar & Cole LLP' : 'Metro Health Clinics';
+    try {
       const today = new Date().toISOString().split('T')[0];
-      const htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>ResilAI Monday Morning Boss Report - ${orgLabel}</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 32px; color: #0f172a; line-height: 1.5; background: #fff; }
-    .header { border-bottom: 2px solid #0284c7; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
-    .title { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; }
-    .subtitle { font-size: 13px; color: #64748b; margin-top: 4px; }
-    .badge { display: inline-block; padding: 4px 10px; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 9999px; font-weight: 700; font-size: 12px; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: left; }
-    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px; }
-    .card-value { font-size: 24px; font-weight: 800; color: #0f172a; }
-    .card-note { font-size: 12px; color: #10b981; font-weight: 600; margin-top: 4px; }
-    .section { margin-bottom: 24px; }
-    .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; color: #334155; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px; letter-spacing: 0.05em; }
-    .callout { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #166534; margin-bottom: 16px; }
-    .item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px; }
-    .item:last-child { border-bottom: none; }
-    .item-label { font-weight: 600; color: #334155; }
-    .item-status { font-weight: 700; color: #16a34a; }
-    .footer { border-top: 1px solid #e2e8f0; padding-top: 14px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div>
-      <h1 class="title">Weekly Executive Incident Readiness Briefing</h1>
-      <div class="subtitle">Prepared for Clinic Leadership & Managing Partners · 1-Page Boss Report</div>
-      <div class="subtitle">Organization: <strong>${orgLabel}</strong> · Generated: ${today}</div>
-    </div>
-    <div style="text-align: right;">
-      <span class="badge">VERIFIED ZERO-TRUST AUDIT</span>
-      <div style="font-size: 11px; color: #64748b; margin-top: 6px; font-family: monospace;">SHA-256: 4f8a9e...2b01</div>
-    </div>
-  </div>
-
-  <div class="callout">
-    <strong>Executive Takeaway:</strong> All corporate and clinical networks remain resilient. In the event of an infected workstation or ransomware attempt, microsegmentation boundaries mathematically prevent lateral traversal to patient records, client matter vaults, or immutable backups.
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <div class="card-title">Readiness Health Score</div>
-      <div class="card-value" style="color: #059669;">94 / 100</div>
-      <div class="card-note">↑ 4 pts from last week</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Air-Gapped Backup Status</div>
-      <div class="card-value" style="color: #0284c7;">100% Isolated</div>
-      <div class="card-note">Immutable Object Lock Active</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Lateral Breach Traversal</div>
-      <div class="card-value" style="color: #059669;">0 Active Paths</div>
-      <div class="card-note">Workstations isolated from Core</div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">Key Control Verifications (Live Telemetry)</div>
-    <div class="item">
-      <span class="item-label">Next-Gen Perimeter & Zero-Trust Firewall (VLAN 10/20)</span>
-      <span class="item-status">Active · Microsegmented</span>
-    </div>
-    <div class="item">
-      <span class="item-label">Air-Gapped Immutable Storage Repository (VLAN 20)</span>
-      <span class="item-status">Active · Zero Inbound SMB Paths</span>
-    </div>
-    <div class="item">
-      <span class="item-label">Staff & Partner Workstation EDR Sensors (VLAN 30)</span>
-      <span class="item-status">Active · Host-to-Host Quarantine Enforced</span>
-    </div>
-    <div class="item">
-      <span class="item-label">Multi-Factor Authentication (MFA / Conditional Access)</span>
-      <span class="item-status">Active · 100% Privileged Role Enforcement</span>
-    </div>
-    <div class="item">
-      <span class="item-label">AWS CloudTrail & Document Vault S3 Encryption</span>
-      <span class="item-status">Active · KMS AES-256 Verified</span>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">What This Means for Leadership</div>
-    <p style="font-size: 13px; color: #475569; margin: 0 0 8px 0;">
-      1. <strong>Cyber Insurance Underwriter Compliance:</strong> Live telemetry confirms compliance with top carrier mandates (Coalition, Chubb, Travelers) for MFA, segmented backups, and endpoint isolation.
-    </p>
-    <p style="font-size: 13px; color: #475569; margin: 0;">
-      2. <strong>Zero Ransomware Spread:</strong> Should an employee fall victim to a phishing payload, lateral infection is halted at the subnet boundary with zero exposure to database or billing systems.
-    </p>
-  </div>
-
-  <div class="footer">
-    <span>ResilAI Automated Governance Engine · Deterministic Telemetry Verification (No LLM Scoring)</span>
-    <span>Page 1 of 1 · Executive Distribution Copy</span>
-  </div>
-</body>
-</html>`;
-
-      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const generated = await generateReport({
+        organization_id: activeOrgId,
+        org_id: activeOrgId,
+        report_type: 'boss_report',
+        format: 'pdf',
+        title: `Monday Morning Boss Report ${today}`,
+      });
+      const blob = await downloadReportById(generated.id, generated.download_url);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ResilAI_Monday_Boss_Report_${orgLabel.replace(/\s+/g, '_')}_${today}.html`;
+      a.download = `ResilAI_Monday_Boss_Report_${today}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('Boss report export failed:', err);
+      window.alert(err?.message || 'Could not generate the boss report. Connect a system or try again.');
+    } finally {
       setIsExportingBossReport(false);
-    }, 600);
+    }
   };
 
   // Selected Node Details

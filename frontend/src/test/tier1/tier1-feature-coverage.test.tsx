@@ -103,7 +103,7 @@ describe('Tier 1: Feature Coverage (R1 - R8)', () => {
         expect(screen.getByText('Morning Brief')).toBeInTheDocument();
       });
       expect(screen.getByText(/3 of 4 core protections verified/i)).toBeInTheDocument();
-      expect(screen.getByText('Engine Status')).toBeInTheDocument();
+      expect(screen.getByText('Monitoring')).toBeInTheDocument();
     });
 
     it('T1.R1.03: Stage 3 (What Needs Attention) renders action items with triage link', async () => {

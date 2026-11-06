@@ -12,44 +12,237 @@ from app.models.discovered_asset import DiscoveredAsset
 from app.models.software_catalog import SoftwareCatalog
 from app.models.tech_stack import TechStackItem, LtsStatus
 from app.services.governance.lifecycle_engine import get_version_status, get_technology_versions
+from app.services.discovery.discovery import DiscoveryStatus, SourceDiscoveryResult, is_demo_org
 
 logger = logging.getLogger("airs.services.asset_discovery")
 
+SOURCE_AWS_EC2 = "AWS EC2"
+SOURCE_AWS_RDS = "AWS RDS"
+SOURCE_AWS_SSM = "AWS Systems Manager"
+SOURCE_INTUNE = "Microsoft Intune"
+
 
 class AssetDiscoveryService:
-    """Service to discover software assets and update catalog and tech stack tables."""
+    """Service to discover software assets and update catalog and tech stack tables.
 
-    def __init__(self, db: Session, org_id: str):
+    Real organizations: ``discovered_assets`` is filled from the org's registered
+    connectors (AWS via EC2/RDS/SSM, Microsoft via Graph managedDevices). No
+    connector of a type means nothing from that source and a ``not_connected``
+    status in ``last_results``. Demo organizations keep the synthetic 47-row seed.
+    """
+
+    def __init__(
+        self,
+        db: Session,
+        org_id: str,
+        is_demo: Optional[bool] = None,
+        session_factory=None,
+        http_client_factory=None,
+        token_provider=None,
+    ):
         self.db = db
         self.org_id = org_id
+        self._is_demo = is_demo
+        self._session_factory = session_factory
+        self._http_client_factory = http_client_factory
+        self._token_provider = token_provider
+        self.last_results: Dict[str, SourceDiscoveryResult] = {}
+
+    def is_demo(self) -> bool:
+        if self._is_demo is None:
+            self._is_demo = is_demo_org(self.db, self.org_id)
+        return self._is_demo
 
     def discover_assets(self) -> int:
         """
         Orchestrate the discovery pipeline:
-        1. Discover/Seed assets from the 4 sources (Intune, Defender, Wazuh, Splunk).
+        1. Discover assets from registered connectors (real org) or seed the
+           synthetic set (demo org only).
         2. Sync discovered assets to the SoftwareCatalog.
         3. Match versions against Version Intelligence / lifecycle config.
         4. Populate/Sync the TechStackItem registry for technology currency scoring.
+
+        Returns the number of discovered_assets rows for the org.
         """
         logger.info("Running automated asset discovery for org: %s", self.org_id)
-        
-        # In Staging environment, automatically populate if empty
-        existing_count = (
+
+        if self.is_demo():
+            existing_count = (
+                self.db.query(DiscoveredAsset)
+                .filter(DiscoveredAsset.org_id == self.org_id)
+                .count()
+            )
+            if existing_count == 0:
+                self._seed_demo_discovered_assets()
+            self.last_results = {
+                "demo": SourceDiscoveryResult(source="demo", status=DiscoveryStatus.DEMO)
+            }
+        else:
+            self._discover_from_connectors()
+
+        # Sync discovered_assets to software_catalog and tech_stack_registry
+        self.sync_discovered_to_catalog_and_stack()
+        return (
             self.db.query(DiscoveredAsset)
             .filter(DiscoveredAsset.org_id == self.org_id)
             .count()
         )
 
-        if existing_count == 0:
-            self._seed_discovered_assets()
-        
-        # Sync discovered_assets to software_catalog and tech_stack_registry
-        self.sync_discovered_to_catalog_and_stack()
-        return 47
+    # ------------------------------------------------------------------
+    # Real organizations: connector-backed discovery
+    # ------------------------------------------------------------------
 
-    def _seed_discovered_assets(self):
-        """Seed exactly 47 discovered assets representing Intune, Defender, Wazuh, and Splunk sources."""
-        logger.info("Seeding 47 discovered software assets for org: %s", self.org_id)
+    def _upsert_discovered_asset(self, vendor: Optional[str], product: str, version: Optional[str], source: str) -> bool:
+        """Insert or touch a (product, version, source) row. Returns True when inserted."""
+        product = (product or "").strip()
+        if not product:
+            return False
+        version = (str(version).strip() if version is not None else None) or None
+        existing = (
+            self.db.query(DiscoveredAsset)
+            .filter(
+                DiscoveredAsset.org_id == self.org_id,
+                DiscoveredAsset.product == product,
+                DiscoveredAsset.version == version,
+                DiscoveredAsset.source == source,
+            )
+            .first()
+        )
+        if existing:
+            existing.last_seen = datetime.now(timezone.utc)
+            if vendor and not existing.vendor:
+                existing.vendor = vendor
+            return False
+        self.db.add(DiscoveredAsset(
+            org_id=self.org_id, vendor=vendor, product=product, version=version, source=source,
+        ))
+        return True
+
+    def _discover_from_connectors(self) -> None:
+        """Fill discovered_assets from the org's AWS and Microsoft connectors."""
+        from app.services.discovery.aws_discovery import (
+            API_RDS_DESCRIBE_DB_INSTANCES,
+            AWSDiscoveryService,
+        )
+        from app.services.discovery.graph_discovery import (
+            GraphDiscoveryService,
+            fetch_managed_devices,
+            fetch_security_alerts,
+        )
+
+        self.last_results = {}
+        inserted = 0
+
+        # -- AWS ------------------------------------------------------------
+        aws_result = SourceDiscoveryResult(source="aws")
+        aws_svc = AWSDiscoveryService(
+            self.db, self.org_id, session_factory=self._session_factory, is_demo=False
+        )
+        try:
+            connectors = aws_svc._load_aws_connectors()
+        except Exception as exc:
+            connectors = []
+            aws_result.status = DiscoveryStatus.ERROR
+            aws_result.errors.append(f"connectors: {exc}")
+        if not connectors and aws_result.status != DiscoveryStatus.ERROR:
+            aws_result.status = DiscoveryStatus.NOT_CONNECTED
+        for connector in connectors:
+            aws_result.connectors_used.append(connector["id"])
+            try:
+                session = aws_svc._session_factory(connector["credentials"], connector["config"], connector["id"])
+            except Exception as exc:
+                aws_result.status = DiscoveryStatus.AUTH_FAILED
+                aws_result.errors.append(f"session[{connector['id']}]: {exc}")
+                continue
+            resources = aws_svc.fetch_aws_resources(session, aws_result)
+            for res in resources:
+                aws_result.assets_created += 1
+                for sw in res.get("software") or []:
+                    source = SOURCE_AWS_RDS if sw.get("source") == API_RDS_DESCRIBE_DB_INSTANCES else SOURCE_AWS_SSM
+                    if self._upsert_discovered_asset(sw.get("vendor"), sw["name"], sw.get("version"), source):
+                        inserted += 1
+                        aws_result.products_created += 1
+            if aws_result.status == DiscoveryStatus.NOT_CONNECTED:
+                aws_result.status = DiscoveryStatus.OK
+        if connectors and aws_result.status not in (DiscoveryStatus.AUTH_FAILED, DiscoveryStatus.ERROR):
+            if aws_result.denied_apis and not aws_result.assets_created:
+                aws_result.status = DiscoveryStatus.PERMISSION_MISSING
+            elif aws_result.denied_apis or aws_result.errors:
+                aws_result.status = DiscoveryStatus.PARTIAL
+            else:
+                aws_result.status = DiscoveryStatus.OK
+        self.last_results["aws"] = aws_result
+
+        # -- Microsoft Graph ------------------------------------------------
+        graph_result = SourceDiscoveryResult(source="ms_graph")
+        graph_result.detail["org_id"] = self.org_id
+        graph_svc = GraphDiscoveryService(
+            self.db, self.org_id,
+            http_client_factory=self._http_client_factory,
+            token_provider=self._token_provider,
+            is_demo=False,
+        )
+        try:
+            ms_connectors = graph_svc._load_microsoft_connectors()
+        except Exception as exc:
+            ms_connectors = []
+            graph_result.status = DiscoveryStatus.ERROR
+            graph_result.errors.append(f"connectors: {exc}")
+        if not ms_connectors and graph_result.status != DiscoveryStatus.ERROR:
+            graph_result.status = DiscoveryStatus.NOT_CONNECTED
+        for connector in ms_connectors:
+            graph_result.connectors_used.append(connector["id"])
+            try:
+                token = graph_svc._token_provider(connector["credentials"], connector["config"], connector["id"])
+            except Exception as exc:
+                token = None
+                graph_result.errors.append(f"token[{connector['id']}]: {exc}")
+            if not token:
+                graph_result.status = DiscoveryStatus.AUTH_FAILED
+                continue
+            client = graph_svc._http_client_factory({"Authorization": f"Bearer {token}"})
+            try:
+                devices = fetch_managed_devices(client, graph_result)
+                fetch_security_alerts(client, graph_result)
+            except Exception as exc:
+                graph_result.errors.append(f"graph[{connector['id']}]: {exc}")
+                devices = []
+            finally:
+                close = getattr(client, "close", None)
+                if callable(close):
+                    try:
+                        close()
+                    except Exception:
+                        pass
+            for device in devices:
+                graph_result.assets_created += 1
+                if device.get("os"):
+                    vendor = "Microsoft" if "windows" in str(device["os"]).lower() else None
+                    if self._upsert_discovered_asset(vendor, str(device["os"]).lower(), device.get("os_version"), SOURCE_INTUNE):
+                        inserted += 1
+                        graph_result.products_created += 1
+        if ms_connectors and graph_result.status not in (DiscoveryStatus.AUTH_FAILED, DiscoveryStatus.ERROR):
+            if graph_result.denied_apis and not graph_result.assets_created:
+                graph_result.status = DiscoveryStatus.PERMISSION_MISSING
+            elif graph_result.denied_apis or graph_result.errors:
+                graph_result.status = DiscoveryStatus.PARTIAL
+            else:
+                graph_result.status = DiscoveryStatus.OK
+        self.last_results["ms_graph"] = graph_result
+
+        self.db.commit()
+        logger.info(
+            "Connector discovery for org %s: %d new rows; %s",
+            self.org_id, inserted, "; ".join(r.summary() for r in self.last_results.values()),
+        )
+
+    # ------------------------------------------------------------------
+    # Demo organizations only: synthetic seed
+    # ------------------------------------------------------------------
+
+    def _seed_demo_discovered_assets(self):
+        """Seed exactly 47 synthetic assets (Intune, Defender, Wazuh, Splunk). DEMO ORGS ONLY."""
+        logger.info("Seeding 47 demo software assets for demo org: %s", self.org_id)
         
         assets_data = []
 
@@ -255,8 +448,11 @@ class AssetDiscoveryService:
             elif prod_lower in ("openssl", "log4j"):
                 category = "Library"
 
-            # Determine major_versions_behind and override status for mock accuracy
-            if prod_lower == "python" and asset.version == "3.9":
+            # Determine major_versions_behind and override status for mock accuracy.
+            # Demo seed only: real orgs keep the lifecycle engine's own answer.
+            if not self.is_demo():
+                pass
+            elif prod_lower == "python" and asset.version == "3.9":
                 lts_val = "active"
                 major_behind = 2  # Outdated
             elif prod_lower in ("node", "node.js") and asset.version == "18":

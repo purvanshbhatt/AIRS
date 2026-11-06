@@ -113,8 +113,12 @@ class WazuhDiscoveryService:
         
         client = self._get_wazuh_client()
         if not client:
-            # Fallback to mock for testing if no integration configured
-            return self._execute_mock_wazuh_discovery(inventory_id)
+            # Synthetic agents are for demo organizations only; a real org
+            # without a Wazuh manager simply has nothing to discover.
+            from app.services.discovery.discovery import is_demo_org
+            if is_demo_org(self.db, self.org_id):
+                return self._execute_mock_wazuh_discovery(inventory_id)
+            return 0
             
         try:
             # Get all agents
@@ -149,4 +153,8 @@ class WazuhDiscoveryService:
             
         except Exception as e:
             # Log error, fallback to mock for now if we want to ensure tests pass
-            return self._execute_mock_wazuh_discovery(inventory_id)
+            # Never substitute synthetic agents for a failing real integration.
+            from app.services.discovery.discovery import is_demo_org
+            if is_demo_org(self.db, self.org_id):
+                return self._execute_mock_wazuh_discovery(inventory_id)
+            return 0

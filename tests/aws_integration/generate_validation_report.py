@@ -341,7 +341,7 @@ def generate_report(
         ("Direct CloudTrail ingestion", "Connector reads Security Hub only, not CloudTrail logs directly"),
         ("Direct CloudWatch ingestion", "Connector reads Security Hub only, not CloudWatch metrics/alarms"),
         ("Direct EC2/S3 API ingestion", "Connector reads Security Hub aggregated findings, not individual service APIs"),
-        ("Real AWS asset discovery", "`AWSDiscoveryService.discover_from_aws()` returns hardcoded mock data"),
+        ("Real AWS asset discovery", "`AWSDiscoveryService` now reads EC2/RDS/SSM through the org connector; synthetic inventory is demo-only"),
         ("Control ID mapping", "AWS Security Hub findings are ingested but not mapped to NIST CSF / SOC 2 control IDs"),
         ("Connector credential encryption", f"CONNECTOR_CREDENTIAL_ENCRYPTION={connector_encryption_status} - `ConnectorManager._encrypt_credentials()` is `json.dumps()`"),
     ]

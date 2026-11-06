@@ -609,33 +609,16 @@ export const getReports = (filters?: import('./types/reports').ReportFilters) =>
 export const getReport = (reportId: string) =>
   request<import('./types/reports').ReportDetail>(`/api/reports/${reportId}`);
 
-// Generate a new report
-export const generateReport = async (
+// Generate a new report (server builds the snapshot and computes every number).
+// No client-side fallback: a failure surfaces to the caller so the UI never
+// shows a fabricated report row.
+export const generateReport = (
   data: import('./types/reports').GenerateReportRequest
-): Promise<import('./types/reports').GenerateReportResponse> => {
-  try {
-    return await request<import('./types/reports').GenerateReportResponse>('/api/v1/reports/generate', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  } catch (err) {
-    if (data.assessment_id) {
-      const rep = await createReport(data.assessment_id, {
-        report_type: data.report_type,
-        title: data.title,
-      });
-      return {
-        id: rep.id,
-        report_id: rep.id,
-        status: 'ready',
-        progress: 100,
-        message: 'Report generated successfully',
-        created_at: rep.created_at,
-      };
-    }
-    throw err;
-  }
-};
+): Promise<import('./types/reports').GenerateReportResponse> =>
+  request<import('./types/reports').GenerateReportResponse>('/api/v1/reports/generate', {
+    method: 'POST',
+    body: JSON.stringify({ ...data, org_id: data.org_id || data.organization_id }),
+  });
 
 // Create a new report for an assessment
 export const createReport = (assessmentId: string, data?: { report_type?: string; title?: string }) =>
@@ -644,10 +627,13 @@ export const createReport = (assessmentId: string, data?: { report_type?: string
     body: JSON.stringify(data || {}),
   });
 
-// Download report PDF by report ID
-export const downloadReportById = async (reportId: string): Promise<Blob> => {
+// Download a report by ID. Template reports stream bytes directly; the legacy
+// executive PDF returns a signed URL. `downloadUrl` (from generateReport) is
+// used for non-persisted demo reports rendered statelessly.
+export const downloadReportById = async (reportId: string, downloadUrl?: string): Promise<Blob> => {
   const authHeaders = await getAuthHeaders();
-  const url = `${API_BASE_URL}/api/reports/${reportId}/download`;
+  const path = downloadUrl && downloadUrl.startsWith('/api/') ? downloadUrl : `/api/reports/${reportId}/download`;
+  const url = `${API_BASE_URL}${path}`;
   
   if (isDevelopment) {
     console.log(`[API] GET ${url} (blob)`);

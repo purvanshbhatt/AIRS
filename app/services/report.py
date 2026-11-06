@@ -94,6 +94,10 @@ class ReportService:
             maturity_level=summary.get("tier", {}).get("maturity_level") if isinstance(summary.get("tier"), dict) else None,
             maturity_name=summary.get("tier", {}).get("label") if isinstance(summary.get("tier"), dict) else None,
             findings_count=summary.get("findings_count", 0),
+            format="pdf",
+            created_by=self.owner_uid,
+            status="completed",
+            generated_at=datetime.utcnow(),
         )
         
         self.db.add(report)
@@ -101,6 +105,45 @@ class ReportService:
         self.db.refresh(report)
         return report
     
+    def create_from_snapshot(
+        self,
+        organization_id: str,
+        report_type: str,
+        title: str,
+        snapshot: Dict[str, Any],
+        fmt: str = "pdf",
+        overall_score: Optional[float] = None,
+        findings_count: int = 0,
+        assessment_id: Optional[str] = None,
+    ) -> Report:
+        """Persist a template report built from a readiness snapshot.
+
+        Used by ``POST /api/v1/reports/generate`` for every template that is
+        not tied to a questionnaire assessment. ``overall_score`` and
+        ``findings_count`` are read from the snapshot by the caller; this
+        method never computes them.
+        """
+        report = Report(
+            owner_uid=self.owner_uid,
+            organization_id=organization_id,
+            assessment_id=assessment_id,
+            report_type=report_type,
+            title=title,
+            format=fmt,
+            snapshot=json.dumps(snapshot, default=str),
+            overall_score=overall_score,
+            maturity_level=None,
+            maturity_name=None,
+            findings_count=findings_count,
+            created_by=self.owner_uid,
+            status="completed",
+            generated_at=datetime.utcnow(),
+        )
+        self.db.add(report)
+        self.db.commit()
+        self.db.refresh(report)
+        return report
+
     def _build_snapshot(
         self, 
         assessment: Assessment, 
@@ -179,10 +222,12 @@ class ReportService:
             Organization.id == report.organization_id
         ).first()
         
-        # Get assessment title for response
-        assessment = self.db.query(Assessment).filter(
-            Assessment.id == report.assessment_id
-        ).first()
+        # Get assessment title for response (template reports have no assessment)
+        assessment = None
+        if report.assessment_id:
+            assessment = self.db.query(Assessment).filter(
+                Assessment.id == report.assessment_id
+            ).first()
         
         # Parse snapshot
         try:
@@ -199,11 +244,14 @@ class ReportService:
             "assessment_title": assessment.title if assessment else None,
             "report_type": report.report_type,
             "title": report.title,
+            "format": getattr(report, "format", None) or "pdf",
+            "status": getattr(report, "status", None) or "completed",
             "overall_score": report.overall_score,
             "maturity_level": report.maturity_level,
             "maturity_name": report.maturity_name,
             "findings_count": report.findings_count,
             "created_at": report.created_at,
+            "generated_at": report.generated_at,
             "snapshot": snapshot_data,
         }
     

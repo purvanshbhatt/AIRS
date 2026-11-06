@@ -11,8 +11,24 @@ from app.core.sanitize import strip_dangerous
 
 
 class ReportType(str, Enum):
-    """Report type."""
+    """Report template identifier. Every value maps to a server-side builder in
+    ``app.reports.templates`` (PDF) and a snapshot built in ``app.reports.readiness_source``."""
     EXECUTIVE_PDF = "executive_pdf"
+    BOARD_STORY = "board_story"
+    MONTHLY_OPS = "monthly_ops"
+    HIPAA_AUDIT = "hipaa_audit"
+    TECHNICAL_TELEMETRY = "technical_telemetry"
+    BOSS_REPORT = "boss_report"
+    CYBER_INSURANCE = "cyber_insurance"
+    MSP_SUMMARY = "msp_summary"
+
+
+class ReportFormat(str, Enum):
+    """Output format. Only ``pdf`` is rendered server-side; ``json`` returns the
+    stored snapshot; ``csv`` is a flat export of findings."""
+    PDF = "pdf"
+    JSON = "json"
+    CSV = "csv"
 
 
 # ----- Snapshot Schema -----
@@ -95,16 +111,59 @@ class ReportCreate(BaseModel):
         return strip_dangerous(v)
 
 
+class GenerateReportRequest(BaseModel):
+    """Request body for ``POST /api/v1/reports/generate``.
+
+    ``org_id`` is accepted as an alias of ``organization_id`` so the shared
+    ``require_entitlement`` dependency (which reads ``org_id`` from the body)
+    gates on the same organization.
+    """
+    organization_id: Optional[str] = Field(None, max_length=64)
+    org_id: Optional[str] = Field(None, max_length=64)
+    report_type: ReportType
+    format: ReportFormat = ReportFormat.PDF
+    title: Optional[str] = Field(None, max_length=255)
+    assessment_id: Optional[str] = Field(None, max_length=64)
+    parameters: Optional[Dict[str, Any]] = None
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def sanitize_title(cls, v: Optional[str]) -> Optional[str]:
+        return strip_dangerous(v)
+
+    @property
+    def resolved_org_id(self) -> Optional[str]:
+        return (self.organization_id or self.org_id or "").strip() or None
+
+
+class GenerateReportResponse(BaseModel):
+    """Response for a generated report. All numbers are server-computed."""
+    id: str
+    title: str
+    report_type: str
+    format: str
+    status: str
+    created_at: datetime
+    organization_id: str
+    organization_name: Optional[str] = None
+    overall_score: Optional[float] = None
+    findings_count: int = 0
+    persisted: bool = True
+    download_url: Optional[str] = None
+
+
 class ReportResponse(BaseModel):
     """Report metadata response."""
     id: str
     owner_uid: str
     organization_id: str
     organization_name: Optional[str] = None
-    assessment_id: str
+    assessment_id: Optional[str] = None
     assessment_title: Optional[str] = None
     report_type: str
     title: str
+    format: Optional[str] = "pdf"
+    status: Optional[str] = "completed"
     overall_score: Optional[float] = None
     maturity_level: Optional[int] = None
     maturity_name: Optional[str] = None

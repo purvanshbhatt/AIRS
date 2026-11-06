@@ -9,15 +9,20 @@ export type ReportType =
   | 'hipaa_audit'
   | 'technical_telemetry'
   | 'executive_pdf'
+  | 'boss_report'
+  | 'cyber_insurance'
+  | 'msp_summary'
   | string;
 
 export type ReportFormat = 'pdf' | 'json' | 'csv';
 
-export type ReportGenerationStatus = 'ready' | 'generating' | 'failed' | 'idle';
+export type ReportGenerationStatus = 'ready' | 'completed' | 'generating' | 'failed' | 'idle';
 
 export interface GenerateReportRequest {
   organization_id: string;
-  report_type: 'board_story' | 'monthly_ops' | 'hipaa_audit' | 'technical_telemetry' | string;
+  /** Alias of organization_id read by the backend entitlement guard. */
+  org_id?: string;
+  report_type: ReportType;
   format?: ReportFormat;
   title?: string;
   assessment_id?: string;
@@ -30,15 +35,29 @@ export interface GenerateReportRequest {
   };
 }
 
+/**
+ * Server response for POST /api/v1/reports/generate.
+ * overall_score / findings_count are computed server-side from the
+ * deterministic readiness snapshot; the client must never invent them.
+ */
 export interface GenerateReportResponse {
   id: string;
   report_id?: string;
+  title?: string;
+  report_type?: ReportType;
+  format?: ReportFormat;
   status: ReportGenerationStatus;
   progress?: number;
   message?: string;
   download_url?: string;
   created_at: string;
   estimated_seconds?: number;
+  organization_id?: string;
+  organization_name?: string;
+  overall_score?: number | null;
+  findings_count?: number;
+  /** false for unseeded demo orgs: no Report row exists, use download_url. */
+  persisted?: boolean;
 }
 
 export interface BackendReport {

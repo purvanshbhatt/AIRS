@@ -18,12 +18,19 @@ from app.core.config import settings, Environment
 
 @pytest.fixture
 def mock_org(db_session: Session) -> Organization:
-    """Create a mock organization in the database."""
+    """Create a DEMO organization in the database.
+
+    The 47-asset synthetic inventory asserted below is demo-only. Real
+    (pilot/production) organizations read their registered connectors and
+    never receive fabricated rows (see tests/test_discovery_real.py), so the
+    fixture must be a demo tenant for the seeded counts to apply.
+    """
     org = Organization(
         id="test-discovery-org",
         name="Discovery Enterprise",
         owner_uid="test-user-uid",
         integration_status="{}",
+        org_mode="demo",
     )
     db_session.add(org)
     db_session.commit()
@@ -64,8 +71,22 @@ def test_discovered_asset_model_fields(db_session: Session, mock_org: Organizati
     assert asset.organization.id == mock_org.id
 
 
+def test_real_org_is_never_seeded(db_session: Session):
+    """A pilot org with no connectors gets zero discovered assets, not the demo seed."""
+    org = Organization(id="test-real-org", name="Real Pilot", owner_uid="u", integration_status="{}")
+    db_session.add(org)
+    db_session.commit()
+
+    service = AssetDiscoveryService(db_session, org.id)
+    assert service.discover_assets() == 0
+    assert db_session.query(DiscoveredAsset).filter(DiscoveredAsset.org_id == org.id).count() == 0
+    assert db_session.query(TechStackItem).filter(TechStackItem.org_id == org.id).count() == 0
+    assert service.last_results["aws"].status == "not_connected"
+    assert service.last_results["ms_graph"].status == "not_connected"
+
+
 def test_asset_discovery_counts(db_session: Session, mock_org: Organization):
-    """Verify that AssetDiscoveryService seeds and synchronizes exactly 41 current, 5 outdated, and 1 critical asset."""
+    """Verify that AssetDiscoveryService seeds and synchronizes exactly 41 current, 5 outdated, and 1 critical asset (demo org)."""
     service = AssetDiscoveryService(db_session, mock_org.id)
     total = service.discover_assets()
 

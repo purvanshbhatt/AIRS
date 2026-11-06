@@ -12,6 +12,15 @@ import { LoadingState, ErrorState } from '../../components/readiness/ReadinessSt
 import { DataState, VerifiedValue, EvidenceFreshness, EvidenceState } from '../../components/evidence/EvidenceState';
 import { ExecutiveExplanation } from '../../components/evidence/ExecutiveExplanation';
 import { ContextualDemoBanner } from '../../components/common/ContextualDemoBanner';
+import {
+  derivePlainVerdict,
+  normalizeAction,
+  guidanceForAction,
+  verdictToneClass,
+  CheckOwnerStrip,
+  TechnicalDetails,
+  PlainTerm,
+} from '../../components/readiness/PlainLanguage';
 import { Link } from 'react-router-dom';
 import { useActiveOrg } from '../../hooks/useActiveOrg';
 import { tokens } from '../../lib/design-tokens';
@@ -237,8 +246,11 @@ export default function TodayPage() {
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-on-surface mb-3">
             Welcome to your ResilAI Readiness Workspace
           </h2>
+          <p className="text-lg sm:text-xl font-semibold text-on-surface max-w-2xl mx-auto leading-snug mb-2" data-testid="plain-verdict">
+            We cannot tell yet whether your practice is protected, because no systems are connected.
+          </p>
           <p className="text-sm sm:text-base text-on-surface-variant max-w-2xl mx-auto leading-relaxed mb-8">
-            ResilAI continuously verifies your incident readiness using mathematical evidence from the security and operational systems you already use.
+            Connect your backup system (for example Veeam) or Microsoft 365 first. That is where most practices get their first answer, and each takes one login from your IT provider. ResilAI then checks live data from those systems every day, so nothing here depends on a questionnaire.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3.5">
@@ -277,7 +289,7 @@ export default function TodayPage() {
                 <span className="text-[11px] font-mono font-bold text-ready-emerald uppercase tracking-wider">Step 1 • Completed</span>
                 <h4 className="font-bold text-on-surface text-sm mt-0.5">Workspace Established</h4>
                 <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                  Isolated multi-tenant workspace provisioned.
+                  Your practice has its own private workspace.
                 </p>
               </div>
             </div>
@@ -288,9 +300,9 @@ export default function TodayPage() {
               </div>
               <div>
                 <span className="text-[11px] font-mono font-bold text-drift-amber uppercase tracking-wider">Step 2 • Active</span>
-                <h4 className="font-bold text-on-surface text-sm mt-0.5">Connect Security Telemetry</h4>
+                <h4 className="font-bold text-on-surface text-sm mt-0.5">Connect your first system</h4>
                 <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                  Link Microsoft 365, Splunk, CrowdStrike, or Veeam.
+                  Start with backups (Veeam) or Microsoft 365. CrowdStrike and Splunk can follow.
                 </p>
               </div>
             </div>
@@ -301,9 +313,9 @@ export default function TodayPage() {
               </div>
               <div>
                 <span className="text-[11px] font-mono font-bold text-on-surface-variant uppercase tracking-wider">Step 3 • Upcoming</span>
-                <h4 className="font-bold text-on-surface-variant text-sm mt-0.5">Continuous Verification</h4>
+                <h4 className="font-bold text-on-surface-variant text-sm mt-0.5">Daily checks begin</h4>
                 <p className="text-xs text-on-surface-variant/70 mt-1 leading-relaxed">
-                  Mathematical scoring active with cryptographic evidence.
+                  Checks run around the clock and every result is sealed as proof.
                 </p>
               </div>
             </div>
@@ -316,7 +328,7 @@ export default function TodayPage() {
             <div>
               <div className="flex items-center gap-2.5 mb-4">
                 <Activity className="w-5 h-5 text-drift-amber shrink-0" />
-                <h3 className="text-base font-bold text-on-surface">Current Evidence Posture</h3>
+                <h3 className="text-base font-bold text-on-surface">What we can see right now</h3>
               </div>
               <ul className="space-y-3 text-sm text-on-surface-variant">
                 <li className="flex items-center gap-2.5">
@@ -325,16 +337,16 @@ export default function TodayPage() {
                 </li>
                 <li className="flex items-center gap-2.5">
                   <div className="w-2 h-2 rounded-full bg-drift-amber" />
-                  <span>No telemetry received</span>
+                  <span>No live data from your systems yet</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <div className="w-2 h-2 rounded-full bg-drift-amber" />
-                  <span>No verified evidence available</span>
+                  <span>No proof available yet</span>
                 </li>
               </ul>
             </div>
             <div className="mt-6 pt-4 border-t border-surface-bright text-xs text-on-surface-variant/70">
-              Readiness becomes measurable as soon as your first connector syncs.
+              Your score appears as soon as the first connected system sends data.
             </div>
           </div>
 
@@ -342,14 +354,14 @@ export default function TodayPage() {
             <div>
               <div className="flex items-center gap-2.5 mb-4">
                 <ShieldCheck className="w-5 h-5 text-ready-emerald shrink-0" />
-                <h3 className="text-base font-bold text-on-surface">The ResilAI Trust Invariant</h3>
+                <h3 className="text-base font-bold text-on-surface">How ResilAI decides</h3>
               </div>
               <p className="text-sm text-on-surface-variant leading-relaxed">
-                ResilAI never assumes readiness when evidence is unavailable. Scores are calculated deterministically from ingested system logs, not questionnaires or AI opinions.
+                ResilAI never assumes you are protected when it cannot see proof. Scores come from live data in your systems, not from questionnaires or AI guesses.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-surface-bright flex items-center justify-between text-xs">
-              <span className="text-ready-emerald font-semibold">100% Deterministic Verification</span>
+              <span className="text-ready-emerald font-semibold">Same data, same score, every time</span>
               <Link to="/documents" className="text-on-surface-variant hover:text-ready-emerald transition-colors font-medium">Scoring Methodology →</Link>
             </div>
           </div>
@@ -377,11 +389,85 @@ export default function TodayPage() {
     ? 'text-outline-variant'
     : (isReady ? 'text-ready-emerald drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'text-drift-amber drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]');
 
+  // Plain-English verdict (deterministic: status, score, failed checks, backup state)
+  const plain = derivePlainVerdict(report);
+  const verifiedCount = report.verification?.verified_items_count;
+  const totalCount = report.verification?.total_items_count;
+  const hasCheckCounts = typeof verifiedCount === 'number' && typeof totalCount === 'number' && totalCount > 0;
+  const confidencePct = report.verification?.overall_confidence_pct ?? (report.verification as any)?.confidence_pct ?? 0;
+  const checksSummary =
+    typeof verifiedCount === 'number' && typeof totalCount === 'number' && totalCount > 0
+      ? `${verifiedCount} of ${totalCount} checks passed using live data from your systems.`
+      : 'Checks run on live data from your connected systems.';
+
   const executiveVerdict = isUnknown
-    ? "No active telemetry connectors are providing evidence. Connect your systems to verify controls."
+    ? "No connected systems are sending data yet. Connect your systems so the checks can run."
     : isReady
-      ? "All 14 critical clinical and security systems are verified. Digital clinical operations are fully safe to open today."
-      : `${actionsList.length} operational gap${actionsList.length === 1 ? '' : 's'} require attention before today's clinical operations begin.`;
+      ? `${checksSummary} Nothing is blocking you from opening today.`
+      : `${checksSummary} ${actionsList.length} item${actionsList.length === 1 ? '' : 's'} below need${actionsList.length === 1 ? 's' : ''} attention.`;
+
+  // Verified Protections: derive each card from the report instead of fixed copy (demo keeps its narrative)
+  const allChecks = [
+    ...(report.passed_checks || []).map(c => ({ ...c, state: 'passed' as const })),
+    ...(report.failed_checks || []).map(c => ({ ...c, state: 'failed' as const })),
+    ...(report.warnings || []).map(c => ({ ...c, state: 'warning' as const })),
+  ];
+  const protectionFor = (pattern: RegExp, demoCopy: string) => {
+    const matches = allChecks.filter(c => pattern.test(`${c.category || ''} ${c.name || ''}`));
+    if (isDemo) return { badge: 'VERIFIED', tone: 'ready' as const, copy: demoCopy, status: 'Confirmed from live data' };
+    if (matches.length === 0) {
+      return { badge: 'NOT CHECKED', tone: 'unknown' as const, copy: 'No connected system reports on this yet.', status: 'No live data' };
+    }
+    const failed = matches.filter(c => c.state === 'failed');
+    const warned = matches.filter(c => c.state === 'warning');
+    if (failed.length > 0) {
+      return { badge: 'NEEDS ATTENTION', tone: 'critical' as const, copy: `${failed.map(c => c.name).join(', ')} did not pass.`, status: 'Confirmed from live data' };
+    }
+    if (warned.length > 0) {
+      return { badge: 'WATCH', tone: 'warning' as const, copy: `${warned.map(c => c.name).join(', ')} needs a look soon.`, status: 'Confirmed from live data' };
+    }
+    return { badge: 'VERIFIED', tone: 'ready' as const, copy: `${matches.map(c => c.name).join(', ')} passed.`, status: 'Confirmed from live data' };
+  };
+  const protectionBadgeClass = {
+    ready: 'text-ready-emerald bg-ready-emerald/10',
+    warning: 'text-drift-amber bg-drift-amber/10',
+    critical: 'text-critical-red bg-critical-red/10',
+    unknown: 'text-on-surface-variant bg-surface-container-high',
+  };
+  const protections = [
+    {
+      key: 'backup',
+      Icon: HardDrive,
+      title: 'Data Recovery & Ransomware Shield',
+      plain: 'Backups that cannot be deleted',
+      technical: 'Immutable backups, RPO / RTO',
+      ...protectionFor(/backup|recovery|snapshot|immutable/i, 'Protected backup copies verified. Records can be restored if computers are locked.'),
+    },
+    {
+      key: 'identity',
+      Icon: KeyRound,
+      title: 'Access Controls & MFA Enforcement',
+      plain: 'Second login step (MFA) for staff',
+      technical: 'MFA, Entra ID, privileged access',
+      ...protectionFor(/mfa|identity|login|password|entra|credential|access|privilege/i, 'Second login step is on for staff accounts in Microsoft Entra ID.'),
+    },
+    {
+      key: 'device',
+      Icon: Shield,
+      title: 'Computer & Endpoint Protection',
+      plain: 'Device protection (EDR) and disk encryption',
+      technical: 'EDR, Intune, encryption',
+      ...protectionFor(/endpoint|device|edr|laptop|computer|encrypt|intune|patch/i, 'Device protection and disk encryption running on clinic computers.'),
+    },
+    {
+      key: 'monitoring',
+      Icon: Activity,
+      title: 'Continuous Monitoring & EHR Sync',
+      plain: 'Live data from your systems',
+      technical: 'Telemetry, SIEM, email gateway',
+      ...protectionFor(/monitor|log|telemetry|siem|splunk|alert|email|mail|network|tls|certificate/i, 'Monitoring and record-system data streams verified in the last 24 hours.'),
+    },
+  ];
 
   return (
     <div className="max-w-[1200px] mx-auto space-y-10 animate-fade-up">
@@ -394,14 +480,28 @@ export default function TodayPage() {
       {/* ========================================================================= */}
       <section className="flex flex-col items-center justify-center text-center py-10 px-4 sm:px-6 bg-surface-container-low rounded-2xl border border-surface-bright border-t-2 border-t-ready-emerald/40 relative overflow-hidden shadow-xl group hover:border-ready-emerald/40 transition-all duration-300">
         <div className="absolute inset-0 bg-gradient-to-b from-ready-emerald/5 via-transparent to-transparent pointer-events-none" />
-        
+
+        {/* Answer first: one plain-English sentence, then what to do today */}
+        <h2
+          className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface mb-2 max-w-2xl px-2"
+          data-testid="plain-verdict"
+        >
+          {plain.verdict}
+        </h2>
+        <p
+          className={`text-sm md:text-base font-semibold mb-6 max-w-2xl px-2 ${verdictToneClass[plain.tone]}`}
+          data-testid="plain-today"
+        >
+          {plain.today}
+        </p>
+
         {/* Instant Status Badge & Brand Indicator */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 mb-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-container border border-outline-variant/60 shadow-xs">
             <img src="/favicon.png" alt="ResilAI" className="w-4 h-4 object-contain rounded-xs shrink-0" />
             <span className="font-bold text-on-surface">ResilAI</span>
             <span className="text-on-surface-variant/40">•</span>
-            <span className="text-on-surface-variant font-mono text-[11px]">Continuous Verification</span>
+            <span className="text-on-surface-variant font-mono text-[11px]">Checked around the clock</span>
           </div>
 
           <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider border ${heroBadgeClass}`}>
@@ -443,21 +543,24 @@ export default function TodayPage() {
               {!isUnknown && <span className="text-sm font-mono text-ready-emerald font-bold ml-1">%</span>}
             </div>
             <span className="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-on-surface-variant mt-1">
-              {isUnknown ? 'UNVERIFIED' : isReady ? 'SYSTEM NOMINAL' : 'ATTENTION REQ.'}
+              {isUnknown ? 'NOT CHECKED' : isReady ? 'ALL CLEAR' : 'NEEDS ATTENTION'}
             </span>
           </div>
         </div>
 
-        {/* 1-Sentence Executive Verdict */}
-        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface mb-2 max-w-2xl px-2">
+        {/* Status label (kept) + what the score is based on */}
+        <h3 className="text-lg md:text-xl font-bold tracking-tight text-on-surface mb-2 max-w-2xl px-2">
           {heroStatusText === 'READY FOR TODAY' ? 'READY FOR TODAY' : heroStatusText}
-        </h2>
-        <p className="text-base md:text-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed font-medium px-2">
-          <VerifiedValue 
+        </h3>
+        <p className="text-sm md:text-base text-on-surface-variant max-w-2xl mx-auto leading-relaxed font-medium px-2">
+          <VerifiedValue
             value={executiveVerdict}
             state={overallState}
-            fallback="No active telemetry connectors are providing evidence."
+            fallback="No connected systems are sending data yet."
           />
+        </p>
+        <p className="text-[11px] font-mono text-on-surface-variant/70 mt-2 px-2">
+          Readiness score = share of checks that passed on live data (telemetry)
         </p>
       </section>
 
@@ -469,7 +572,7 @@ export default function TodayPage() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-ready-emerald" />
             <h3 className="text-xs font-mono font-bold text-on-surface-variant uppercase tracking-wider">
-              Stage 2 • Why: Overnight Verification & Delta Highlights
+              Stage 2 • Why: What we checked overnight
             </h3>
           </div>
           <button 
@@ -493,7 +596,7 @@ export default function TodayPage() {
                   </div>
                   <div>
                     <h4 className="text-base font-bold text-on-surface">Morning Brief</h4>
-                    <p className="text-xs text-on-surface-variant">Continuous real-time verification</p>
+                    <p className="text-xs text-on-surface-variant">Written from live data in your systems, not a questionnaire</p>
                   </div>
                 </div>
                 <button 
@@ -509,7 +612,7 @@ export default function TodayPage() {
                 <VerifiedValue 
                   value={report.greeting ? `${report.greeting}. ${report.summary}` : report.summary}
                   state={overallState}
-                  fallback="All 14 critical systems passed verification at 2:00 AM. Zero compliance drift detected. Identity providers secure and EHR synchronization completed with 100% fidelity."
+                  fallback="No connected systems are sending data yet, so there is nothing to summarise this morning."
                 />
               </p>
             </div>
@@ -518,27 +621,34 @@ export default function TodayPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-surface-bright">
               <div className="flex flex-col">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Last Checked</span>
-                <span className="text-sm font-bold text-on-surface">02:00 AM UTC</span>
+                <span className="text-sm font-bold text-on-surface">
+                  {report.generated_at ? new Date(report.generated_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not yet'}
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Connectors Verified</span>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">
+                  <PlainTerm plain="Checks passed" technical="verified items" />
+                </span>
                 <span className="text-sm font-bold text-on-surface">
-                  <VerifiedValue 
-                    value={report.verification ? `${report.verification.verified_items_count}/${report.verification.total_items_count}` : '14/14'}
-                    state={report.verification ? 'verified' : 'no_evidence'}
+                  <VerifiedValue
+                    value={hasCheckCounts ? `${verifiedCount}/${totalCount}` : null}
+                    state={hasCheckCounts ? 'verified' : 'no_evidence'}
+                    fallback="Not yet"
                   />
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Readiness Gaps</span>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Things to fix</span>
                 <span className={`text-sm font-bold ${actionsList.length === 0 ? 'text-ready-emerald' : 'text-drift-amber'}`}>
                   {actionsList.length === 0 ? 'None' : `${actionsList.length} Items`}
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Engine Status</span>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">
+                  <PlainTerm plain="Monitoring" technical="engine status" />
+                </span>
                 <span className="text-sm font-bold text-ready-emerald flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-ready-emerald animate-pulse" /> Active
+                  <span className="w-1.5 h-1.5 rounded-full bg-ready-emerald animate-pulse" /> Running
                 </span>
               </div>
             </div>
@@ -596,8 +706,17 @@ export default function TodayPage() {
             {/* Peer Benchmark Context & Progress Bar */}
             <div className="w-full pt-3 border-t border-surface-bright">
               <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="text-on-surface-variant">Regional Peer Rank</span>
-                <span className="font-semibold text-ready-emerald">Top 5%</span>
+                <span className="text-on-surface-variant">Readiness band</span>
+                <span className={`font-semibold ${
+                  (report.clinic_health_pct || 0) >= 80 ? 'text-ready-emerald'
+                  : (report.clinic_health_pct || 0) >= 60 ? 'text-drift-amber'
+                  : 'text-red-500'
+                }`}>
+                  {(report.clinic_health_pct || 0) >= 80 ? 'Strong'
+                    : (report.clinic_health_pct || 0) >= 60 ? 'Good'
+                    : (report.clinic_health_pct || 0) >= 40 ? 'Needs work'
+                    : report.status === 'unknown' ? 'Not yet checked' : 'Critical'}
+                </span>
               </div>
               <div className="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
                 <div 
@@ -618,7 +737,7 @@ export default function TodayPage() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-drift-amber" />
             <h3 className="text-xs font-mono font-bold text-on-surface-variant uppercase tracking-wider">
-              Stage 3 • What Needs Attention: Active Gaps & Incident Risks
+              Stage 3 • What Needs Attention: Things to fix
             </h3>
           </div>
           <Link to="/needs-attention" className="text-xs font-semibold text-ready-emerald hover:underline flex items-center gap-1">
@@ -636,54 +755,78 @@ export default function TodayPage() {
                 </div>
                 <p className="text-base font-bold text-on-surface">No Critical Gaps Pending</p>
                 <p className="text-sm text-on-surface-variant max-w-md mt-1 leading-relaxed">
-                  All critical protections passed overnight inspection. Digital clinical operations are free of blocking incident risks.
+                  Every protection we check passed overnight. Nothing is waiting on you or your IT provider.
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
-                {actionsList.slice(0, 3).map((action: ActionCard) => (
-                  <div key={action.id}>
+                {actionsList.slice(0, 3).map((action: ActionCard, index: number) => {
+                  const item = normalizeAction(action, index);
+                  const guidance = guidanceForAction(item);
+                  return (
+                  <div key={`${item.id}-${index}`} className="space-y-2">
                     {action.explanation ? (
                       <ExecutiveExplanation
                         explanation={action.explanation}
-                        actionLabel="Fix Now"
-                        onAction={() => handleFix(action.id)}
-                        actionState={fixingId === action.id ? 'executing' : 'idle'}
+                        actionLabel={(action as { fix_now_available?: boolean }).fix_now_available === false ? 'Send to IT / MSP' : 'Fix Now'}
+                        onAction={() => handleFix(item.id)}
+                        actionState={fixingId === item.id ? 'executing' : 'idle'}
                         sourceConnector={action.verification_method}
                         rawTelemetry={action.evidence}
                       />
                     ) : (
-                      <div className="p-5 rounded-xl bg-surface-container border border-surface-bright/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-start gap-3.5">
+                      <div className="p-5 rounded-xl bg-surface-container border border-surface-bright/50 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div className="flex items-start gap-3.5 min-w-0">
                           <div className="w-9 h-9 rounded-xl bg-critical-red/10 border border-critical-red/30 flex items-center justify-center shrink-0 mt-0.5">
                             <AlertTriangle className="w-4 h-4 text-critical-red" />
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
                               <span className="text-[10px] font-mono font-bold uppercase text-critical-red bg-critical-red/10 px-2 py-0.5 rounded">
-                                {action.severity} Priority
+                                {item.severity ? `${item.severity} Priority` : 'Needs attention'}
                               </span>
-                              <span className="text-xs text-on-surface-variant font-mono">
-                                Verified {action.last_verified_at}
-                              </span>
+                              {item.lastVerifiedAt && (
+                                <span className="text-xs text-on-surface-variant font-mono">
+                                  Checked {item.lastVerifiedAt}
+                                </span>
+                              )}
                             </div>
-                            <h4 className="text-base font-bold text-on-surface">{action.title}</h4>
-                            <p className="text-sm text-on-surface-variant leading-relaxed mt-1">{action.impact_narrative}</p>
-                            <p className="text-xs font-semibold text-ready-emerald mt-2">Recommended: {action.recommendation}</p>
+                            <h4 className="text-base font-bold text-on-surface">{item.title}</h4>
+                            {guidance.whatHappened !== item.title && (
+                              <p className="text-sm text-on-surface leading-relaxed mt-1">
+                                <strong className="text-on-surface-variant font-semibold">What happened: </strong>
+                                {guidance.whatHappened}
+                              </p>
+                            )}
+                            <p className="text-sm text-on-surface-variant leading-relaxed mt-1">
+                              <strong className="text-on-surface font-semibold">Why it matters to the practice: </strong>
+                              {guidance.whyItMatters}
+                            </p>
+                            {item.recommendation && (
+                              <p className="text-xs font-semibold text-ready-emerald mt-2">What to do: {item.recommendation}</p>
+                            )}
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => handleFix(action.id)}
-                          disabled={fixingId === action.id}
-                          className="px-5 py-2.5 rounded-xl bg-ready-emerald text-slate-950 font-bold text-sm hover:bg-ready-emerald/90 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
-                        >
-                          {fixingId === action.id ? 'Executing...' : 'Fix Now'}
-                        </button>
+                        {(action as { fix_now_available?: boolean }).fix_now_available !== false ? (
+                          <button
+                            onClick={() => handleFix(item.id)}
+                            disabled={fixingId === item.id}
+                            className="px-5 py-2.5 rounded-xl bg-ready-emerald text-slate-950 font-bold text-sm hover:bg-ready-emerald/90 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                          >
+                            {fixingId === item.id ? 'Working...' : 'Fix Now'}
+                          </button>
+                        ) : (
+                          <span className="px-4 py-2.5 rounded-xl bg-surface-container-high text-on-surface-variant font-semibold text-xs shrink-0">
+                            Needs IT / MSP
+                          </span>
+                        )}
                       </div>
                     )}
+                    <CheckOwnerStrip guidance={guidance} />
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </DataState>
@@ -697,7 +840,7 @@ export default function TodayPage() {
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-ready-emerald" />
           <h3 className="text-xs font-mono font-bold text-on-surface-variant uppercase tracking-wider">
-            Stage 4 • What Should We Do: Remediation & Delegation
+            Stage 4 • What Should We Do: Fix it, or hand it to IT
           </h3>
         </div>
 
@@ -709,12 +852,12 @@ export default function TodayPage() {
                 <h4 className="text-sm font-bold text-on-surface">1-Click Automated Fixes</h4>
               </div>
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                Automated remediations enforce MFA policies and trigger immediate secondary snapshot verifications.
+                One click turns on the second login step (MFA) for staff accounts or starts a fresh backup check. No one is logged out.
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-surface-bright flex items-center justify-between text-xs text-ready-emerald font-semibold">
-              <span>Zero Clinical Downtime</span>
-              <span>Reversible ✓</span>
+              <span>No downtime for staff</span>
+              <span>Can be undone ✓</span>
             </div>
           </div>
 
@@ -722,10 +865,10 @@ export default function TodayPage() {
             <div>
               <div className="flex items-center gap-2 mb-2 text-on-surface">
                 <Server className="w-4 h-4 text-ready-emerald" />
-                <h4 className="text-sm font-bold text-on-surface">MSP & IT Delegation</h4>
+                <h4 className="text-sm font-bold text-on-surface">Hand it to IT or your MSP</h4>
               </div>
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                Export verified forensic instructions directly to your IT provider or ticketing system.
+                Send step-by-step instructions, with the proof attached, to your IT provider or ticketing system.
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-surface-bright flex items-center justify-between text-xs">
@@ -742,7 +885,7 @@ export default function TodayPage() {
                 <h4 className="text-sm font-bold text-on-surface">Executive Briefing Report</h4>
               </div>
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                Generate signed PDF summaries for clinic board meetings and insurance underwriting.
+                A signed PDF summary for board meetings, partners, and your cyber-insurance renewal.
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-surface-bright flex items-center justify-between text-xs">
@@ -762,7 +905,7 @@ export default function TodayPage() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-ready-emerald" />
             <h3 className="text-xs font-mono font-bold text-on-surface-variant uppercase tracking-wider">
-              Stage 5 • How Can We Prove It: Verifications Vault & Cryptographic Proof
+              Stage 5 • How Can We Prove It: Proof from your own systems
             </h3>
           </div>
           <button 
@@ -782,96 +925,37 @@ export default function TodayPage() {
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Protection 1: Data Recovery */}
-            <div className="p-4 rounded-xl bg-surface-container border border-surface-bright/40 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald shrink-0 mt-0.5">
-                <HardDrive className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h5 className="text-sm font-bold text-on-surface">Data Recovery & Ransomware Shield</h5>
-                  <span className="text-[10px] font-mono font-bold text-ready-emerald bg-ready-emerald/10 px-2 py-0.5 rounded">
-                    VERIFIED
-                  </span>
+            {protections.map(p => (
+              <div key={p.key} className="p-4 rounded-xl bg-surface-container border border-surface-bright/40 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald shrink-0 mt-0.5">
+                  <p.Icon className="w-5 h-5" />
                 </div>
-                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                  Protected backup snapshots verified across 3 zones. Ready to restore in under 15 minutes.
-                </p>
-                <div className="mt-2 text-[10px] font-mono text-on-surface-variant/70">
-                  Status: <span className="text-ready-emerald font-semibold">✓ Live Telemetry Confirmed</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Protection 2: Access Controls */}
-            <div className="p-4 rounded-xl bg-surface-container border border-surface-bright/40 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald shrink-0 mt-0.5">
-                <KeyRound className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h5 className="text-sm font-bold text-on-surface">Access Controls & MFA Enforcement</h5>
-                  <span className="text-[10px] font-mono font-bold text-ready-emerald bg-ready-emerald/10 px-2 py-0.5 rounded">
-                    VERIFIED
-                  </span>
-                </div>
-                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                  Microsoft Entra ID MFA active for 142/142 clinical staff accounts.
-                </p>
-                <div className="mt-2 text-[10px] font-mono text-on-surface-variant/70">
-                  Status: <span className="text-ready-emerald font-semibold">✓ Live Telemetry Confirmed</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <h5 className="text-sm font-bold text-on-surface">{p.title}</h5>
+                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded shrink-0 ${protectionBadgeClass[p.tone]}`}>
+                      {p.badge}
+                    </span>
+                  </div>
+                  <p className="text-xs text-on-surface-variant mt-0.5">
+                    <PlainTerm plain={p.plain} technical={p.technical} />
+                  </p>
+                  <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                    {p.copy}
+                  </p>
+                  <div className="mt-2 text-[10px] font-mono text-on-surface-variant/70">
+                    Status: <span className={`${p.tone === 'unknown' ? 'text-on-surface-variant' : 'text-ready-emerald'} font-semibold`}>{p.tone === 'unknown' ? p.status : `✓ ${p.status}`}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Protection 3: Computer Protection */}
-            <div className="p-4 rounded-xl bg-surface-container border border-surface-bright/40 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald shrink-0 mt-0.5">
-                <Shield className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h5 className="text-sm font-bold text-on-surface">Computer & Endpoint Protection</h5>
-                  <span className="text-[10px] font-mono font-bold text-ready-emerald bg-ready-emerald/10 px-2 py-0.5 rounded">
-                    VERIFIED
-                  </span>
-                </div>
-                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                  CrowdStrike EDR & Intune disk encryption running on all 48 clinic computers.
-                </p>
-                <div className="mt-2 text-[10px] font-mono text-on-surface-variant/70">
-                  Status: <span className="text-ready-emerald font-semibold">✓ Live Telemetry Confirmed</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Protection 4: Security Monitoring & EHR Sync */}
-            <div className="p-4 rounded-xl bg-surface-container border border-surface-bright/40 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald shrink-0 mt-0.5">
-                <Activity className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h5 className="text-sm font-bold text-on-surface">Continuous Monitoring & EHR Sync</h5>
-                  <span className="text-[10px] font-mono font-bold text-ready-emerald bg-ready-emerald/10 px-2 py-0.5 rounded">
-                    VERIFIED
-                  </span>
-                </div>
-                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                  Splunk & Epic telemetry streams verified with zero loss in last 24 hours.
-                </p>
-                <div className="mt-2 text-[10px] font-mono text-on-surface-variant/70">
-                  Status: <span className="text-ready-emerald font-semibold">✓ Live Telemetry Confirmed</span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Cryptographic Provenance Ledger Footer */}
+          {/* Proof footer */}
           <div className="mt-6 pt-5 border-t border-surface-bright flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
             <div className="flex items-center gap-2 text-on-surface-variant">
               <FileCheck2 className="w-4 h-4 text-ready-emerald shrink-0" />
-              <span>All security checks are continuously verified and tamper-proof across your systems.</span>
+              <span>Every result above comes from live data in your systems, and each one is sealed so it cannot be changed later.</span>
             </div>
             <Link 
               to="/documents" 
@@ -881,6 +965,62 @@ export default function TodayPage() {
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
+
+          {/* Technical details: connected systems, check counts (collapsed for real orgs) */}
+          <TechnicalDetails
+            className="mt-4"
+            title="Technical details"
+            hint="connected systems, check counts"
+            defaultOpen={isDemo}
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Connected systems health</span>
+                <span className="font-mono font-semibold text-on-surface">{report.connector_health_pct ?? 0}%</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Checks verified</span>
+                <span className="font-mono font-semibold text-on-surface">
+                  {hasCheckCounts ? `${verifiedCount}/${totalCount}` : 'n/a'}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Confidence</span>
+                <span className="font-mono font-semibold text-on-surface">{confidencePct}%</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-left text-[10px] font-mono uppercase tracking-wider text-on-surface-variant border-b border-surface-bright/40">
+                    <th className="py-2 pr-3 font-semibold">Connected system (connector)</th>
+                    <th className="py-2 pr-3 font-semibold">Status</th>
+                    <th className="py-2 font-semibold">Last sync</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(report.connectors || []).length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="py-3 text-on-surface-variant italic">No connected systems reported.</td>
+                    </tr>
+                  ) : (
+                    (report.connectors || []).map(c => (
+                      <tr key={c.name} className="border-b border-surface-bright/30 last:border-0">
+                        <td className="py-2 pr-3 font-semibold text-on-surface">{c.name}</td>
+                        <td className={`py-2 pr-3 font-mono ${c.status === 'healthy' ? 'text-ready-emerald' : c.status === 'degraded' ? 'text-drift-amber' : 'text-critical-red'}`}>
+                          {c.status}
+                        </td>
+                        <td className="py-2 font-mono text-on-surface-variant">{c.last_sync}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-[11px] text-on-surface-variant/70">
+              Report generated {report.generated_at}. Proof hashes (SHA-256) for each check are in the Audit Vault and under each item&apos;s Technical Evidence panel.
+            </p>
+          </TechnicalDetails>
         </div>
       </section>
 
@@ -898,7 +1038,7 @@ export default function TodayPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-on-surface">Executive Briefing Translation</h3>
-                  <p className="text-xs text-on-surface-variant">Deterministic synthesis for Managing Partners & Board</p>
+                  <p className="text-xs text-on-surface-variant">Plain-English summary for managing partners and the board, built from the same data as the score</p>
                 </div>
               </div>
 
@@ -952,16 +1092,16 @@ export default function TodayPage() {
                       Readiness Verdict
                     </span>
                     <p className="text-base font-bold text-on-surface">
-                      {isReady ? 'Clinic is 100% Prepared For Today\'s Operations' : 'Action Required on 1 System'}
+                      {plain.verdict}
                     </p>
                     <p className="text-sm text-on-surface-variant">
-                      {report.summary || 'All patient data backups, doctor credentials, and clinic computers are actively monitored with zero unverified gaps.'}
+                      {report.summary || plain.today}
                     </p>
                   </div>
 
                   <div className="space-y-3">
                     <h4 className="text-xs font-mono font-bold uppercase text-on-surface-variant tracking-wider">
-                      Executive Narrative Points
+                      What leadership should know
                     </h4>
                     {boardStory && boardStory.sections ? (
                       boardStory.sections.map((sec, idx) => (
@@ -973,15 +1113,19 @@ export default function TodayPage() {
                     ) : (
                       <>
                         <div className="p-4 rounded-xl bg-surface-container border border-surface-bright/40">
-                          <h5 className="font-bold text-on-surface text-sm mb-1">Ransomware & Patient Continuity</h5>
+                          <h5 className="font-bold text-on-surface text-sm mb-1">Ransomware & keeping the doors open</h5>
                           <p className="text-xs text-on-surface-variant leading-relaxed">
-                            Backups have completed successfully with air-gapped snapshots. In the event of a total network lock, clinical records can be recovered in under 15 minutes without paying ransoms.
+                            {plain.backupVerified === false
+                              ? 'Backups could not be confirmed. If an attacker locked every computer, we cannot promise records would come back without paying.'
+                              : plain.backupVerified === true
+                                ? 'Backups that cannot be deleted are confirmed. If an attacker locked every computer, records can be restored without paying a ransom.'
+                                : 'No backup system is connected yet, so recovery after an attack cannot be confirmed.'}
                           </p>
                         </div>
                         <div className="p-4 rounded-xl bg-surface-container border border-surface-bright/40">
-                          <h5 className="font-bold text-on-surface text-sm mb-1">Regulatory & HIPAA Exposure</h5>
+                          <h5 className="font-bold text-on-surface text-sm mb-1">Regulators, auditors and insurers</h5>
                           <p className="text-xs text-on-surface-variant leading-relaxed">
-                            Continuous evidence collection fulfills HIPAA Security Rule § 164.308 audit trail requirements without requiring manual spreadsheet audits.
+                            Every check is recorded with its proof as it runs, which is the audit trail HIPAA Security Rule § 164.308 asks for. No spreadsheets to fill in before an audit.
                           </p>
                         </div>
                       </>
@@ -992,7 +1136,7 @@ export default function TodayPage() {
                 <div className="space-y-4">
                   <div className="p-4 rounded-xl bg-black/50 border border-surface-bright/50 font-mono text-xs text-ready-emerald space-y-2">
                     <div className="text-on-surface-variant/80 uppercase text-[10px] pb-2 border-b border-surface-bright/40">
-                      Telemetry Pipeline State
+                      Proof details (for your IT provider)
                     </div>
                     <div>STATUS: 200_OK_VERIFIED</div>
                     <div>CONFIDENCE_ENGINE: DETERMINISTIC_MATHEMATICAL</div>

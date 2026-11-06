@@ -14,8 +14,8 @@ class Report(Base):
     """
     Report entity - persistent executive report with snapshot data and lifecycle tracking.
     
-    Reports store a snapshot of the assessment data at generation time,
-    ensuring report consistency even if the rubric or scoring changes later.
+    Reports store a snapshot of the assessment or readiness data at generation
+    time, ensuring report consistency even if the rubric or scoring changes later.
     """
     
     __tablename__ = "reports"
@@ -28,11 +28,15 @@ class Report(Base):
     
     # Foreign keys (indexed for efficient queries)
     organization_id = Column(CHAR(36), ForeignKey("organizations.id"), nullable=False, index=True)
-    assessment_id = Column(CHAR(36), ForeignKey("assessments.id"), nullable=False, index=True)
+    # assessment_id is optional: template reports (board_story, boss_report, msp_summary, ...)
+    # are built from connector/readiness telemetry and are not tied to a questionnaire.
+    assessment_id = Column(CHAR(36), ForeignKey("assessments.id"), nullable=True, index=True)
     
     # Report metadata
     report_type = Column(String(50), nullable=False, default="executive_pdf")
     title = Column(String(255), nullable=False)
+    # Output format requested at generation time: pdf | json | csv
+    format = Column(String(10), nullable=False, default="pdf", server_default="pdf")
     
     # Storage reference (file path or URL to stored PDF)
     storage_path = Column(String(512), nullable=True)

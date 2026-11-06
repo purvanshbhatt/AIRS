@@ -25,6 +25,9 @@ from app.schemas.report import (
 from app.services.report import ReportService
 from app.services.assessment import AssessmentService
 from app.reports.pdf import ProfessionalPDFGenerator
+from app.models.organization import Organization
+from app.models.report import Report
+import json
 
 router = APIRouter()
 
@@ -81,6 +84,8 @@ async def list_reports(
             "assessment_title": report.assessment.title if report.assessment else None,
             "report_type": report.report_type,
             "title": report.title,
+            "format": getattr(report, "format", None) or "pdf",
+            "status": getattr(report, "status", None) or "completed",
             "overall_score": report.overall_score,
             "maturity_level": report.maturity_level,
             "maturity_name": report.maturity_name,
@@ -134,7 +139,15 @@ async def download_report(
     db: Session = Depends(get_db),
     user: User = Depends(require_auth)
 ):
-    """Download report as PDF."""
+    """Download a report.
+
+    Dispatches on ``report_type``:
+      - ``executive_pdf`` with an ``assessment_id``: legacy questionnaire PDF
+        (``ProfessionalPDFGenerator``), delivered via a signed GCS URL.
+      - every template report (board_story, boss_report, msp_summary, ...):
+        rendered server-side from the stored readiness snapshot and streamed
+        directly as PDF / JSON / CSV bytes.
+    """
     service = get_report_service(db, user)
     result = service.get_with_snapshot(report_id)
     
@@ -143,6 +156,14 @@ async def download_report(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Report not found: {report_id}"
         )
+
+    is_legacy_executive = (
+        result["report_type"] == ReportType.EXECUTIVE_PDF.value
+        and bool(result.get("assessment_id"))
+        and (result.get("snapshot") or {}).get("template") is None
+    )
+    if not is_legacy_executive:
+        return _stream_template_report(db, user, result)
     
     # Get assessment detail for PDF generation
     assessment_service = AssessmentService(db, owner_uid=user.uid)
@@ -183,6 +204,55 @@ async def download_report(
         )
         
     return {"url": signed_url}
+
+
+def _stream_template_report(db: Session, user: User, result: dict) -> StreamingResponse:
+    """Render a template report from its stored snapshot (regenerating the
+    readiness data when the stored snapshot predates the template schema)."""
+    from app.reports.readiness_source import build_template_snapshot
+    from app.reports.templates import TEMPLATE_IDS, render
+
+    report_type = result["report_type"]
+    if report_type not in TEMPLATE_IDS:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Unknown report template: {report_type}",
+        )
+
+    snapshot = result.get("snapshot") or {}
+    if not snapshot.get("readiness"):
+        org = db.query(Organization).filter(Organization.id == result["organization_id"]).first()
+        snapshot = build_template_snapshot(
+            db,
+            result["organization_id"],
+            report_type,
+            fmt=result.get("format") or "pdf",
+            org=org,
+            owner_uid=user.uid,
+            assessment_id=result.get("assessment_id"),
+        )
+        try:
+            report = db.query(Report).filter(Report.id == result["id"]).first()
+            if report:
+                report.snapshot = json.dumps(snapshot, default=str)
+                report.overall_score = snapshot.get("overall_score")
+                report.findings_count = snapshot.get("findings_count", 0)
+                db.commit()
+        except Exception:  # pragma: no cover - persistence of regenerated snapshot is best-effort
+            db.rollback()
+
+    fmt = result.get("format") or snapshot.get("format") or "pdf"
+    content, media_type, ext = render(report_type, fmt, snapshot)
+    event_logger.report_generated(assessment_id=result.get("assessment_id") or result["organization_id"], format=ext)
+
+    org_name = (result.get("organization_name") or snapshot.get("organization", {}).get("name") or "org")
+    safe_org = "".join(ch if ch.isalnum() else "_" for ch in org_name)[:40]
+    filename = f"ResilAI_{report_type}_{safe_org}_{result['id'][:8]}.{ext}"
+    return StreamingResponse(
+        BytesIO(content),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.delete(

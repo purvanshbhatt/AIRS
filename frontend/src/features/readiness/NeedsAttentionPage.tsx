@@ -5,6 +5,15 @@ import { LoadingState, ErrorState } from '../../components/readiness/ReadinessSt
 import { DataState, EvidenceState } from '../../components/evidence/EvidenceState';
 import { ExecutiveExplanation } from '../../components/evidence/ExecutiveExplanation';
 import { ContextualDemoBanner } from '../../components/common/ContextualDemoBanner';
+import {
+  derivePlainVerdict,
+  deriveCheckGuidance,
+  normalizeAction,
+  guidanceForAction,
+  verdictToneClass,
+  CheckOwnerStrip,
+  ConnectFirstEmptyState,
+} from '../../components/readiness/PlainLanguage';
 import { useActiveOrg } from '../../hooks/useActiveOrg';
 import { Link } from 'react-router-dom';
 import {
@@ -141,6 +150,8 @@ export default function NeedsAttentionPage() {
   const actions = report.immediate_actions || [];
   const failedChecks = report.failed_checks || [];
   const warnings = report.warnings || [];
+  const plain = derivePlainVerdict(report);
+  const noSystemsConnected = isUnknown && !isDemo && (report.connectors || []).length === 0;
 
   return (
     <div className="space-y-8 animate-fade-up max-w-5xl">
@@ -151,8 +162,10 @@ export default function NeedsAttentionPage() {
       <section className="bg-surface-container-low p-6 rounded-2xl border border-surface-bright flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-on-surface">Triage & Immediate Action</h1>
-          <p className="text-sm text-on-surface-variant mt-1">
-            Issues that need your attention today to keep your clinic secure and operational.
+          <p className="text-base font-semibold text-on-surface mt-2" data-testid="plain-verdict">{plain.verdict}</p>
+          <p className={`text-sm mt-1 ${verdictToneClass[plain.tone]}`} data-testid="plain-today">{plain.today}</p>
+          <p className="text-xs text-on-surface-variant mt-2">
+            Each item below says what happened, why it matters to the practice, who should fix it, and how long it usually takes.
           </p>
         </div>
         <button
@@ -174,23 +187,33 @@ export default function NeedsAttentionPage() {
           </span>
         </div>
 
-        <DataState state={overallState}>
+        <DataState
+          state={overallState}
+          fallback={noSystemsConnected ? (
+            <ConnectFirstEmptyState
+              title="Nothing to triage yet: no systems are connected."
+              body="Connect your backup system (for example Veeam) or Microsoft 365 first. Once live data arrives, anything that needs fixing shows up here with who should handle it."
+            />
+          ) : undefined}
+        >
           {actions.length === 0 && failedChecks.length === 0 ? (
             <div className="p-8 rounded-xl bg-surface-container-low border border-surface-bright flex flex-col items-center justify-center text-center">
               <CheckCircle2 className="w-12 h-12 text-ready-emerald mb-2" />
               <h3 className="text-base font-semibold text-on-surface">Zero Critical Blockers</h3>
               <p className="text-xs text-on-surface-variant max-w-md mt-1">
-                Your clinical systems passed overnight verifications. All access controls and encryption baselines are active.
+                Everything we check passed overnight. Nothing is waiting on you or your IT provider today.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
-              {actions.map((action: any) => {
-                const actionId = action.id || action.action_id;
+              {actions.map((action: any, index: number) => {
+                const item = normalizeAction(action, index);
+                const actionId = item.id;
                 const rState = remediationStates[actionId] || 'idle';
+                const guidance = guidanceForAction(item);
                 
                 return (
-                  <div key={actionId}>
+                  <div key={`${actionId}-${index}`} className="space-y-2">
                     {action.explanation ? (
                       <ExecutiveExplanation
                         explanation={action.explanation}
@@ -212,26 +235,35 @@ export default function NeedsAttentionPage() {
                             <span>{rState === 'unable_to_verify' ? 'Verification Failed' : 'Critical Blocker'}</span>
                           </div>
                           <span className="text-xs font-mono text-on-surface-variant">
-                            {rState === 'idle' && 'Active'}
-                            {rState === 'executing' && 'Remediating...'}
-                            {rState === 'verifying' && 'Polling Telemetry...'}
-                            {rState === 'unable_to_verify' && 'Manual Action Required'}
+                            {rState === 'idle' && 'Open'}
+                            {rState === 'executing' && 'Applying fix...'}
+                            {rState === 'verifying' && 'Checking live data...'}
+                            {rState === 'unable_to_verify' && 'Needs a person to fix it'}
                           </span>
                         </div>
 
                         <div>
-                          <h3 className="text-base font-semibold text-on-surface mb-1">{action.problem || action.title}</h3>
-                          <p className="text-sm text-on-surface-variant">{action.why_it_matters || action.description}</p>
+                          <h3 className="text-base font-semibold text-on-surface mb-1">{item.title}</h3>
+                          {guidance.whatHappened !== item.title && (
+                            <p className="text-sm text-on-surface">
+                              <strong className="text-on-surface-variant font-semibold">What happened: </strong>
+                              {guidance.whatHappened}
+                            </p>
+                          )}
+                          <p className="text-sm text-on-surface-variant mt-1">
+                            <strong className="text-on-surface font-semibold">Why it matters to the practice: </strong>
+                            {guidance.whyItMatters}
+                          </p>
                         </div>
 
                         <div className={`flex flex-col gap-2 bg-surface-container p-3 rounded-lg mt-1 border ${rState === 'unable_to_verify' ? 'border-drift-amber/30 bg-drift-amber/5' : 'border-outline-variant/30'}`}>
                           <div className="flex items-start gap-2 text-sm text-on-surface-variant">
                             <FileText className="w-4 h-4 text-ready-emerald shrink-0 mt-0.5" />
-                            <span><strong className="text-on-surface">What to do:</strong> {action.recommended_action || "Run immediate automated remediation"}</span>
+                            <span><strong className="text-on-surface">What to do:</strong> {item.recommendation || "Use the Fix button, or send this item to your IT provider"}</span>
                           </div>
                           <div className="flex items-start gap-2 text-sm text-on-surface-variant pt-2 border-t border-outline-variant/30">
                             <CheckSquare className="w-4 h-4 text-ready-emerald shrink-0 mt-0.5" />
-                            <span><strong className="text-on-surface">How we know:</strong> {action.technical_evidence || "Verified via deterministic telemetry collection"}</span>
+                            <span><strong className="text-on-surface">How we know:</strong> {action.technical_evidence || "Read directly from live data in the connected system"}</span>
                           </div>
                         </div>
 
@@ -239,9 +271,9 @@ export default function NeedsAttentionPage() {
                           <div className="mt-2 p-3 bg-drift-amber/10 border border-drift-amber/30 rounded-lg flex gap-3 text-sm text-on-surface">
                             <Wrench className="w-4 h-4 text-drift-amber shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-semibold text-drift-amber">Unable to verify resolution</p>
+                              <p className="font-semibold text-drift-amber">We could not confirm the fix worked</p>
                               <p className="text-xs text-on-surface-variant mt-1">
-                                The automated fix was dispatched, but backend telemetry has not confirmed the change. Physical/manual verification in the source system is required. Do not assume this is resolved.
+                                The fix was sent, but live data from the system has not shown the change yet. Ask IT to check it in the system itself. Do not treat this as resolved.
                               </p>
                             </div>
                           </div>
@@ -249,7 +281,7 @@ export default function NeedsAttentionPage() {
 
                         <div className="flex items-center justify-between gap-3 mt-2 pt-4 border-t border-outline-variant/40">
                           <span className="text-xs text-on-surface-variant font-mono">
-                            {rState === 'unable_to_verify' ? 'Escalate to IT Operations' : 'Est. Fix: ~5 mins'}
+                            {rState === 'unable_to_verify' ? 'Hand to IT / MSP' : guidance.plainCategory}
                           </span>
                           <button
                             onClick={() => handleFix(actionId)}
@@ -262,12 +294,13 @@ export default function NeedsAttentionPage() {
                           >
                             {rState === 'idle' && 'Fix Issue Now'}
                             {rState === 'executing' && 'Executing Fix...'}
-                            {rState === 'verifying' && 'Re-checking Evidence...'}
+                            {rState === 'verifying' && 'Checking it worked...'}
                             {rState === 'unable_to_verify' && 'Retry Verification'}
                           </button>
                         </div>
                       </article>
                     )}
+                    <CheckOwnerStrip guidance={guidance} />
                   </div>
                 );
               })}
@@ -303,8 +336,12 @@ export default function NeedsAttentionPage() {
                         </span>
                         <span className="text-xs font-mono text-on-surface-variant">Checked Today</span>
                       </div>
-                      <h3 className="text-base font-semibold text-on-surface">{check.label}</h3>
-                      <p className="text-sm text-on-surface-variant">{check.detail || "Verification suggests control review is recommended."}</p>
+                      <h3 className="text-base font-semibold text-on-surface">{check.label || check.name}</h3>
+                      <p className="text-sm text-on-surface-variant">{check.detail || check.description || "Not failing yet, but worth a look at the next IT visit."}</p>
+                      <p className="text-xs text-on-surface-variant">
+                        <strong className="text-on-surface font-semibold">Why it matters: </strong>
+                        {deriveCheckGuidance({ title: check.label || check.name, category: check.category }).whyItMatters}
+                      </p>
                     </article>
                   )}
                 </div>

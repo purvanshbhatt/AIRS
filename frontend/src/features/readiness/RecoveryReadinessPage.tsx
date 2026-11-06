@@ -3,6 +3,7 @@ import { getDailyReadinessReport } from '../../api';
 import type { DailyReadinessReport } from '../../types/readiness';
 import { LoadingState, ErrorState } from '../../components/readiness/ReadinessStates';
 import { ContextualDemoBanner } from '../../components/common/ContextualDemoBanner';
+import { ConnectFirstEmptyState, PlainTerm, TechnicalDetails } from '../../components/readiness/PlainLanguage';
 import { useActiveOrg } from '../../hooks/useActiveOrg';
 import { Link } from 'react-router-dom';
 import {
@@ -90,6 +91,21 @@ export default function RecoveryReadinessPage() {
   const criticalSystems = operationalReadiness?.critical_systems_verified || [];
   const blockers = operationalReadiness?.current_blockers || [];
   const isRansomwareSafe = operationalReadiness?.can_recover;
+  const noSystemsConnected = !hasRecoveryData && !isDemo && (report.connectors || []).length === 0;
+
+  // Plain-English recovery verdict, derived only from report fields
+  const recoveryVerdict = !hasRecoveryData
+    ? 'We cannot tell yet whether you could recover from an attack.'
+    : isRansomwareSafe === false || blockers.length > 0
+      ? 'If an attacker locked every computer tonight, you could not yet get back to work from backups.'
+      : rtoMins !== null
+        ? `If an attacker locked every computer tonight, you could be working again in about ${rtoMins} minutes.`
+        : 'If an attacker locked every computer tonight, you could get back to work from backups.';
+  const recoveryTone = !hasRecoveryData
+    ? 'text-on-surface-variant'
+    : isRansomwareSafe === false || blockers.length > 0
+      ? 'text-critical-red'
+      : 'text-ready-emerald';
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -99,10 +115,18 @@ export default function RecoveryReadinessPage() {
       {/* Header */}
       <div className="border-b border-outline-variant/40 pb-6">
         <h1 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight mb-2">Recovery Readiness</h1>
-        <p className="text-base text-on-surface-variant max-w-2xl">
-          Your organization&apos;s resilience telemetry and backup integrity, verified against healthcare operations objectives.
+        <p className={`text-lg font-semibold max-w-2xl ${recoveryTone}`} data-testid="plain-verdict">{recoveryVerdict}</p>
+        <p className="text-sm text-on-surface-variant max-w-2xl mt-1">
+          Can you get back to work after an attack or outage? This page reads your backup system directly to answer that.
         </p>
       </div>
+
+      {noSystemsConnected && (
+        <ConnectFirstEmptyState
+          title="Nothing to show yet: no backup system is connected."
+          body="Connect your backup system (for example Veeam) first. Once it sends data, this page shows whether backups are safe from deletion and how long a restore would take."
+        />
+      )}
 
       {/* Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -111,7 +135,7 @@ export default function RecoveryReadinessPage() {
           <div className="col-span-1 md:col-span-12 bg-critical-red/5 border border-critical-red/30 rounded-xl p-6 flex items-start gap-4">
             <AlertTriangle className="w-5 h-5 text-critical-red shrink-0 mt-0.5" />
             <div>
-              <h3 className="text-base font-bold text-critical-red mb-2">Active Recovery Blockers</h3>
+              <h3 className="text-base font-bold text-critical-red mb-2">What is stopping a recovery right now</h3>
               <ul className="list-disc pl-5 space-y-1 text-sm text-on-surface">
                 {blockers.map((blocker, i) => <li key={i}>{blocker}</li>)}
               </ul>
@@ -144,7 +168,7 @@ export default function RecoveryReadinessPage() {
               </div>
             )}
             <p className="text-xs text-on-surface-variant leading-relaxed">
-              Estimated time to restore patient databases from verified snapshots in an emergency.
+              How long it would take to bring your records back from the last good backup in an emergency.
             </p>
           </div>
         </div>
@@ -156,8 +180,8 @@ export default function RecoveryReadinessPage() {
               <History className={`w-4 h-4 ${hasRecoveryData ? 'text-ready-emerald' : 'text-on-surface-variant'}`} />
               <span>Backup Health (7 Days)</span>
             </h2>
-            <span className={`text-xs font-mono ${hasRecoveryData ? 'text-ready-emerald' : 'text-on-surface-variant'}`}>
-              {hasRecoveryData ? '100% Protected Backups' : 'Data Unavailable'}
+            <span className={`text-xs font-mono ${hasRecoveryData ? (isRansomwareSafe ? 'text-ready-emerald' : 'text-drift-amber') : 'text-on-surface-variant'}`}>
+              {hasRecoveryData ? (isRansomwareSafe ? 'Backups confirmed' : 'Backups not confirmed') : 'No data yet'}
             </span>
           </div>
 
@@ -176,7 +200,7 @@ export default function RecoveryReadinessPage() {
             </div>
           ) : (
             <div className="h-32 flex items-center justify-center bg-surface-container border border-dashed border-outline-variant/30 rounded-lg">
-              <span className="text-sm font-medium text-on-surface-variant">Unable to verify telemetry from backup provider.</span>
+              <span className="text-sm font-medium text-on-surface-variant">No live data from a backup system yet.</span>
             </div>
           )}
         </div>
@@ -185,7 +209,9 @@ export default function RecoveryReadinessPage() {
         <div className="col-span-1 md:col-span-6 bg-surface-container-low rounded-xl border border-surface-bright p-6">
           <div className="flex items-center gap-2.5 mb-6">
             <ShieldCheck className={`w-5 h-5 ${criticalSystems.length > 0 ? 'text-ready-emerald' : 'text-on-surface-variant'}`} />
-            <h3 className="text-base font-semibold text-on-surface">Verified Critical Systems</h3>
+            <h3 className="text-base font-semibold text-on-surface">
+              <PlainTerm plain="Systems we confirmed can be restored" technical="verified critical systems" />
+            </h3>
           </div>
           {criticalSystems.length > 0 ? (
             <ul className="space-y-3">
@@ -199,7 +225,7 @@ export default function RecoveryReadinessPage() {
           ) : (
              <div className="flex items-center gap-3 text-sm text-on-surface-variant p-4 rounded-lg bg-surface-container border border-dashed border-outline-variant/30">
                <AlertCircle className="w-4 h-4 shrink-0" />
-               <span>Unable to verify critical systems telemetry.</span>
+               <span>No connected system has confirmed a restorable copy yet.</span>
              </div>
           )}
         </div>
@@ -212,13 +238,17 @@ export default function RecoveryReadinessPage() {
               <h3 className="text-base font-semibold text-on-surface">Disaster Recovery Playbook</h3>
             </div>
             <p className="text-sm text-on-surface-variant mb-4">
-              Automated Ransomware Recovery Playbook is ready. Storage snapshots are secured, isolated, and tested.
+              {isRansomwareSafe == null
+                ? 'The step-by-step recovery plan activates once a backup system is connected and its copies are confirmed.'
+                : isRansomwareSafe
+                  ? 'The step-by-step recovery plan is ready: backup copies cannot be deleted by an attacker and can be restored.'
+                  : 'The step-by-step recovery plan is not ready: backup copies could not be confirmed as safe from deletion.'}
             </p>
           </div>
           <div className="p-4 rounded-lg bg-surface-container border border-outline-variant/30 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className={`w-2.5 h-2.5 rounded-full ${isRansomwareSafe != null ? (isRansomwareSafe ? 'bg-ready-emerald animate-pulse' : 'bg-critical-red') : 'bg-on-surface-variant'}`} />
-              <span className="text-xs font-mono text-on-surface">Ransomware Safe: {isRansomwareSafe != null ? (isRansomwareSafe ? 'YES' : 'NO') : 'Unknown'}</span>
+              <span className="text-xs font-mono text-on-surface" title="Backups that cannot be deleted (immutable) and were confirmed restorable">Ransomware Safe: {isRansomwareSafe != null ? (isRansomwareSafe ? 'YES' : 'NO') : 'Unknown'}</span>
             </div>
             <span className={`text-xs font-mono font-semibold ${isRansomwareSafe != null ? (isRansomwareSafe ? 'text-ready-emerald' : 'text-critical-red') : 'text-on-surface-variant'}`}>
               {isRansomwareSafe != null ? (isRansomwareSafe ? 'PASS' : 'FAIL') : 'UNVERIFIED'}
@@ -226,6 +256,33 @@ export default function RecoveryReadinessPage() {
           </div>
         </div>
       </div>
+
+      {/* Technical details (collapsed for real orgs) */}
+      <TechnicalDetails title="Technical details" hint="RTO, RPO, connected systems" defaultOpen={isDemo}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">RTO estimate</span>
+            <span className="font-mono font-semibold text-on-surface">{businessContinuity?.rto_estimate_minutes ?? rtoMins ?? 'n/a'} min</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">RPO status</span>
+            <span className="font-mono font-semibold text-on-surface">{businessContinuity?.rpo_status ?? 'n/a'}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Assumed (not verified)</span>
+            <span className="font-mono font-semibold text-on-surface">{(operationalReadiness?.critical_systems_assumed || []).length}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-on-surface-variant mb-1">Connected systems</span>
+            <span className="font-mono font-semibold text-on-surface">{(report.connectors || []).length}</span>
+          </div>
+        </div>
+        {(operationalReadiness?.critical_systems_assumed || []).length > 0 && (
+          <p className="text-[11px] text-on-surface-variant/70">
+            Assumed, not confirmed: {(operationalReadiness?.critical_systems_assumed || []).join(', ')}
+          </p>
+        )}
+      </TechnicalDetails>
     </div>
   );
 }

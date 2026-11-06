@@ -101,3 +101,85 @@ class TechnologyDiscoveryService:
         self.db.commit()
         self.db.refresh(evidence)
         return evidence
+
+
+# ---------------------------------------------------------------------------
+# Shared discovery helpers (demo gating, per-source status, async bridging)
+# ---------------------------------------------------------------------------
+
+import asyncio
+import threading
+from dataclasses import dataclass, field
+from typing import Any, Dict
+
+
+class DiscoveryStatus:
+    """Per-source outcome of a discovery run. Persisted in the inventory summary."""
+    OK = "ok"
+    PARTIAL = "partial"            # some API calls denied, rows still real
+    NOT_CONNECTED = "not_connected"  # no connector registered for this source
+    AUTH_FAILED = "auth_failed"
+    PERMISSION_MISSING = "permission_missing"
+    ERROR = "error"
+    DEMO = "demo"                  # synthetic rows, demo org only
+    NOT_IMPLEMENTED = "not_implemented"
+
+
+@dataclass
+class SourceDiscoveryResult:
+    """What a single discovery source did. Never contains fabricated rows for real orgs."""
+    source: str
+    status: str = DiscoveryStatus.NOT_CONNECTED
+    assets_created: int = 0
+    products_created: int = 0
+    connectors_used: List[str] = field(default_factory=list)
+    denied_apis: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+    detail: Dict[str, Any] = field(default_factory=dict)
+
+    def summary(self) -> str:
+        parts = [f"{self.source}={self.status}"]
+        if self.assets_created:
+            parts.append(f"assets={self.assets_created}")
+        if self.denied_apis:
+            parts.append("denied=" + "|".join(self.denied_apis))
+        return ";".join(parts)
+
+
+def is_demo_org(db: Session, org_id: str) -> bool:
+    """True only for demo tenants. Real (pilot/production) orgs never get synthetic data.
+
+    Demo is established by ``org_mode == demo`` via PilotService, or by the
+    ``demo-`` org id prefix used by the sandbox tenants.
+    """
+    if org_id and str(org_id).startswith("demo-"):
+        return True
+    from app.services.clinic_engine.v2.pilot import PilotService
+    try:
+        return PilotService(db).is_demo(org_id)
+    except Exception:
+        # Unknown mode is treated as real (PilotService invariant).
+        return False
+
+
+def run_coroutine_sync(coro):
+    """Run a coroutine from sync code, even when an event loop is already running."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+
+    result: Dict[str, Any] = {}
+
+    def _runner():
+        try:
+            result["value"] = asyncio.run(coro)
+        except BaseException as exc:  # propagate to caller thread
+            result["error"] = exc
+
+    t = threading.Thread(target=_runner, daemon=True)
+    t.start()
+    t.join()
+    if "error" in result:
+        raise result["error"]
+    return result.get("value")

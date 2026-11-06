@@ -1,3 +1,30 @@
+Date: 2026-11-05
+Agent: ResilAI Brand & Design Agent
+Task: Comprehensive Multi-Orientation & Multi-Background Brand Suite Polish (Preserving Original 6-Fold Hexagonal Node Network Emblem)
+Changes Made:
+* Emblem Geometry & Brand Identity Preservation:
+  - Preserved authentic ResilAI 6-fold radial snowflake/circuit node network emblem (central hexagon, 6 radiating node branches, outer chevrons, and interconnecting dumbbells) per user uploaded reference files (`media_1793860625081_50707ff7.png`, `media_1793860718952_3e9c3192.png`, `media_1793860718970_0dbfee93.png`).
+  - Strict adherence to corporate brand palette: ResilAI Corporate Navy `#182939`, Vibrant Emerald `#6ED975`, Crisp White `#FFFFFF`, and Cyber Navy `#0B1326`.
+* High-Resolution Production Pipeline (`scripts/generate_polished_logos.py`):
+  - 6x-8x Lanczos interpolation upscaling producing ultra-high resolution assets (up to 3120x1122 for horizontal, 1695x2445 for stacked, 1632x2080 for emblem).
+  - Layer-separated alpha channel masking with edge-preserving anti-aliased filtering to eliminate halos and pixelation.
+  - Exported complete organized directory suite in `frontend/public/brand/` and `docs/assets/brand/`:
+    * `brand/horizontal/`: `resilai_horizontal_light_trans.png`, `resilai_horizontal_dark_trans.png`, `resilai_horizontal_light_solid.png`, `resilai_horizontal_dark_solid.png`, `resilai_horizontal_white_mono.png`, `resilai_horizontal_black_mono.png`, `resilai_horizontal_adaptive.svg`, `resilai_horizontal_light.svg`, `resilai_horizontal_dark.svg`.
+    * `brand/stacked/`: `resilai_stacked_light_trans.png`, `resilai_stacked_dark_trans.png`, `resilai_stacked_light_solid.png`, `resilai_stacked_dark_solid.png`, `resilai_stacked_white_mono.png`, `resilai_stacked_black_mono.png`, `resilai_stacked_adaptive.svg`, `resilai_stacked_light.svg`, `resilai_stacked_dark.svg`.
+    * `brand/emblem/`: `resilai_emblem_light_trans.png`, `resilai_emblem_dark_trans.png`, `resilai_emblem_light_solid.png`, `resilai_emblem_dark_solid.png`, `resilai_emblem_white_mono.png`, `resilai_emblem_black_mono.png`, `resilai_emblem_adaptive.svg`, `resilai_emblem_light.svg`, `resilai_emblem_dark.svg`.
+    * `brand/favicons/`: multi-size suite (16, 32, 48, 64, 128, 180, 192, 512, .ico, .svg).
+* Application & Platform Deployment:
+  - Header Navbar (`PublicNavbar.tsx`, `DocsLayout.tsx`, `Onboarding.tsx`): Updated to use high-resolution light and dark variants.
+  - Footer (`Footer.tsx`): Configured native light/dark assets `logo_footer_light.png` and `logo_footer_dark.png`.
+  - Favicons & PWA (`index.html`, `public/`): Multi-resolution ICO, adaptive SVG, dark/light PNGs, and Apple touch icons.
+  - Reports & Documentation (`app/reports/pdf.py`, `docs/assets/`, `docs/images/logo.jpg`): High-contrast light emblem for PDF executive reports, dark/light picture elements for documentation.
+  - GitHub (`README.md`, `.github/assets/`): GitHub-native dark/light mode picture tags and high-res avatars.
+  - Synchronized into distribution packages (`dist-demo`, `dist-production`, `dist-staging`).
+* Verification & Validation:
+  - `npm run build`: Compiled with 0 errors in 16.45s.
+  - `npx vitest run`: 15/15 test files, 334/334 tests passed.
+  - `graphify update .`: AST knowledge graph refreshed and synchronized.
+
 Date: 2026-11-04
 Agent: ResilAI DevOps Agent
 Task: GitHub Actions Daily Snapshot & Remote Backup Branch Synchronization Execution
@@ -2894,3 +2921,33 @@ Affected Teams:
 * Backend
 * Frontend
 * Growth
+
+
+---
+
+Date: 2026-11-06
+Agent: Claude Fable 5.1 (Claude Code)
+Task: Real report generation, honest asset discovery, plain-language dashboard, key-rotation support
+Changes Made:
+* Reports: `POST /api/v1/reports/generate`, template dispatch on download, 8 server-side PDF templates (1-page boss report, cyber-insurance binder, MSP summary, ...), nullable `Report.assessment_id`, frontend fabrication removed, topology boss-report button uses the server PDF.
+* Discovery: AWS EC2/RDS/SSM, Microsoft Intune and Wazuh discovery read real connectors; synthetic inventory demo-only; per-source status recorded.
+* Dashboard: plain-English verdict and owner/time guidance on readiness pages; fabricated benchmark/system counts removed; Fix Now gated on `fix_now_available`.
+* Security: `ENCRYPTION_SECRET_PREVIOUS` fallback in `EncryptionService`; rotation script for the committed staging key; Stripe secret-binding script.
+Files Modified:
+* app/api/v1/reports.py, app/api/reports.py, app/services/report.py, app/models/report.py, app/schemas/report.py, app/reports/templates.py (new), app/reports/readiness_source.py (new), app/reports/pdf.py, alembic/versions/d7e4b1f2a9c3_report_templates_nullable_assessment.py (new)
+* app/services/discovery/*.py, app/services/asset_discovery.py, app/core/security/encryption.py, app/core/config.py, app/services/billing/checkout.py
+* frontend/src/components/readiness/PlainLanguage.tsx (new), frontend/src/features/readiness/{TodayPage,NeedsAttentionPage,RecoveryReadinessPage}.tsx, frontend/src/components/network/NetworkTopologyGraph.tsx, frontend/src/pages/Reports.tsx, frontend/src/types/reports.ts, frontend/src/api.ts
+* tests/test_report_templates.py, tests/test_discovery_real.py, tests/test_encryption_rotation.py (new), tests/test_automated_discovery.py, frontend/src/test/readiness-plain-language.test.tsx (new)
+* scripts/rotate_staging_encryption_secret.sh, scripts/bind_stripe_secrets.sh (new), .env.example
+Dependencies Created/Updated:
+* None
+Business Impact:
+* Pilot customers and incubator reviewers see only data that came from their connected systems, can download a real 1-page report for leadership, an insurance binder and an MSP summary, and read the dashboard without security vocabulary.
+Next Recommended Task:
+* Make the GitHub repo private and run `scripts/rotate_staging_encryption_secret.sh`; grant the Stripe connector write access and run the Stripe setup; wire `MSPRelationship` capture into clinic Settings.
+Blocked By:
+* Stripe connector write permission; operator-run secret writes.
+Affected Teams:
+* Backend
+* Frontend
+* Security

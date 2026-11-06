@@ -103,9 +103,22 @@ class EncryptionService:
     This keeps local development frictionless while production is secured.
     """
 
-    def __init__(self, secret_b64: Optional[str] = None):
+    def __init__(self, secret_b64: Optional[str] = None, previous_secrets_b64: Optional[list] = None):
         self._enabled = False
         self._aesgcm: Optional[AESGCM] = None
+        # Retired keys (newest first). Used only to DECRYPT documents written
+        # before a rotation; every write uses the current key, so data
+        # re-encrypts under the new key as it is touched.
+        self._previous_aesgcms: list = []
+        for prev in previous_secrets_b64 or []:
+            try:
+                prev_bytes = base64.urlsafe_b64decode(prev)
+                if len(prev_bytes) == 32:
+                    self._previous_aesgcms.append(AESGCM(prev_bytes))
+                else:
+                    logger.error("EncryptionService: ignoring previous key with %d bytes (need 32)", len(prev_bytes))
+            except Exception as exc:
+                logger.error("EncryptionService: ignoring malformed previous key: %s", exc)
 
         if secret_b64:
             try:
@@ -152,10 +165,27 @@ class EncryptionService:
         return nonce, ct
 
     def _decrypt_blob(self, nonce: bytes, ciphertext: bytes) -> bytes:
-        """Decrypt and authenticate *ciphertext*."""
+        """Decrypt and authenticate *ciphertext*.
+
+        Tries the current key first, then any retired keys supplied via
+        ``ENCRYPTION_SECRET_PREVIOUS`` so a key rotation never bricks data.
+        """
         if not self._enabled or self._aesgcm is None:
             raise RuntimeError("Encryption is not enabled")
-        return self._aesgcm.decrypt(nonce, ciphertext, None)
+        try:
+            return self._aesgcm.decrypt(nonce, ciphertext, None)
+        except Exception as primary_exc:
+            for retired in self._previous_aesgcms:
+                try:
+                    return retired.decrypt(nonce, ciphertext, None)
+                except Exception:
+                    continue
+            raise primary_exc
+
+    @property
+    def has_previous_keys(self) -> bool:
+        """True when retired keys are configured for rotation fallback."""
+        return bool(self._previous_aesgcms)
 
     # ── Field-level API ───────────────────────────────────────────────
 
@@ -296,7 +326,10 @@ def get_encryption_service() -> EncryptionService:
     Subsequent calls return the cached instance.
     """
     secret = os.environ.get("ENCRYPTION_SECRET")
-    return EncryptionService(secret_b64=secret)
+    previous = [
+        k.strip() for k in os.environ.get("ENCRYPTION_SECRET_PREVIOUS", "").split(",") if k.strip()
+    ]
+    return EncryptionService(secret_b64=secret, previous_secrets_b64=previous or None)
 
 
 def generate_encryption_key() -> str:

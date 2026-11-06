@@ -5,7 +5,12 @@ import logging
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
-from app.services.discovery.discovery import TechnologyDiscoveryService
+from app.services.discovery.discovery import (
+    DiscoveryStatus,
+    SourceDiscoveryResult,
+    TechnologyDiscoveryService,
+    is_demo_org,
+)
 from app.services.discovery.wazuh_discovery import WazuhDiscoveryService
 from app.services.discovery.graph_discovery import GraphDiscoveryService
 from app.services.discovery.aws_discovery import AWSDiscoveryService
@@ -25,6 +30,9 @@ class TechnologyDiscoveryOrchestrator:
         self.db = db
         self.org_id = org_id
         self.discovery_service = TechnologyDiscoveryService(db, org_id)
+        self.is_demo = is_demo_org(db, org_id)
+        # Per-source outcome of the last cycle: {"wazuh": ..., "ms_graph": ..., "aws": ...}
+        self.last_results: dict = {}
 
     def run_discovery_cycle(self) -> TechnologyInventory:
         """Runs discovery across all sources and returns the resulting inventory."""
@@ -34,32 +42,58 @@ class TechnologyDiscoveryOrchestrator:
         
         logger.info(f"Starting discovery cycle for org {self.org_id}. Inventory ID: {inventory.id}")
         
-        # 2. Run discovery from all sources
+        # 2. Run discovery from all sources. Real orgs only read registered
+        #    connectors; synthetic inventory is reserved for demo tenants.
         total_assets = 0
+        self.last_results = {}
 
-        # Wazuh
+        # Wazuh (WazuhDiscoveryService falls back to synthetic data when no
+        # WazuhConfig exists, so a real org is only routed to it when configured).
+        wazuh_result = SourceDiscoveryResult(source="wazuh")
         try:
             wazuh_svc = WazuhDiscoveryService(self.db, self.org_id)
-            total_assets += wazuh_svc.discover_from_wazuh(inventory.id)
+            if self.is_demo or wazuh_svc._get_wazuh_client() is not None:
+                wazuh_result.assets_created = wazuh_svc.discover_from_wazuh(inventory.id)
+                wazuh_result.status = DiscoveryStatus.DEMO if self.is_demo else DiscoveryStatus.OK
+                total_assets += wazuh_result.assets_created
+            else:
+                wazuh_result.status = DiscoveryStatus.NOT_CONNECTED
         except Exception as e:
+            wazuh_result.status = DiscoveryStatus.ERROR
+            wazuh_result.errors.append(str(e))
             logger.error(f"Wazuh discovery failed: {e}")
-            
-        # Graph
+        self.last_results["wazuh"] = wazuh_result
+
+        # Microsoft Graph
         try:
-            graph_svc = GraphDiscoveryService(self.db, self.org_id)
+            graph_svc = GraphDiscoveryService(self.db, self.org_id, is_demo=self.is_demo)
             total_assets += graph_svc.discover_from_graph(inventory.id)
+            self.last_results["ms_graph"] = graph_svc.last_result
         except Exception as e:
+            self.last_results["ms_graph"] = SourceDiscoveryResult(
+                source="ms_graph", status=DiscoveryStatus.ERROR, errors=[str(e)]
+            )
             logger.error(f"Graph discovery failed: {e}")
-            
+
         # AWS
         try:
-            aws_svc = AWSDiscoveryService(self.db, self.org_id)
+            aws_svc = AWSDiscoveryService(self.db, self.org_id, is_demo=self.is_demo)
             total_assets += aws_svc.discover_from_aws(inventory.id)
+            self.last_results["aws"] = aws_svc.last_result
         except Exception as e:
+            self.last_results["aws"] = SourceDiscoveryResult(
+                source="aws", status=DiscoveryStatus.ERROR, errors=[str(e)]
+            )
             logger.error(f"AWS discovery failed: {e}")
-            
-        logger.info(f"Discovery complete. Discovered {total_assets} assets.")
-        
+
+        # Persist the honest per-source status on the snapshot so readers can
+        # tell "nothing connected" apart from "connected, nothing found".
+        status_summary = ";".join(r.summary() for r in self.last_results.values() if r)
+        inventory.discovery_source = ("orchestrator;" + status_summary)[:255]
+        self.db.commit()
+
+        logger.info(f"Discovery complete. Discovered {total_assets} assets. {status_summary}")
+
         # 3. Merge duplicate assets (Optional / Future enhancement, right now we just store all)
         self._deduplicate_assets(inventory.id)
         

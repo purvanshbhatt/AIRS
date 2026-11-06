@@ -27,13 +27,13 @@ import {
   Button,
   EmptyState,
   ListSkeleton,
+  useToast,
 } from '../components/ui';
 import {
   getReports,
   downloadReportById,
   deleteReport,
   generateReport,
-  getBoardStoryPdfUrl,
   ApiRequestError,
 } from '../api';
 import { useActiveOrg } from '../hooks/useActiveOrg';
@@ -113,6 +113,16 @@ const REPORT_TEMPLATES: ReportTemplate[] = [
     estimatedPages: '3-4 pages',
     badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
   },
+  {
+    id: 'msp_summary',
+    title: 'MSP Readiness Summary',
+    category: 'MSP Hand-off',
+    description:
+      '1-2 page summary an MSP hands to the clinic: readiness score, what is monitored vs. not, open issues with owners, next actions, and MSP escalation contact.',
+    defaultFormat: 'pdf',
+    estimatedPages: '1-2 pages',
+    badgeColor: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+  },
 ];
 
 export default function Reports() {
@@ -120,6 +130,7 @@ export default function Reports() {
   const { orgName, isDemo } = useActiveOrg();
   const activeOrgId = useActiveOrgId();
   const { has: hasCapability, plan } = useCapabilities(activeOrgId);
+  const { addToast } = useToast();
 
   // Backend decides: paid plan or admin-exempt account both grant executive_reports.
   const canAccessReports = isDemo || hasCapability('executive_reports');
@@ -202,64 +213,55 @@ export default function Reports() {
         setGenerationStep('Synthesizing executive narrative & formatting layout...');
       }, 900);
 
-      let newReport: Report;
-
+      let response: import('../types/reports').GenerateReportResponse;
       try {
-        const response = await generateReport({
+        response = await generateReport({
           organization_id: activeOrgId,
+          org_id: activeOrgId,
           report_type: selectedTemplate,
           format: selectedFormat,
           title: reportTitle,
         });
-
+      } catch (genErr: any) {
         clearTimeout(progressTimer1);
         clearTimeout(progressTimer2);
-        setGenerationProgress(95);
-        setGenerationStep('Finalizing document signatures...');
-
-        newReport = {
-          id: response.id || `rep-${Date.now().toString().slice(-6)}`,
-          title: reportTitle,
-          report_type: selectedTemplate,
-          format: selectedFormat,
-          status: 'ready',
-          organization_id: activeOrgId,
-          organization_name: orgName,
-          created_at: new Date().toISOString(),
-          file_size_formatted: selectedFormat === 'pdf' ? '2.8 MB' : selectedFormat === 'json' ? '1.2 MB' : '480 KB',
-          overall_score: 92,
-          maturity_level: 4,
-          maturity_name: 'Resilient & Managed',
-          findings_count: 1,
-        };
-      } catch (genErr: any) {
+        setIsGenerating(false);
+        setGenerationProgress(0);
         if (genErr?.status === 402) {
-          clearTimeout(progressTimer1);
-          clearTimeout(progressTimer2);
-          setIsGenerating(false);
-          setGenerationProgress(0);
           navigate('/pricing');
           return;
         }
-        // Fallback for demo / offline environments
-        clearTimeout(progressTimer1);
-        clearTimeout(progressTimer2);
-        newReport = {
-          id: `rep-${Date.now().toString().slice(-6)}`,
-          title: reportTitle,
-          report_type: selectedTemplate,
-          format: selectedFormat,
-          status: 'ready',
-          organization_id: activeOrgId,
-          organization_name: orgName,
-          created_at: new Date().toISOString(),
-          file_size_formatted: selectedFormat === 'pdf' ? '2.4 MB' : selectedFormat === 'json' ? '1.1 MB' : '360 KB',
-          overall_score: 92,
-          maturity_level: 4,
-          maturity_name: 'Resilient & Managed',
-          findings_count: 1,
-        };
+        // No fabricated fallback row: numbers only ever come from the server.
+        addToast({
+          type: 'error',
+          title: 'Report generation failed',
+          message:
+            genErr instanceof ApiRequestError
+              ? genErr.toDisplayMessage()
+              : 'The server could not build this report. Please try again.',
+        });
+        return;
       }
+
+      clearTimeout(progressTimer1);
+      clearTimeout(progressTimer2);
+      setGenerationProgress(95);
+      setGenerationStep('Finalizing document signatures...');
+
+      // Every value below is read from the server response (deterministic snapshot).
+      const newReport: Report = {
+        id: response.id,
+        title: response.title || reportTitle,
+        report_type: response.report_type || selectedTemplate,
+        format: response.format || selectedFormat,
+        status: response.status || 'completed',
+        organization_id: response.organization_id || activeOrgId,
+        organization_name: response.organization_name || orgName,
+        created_at: response.created_at || new Date().toISOString(),
+        overall_score: response.overall_score ?? undefined,
+        findings_count: response.findings_count ?? undefined,
+        download_url: response.download_url,
+      };
 
       setGenerationProgress(100);
       setGenerationStep('Report generation complete!');
@@ -283,7 +285,9 @@ export default function Reports() {
   const handleDownload = async (report: Report) => {
     setDownloading(report.id);
     try {
-      const blob = await downloadReportById(report.id);
+      const blob = report.download_url
+        ? await downloadReportById(report.id, report.download_url)
+        : await downloadReportById(report.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -296,10 +300,14 @@ export default function Reports() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Download failed:', err);
-      // Fallback direct open if available
-      if (activeOrgId) {
-        window.open(getBoardStoryPdfUrl(activeOrgId), '_blank');
-      }
+      addToast({
+        type: 'error',
+        title: 'Download failed',
+        message:
+          err instanceof ApiRequestError
+            ? err.toDisplayMessage()
+            : 'The report could not be downloaded. Please try again.',
+      });
     } finally {
       setDownloading(null);
     }
@@ -704,6 +712,10 @@ export default function Reports() {
               <option value="monthly_ops">Monthly Ops</option>
               <option value="hipaa_audit">HIPAA Audit</option>
               <option value="technical_telemetry">Technical Telemetry</option>
+              <option value="executive_pdf">Executive PDF</option>
+              <option value="boss_report">Boss Report</option>
+              <option value="cyber_insurance">Cyber Insurance</option>
+              <option value="msp_summary">MSP Summary</option>
             </select>
 
             <select
