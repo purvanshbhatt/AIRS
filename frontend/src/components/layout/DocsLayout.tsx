@@ -178,7 +178,7 @@ export default function DocsLayout() {
                                 <item.icon
                                     className={clsx('w-5 h-5 transition-transform group-hover:scale-105', isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500')}
                                 />
-                                <item.name
+                                {item.name}
                                 {isActive && (
                                     <span className="absolute right-0 top-1/4 bottom-1/4 w-1 bg-blue-600 dark:bg-blue-400 rounded-l" />
                                 )}
