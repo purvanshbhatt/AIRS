@@ -1,0 +1,266 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  ResilAI demo organization (healthcare clinic or legal practice). Small,
+  short-lived environment: a VPC, three t3.micro EC2 "servers" managed by SSM,
+  an S3 document store and an IAM user, with deliberate misconfigurations that
+  produce real Security Hub (FSBP), GuardDuty and IAM findings so ResilAI can
+  record genuine telemetry for its demo workspace. Tear down after capture.
+
+Parameters:
+  Industry:
+    Type: String
+    AllowedValues: [healthcare, legal]
+  OrgSlug:
+    Type: String
+    Description: 'Short slug used in names, e.g. metro-health or northstar-cole'
+    AllowedPattern: '[a-z0-9-]+'
+  VpcCidr:
+    Type: String
+    Default: 10.20.0.0/16
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  InstanceType:
+    Type: String
+    Default: t3.micro
+
+Mappings:
+  IndustryNames:
+    healthcare:
+      Server1: ehr-app-server
+      Server2: front-desk-workstation
+      Server3: backup-server
+      Bucket: patient-records
+      User: dr-smith
+      Department: ClinicalIT
+    legal:
+      Server1: dms-matter-server
+      Server2: partner-laptop-vdi
+      Server3: file-server
+      Bucket: client-matters
+      User: managing-partner
+      Department: LegalIT
+
+Resources:
+  # ── Network ─────────────────────────────────────────────────────────
+  DemoVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - {Key: Name, Value: !Sub 'resilai-${OrgSlug}-network'}
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+        - {Key: Owner, Value: ResilAI}
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref DemoVPC
+      CidrBlock: !Select [0, !Cidr [!Ref VpcCidr, 4, 8]]
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - {Key: Name, Value: !Sub 'resilai-${OrgSlug}-public'}
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - {Key: Name, Value: !Sub 'resilai-${OrgSlug}-igw'}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  IGWAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref DemoVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref DemoVPC
+      Tags:
+        - {Key: Name, Value: !Sub 'resilai-${OrgSlug}-public-rt'}
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IGWAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRTAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  # ── Security groups (two deliberately open to the internet) ────────
+  OpenAdminSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'DEMO MISCONFIG: SSH and RDP open to the world'
+      VpcId: !Ref DemoVPC
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: 0.0.0.0/0}
+        - {IpProtocol: tcp, FromPort: 3389, ToPort: 3389, CidrIp: 0.0.0.0/0}
+      Tags:
+        - {Key: Name, Value: !Sub 'resilai-${OrgSlug}-open-admin-sg'}
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  InternalSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Internal-only traffic'
+      VpcId: !Ref DemoVPC
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: !Ref VpcCidr}
+      Tags:
+        - {Key: Name, Value: !Sub 'resilai-${OrgSlug}-internal-sg'}
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  # ── SSM-managed instances (no SSH keys; Session Manager + inventory) ─
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'resilai-${OrgSlug}-instance-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ec2.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub 'resilai-${OrgSlug}-instance-profile'
+      Roles: [!Ref InstanceRole]
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub 'resilai-${OrgSlug}-lt'
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile: {Arn: !GetAtt InstanceProfile.Arn}
+        MetadataOptions: {HttpTokens: required, HttpPutResponseHopLimit: 1}
+        Monitoring: {Enabled: false}
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - {Key: Industry, Value: !Ref Industry}
+              - {Key: Environment, Value: ResilAI-Demo-Org}
+              - {Key: Owner, Value: ResilAI}
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            dnf -y install nginx postgresql15 >/dev/null 2>&1 || true
+            systemctl enable --now nginx >/dev/null 2>&1 || true
+            # Keep SSM inventory interesting: an outdated package family marker
+            echo "resilai-demo ${Industry} ${OrgSlug}" > /etc/resilai-demo
+
+  # Server 1: application server, exposed admin ports (finding: EC2.13/EC2.14)
+  Server1:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate: {LaunchTemplateId: !Ref LaunchTemplate, Version: !GetAtt LaunchTemplate.LatestVersionNumber}
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref OpenAdminSecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: {VolumeSize: 8, VolumeType: gp3, Encrypted: false, DeleteOnTermination: true}  # DEMO MISCONFIG: unencrypted volume (EC2.7)
+      Tags:
+        - {Key: Name, Value: !Sub ['${OrgSlug}-${Role}', {Role: !FindInMap [IndustryNames, !Ref Industry, Server1]}]}
+        - {Key: Role, Value: !FindInMap [IndustryNames, !Ref Industry, Server1]}
+        - {Key: Department, Value: !FindInMap [IndustryNames, !Ref Industry, Department]}
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  # Server 2: workstation / VDI, internal only, encrypted
+  Server2:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate: {LaunchTemplateId: !Ref LaunchTemplate, Version: !GetAtt LaunchTemplate.LatestVersionNumber}
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref InternalSecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: {VolumeSize: 8, VolumeType: gp3, Encrypted: true, DeleteOnTermination: true}
+      Tags:
+        - {Key: Name, Value: !Sub ['${OrgSlug}-${Role}', {Role: !FindInMap [IndustryNames, !Ref Industry, Server2]}]}
+        - {Key: Role, Value: !FindInMap [IndustryNames, !Ref Industry, Server2]}
+        - {Key: Department, Value: !FindInMap [IndustryNames, !Ref Industry, Department]}
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  # Server 3: backup / file server, internal only, encrypted
+  Server3:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate: {LaunchTemplateId: !Ref LaunchTemplate, Version: !GetAtt LaunchTemplate.LatestVersionNumber}
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref InternalSecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: {VolumeSize: 8, VolumeType: gp3, Encrypted: true, DeleteOnTermination: true}
+      Tags:
+        - {Key: Name, Value: !Sub ['${OrgSlug}-${Role}', {Role: !FindInMap [IndustryNames, !Ref Industry, Server3]}]}
+        - {Key: Role, Value: !FindInMap [IndustryNames, !Ref Industry, Server3]}
+        - {Key: Department, Value: !FindInMap [IndustryNames, !Ref Industry, Department]}
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  # ── Document store: no encryption config, versioning off (S3.x findings) ─
+  DocumentBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub ['resilai-${OrgSlug}-${Suffix}-${AWS::AccountId}', {Suffix: !FindInMap [IndustryNames, !Ref Industry, Bucket]}]
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false          # DEMO MISCONFIG: public access block disabled (S3.1/S3.8)
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+      Tags:
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+        - {Key: DataClass, Value: !If [IsHealthcare, PHI, PrivilegedClientData]}
+
+  # ── IAM user without MFA, with a console password policy gap (IAM.5/IAM.19) ─
+  DemoUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub ['resilai-${OrgSlug}-${U}', {U: !FindInMap [IndustryNames, !Ref Industry, User]}]
+      Tags:
+        - {Key: Industry, Value: !Ref Industry}
+        - {Key: Environment, Value: ResilAI-Demo-Org}
+
+  DemoUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref DemoUser   # DEMO MISCONFIG: long-lived access key on a human user (IAM.3)
+
+Conditions:
+  IsHealthcare: !Equals [!Ref Industry, healthcare]
+
+Outputs:
+  VpcId: {Value: !Ref DemoVPC}
+  Server1Id: {Value: !Ref Server1}
+  Server2Id: {Value: !Ref Server2}
+  Server3Id: {Value: !Ref Server3}
+  BucketName: {Value: !Ref DocumentBucket}
+  DemoUserName: {Value: !Ref DemoUser}
