@@ -3,6 +3,13 @@ Date: 2026-11-06
 Status: Daily Backup Snapshot & Remote Backup Branch Synchronization Verified (backup, daily-sync, backup-sync synchronized with staging; workflow & test harness green)
 
 ## Recent Actions
+- 2026-11-06 AWS demo organizations (healthcare + legal) recorded and torn down:
+  - `infra/aws-demo-orgs/demo-org.yaml` (per industry: VPC, 3 SSM-managed t3.micro servers with IMDSv2, open SSH/RDP security group, one unencrypted volume, document bucket with public-access block off, IAM user with a long-lived key), `deploy.sh` (base Security Hub/GuardDuty/CloudTrail stack from `infra/aws-test/template.yaml`, FSBP + CIS standards, Config via `deploy-healthcare.sh`, both org stacks, GuardDuty sample findings, SSM software-inventory association), `teardown.sh [--all]`.
+  - Live connector tests passed against the environment: `pytest tests/aws_integration -m aws_integration` (5 passed). All 6 servers were SSM-online; Security Hub produced ~400 findings; GuardDuty 11.
+  - `scripts/capture_aws_demo_telemetry.py` ran the real `AWSSecurityHubConnector.sync()`, EC2 inventory and IAM credential report and wrote `app/services/demo/fixtures/aws_healthcare.json` / `aws_legal.json` (91 findings each incl. 50 EC2 control findings and 5 GuardDuty samples, 3 servers, 2 IAM identities). Sanitizer drops findings about non-demo resources and redacts operator principals/session keys (`--sanitize-only` re-runs it). `aws_demo_telemetry.get_aws_demo_telemetry()` replays the fixture for the matching industry (org-specific + attack findings first, 40 max) and still falls back to the canonical samples when no fixture exists.
+  - Teardown: demo-org stacks deleted (instances terminated); base stacks (`resilai-connector-test`, `resilai-healthcare-test`) deleted by `teardown.sh --all` (verify `aws cloudformation list-stacks`). Capture ran as the account root user via `aws login`; use an IAM role next time.
+  - Staging-only dashboard v2 (`/morning-brief` renders `TodayPageV2` when `VITE_APP_ENV=staging` or `localStorage.resilai_dashboard_v2=true`; "Switch to classic view" opts out). Deployed to `resilai-staging` hosting; production bundle unchanged.
+  - Staging ENCRYPTION_SECRET rotated into Secret Manager (`ENCRYPTION_SECRET_STAGING` + `_PREVIOUS`), plaintext removed from `gcp/env.staging.yaml`, revision 00074 verified decrypting. GitHub repo still public at time of writing.
 - GitHub Actions Daily Snapshot & Remote Backup Synchronization (`backup`, `daily-sync`, `backup-sync`):
   - Workflow Specification Verification: Audited `.github/workflows/daily-backup-sync.yml` against all required specifications:
     - Trigger: Cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).

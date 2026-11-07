@@ -2988,3 +2988,32 @@ Affected Teams:
 * Backend
 * Frontend
 * Security
+
+
+---
+
+Date: 2026-11-06
+Agent: Claude Fable 5.1 (Claude Code)
+Task: AWS demo organizations (healthcare + legal) telemetry capture, live connector tests, staging-only dashboard v2, staging key rotation
+Changes Made:
+* Built and deployed two short-lived AWS demo environments (CloudFormation), ran the live AWS connector tests (5 passed), captured Security Hub / GuardDuty / EC2 / IAM telemetry through the product's own connector code into per-industry fixtures, sanitized them, and tore the environments down.
+* Demo workspace replays recorded telemetry per industry (`demo-health-org` vs `demo-northstar-cole`).
+* Staging-only morning brief v2 behind an env/localStorage gate; production untouched.
+* Staging encryption key rotated to Secret Manager with previous-key fallback.
+Files Modified:
+* infra/aws-demo-orgs/{demo-org.yaml,deploy.sh,teardown.sh} (new), scripts/capture_aws_demo_telemetry.py (new), scripts/rotate_staging_encryption_secret.sh (new)
+* app/services/demo/aws_demo_telemetry.py, app/services/demo/fixtures/aws_healthcare.json (new), app/services/demo/fixtures/aws_legal.json (new), tests/test_demo_fixture_replay.py (new)
+* frontend/src/App.tsx, frontend/src/features/readiness/TodayPageV2.tsx (new), frontend/src/components/readiness/v2/* (new), frontend/src/test/today-page-v2.test.tsx (new)
+* gcp/env.staging.yaml, app/core/security/encryption.py
+Dependencies Created/Updated:
+* None (boto3 already present)
+Business Impact:
+* Incubator reviewers and pilot prospects see a demo built from telemetry recorded on real AWS machines with real control failures, and the staging dashboard reads in plain language.
+Next Recommended Task:
+* Make the GitHub repo private; capture Microsoft 365 / Intune demo telemetry the same way with a test tenant; register a real AWS connector on staging through the UI to exercise the GCP-hosted path end to end.
+Blocked By:
+* Stripe connector write access; GitHub visibility change (manual).
+Affected Teams:
+* Backend
+* Frontend
+* DevOps
