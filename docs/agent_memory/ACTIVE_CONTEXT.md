@@ -1,8 +1,19 @@
 # Active Context
-Date: 2026-11-05
-Status: Polished and deployed the complete ResilAI official brand asset suite across all orientations (horizontal, stacked, standalone emblem) and backgrounds (light transparent, dark transparent, solid white, solid cyber navy, monochrome) using the authentic hexagonal node network / cyber snowflake emblem, deployed to header, footer, favicons, reports, docs, and GitHub.
+Date: 2026-11-06
+Status: Daily Backup Snapshot & Remote Backup Branch Synchronization Verified (backup, daily-sync, backup-sync synchronized with staging; workflow & test harness green)
 
 ## Recent Actions
+- GitHub Actions Daily Snapshot & Remote Backup Synchronization (`backup`, `daily-sync`, `backup-sync`):
+  - Workflow Specification Verification: Audited `.github/workflows/daily-backup-sync.yml` against all required specifications:
+    - Trigger: Cron schedule `0 4 * * *` (Daily at 4:00 AM UTC / midnight EST) and `workflow_dispatch` (manual trigger enabled).
+    - Behavior: Repository checkout (`actions/checkout@v4`, `fetch-depth: 0`, `contents: write`), checking out or creating remote branch `daily-sync`, merging latest commits from `staging` into `daily-sync`, pushing `daily-sync` to `origin`, mirroring pushes to `backup` and `backup-sync`, and explicitly blocking pushes to `main` and `demo-stable` via both local pre-push git hook and step-level validation guards.
+    - Audit Log: Commit SHA, sync status, and metadata table echoed in `$GITHUB_STEP_SUMMARY` and workflow logs.
+  - Test Suite & Script Synchronization:
+    - Verified `tests/test_daily_git_sync.py`: 36/36 tests passing (100%).
+    - Verified `scripts/daily_git_sync.py` mirrors snapshots directly to remote `backup` branch.
+  - Branch Protection Enforcement: Strictly preserved protected branch invariants with 0 modifications to `main` or `demo-stable`.
+  - Remote Synchronization: Merged latest staging commits into `daily-sync` and pushed to `origin/daily-sync`, `origin/backup`, and `origin/backup-sync`.
+  - Working Tree Integrity: Active working branch cleanly maintained on `staging`.
 - Deployed 2026-11-06 (staging commits through `a7ca9ad`): Cloud Run `airs-api` revision 00102 (traffic on latest), `airs-api-staging` revision 00073, Firebase Hosting `marketing`, `resilai-staging`, `demo`. Verified live: `POST /api/v1/reports/generate` present (401 without auth), demo `boss_report` and `msp_summary` render real PDFs on prod and staging, demo readiness `critical_risk` with 5 findings, bundles carry the plain-language dashboard and report templates. Upstream brand-suite commit had a stray JSX tag in `DocsLayout.tsx` that broke `tsc`; fixed in `a7ca9ad`.
 - 2026-11-06 pilot-readiness pass:
   - Reports actually generate: new `POST /api/v1/reports/generate` + `GET /api/reports/{id}/download` dispatch by template (`boss_report` 1-page, `cyber_insurance` binder, `msp_summary`, `board_story`, `monthly_ops`, `hipaa_audit`, `technical_telemetry`, `executive_pdf`) built server-side in `app/reports/templates.py` from `app/reports/readiness_source.py` (same clinic pipeline as the readiness endpoint, connectors, verification results, MSP relationship). `Report.assessment_id` nullable + `format` column (alembic `d7e4b1f2a9c3`). Reports page no longer fabricates scores/sizes; topology "Export 1-Page Boss Report" now downloads the server PDF. Tests: `tests/test_report_templates.py` (19).
