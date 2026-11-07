@@ -1,0 +1,2275 @@
+{
+  "industry": "legal",
+  "org_slug": "northstar-cole",
+  "captured_at": "2026-11-07T02:05:51.264651+00:00",
+  "source": {
+    "account_id": "505467908065",
+    "region": "us-east-1",
+    "method": "AWSSecurityHubConnector.sync + AWSDiscoveryService.fetch_aws_resources + IAM credential report"
+  },
+  "securityhub_findings": [
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666/finding/a4d0d9ca302687e843733734c1d2c786",
+      "severity": "low",
+      "payload": {
+        "title": "Amazon S3 Block Public Access was disabled for the S3 bucket resilai-northstar-cole-client-matters-505467908065.",
+        "description": "Amazon S3 Block Public Access was disabled for the S3 bucket resilai-northstar-cole-client-matters-505467908065 by it-admin calling PutBucketPublicAccessBlock. If this behavior is not expected, it may indicate a configuration mistake or that your credentials are compromised.",
+        "product_name": "GuardDuty",
+        "company_name": "Amazon",
+        "compliance_status": "",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:s3:::resilai-northstar-cole-client-matters-505467908065"
+        ],
+        "generator_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666",
+        "created_at": "2026-11-07T01:16:48.077Z",
+        "updated_at": "2026-11-07T01:16:48.077Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666/finding/d40756c5ac564d57ade0c0a91e1f9db0",
+      "severity": "low",
+      "payload": {
+        "title": "An EC2 instance is performing a Windows Remote Management brute force attack against a remote host.",
+        "description": "An EC2 Instance is performing a Windows Remote Management brute force attack against a remote host. Brute force attacks are used to gain unauthorized access to the target host by guessing passwords.",
+        "product_name": "GuardDuty",
+        "company_name": "Amazon",
+        "compliance_status": "",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 75,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:instance/i-99999999"
+        ],
+        "generator_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666",
+        "created_at": "2026-11-07T01:13:29.184Z",
+        "updated_at": "2026-11-07T01:13:29.184Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666/finding/b8b967930efe4bebacc42448e29457be",
+      "severity": "medium",
+      "payload": {
+        "title": "The principal GeneratedFindingUserName logged into the AWS Console from multiple countries recently.",
+        "description": "Successful logins to the AWS Console were seen from multiple countries recently, using the credentials of principal GeneratedFindingUserName. This could be an indication of the unauthorized use of this users password.",
+        "product_name": "GuardDuty",
+        "company_name": "Amazon",
+        "compliance_status": "",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 50,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:instance/i-99999999"
+        ],
+        "generator_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666",
+        "created_at": "2026-11-07T01:13:29.175Z",
+        "updated_at": "2026-11-07T01:13:29.175Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666/finding/ef4e65d77d0842cc831a5902ca122463",
+      "severity": "high",
+      "payload": {
+        "title": "The EC2 instance i-99999999 queried a known Command & Control server domain name.",
+        "description": "The EC2 instance i-99999999 is querying a domain name associated with a known Command & Control server.",
+        "product_name": "GuardDuty",
+        "company_name": "Amazon",
+        "compliance_status": "",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 60,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:instance/i-99999999"
+        ],
+        "generator_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666",
+        "created_at": "2026-11-07T01:13:29.163Z",
+        "updated_at": "2026-11-07T01:13:29.163Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666/finding/f3518d247aac4a38bc7c2b6128a9be0a",
+      "severity": "low",
+      "payload": {
+        "title": "An unprotected port on EC2 instance i-99999999 is being probed.",
+        "description": "An EC2 instance has an unprotected port which is being probed by a known malicious host.",
+        "product_name": "GuardDuty",
+        "company_name": "Amazon",
+        "compliance_status": "",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:instance/i-99999999"
+        ],
+        "generator_id": "arn:aws:guardduty:us-east-1:505467908065:detector/b464ff32b4bb45c1b29fe9bc61526666",
+        "created_at": "2026-11-07T01:13:29.137Z",
+        "updated_at": "2026-11-07T01:13:29.137Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.19/finding/27593a94-eaea-47c6-a3f6-df460c5f50c7",
+      "severity": "critical",
+      "payload": {
+        "title": "Security groups should not allow unrestricted access to ports with high risk",
+        "description": "This control checks whether unrestricted incoming traffic for an Amazon EC2 security group is accessible to the specified ports [3389, 20, 23, 110, 143, 3306, 8080, 1433, 9200, 9300, 25, 445, 135, 21, 1434, 4333, 5432, 5500, 5601, 22, 3000, 5000, 8088, 8888] that are considered to be high risk. This control fails if any of the rules in a security group allow ingress traffic from '0.0.0.0/0' or '::/0' to those ports.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "critical",
+        "severity_normalized": 90,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-0de67e322416e20aa"
+        ],
+        "generator_id": "security-control/EC2.19",
+        "created_at": "2026-10-26T22:54:58.674Z",
+        "updated_at": "2026-10-30T03:49:58.080Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.9/finding/d9d16920-fb2c-4ffe-b1f7-6980b16651aa",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for AWS Config configuration changes",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is recommended that a metric filter and alarm be established for detecting changes to CloudTrail's configurations.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.9",
+        "created_at": "2026-09-17T03:48:34.176Z",
+        "updated_at": "2026-10-30T01:51:45.304Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.8/finding/7e91c2a1-e9d1-4f23-920b-fd94d66165ba",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for S3 bucket policy changes",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is recommended that a metric filter and alarm be established for changes to S3 bucket policies.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.8",
+        "created_at": "2026-09-17T03:48:34.170Z",
+        "updated_at": "2026-10-30T01:51:45.298Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.7/finding/7945018d-d1a7-409e-9552-08b17e0b11f4",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for disabling or scheduled deletion of customer created CMKs",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is recommended that a metric filter and alarm be established for customer created CMKs which have changed state to disabled or scheduled deletion.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.7",
+        "created_at": "2026-09-17T03:48:34.157Z",
+        "updated_at": "2026-10-30T01:51:45.289Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.6/finding/73baabd0-867a-4d6e-9ceb-7be20ca8cf2c",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for AWS Management Console authentication failures",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is recommended that a metric filter and alarm be established for failed console authentication attempts.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.6",
+        "created_at": "2026-09-17T03:48:34.114Z",
+        "updated_at": "2026-10-30T01:51:45.172Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.5/finding/43d20f4e-b372-4ef0-ae2c-63f5ac0a48fd",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for CloudTrail configuration changes",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is recommended that a metric filter and alarm be established for detecting changes to CloudTrail's configurations.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.5",
+        "created_at": "2026-09-17T03:48:34.109Z",
+        "updated_at": "2026-10-30T01:51:45.166Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.4/finding/5be4c0cf-2e8d-4c2f-89fa-7ee41e65d9b9",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for IAM policy changes",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is recommended that a metric filter and alarm be established changes made to Identity and Access Management (IAM) policies.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.4",
+        "created_at": "2026-09-17T03:48:34.103Z",
+        "updated_at": "2026-10-30T01:51:45.160Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.1/finding/60d39b6f-9a66-48ed-82a1-7fc69f14767e",
+      "severity": "low",
+      "payload": {
+        "title": "A log metric filter and alarm should exist for usage of the \"root\" user",
+        "description": "This control checks for the CloudWatch metric filters using the following pattern { $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" } It checks that the log group name is configured for use with active multi-region CloudTrail, that there is at least one Event Selector for a Trail with IncludeManagementEvents set to true and ReadWriteType set to All, and that there is at least one active subscriber to an SNS topic associated with the alarm.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.1",
+        "created_at": "2026-09-17T03:48:34.097Z",
+        "updated_at": "2026-10-30T01:51:45.153Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.3/finding/98f1a34f-17b0-4d45-ac5a-a13a28304eee",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for Management Console sign-in without MFA",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is recommended that a metric filter and alarm be established for console logins that are not protected by multi-factor authentication (MFA).",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.3",
+        "created_at": "2026-09-17T03:48:34.091Z",
+        "updated_at": "2026-10-30T01:51:45.147Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.14/finding/4a431d5c-f302-4057-a86e-6c92808154c1",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for VPC changes",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is possible to have more than 1 VPC within an account, in addition it is also possible to create a peer connection between 2 VPCs enabling network traffic to route between VPCs. It is recommended that a metric filter and alarm be established for changes made to VPCs.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.14",
+        "created_at": "2026-09-17T03:48:34.086Z",
+        "updated_at": "2026-10-30T01:51:45.140Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.13/finding/3683a290-6be4-49ca-ba9e-e6e63aea0b25",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for route table changes",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. Routing tables are used to route network traffic between subnets and to network gateways. It is recommended that a metric filter and alarm be established for changes to route tables.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.13",
+        "created_at": "2026-09-17T03:48:34.080Z",
+        "updated_at": "2026-10-30T01:51:45.134Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.12/finding/11564941-f3b3-444f-9f20-ee84ed52a4f2",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for changes to network gateways",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. Network gateways are required to send/receive traffic to a destination outside of a VPC. It is recommended that a metric filter and alarm be established for changes to network gateways.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.12",
+        "created_at": "2026-09-17T03:48:34.075Z",
+        "updated_at": "2026-10-30T01:51:45.127Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.11/finding/3706258a-36ed-43d6-baeb-b653ad7b4940",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for changes to Network Access Control Lists (NACL)",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. NACLs are used as a stateless packet filter to control ingress and egress traffic for subnets within a VPC. It is recommended that a metric filter and alarm be established for changes made to NACLs.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.11",
+        "created_at": "2026-09-17T03:48:34.070Z",
+        "updated_at": "2026-10-30T01:51:45.121Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.10/finding/6a54a04f-d2a1-456c-8454-4036871cf082",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for security group changes",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. Security Groups are a stateful packet filter that controls ingress and egress traffic within a VPC. It is recommended that a metric filter and alarm be established changes to Security Groups.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.10",
+        "created_at": "2026-09-17T03:48:34.064Z",
+        "updated_at": "2026-10-30T01:51:45.114Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudWatch.2/finding/27ed03ad-826e-4fd4-9ed5-cc57f4cc811c",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a log metric filter and alarm exist for unauthorized API calls",
+        "description": "Real-time monitoring of API calls can be achieved by directing CloudTrail Logs to CloudWatch Logs and establishing corresponding metric filters and alarms. It is recommended that a metric filter and alarm be established for unauthorized API calls.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/CloudWatch.2",
+        "created_at": "2026-09-17T03:48:34.059Z",
+        "updated_at": "2026-10-30T01:51:45.108Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/Config.1/finding/c5082bab-f555-4311-aa88-1ac1ab8f6032",
+      "severity": "critical",
+      "payload": {
+        "title": "AWS Config should be enabled and use the service-linked role for resource recording",
+        "description": "This control checks whether AWS Config is enabled in your account in the current AWS Region, records all resources that correspond to controls that are enabled in the current Region, and uses the service-linked AWS Config role.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "critical",
+        "severity_normalized": 90,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/Config.1",
+        "created_at": "2026-09-17T03:45:33.787Z",
+        "updated_at": "2026-10-30T01:51:20.458Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.15/finding/40552027-01ed-440b-a00a-77b04fac63c1",
+      "severity": "medium",
+      "payload": {
+        "title": "EC2 subnets should not automatically assign public IP addresses",
+        "description": "This control checks whether an Amazon Virtual Private Cloud (Amazon VPC) subnet is configured to automatically assign public IP addresses. The control fails if the subnet is configured to automatically assign public IPv4 or IPv6 addresses.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:subnet/subnet-00e0757166a47d634"
+        ],
+        "generator_id": "security-control/EC2.15",
+        "created_at": "2026-09-18T13:59:43.967Z",
+        "updated_at": "2026-10-30T01:27:51.043Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.60/finding/e4280a8f-b7db-4c95-8fa9-727677a34b6c",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager Incident Manager",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager Incident Manager. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager Incident Manager. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0484a958235634bec"
+        ],
+        "generator_id": "security-control/EC2.60",
+        "created_at": "2026-09-22T11:22:01.342Z",
+        "updated_at": "2026-10-30T01:27:38.164Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.2/finding/1458d813-1c4d-4121-bfa0-a81530d523a6",
+      "severity": "low",
+      "payload": {
+        "title": "IAM users should not have IAM policies attached",
+        "description": "This AWS control checks that none of your IAM users have policies attached. Instead, IAM users must inherit permissions from IAM groups or roles.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "arn:aws:iam::505467908065:user/resilai-test-it-admin"
+        ],
+        "generator_id": "security-control/IAM.2",
+        "created_at": "2026-09-18T13:59:27.711Z",
+        "updated_at": "2026-10-30T01:27:28.293Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.18/finding/51dc4ba4-2f11-4287-836b-96b31662e314",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should only allow unrestricted incoming traffic for authorized ports",
+        "description": "This control checks whether an Amazon EC2 security group permits unrestricted incoming traffic from unauthorized ports. The control status is determined as follows: If you use the default value for 'authorizedTcpPorts', the control fails if the security group permits unrestricted incoming traffic from any port other than ports 80 and 443; If you provide custom values for 'authorizedTcpPorts' or 'authorizedUdpPorts', the control fails if the security group permits unrestricted incoming traffic from any unlisted port; If no parameter is used, the control fails for any security group that has an unrestricted inbound traffic rule.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-062ca08135fdc9cb9"
+        ],
+        "generator_id": "security-control/EC2.18",
+        "created_at": "2026-09-18T10:22:47.204Z",
+        "updated_at": "2026-10-30T01:27:12.887Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.182/finding/75cc95e3-858d-481c-b2ec-68732528431a",
+      "severity": "high",
+      "payload": {
+        "title": "Block public access settings should be enabled for Amazon EBS snapshots",
+        "description": "This control checks whether account level block public access is enabled to prevent sharing of Amazon EBS snapshots to all. The control fails if block public access is not enabled to block sharing of Amazon EBS snapshots to all.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:snapshotblockpublicaccess/505467908065"
+        ],
+        "generator_id": "security-control/EC2.182",
+        "created_at": "2026-09-18T13:59:22.080Z",
+        "updated_at": "2026-10-30T01:27:01.377Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.58/finding/e57c31c8-b4cf-494b-a936-cddb3d07aee2",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager Incident Manager Contacts",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager Incident Manager Contacts. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager Incident Manager Contacts. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-05c2c0a3ddfa73dff"
+        ],
+        "generator_id": "security-control/EC2.58",
+        "created_at": "2026-09-18T10:23:09.312Z",
+        "updated_at": "2026-10-30T01:26:59.016Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.58/finding/149c8eb9-9826-479e-b499-a0c66d435a4b",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager Incident Manager Contacts",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager Incident Manager Contacts. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager Incident Manager Contacts. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0cac053b7fbb2cb29"
+        ],
+        "generator_id": "security-control/EC2.58",
+        "created_at": "2026-09-18T10:23:09.313Z",
+        "updated_at": "2026-10-30T01:26:59.016Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.15/finding/fd6839d4-0db7-431e-a0d4-43c0e8cc6ec4",
+      "severity": "medium",
+      "payload": {
+        "title": "EC2 subnets should not automatically assign public IP addresses",
+        "description": "This control checks whether an Amazon Virtual Private Cloud (Amazon VPC) subnet is configured to automatically assign public IP addresses. The control fails if the subnet is configured to automatically assign public IPv4 or IPv6 addresses.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:subnet/subnet-0fda2d8272c1abf49"
+        ],
+        "generator_id": "security-control/EC2.15",
+        "created_at": "2026-09-18T13:59:43.966Z",
+        "updated_at": "2026-10-30T00:28:59.422Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.2/finding/1d83a257-d29a-46aa-9a2b-760959ef878e",
+      "severity": "high",
+      "payload": {
+        "title": "VPC default security groups should not allow inbound or outbound traffic",
+        "description": "This AWS control checks that the default security group of a VPC does not allow inbound or outbound traffic.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-0a45a8ef97bfb5a4b"
+        ],
+        "generator_id": "security-control/EC2.2",
+        "created_at": "2026-09-18T10:23:57.664Z",
+        "updated_at": "2026-10-30T00:28:15.659Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.3/finding/237e1a6b-5156-4fea-b39d-fc1a02c4de7a",
+      "severity": "medium",
+      "payload": {
+        "title": "Attached EBS volumes should be encrypted at-rest",
+        "description": "This AWS control checks whether the EBS volumes that are in an attached state are encrypted.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:volume/vol-0894b918021f02d6c"
+        ],
+        "generator_id": "security-control/EC2.3",
+        "created_at": "2026-10-30T00:23:03.236Z",
+        "updated_at": "2026-10-30T00:23:03.236Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.13/finding/47a7c6c7-27c9-4447-9c00-0b6b76c59488",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should not allow ingress from 0.0.0.0/0 or ::/0 to port 22",
+        "description": "This control checks whether an Amazon EC2 security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 22. The control fails if the security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 22.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-0de67e322416e20aa"
+        ],
+        "generator_id": "security-control/EC2.13",
+        "created_at": "2026-10-26T18:22:03.026Z",
+        "updated_at": "2026-10-29T23:27:11.099Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.15/finding/d9a1e4d4-1d3b-4020-9a61-47d701ed6cef",
+      "severity": "medium",
+      "payload": {
+        "title": "EC2 subnets should not automatically assign public IP addresses",
+        "description": "This control checks whether an Amazon Virtual Private Cloud (Amazon VPC) subnet is configured to automatically assign public IP addresses. The control fails if the subnet is configured to automatically assign public IPv4 or IPv6 addresses.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:subnet/subnet-0931c9abdee82916a"
+        ],
+        "generator_id": "security-control/EC2.15",
+        "created_at": "2026-09-18T13:59:43.967Z",
+        "updated_at": "2026-10-29T23:26:55.837Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.18/finding/d8c645f2-6dc5-4e8d-b063-ade1325b4cce",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should only allow unrestricted incoming traffic for authorized ports",
+        "description": "This control checks whether an Amazon EC2 security group permits unrestricted incoming traffic from unauthorized ports. The control status is determined as follows: If you use the default value for 'authorizedTcpPorts', the control fails if the security group permits unrestricted incoming traffic from any port other than ports 80 and 443; If you provide custom values for 'authorizedTcpPorts' or 'authorizedUdpPorts', the control fails if the security group permits unrestricted incoming traffic from any unlisted port; If no parameter is used, the control fails for any security group that has an unrestricted inbound traffic rule.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-0de67e322416e20aa"
+        ],
+        "generator_id": "security-control/EC2.18",
+        "created_at": "2026-10-26T18:22:18.223Z",
+        "updated_at": "2026-10-29T23:26:49.275Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/Inspector.1/finding/bd5cc785-57f6-4e16-8ea2-0d1c4d401e5a",
+      "severity": "high",
+      "payload": {
+        "title": "Amazon Inspector EC2 scanning should be enabled",
+        "description": "This control checks whether Amazon Inspector EC2 scanning is enabled. For a standalone account, the control fails if Amazon Inspector EC2 scanning is disabled in the account. In a multi-account environment, the control fails if the delegated Inspector administrator account or any associated member account doesn't have EC2 scanning enabled.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/Inspector.1",
+        "created_at": "2026-09-18T10:22:31.670Z",
+        "updated_at": "2026-10-29T22:29:46.129Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.6/finding/016d17dc-685c-45de-97ed-e36a8dbc69e5",
+      "severity": "critical",
+      "payload": {
+        "title": "Hardware MFA should be enabled for the root user",
+        "description": "This AWS control checks whether your AWS account is enabled to use a hardware multi-factor authentication (MFA) device to sign in with root user credentials.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "critical",
+        "severity_normalized": 90,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.6",
+        "created_at": "2026-09-18T10:23:17.991Z",
+        "updated_at": "2026-10-29T22:29:45.144Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudTrail.4/finding/84cc4f91-f721-4dbe-8ece-908b7cfed154",
+      "severity": "low",
+      "payload": {
+        "title": "CloudTrail log file validation should be enabled",
+        "description": "This AWS control checks whether CloudTrail log file validation is enabled.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "arn:aws:cloudtrail:us-east-1:505467908065:trail/resilai-test-trail"
+        ],
+        "generator_id": "security-control/CloudTrail.4",
+        "created_at": "2026-09-18T10:22:56.940Z",
+        "updated_at": "2026-10-29T22:29:42.525Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/SSM.7/finding/27fad219-0848-43ef-889f-59c8e19dc6c9",
+      "severity": "critical",
+      "payload": {
+        "title": "SSM documents should have the block public sharing setting enabled",
+        "description": "This control checks whether the block public sharing setting is enabled for AWS Systems Manager documents. The control fails if the block public sharing setting is disabled for Systems Manager documents.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "critical",
+        "severity_normalized": 90,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/SSM.7",
+        "created_at": "2026-09-18T10:22:47.175Z",
+        "updated_at": "2026-10-29T22:29:39.753Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.16/finding/a6d5e421-8832-494f-89d6-bffadd9be60d",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure IAM password policy prevents password reuse",
+        "description": "IAM password policies can prevent the reuse of a given password by the same user. It is recommended that the password policy prevent the reuse of passwords.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.16",
+        "created_at": "2026-09-18T10:22:34.619Z",
+        "updated_at": "2026-10-29T22:29:38.239Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.17/finding/14e29642-2897-458a-821d-c81502d0e0db",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure IAM password policy expires passwords within 90 days or less",
+        "description": "IAM password policies can require passwords to be rotated or expired after a given number of days. It is recommended that the password policy expire passwords after 90 days or less.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.17",
+        "created_at": "2026-09-18T10:24:53.464Z",
+        "updated_at": "2026-10-29T22:29:32.642Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/Inspector.3/finding/26a22d18-499b-47fd-939d-799b0e6d29e8",
+      "severity": "high",
+      "payload": {
+        "title": "Amazon Inspector Lambda code scanning should be enabled",
+        "description": "This control checks whether Amazon Inspector Lambda code scanning is enabled. For a standalone account, the control fails if Amazon Inspector Lambda code scanning is disabled in the account. In a multi-account environment, the control fails if the delegated Inspector administrator account or any associated member account doesn't have Lambda code scanning enabled.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/Inspector.3",
+        "created_at": "2026-09-18T10:22:28.952Z",
+        "updated_at": "2026-10-29T22:29:32.494Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/Inspector.4/finding/be8ddb55-0728-424b-b7f7-f3597f0b905d",
+      "severity": "high",
+      "payload": {
+        "title": "Amazon Inspector Lambda standard scanning should be enabled",
+        "description": "This control checks whether Amazon Inspector Lambda standard scanning is enabled. For a standalone account, the control fails if Amazon Inspector Lambda standard scanning is disabled in the account. In a multi-account environment, the control fails if the delegated Inspector administrator account or any associated member account doesn't have Lambda standard scanning enabled.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/Inspector.4",
+        "created_at": "2026-09-18T10:23:01.225Z",
+        "updated_at": "2026-10-29T22:29:30.520Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.14/finding/bca007ae-dad6-4733-b2d1-9e146c41905f",
+      "severity": "medium",
+      "payload": {
+        "title": "Ensure IAM password policy requires at least one number",
+        "description": "Password policies are, in part, used to enforce password complexity requirements. IAM password policies can be used to ensure passwords are comprised of different character sets. It is recommended that the password policy require at least one number.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.14",
+        "created_at": "2026-09-18T10:23:11.050Z",
+        "updated_at": "2026-10-29T22:29:30.347Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.7/finding/dd270b44-af3c-4420-9270-bb168b0a24a0",
+      "severity": "medium",
+      "payload": {
+        "title": "Password policies for IAM users should have strong configurations",
+        "description": "This control checks whether the account password policy for IAM users uses strong configurations. The control fails if the password policy doesn't use strong configurations. Unless you provide custom parameter values, Security Hub uses the default values mentioned in the preceding table. The 'PasswordReusePrevention' and 'MaxPasswordAge' parameters have no default value, so if you exclude these parameters, Security Hub ignores number of password rotations and password age when evaluating this control.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.7",
+        "created_at": "2026-09-18T10:22:36.548Z",
+        "updated_at": "2026-10-29T22:29:28.997Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.7/finding/457ddb69-36f2-4f92-bf35-aa09bc1d4804",
+      "severity": "medium",
+      "payload": {
+        "title": "EBS default encryption should be enabled",
+        "description": "This control checks whether Amazon Elastic Block Store (EBS) encryption is enabled by default. The control fails if EBS default encryption is not enabled.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/EC2.7",
+        "created_at": "2026-09-18T10:23:18.197Z",
+        "updated_at": "2026-10-29T22:29:26.138Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.18/finding/1ffd8161-cdbd-46cd-8471-cacc3dff50aa",
+      "severity": "low",
+      "payload": {
+        "title": "Ensure a support role has been created to manage incidents with AWS Support",
+        "description": "AWS provides a support center that can be used for incident notification and response, as well as technical support and customer services. Create an IAM Role to allow authorized users to manage incidents with AWS Support.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "low",
+        "severity_normalized": 1,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.18",
+        "created_at": "2026-09-18T10:24:26.232Z",
+        "updated_at": "2026-10-29T22:29:20.795Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.6/finding/d8374176-dc2f-42dd-b13a-2fe52c8c5cd2",
+      "severity": "medium",
+      "payload": {
+        "title": "VPC flow logging should be enabled in all VPCs",
+        "description": "This control checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPCs. The traffic type is set to 'Reject'.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0cac053b7fbb2cb29"
+        ],
+        "generator_id": "security-control/EC2.6",
+        "created_at": "2026-09-18T10:23:14.763Z",
+        "updated_at": "2026-10-29T22:29:20.617Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.6/finding/42485010-86ea-4136-a086-3f1831c5269c",
+      "severity": "medium",
+      "payload": {
+        "title": "VPC flow logging should be enabled in all VPCs",
+        "description": "This control checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPCs. The traffic type is set to 'Reject'.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-05c2c0a3ddfa73dff"
+        ],
+        "generator_id": "security-control/EC2.6",
+        "created_at": "2026-09-18T10:23:14.763Z",
+        "updated_at": "2026-10-29T22:29:20.617Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.6/finding/349bde75-9ce5-4aeb-ab88-654247664553",
+      "severity": "medium",
+      "payload": {
+        "title": "VPC flow logging should be enabled in all VPCs",
+        "description": "This control checks whether Amazon Virtual Private Cloud flow logs are found and enabled for Amazon VPCs. The traffic type is set to 'Reject'.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0484a958235634bec"
+        ],
+        "generator_id": "security-control/EC2.6",
+        "created_at": "2026-09-21T22:43:29.503Z",
+        "updated_at": "2026-10-29T22:29:20.616Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/Inspector.2/finding/9faf19c8-852c-4d34-b77f-46cb814d15e2",
+      "severity": "high",
+      "payload": {
+        "title": "Amazon Inspector ECR scanning should be enabled",
+        "description": "This control checks whether Amazon Inspector ECR scanning is enabled. For a standalone account, the control fails if Amazon Inspector ECR scanning is disabled in the account. In a multi-account environment, the control fails if the delegated Inspector administrator account or any associated member account doesn't have ECR scanning enabled.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/Inspector.2",
+        "created_at": "2026-09-18T10:24:34.975Z",
+        "updated_at": "2026-10-29T22:29:19.164Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.13/finding/c39f2c61-39d8-4605-b2a1-cdb679bb6192",
+      "severity": "medium",
+      "payload": {
+        "title": "Ensure IAM password policy requires at least one symbol",
+        "description": "Password policies are, in part, used to enforce password complexity requirements. IAM password policies can be used to ensure passwords are comprised of different character sets. It is recommended that the password policy require at least one symbol.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.13",
+        "created_at": "2026-09-18T10:23:14.346Z",
+        "updated_at": "2026-10-29T22:29:16.256Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudTrail.2/finding/e967bc26-5184-4666-bdd9-6f3c6d0f3712",
+      "severity": "medium",
+      "payload": {
+        "title": "CloudTrail should have encryption at-rest enabled",
+        "description": "This AWS control checks whether AWS CloudTrail is configured to use the server side encryption (SSE) AWS Key Management Service (AWS KMS) customer master key (CMK) encryption. The check will pass if the KmsKeyId is defined.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:cloudtrail:us-east-1:505467908065:trail/resilai-test-trail"
+        ],
+        "generator_id": "security-control/CloudTrail.2",
+        "created_at": "2026-09-18T10:22:52.617Z",
+        "updated_at": "2026-10-29T22:29:12.632Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.11/finding/d00de2d5-41ef-4121-9fb8-4bdb81204764",
+      "severity": "medium",
+      "payload": {
+        "title": "Ensure IAM password policy requires at least one uppercase letter",
+        "description": "Password policies are, in part, used to enforce password complexity requirements. IAM password policies can be used to ensure passwords are comprised of different character sets. It is recommended that the password policy require at least one uppercase letter.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.11",
+        "created_at": "2026-09-18T10:22:34.475Z",
+        "updated_at": "2026-10-29T22:29:08.427Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/S3.1/finding/d48d0e75-3735-4108-8045-0f96abb49099",
+      "severity": "medium",
+      "payload": {
+        "title": "S3 general purpose buckets should have block public access settings enabled",
+        "description": "This control checks whether the preceding Amazon S3 block public access settings are configured at the account level for an S3 general purpose bucket. The control fails if one or more of the block public access settings are set to false.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/S3.1",
+        "created_at": "2026-09-18T10:22:35.519Z",
+        "updated_at": "2026-10-29T22:29:05.781Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudTrail.5/finding/5a3fd868-903a-485e-9a97-7e6b4d8816f5",
+      "severity": "medium",
+      "payload": {
+        "title": "CloudTrail trails should be integrated with Amazon CloudWatch Logs",
+        "description": "This AWS control checks whether AWS CloudTrail trails are configured to send logs to Amazon CloudWatch Logs.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:cloudtrail:us-east-1:505467908065:trail/resilai-test-trail"
+        ],
+        "generator_id": "security-control/CloudTrail.5",
+        "created_at": "2026-09-18T10:22:52.876Z",
+        "updated_at": "2026-10-29T22:29:00.091Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/CloudTrail.5/finding/17d2b4be-ef8c-4e4e-a1bf-b9faf85df9d1",
+      "severity": "medium",
+      "payload": {
+        "title": "CloudTrail trails should be integrated with Amazon CloudWatch Logs",
+        "description": "This AWS control checks whether AWS CloudTrail trails are configured to send logs to Amazon CloudWatch Logs.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:cloudtrail:us-east-1:505467908065:trail/f6s-poc-resilai-trail"
+        ],
+        "generator_id": "security-control/CloudTrail.5",
+        "created_at": "2026-09-21T22:42:40.250Z",
+        "updated_at": "2026-10-29T22:29:00.091Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/SSM.6/finding/2ebaa6fb-5cb0-43eb-aff0-c6d5dcbc66ac",
+      "severity": "medium",
+      "payload": {
+        "title": "SSM Automation should have CloudWatch logging enabled",
+        "description": "This control checks whether Amazon CloudWatch logging is enabled for AWS Systems Manager (SSM) Automation. The control fails if CloudWatch logging isn't enabled for SSM Automation.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/SSM.6",
+        "created_at": "2026-09-18T10:24:10.148Z",
+        "updated_at": "2026-10-29T22:28:59.566Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.15/finding/0c3cbbb3-9c7f-422c-a6ab-cc539aade80f",
+      "severity": "medium",
+      "payload": {
+        "title": "Ensure IAM password policy requires minimum password length of 14 or greater",
+        "description": "Password policies are, in part, used to enforce password complexity requirements. IAM password policies can be used to ensure passwords are at least a given length. It is recommended that the password policy require a minimum password length 14.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.15",
+        "created_at": "2026-09-18T10:22:29.699Z",
+        "updated_at": "2026-10-29T22:28:58.750Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/IAM.12/finding/465fea34-7c50-45cb-9605-6cfaa3dcc8b1",
+      "severity": "medium",
+      "payload": {
+        "title": "Ensure IAM password policy requires at least one lowercase letter",
+        "description": "Password policies are, in part, used to enforce password complexity requirements. IAM password policies can be used to ensure passwords are comprised of different character sets. It is recommended that the password policy require at least one lowercase letter.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/IAM.12",
+        "created_at": "2026-09-18T10:24:42.576Z",
+        "updated_at": "2026-10-29T22:28:58.239Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.15/finding/71bd7c9c-222e-4061-9a0f-3d16b6e0e67c",
+      "severity": "medium",
+      "payload": {
+        "title": "EC2 subnets should not automatically assign public IP addresses",
+        "description": "This control checks whether an Amazon Virtual Private Cloud (Amazon VPC) subnet is configured to automatically assign public IP addresses. The control fails if the subnet is configured to automatically assign public IPv4 or IPv6 addresses.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:subnet/subnet-0400c3419dae5a556"
+        ],
+        "generator_id": "security-control/EC2.15",
+        "created_at": "2026-09-18T13:59:43.966Z",
+        "updated_at": "2026-10-29T21:51:21.874Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.15/finding/41569706-47c0-48de-af37-65a9de94e06e",
+      "severity": "medium",
+      "payload": {
+        "title": "EC2 subnets should not automatically assign public IP addresses",
+        "description": "This control checks whether an Amazon Virtual Private Cloud (Amazon VPC) subnet is configured to automatically assign public IP addresses. The control fails if the subnet is configured to automatically assign public IPv4 or IPv6 addresses.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:subnet/subnet-0ad205caa4e75daf4"
+        ],
+        "generator_id": "security-control/EC2.15",
+        "created_at": "2026-09-18T13:59:43.965Z",
+        "updated_at": "2026-10-29T21:46:38.548Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.15/finding/9994b26a-5e3e-4847-8b00-11b4c246c837",
+      "severity": "medium",
+      "payload": {
+        "title": "EC2 subnets should not automatically assign public IP addresses",
+        "description": "This control checks whether an Amazon Virtual Private Cloud (Amazon VPC) subnet is configured to automatically assign public IP addresses. The control fails if the subnet is configured to automatically assign public IPv4 or IPv6 addresses.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:subnet/subnet-0905d23647c5824d3"
+        ],
+        "generator_id": "security-control/EC2.15",
+        "created_at": "2026-09-18T13:59:43.967Z",
+        "updated_at": "2026-10-29T19:27:34.105Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.2/finding/0506020f-8dbd-44ba-bb52-19a789fc63a7",
+      "severity": "high",
+      "payload": {
+        "title": "VPC default security groups should not allow inbound or outbound traffic",
+        "description": "This AWS control checks that the default security group of a VPC does not allow inbound or outbound traffic.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-010817b6ee6dc4c98"
+        ],
+        "generator_id": "security-control/EC2.2",
+        "created_at": "2026-09-18T10:23:57.663Z",
+        "updated_at": "2026-10-29T19:27:22.103Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.172/finding/bd8d72a0-2794-4921-892b-c0c572783ea2",
+      "severity": "medium",
+      "payload": {
+        "title": "EC2 VPC Block Public Access settings should block internet gateway traffic",
+        "description": "This control checks whether Amazon EC2 VPC Block Public Access (BPA) settings are configured to block internet gateway traffic for all Amazon VPCs in the AWS account. The control fails if EC2 VPC BPA settings aren't configured to block internet gateway traffic. If the parameter `vpcBpaInternetGatewayBlockMode` is provided, the control passes only if the EC2 VPC BPA value for InternetGatewayBlockMode matches the parameter.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpcblockpublicaccessoptions/505467908065"
+        ],
+        "generator_id": "security-control/EC2.172",
+        "created_at": "2026-09-18T13:59:29.121Z",
+        "updated_at": "2026-10-29T19:27:05.940Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.19/finding/d5072c9b-3ff4-4b54-b69e-dc4f73197d0b",
+      "severity": "critical",
+      "payload": {
+        "title": "Security groups should not allow unrestricted access to ports with high risk",
+        "description": "This control checks whether unrestricted incoming traffic for an Amazon EC2 security group is accessible to the specified ports [3389, 20, 23, 110, 143, 3306, 8080, 1433, 9200, 9300, 25, 445, 135, 21, 1434, 4333, 5432, 5500, 5601, 22, 3000, 5000, 8088, 8888] that are considered to be high risk. This control fails if any of the rules in a security group allow ingress traffic from '0.0.0.0/0' or '::/0' to those ports.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "critical",
+        "severity_normalized": 90,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-0e27a45232ce2d3ff"
+        ],
+        "generator_id": "security-control/EC2.19",
+        "created_at": "2026-09-18T10:22:57.993Z",
+        "updated_at": "2026-10-29T16:40:32.875Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.19/finding/a1172d44-00af-4585-9326-24b5998ac0a1",
+      "severity": "critical",
+      "payload": {
+        "title": "Security groups should not allow unrestricted access to ports with high risk",
+        "description": "This control checks whether unrestricted incoming traffic for an Amazon EC2 security group is accessible to the specified ports [3389, 20, 23, 110, 143, 3306, 8080, 1433, 9200, 9300, 25, 445, 135, 21, 1434, 4333, 5432, 5500, 5601, 22, 3000, 5000, 8088, 8888] that are considered to be high risk. This control fails if any of the rules in a security group allow ingress traffic from '0.0.0.0/0' or '::/0' to those ports.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "critical",
+        "severity_normalized": 90,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-037c44aaaf6dfe6e6"
+        ],
+        "generator_id": "security-control/EC2.19",
+        "created_at": "2026-09-18T10:22:57.992Z",
+        "updated_at": "2026-10-29T16:40:32.875Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.19/finding/a39b8b81-c113-4877-9ea1-d6727a269197",
+      "severity": "critical",
+      "payload": {
+        "title": "Security groups should not allow unrestricted access to ports with high risk",
+        "description": "This control checks whether unrestricted incoming traffic for an Amazon EC2 security group is accessible to the specified ports [3389, 20, 23, 110, 143, 3306, 8080, 1433, 9200, 9300, 25, 445, 135, 21, 1434, 4333, 5432, 5500, 5601, 22, 3000, 5000, 8088, 8888] that are considered to be high risk. This control fails if any of the rules in a security group allow ingress traffic from '0.0.0.0/0' or '::/0' to those ports.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "critical",
+        "severity_normalized": 90,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-062ca08135fdc9cb9"
+        ],
+        "generator_id": "security-control/EC2.19",
+        "created_at": "2026-09-18T10:22:57.993Z",
+        "updated_at": "2026-10-29T16:40:32.872Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.14/finding/cb4dc83a-4052-4707-a98f-40063c7beca0",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should not allow ingress from 0.0.0.0/0 or ::/0 to port 3389",
+        "description": "This control checks whether an Amazon EC2 security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 3389. The control fails if the security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 3389.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-062ca08135fdc9cb9"
+        ],
+        "generator_id": "security-control/EC2.14",
+        "created_at": "2026-09-18T10:24:33.351Z",
+        "updated_at": "2026-10-29T16:40:14.646Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.14/finding/501494c6-b26a-458e-b739-9d5dbbe064e8",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should not allow ingress from 0.0.0.0/0 or ::/0 to port 3389",
+        "description": "This control checks whether an Amazon EC2 security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 3389. The control fails if the security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 3389.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-037c44aaaf6dfe6e6"
+        ],
+        "generator_id": "security-control/EC2.14",
+        "created_at": "2026-09-18T10:24:33.351Z",
+        "updated_at": "2026-10-29T16:40:14.643Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.15/finding/54ac4160-1729-4a6d-a860-97b0c532c547",
+      "severity": "medium",
+      "payload": {
+        "title": "EC2 subnets should not automatically assign public IP addresses",
+        "description": "This control checks whether an Amazon Virtual Private Cloud (Amazon VPC) subnet is configured to automatically assign public IP addresses. The control fails if the subnet is configured to automatically assign public IPv4 or IPv6 addresses.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:subnet/subnet-09057483d65b294ea"
+        ],
+        "generator_id": "security-control/EC2.15",
+        "created_at": "2026-09-18T13:59:43.967Z",
+        "updated_at": "2026-10-29T13:27:46.494Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/KMS.2/finding/49b91c80-53e7-40fd-9779-627b585acb9c",
+      "severity": "medium",
+      "payload": {
+        "title": "IAM principals should not have IAM inline policies that allow decryption actions on all KMS keys",
+        "description": "Checks whether the inline policies embedded in your IAM principals (Role/User/Group) allow the AWS Key Management Service (KMS) decryption actions on all KMS keys. This control fails if kms:Decrypt or kms:ReEncryptFrom actions are allowed on all KMS keys in an inline policy.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:iam::505467908065:user/resilai-test-it-admin"
+        ],
+        "generator_id": "security-control/KMS.2",
+        "created_at": "2026-09-18T14:00:03.502Z",
+        "updated_at": "2026-10-29T13:27:18.642Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.57/finding/88a155fa-6139-4deb-8566-e324c58c5248",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-05c2c0a3ddfa73dff"
+        ],
+        "generator_id": "security-control/EC2.57",
+        "created_at": "2026-09-18T10:22:38.214Z",
+        "updated_at": "2026-10-29T10:42:41.592Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.57/finding/1e9b7624-52c4-4d72-a949-f7baf9b78a2d",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0cac053b7fbb2cb29"
+        ],
+        "generator_id": "security-control/EC2.57",
+        "created_at": "2026-09-18T10:22:38.214Z",
+        "updated_at": "2026-10-29T10:42:41.592Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.57/finding/44db1f4f-714e-4776-b58f-e9101bacfa77",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0484a958235634bec"
+        ],
+        "generator_id": "security-control/EC2.57",
+        "created_at": "2026-09-22T11:21:26.995Z",
+        "updated_at": "2026-10-29T10:42:41.591Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.18/finding/8f750c82-4866-41f6-813c-984391340a95",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should only allow unrestricted incoming traffic for authorized ports",
+        "description": "This control checks whether an Amazon EC2 security group permits unrestricted incoming traffic from unauthorized ports. The control status is determined as follows: If you use the default value for 'authorizedTcpPorts', the control fails if the security group permits unrestricted incoming traffic from any port other than ports 80 and 443; If you provide custom values for 'authorizedTcpPorts' or 'authorizedUdpPorts', the control fails if the security group permits unrestricted incoming traffic from any unlisted port; If no parameter is used, the control fails for any security group that has an unrestricted inbound traffic rule.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-037c44aaaf6dfe6e6"
+        ],
+        "generator_id": "security-control/EC2.18",
+        "created_at": "2026-09-18T10:22:47.204Z",
+        "updated_at": "2026-10-29T10:42:34.235Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.18/finding/283c1729-4f68-4e32-aa1c-4cb204bdcb43",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should only allow unrestricted incoming traffic for authorized ports",
+        "description": "This control checks whether an Amazon EC2 security group permits unrestricted incoming traffic from unauthorized ports. The control status is determined as follows: If you use the default value for 'authorizedTcpPorts', the control fails if the security group permits unrestricted incoming traffic from any port other than ports 80 and 443; If you provide custom values for 'authorizedTcpPorts' or 'authorizedUdpPorts', the control fails if the security group permits unrestricted incoming traffic from any unlisted port; If no parameter is used, the control fails for any security group that has an unrestricted inbound traffic rule.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-0e27a45232ce2d3ff"
+        ],
+        "generator_id": "security-control/EC2.18",
+        "created_at": "2026-09-18T10:22:47.203Z",
+        "updated_at": "2026-10-29T10:42:34.235Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.10/finding/f554abe2-1197-4c24-a771-cff5c184f4e7",
+      "severity": "medium",
+      "payload": {
+        "title": "Amazon EC2 should be configured to use VPC endpoints that are created for the Amazon EC2 service",
+        "description": "This control checks whether a service endpoint for Amazon EC2 is created for each VPC. The control fails if a VPC does not have a VPC endpoint created for the Amazon EC2 service.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0484a958235634bec"
+        ],
+        "generator_id": "security-control/EC2.10",
+        "created_at": "2026-09-22T11:22:13.557Z",
+        "updated_at": "2026-10-29T10:42:31.471Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.10/finding/3aa8abb8-160c-47d6-8e65-b41cfc346682",
+      "severity": "medium",
+      "payload": {
+        "title": "Amazon EC2 should be configured to use VPC endpoints that are created for the Amazon EC2 service",
+        "description": "This control checks whether a service endpoint for Amazon EC2 is created for each VPC. The control fails if a VPC does not have a VPC endpoint created for the Amazon EC2 service.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0cac053b7fbb2cb29"
+        ],
+        "generator_id": "security-control/EC2.10",
+        "created_at": "2026-09-18T10:23:18.340Z",
+        "updated_at": "2026-10-29T10:42:31.470Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.10/finding/02fbdfce-76ae-49c3-b068-57f259ef535d",
+      "severity": "medium",
+      "payload": {
+        "title": "Amazon EC2 should be configured to use VPC endpoints that are created for the Amazon EC2 service",
+        "description": "This control checks whether a service endpoint for Amazon EC2 is created for each VPC. The control fails if a VPC does not have a VPC endpoint created for the Amazon EC2 service.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-05c2c0a3ddfa73dff"
+        ],
+        "generator_id": "security-control/EC2.10",
+        "created_at": "2026-09-18T10:23:18.339Z",
+        "updated_at": "2026-10-29T10:42:31.469Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.58/finding/aeaf9327-b082-4122-9e53-47034eed5202",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager Incident Manager Contacts",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager Incident Manager Contacts. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager Incident Manager Contacts. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0484a958235634bec"
+        ],
+        "generator_id": "security-control/EC2.58",
+        "created_at": "2026-09-22T11:22:00.373Z",
+        "updated_at": "2026-10-29T10:42:23.004Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/Macie.1/finding/f7fc06c0-533d-4c29-8d1f-5f467732082e",
+      "severity": "medium",
+      "payload": {
+        "title": "Macie should be enabled",
+        "description": "This control checks whether Amazon Macie is enabled for an account. The control fails if Macie isn't enabled for the account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "AWS::::Account:505467908065"
+        ],
+        "generator_id": "security-control/Macie.1",
+        "created_at": "2026-09-18T10:22:34.026Z",
+        "updated_at": "2026-10-29T10:42:07.423Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.60/finding/e1544b63-147a-4fe2-ad65-42a98a36e577",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager Incident Manager",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager Incident Manager. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager Incident Manager. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0cac053b7fbb2cb29"
+        ],
+        "generator_id": "security-control/EC2.60",
+        "created_at": "2026-09-18T10:24:25.136Z",
+        "updated_at": "2026-10-29T10:41:58.294Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.60/finding/d2ebdeef-957a-4da3-8003-fde4de56164c",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Systems Manager Incident Manager",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Systems Manager Incident Manager. The control fails if the VPC doesn't have an interface VPC endpoint for Systems Manager Incident Manager. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-05c2c0a3ddfa73dff"
+        ],
+        "generator_id": "security-control/EC2.60",
+        "created_at": "2026-09-18T10:24:25.137Z",
+        "updated_at": "2026-10-29T10:41:58.292Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.55/finding/dec6d322-80c6-4e24-96bf-5971d401e256",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for ECR API",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for ECR API. The control fails if the VPC doesn't have an interface VPC endpoint for ECR API. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0484a958235634bec"
+        ],
+        "generator_id": "security-control/EC2.55",
+        "created_at": "2026-09-22T11:22:18.777Z",
+        "updated_at": "2026-10-29T10:41:56.693Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.55/finding/aae8b795-1085-47ff-a529-8e11e21c7f12",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for ECR API",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for ECR API. The control fails if the VPC doesn't have an interface VPC endpoint for ECR API. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-05c2c0a3ddfa73dff"
+        ],
+        "generator_id": "security-control/EC2.55",
+        "created_at": "2026-09-18T10:22:24.716Z",
+        "updated_at": "2026-10-29T10:41:56.692Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.55/finding/5a3c039d-1aad-4f6d-a53d-2372cd6d9312",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for ECR API",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for ECR API. The control fails if the VPC doesn't have an interface VPC endpoint for ECR API. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0cac053b7fbb2cb29"
+        ],
+        "generator_id": "security-control/EC2.55",
+        "created_at": "2026-09-18T10:22:24.717Z",
+        "updated_at": "2026-10-29T10:41:56.692Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.13/finding/93a52c6d-9e2d-4aa3-9afb-64a4e06e41ea",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should not allow ingress from 0.0.0.0/0 or ::/0 to port 22",
+        "description": "This control checks whether an Amazon EC2 security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 22. The control fails if the security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 22.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-062ca08135fdc9cb9"
+        ],
+        "generator_id": "security-control/EC2.13",
+        "created_at": "2026-09-18T10:24:30.590Z",
+        "updated_at": "2026-10-29T10:41:54.885Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.13/finding/7f7e85d3-2f08-4cd0-806f-1e04b222cc5a",
+      "severity": "high",
+      "payload": {
+        "title": "Security groups should not allow ingress from 0.0.0.0/0 or ::/0 to port 22",
+        "description": "This control checks whether an Amazon EC2 security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 22. The control fails if the security group allows ingress from \u20180.0.0.0/0\u2019 or \u2018::/0\u2019 to port 22.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "high",
+        "severity_normalized": 70,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:security-group/sg-0e27a45232ce2d3ff"
+        ],
+        "generator_id": "security-control/EC2.13",
+        "created_at": "2026-09-18T10:24:30.591Z",
+        "updated_at": "2026-10-29T10:41:54.878Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.56/finding/9b0e62d6-0c26-423e-8556-920d12738e88",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Docker Registry",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Docker Registry. The control fails if the VPC doesn't have an interface VPC endpoint for Docker Registry. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0484a958235634bec"
+        ],
+        "generator_id": "security-control/EC2.56",
+        "created_at": "2026-09-22T11:22:05.895Z",
+        "updated_at": "2026-10-29T10:41:45.590Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.56/finding/055e96c6-2a26-48da-acc1-c6758262f83f",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Docker Registry",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Docker Registry. The control fails if the VPC doesn't have an interface VPC endpoint for Docker Registry. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-0cac053b7fbb2cb29"
+        ],
+        "generator_id": "security-control/EC2.56",
+        "created_at": "2026-09-18T10:22:59.687Z",
+        "updated_at": "2026-10-29T10:41:45.590Z"
+      },
+      "timestamp": null
+    },
+    {
+      "event_type": "aws.securityhub.finding",
+      "source_system": "aws_security_hub",
+      "source_event_id": "arn:aws:securityhub:us-east-1:505467908065:security-control/EC2.56/finding/b772553d-c201-4476-bd72-fcba50ffda6d",
+      "severity": "medium",
+      "payload": {
+        "title": "VPCs should be configured with an interface endpoint for Docker Registry",
+        "description": "This control checks whether a virtual private cloud (VPC) that you manage has an interface VPC endpoint for Docker Registry. The control fails if the VPC doesn't have an interface VPC endpoint for Docker Registry. This control evaluates resources in a single account.",
+        "product_name": "Security Hub",
+        "company_name": "AWS",
+        "compliance_status": "FAILED",
+        "record_state": "ACTIVE",
+        "workflow_status": "NEW",
+        "severity_label": "medium",
+        "severity_normalized": 40,
+        "resources": [
+          "arn:aws:ec2:us-east-1:505467908065:vpc/vpc-05c2c0a3ddfa73dff"
+        ],
+        "generator_id": "security-control/EC2.56",
+        "created_at": "2026-09-18T10:22:59.687Z",
+        "updated_at": "2026-10-29T10:41:45.589Z"
+      },
+      "timestamp": null
+    }
+  ],
+  "resources": [
+    {
+      "kind": "ec2_instance",
+      "instance_id": "i-0d27981b53460c6eb",
+      "name": "northstar-cole-dms-matter-server",
+      "role": "dms-matter-server",
+      "department": "LegalIT",
+      "instance_type": "t3.micro",
+      "platform": "Linux/UNIX",
+      "state": "running",
+      "launch_time": "2026-11-07 01:12:56+00:00",
+      "private_ip": null,
+      "public_ip": null,
+      "ssm_managed": true,
+      "imdsv2": "required",
+      "ebs_encrypted": null,
+      "source": "ec2:DescribeInstances (recorded 2026-11-06 before teardown)"
+    },
+    {
+      "kind": "ec2_instance",
+      "instance_id": "i-067020572d69e37de",
+      "name": "northstar-cole-file-server",
+      "role": "file-server",
+      "department": "LegalIT",
+      "instance_type": "t3.micro",
+      "platform": "Linux/UNIX",
+      "state": "running",
+      "launch_time": "2026-11-07 01:12:56+00:00",
+      "private_ip": null,
+      "public_ip": null,
+      "ssm_managed": true,
+      "imdsv2": "required",
+      "ebs_encrypted": null,
+      "source": "ec2:DescribeInstances (recorded 2026-11-06 before teardown)"
+    },
+    {
+      "kind": "ec2_instance",
+      "instance_id": "i-03fdf15a40a1e33cf",
+      "name": "northstar-cole-partner-laptop-vdi",
+      "role": "partner-laptop-vdi",
+      "department": "LegalIT",
+      "instance_type": "t3.micro",
+      "platform": "Linux/UNIX",
+      "state": "running",
+      "launch_time": "2026-11-07 01:12:56+00:00",
+      "private_ip": null,
+      "public_ip": null,
+      "ssm_managed": true,
+      "imdsv2": "required",
+      "ebs_encrypted": null,
+      "source": "ec2:DescribeInstances (recorded 2026-11-06 before teardown)"
+    }
+  ],
+  "iam_users": [
+    {
+      "user_name": "<root_account>",
+      "mfa_active": true,
+      "password_enabled": true,
+      "password_last_used": "2026-11-07T01:02:41Z",
+      "access_key_1_active": false,
+      "access_key_1_last_rotated": "N/A",
+      "access_key_1_last_used_date": "N/A"
+    },
+    {
+      "user_name": "resilai-northstar-cole-managing-partner",
+      "mfa_active": false,
+      "password_enabled": false,
+      "password_last_used": "N/A",
+      "access_key_1_active": true,
+      "access_key_1_last_rotated": "2026-11-07T01:10:58Z",
+      "access_key_1_last_used_date": "N/A"
+    }
+  ],
+  "counts": {
+    "findings": 91,
+    "resources": 3,
+    "iam_users": 2
+  },
+  "sanitized": true
+}

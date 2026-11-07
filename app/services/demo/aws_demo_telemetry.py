@@ -39,7 +39,18 @@ def _events_from_fixture(org_id: str, fixture: Dict[str, Any]) -> List[RawEvent]
     the newest recorded finding reads as 'recent' while relative ordering stays."""
     now = datetime.now(timezone.utc)
     events: List[RawEvent] = []
-    findings = fixture.get("securityhub_findings", [])
+    slug = (fixture.get("org_slug") or "").lower()
+    sev_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3, "informational": 4}
+
+    def _priority(f: Dict[str, Any]) -> tuple:
+        payload = f.get("payload") or {}
+        blob = json.dumps(payload).lower()
+        own_resource = 0 if (slug and slug in blob) else 1          # this org's own servers/buckets first
+        attack = 0 if (payload.get("product_name") or "").lower() == "guardduty" else 1
+        sev = sev_rank.get(str(payload.get("severity_label") or payload.get("severity") or "medium").lower(), 2)
+        return (own_resource, attack, sev)
+
+    findings = sorted(fixture.get("securityhub_findings", []), key=_priority)
     for idx, f in enumerate(findings[:40]):
         payload = dict(f.get("payload") or {})
         payload.setdefault("recorded_from", f"aws:{fixture.get('source', {}).get('account_id', 'demo')}")

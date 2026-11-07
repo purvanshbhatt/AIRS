@@ -104,6 +104,18 @@ def _tag_index(session) -> Dict[str, str]:
         for industry, slug in DEMO_STACK_SLUG.items():
             if f"resilai-{slug}-" in u["UserName"]:
                 index[u["UserName"]] = industry
+    # Resources recorded by an earlier capture keep their industry even after
+    # the stacks are torn down (Security Hub findings outlive the instances).
+    for industry in INDUSTRIES:
+        prior = FIXTURE_DIR / f"aws_{industry}.json"
+        if prior.exists():
+            try:
+                for r in json.loads(prior.read_text(encoding="utf-8")).get("resources", []):
+                    for k in ("instance_id", "identifier", "id", "name"):
+                        if r.get(k):
+                            index.setdefault(str(r[k]), industry)
+            except Exception:
+                pass
     return index
 
 
@@ -150,10 +162,94 @@ def _credential_report(session) -> List[Dict[str, Any]]:
     return users
 
 
+import re
+
+_KEY_RE = re.compile(r"\b(ASIA|AKIA)[0-9A-Z]{16}\b")
+_SAMPLE_MARKERS = ("i-99999999", "generatedfinding", "generated finding")
+_REDACT = {
+    r"root/[a-z0-9._-]*stephanedev[a-z0-9._-]*": "Root/it-admin",
+    r"iamuser/[a-z0-9._-]*jobagent[a-z0-9._-]*": "IAMUser/backup-automation",
+    r"[a-z0-9._-]*stephanedev[a-z0-9._-]*": "it-admin",
+    r"[a-z0-9._-]*jobagent[a-z0-9._-]*": "backup-automation",
+}
+_ACCOUNT_LEVEL = ("aws::::account", "arn:aws:iam::", "arn:aws:cloudtrail", "arn:aws:config", "arn:aws:securityhub", "arn:aws:kms", "arn:aws:ec2:us-east-1:")
+
+
+def sanitize_finding(f: Dict[str, Any], tagged: Dict[str, str], account: str, slug: str) -> Dict[str, Any] | None:
+    """Keep only findings about the demo environment, GuardDuty SAMPLE findings,
+    or account-level controls; strip real principal names and access key ids.
+    Returns None when the finding references something that is not part of
+    the demo (another bucket, a real IAM user, a real temporary key)."""
+    payload = dict(f.get("payload") or {})
+    resources = [str(r) for r in (payload.get("resources") or [])]
+    kept_resources: List[str] = []
+    for r in resources:
+        low = r.lower()
+        if "aws::iam::accesskey" in low:
+            continue  # real session keys are never part of the demo
+        if any(m in low for m in _SAMPLE_MARKERS):
+            kept_resources.append(r); continue
+        if any(k.lower() in low for k in tagged.keys()) or f"resilai-{slug}" in low:
+            kept_resources.append(r); continue
+        if low == account or low.endswith(f":{account}") or any(low.startswith(a) for a in _ACCOUNT_LEVEL) and account in low and "resilai" in low:
+            kept_resources.append(r); continue
+        # EC2 resources (instances, security groups, volumes, VPCs) in this
+        # account only exist for the demo stacks during a capture window.
+        if low.startswith("arn:aws:ec2:") and account in low:
+            kept_resources.append(r); continue
+        if low.startswith("aws::::account") or low == f"arn:aws:iam::{account}:root" or f"{account}" == low:
+            kept_resources.append(r); continue
+        # anything else (foreign bucket, non-demo instance, other user) disqualifies the finding
+        return None
+    if not kept_resources and resources:
+        return None
+    payload["resources"] = kept_resources
+    # Redact the operator's real principals/keys; the finding itself (what was
+    # done to a demo resource) stays, attributed to a generic demo identity.
+    for key in ("title", "description", "generator_id"):
+        if isinstance(payload.get(key), str):
+            text = _KEY_RE.sub("ASIADEMOKEY0000000000", payload[key])
+            for real, fake in _REDACT.items():
+                text = re.sub(real, fake, text, flags=re.IGNORECASE)
+            payload[key] = text
+    if any(bad in json.dumps(payload).lower() for bad in ("dropzone",)):
+        return None  # foreign bucket activity is not part of the demo story
+    out = dict(f)
+    out["payload"] = payload
+    return out
+
+
+def sanitize_fixture(path: Path) -> None:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    account = str(data.get("source", {}).get("account_id", ""))
+    slug = data.get("org_slug", "")
+    tagged = {}
+    for r in data.get("resources", []):
+        for k in ("instance_id", "identifier", "id", "name"):
+            if r.get(k):
+                tagged[str(r[k])] = data.get("industry")
+    for u in data.get("iam_users", []):
+        if (u.get("user_name") or "").startswith("resilai-"):
+            tagged[u["user_name"]] = data.get("industry")
+    before = len(data.get("securityhub_findings", []))
+    cleaned = [x for x in (sanitize_finding(f, tagged, account, slug) for f in data.get("securityhub_findings", [])) if x]
+    data["securityhub_findings"] = cleaned
+    data["iam_users"] = [u for u in data.get("iam_users", []) if (u.get("user_name") or "").startswith("resilai-") or u.get("user_name") == "<root_account>"]
+    data["counts"]["findings"] = len(cleaned)
+    data["sanitized"] = True
+    path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
+    print(f"sanitized {path.name}: {before} -> {len(cleaned)} findings")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--region", default="us-east-1")
+    ap.add_argument("--sanitize-only", action="store_true", help="Re-sanitize existing fixtures without calling AWS")
     args = ap.parse_args()
+    if args.sanitize_only:
+        for industry in INDUSTRIES:
+            sanitize_fixture(FIXTURE_DIR / f"aws_{industry}.json")
+        return 0
 
     session = _session(args.region)
     account = session.client("sts").get_caller_identity()["Account"]
@@ -204,6 +300,7 @@ def main() -> int:
         out = FIXTURE_DIR / f"aws_{industry}.json"
         out.write_text(json.dumps(fixture, indent=2, default=str), encoding="utf-8")
         print(f"wrote {out} findings={len(ind_findings)} resources={len(ind_resources)} users={len(ind_users)}")
+        sanitize_fixture(out)
     return 0
 
 
