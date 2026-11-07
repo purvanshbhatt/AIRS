@@ -11,6 +11,84 @@ logger = logging.getLogger("airs.services.demo.aws_demo_telemetry")
 E2E_RESULTS_PATH = Path(__file__).resolve().parents[3] / "tests" / "aws_integration" / "e2e_results.json"
 
 
+FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
+
+
+def _industry_for(org_id: str) -> str:
+    return "legal" if any(k in org_id.lower() for k in ("cole", "law", "legal", "lex")) else "healthcare"
+
+
+def load_recorded_fixture(industry: str) -> Dict[str, Any] | None:
+    """Return the telemetry recorded from the real AWS demo organization for
+    this industry (scripts/capture_aws_demo_telemetry.py), or None."""
+    path = FIXTURE_DIR / f"aws_{industry}.json"
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        logger.warning("Could not read demo fixture %s: %s", path, exc)
+        return None
+    if not isinstance(data, dict) or not data.get("securityhub_findings"):
+        return None
+    return data
+
+
+def _events_from_fixture(org_id: str, fixture: Dict[str, Any]) -> List[RawEvent]:
+    """Replay recorded connector output for a demo org. Timestamps are shifted so
+    the newest recorded finding reads as 'recent' while relative ordering stays."""
+    now = datetime.now(timezone.utc)
+    events: List[RawEvent] = []
+    findings = fixture.get("securityhub_findings", [])
+    for idx, f in enumerate(findings[:40]):
+        payload = dict(f.get("payload") or {})
+        payload.setdefault("recorded_from", f"aws:{fixture.get('source', {}).get('account_id', 'demo')}")
+        events.append(RawEvent(
+            event_type=f.get("event_type") or "aws.securityhub.finding",
+            source_system=f.get("source_system") or "aws_security_hub",
+            source_event_id=f"{f.get('source_event_id') or 'finding'}-{idx}",
+            organization_id=org_id,
+            payload=payload,
+            timestamp=(now - timedelta(minutes=10 * (idx + 1))).isoformat(),
+        ))
+
+    users = fixture.get("iam_users") or []
+    if users:
+        iam_users = []
+        for i, u in enumerate(users):
+            name = u.get("user_name") or f"user-{i}"
+            iam_users.append({
+                "user_id": f"iam-{i}",
+                "user_name": name,
+                "display_name": name.replace("resilai-", "").replace("-", " ").title(),
+                "mfa_enforced": bool(u.get("mfa_active")),
+                "account_enabled": True,
+                "last_sign_in": u.get("password_last_used") if u.get("password_last_used") not in (None, "no_information", "N/A") else (now - timedelta(days=45)).isoformat(),
+                "access_key_active": bool(u.get("access_key_1_active")),
+                "access_key_last_rotated": u.get("access_key_1_last_rotated"),
+            })
+        events.append(RawEvent(
+            event_type="aws.iam.credential_report",
+            source_system="aws",
+            source_event_id=f"aws-iam-report-{now.strftime('%Y%m%d%H')}",
+            organization_id=org_id,
+            payload={"iam_users": iam_users, "recorded": True},
+            timestamp=now.isoformat(),
+        ))
+
+    resources = fixture.get("resources") or []
+    if resources:
+        events.append(RawEvent(
+            event_type="aws.inventory.snapshot",
+            source_system="aws",
+            source_event_id=f"aws-inventory-{now.strftime('%Y%m%d%H')}",
+            organization_id=org_id,
+            payload={"resources": resources[:60], "recorded": True},
+            timestamp=now.isoformat(),
+        ))
+    return events
+
+
 def get_aws_demo_telemetry(org_id: str) -> List[RawEvent]:
     """
     Generate realistic, high-fidelity AWS telemetry events derived from real AWS test machines
@@ -24,6 +102,12 @@ def get_aws_demo_telemetry(org_id: str) -> List[RawEvent]:
     """
     now = datetime.now(timezone.utc)
     events: List[RawEvent] = []
+
+    # Preferred source: telemetry recorded from the real AWS demo organization
+    # for this industry (infra/aws-demo-orgs + scripts/capture_aws_demo_telemetry.py).
+    fixture = load_recorded_fixture(_industry_for(org_id))
+    if fixture:
+        return _events_from_fixture(org_id, fixture)
 
     # Attempt to load recorded findings from the test run
     raw_samples: List[Dict[str, Any]] = []
