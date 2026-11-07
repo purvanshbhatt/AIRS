@@ -40,6 +40,12 @@ def get_demo_telemetry(org_id: str) -> List[RawEvent]:
     a fallback for real organizations.
     """
     now = datetime.now(timezone.utc)
+    is_legal = any(k in org_id.lower() for k in ("cole", "law", "legal", "lex"))
+    domain = "northstarcole.com" if is_legal else "clinic.com"
+    active_user = f"partner.reed@{domain}" if is_legal else f"dr.smith@{domain}"
+    stale_user = f"former.paralegal@{domain}" if is_legal else f"former.nurse@{domain}"
+    workstation = "PARTNER-LAPTOP-07" if is_legal else "FRONT-DESK-PC"
+    backed_up_system = "Client Matter (DMS) Server" if is_legal else "Patient Database Server"
 
     # 1. Microsoft Graph Telemetry (Entra ID, Intune, Defender)
     ms_event = RawEvent(
@@ -51,7 +57,7 @@ def get_demo_telemetry(org_id: str) -> List[RawEvent]:
             "entra_users": [
                 {
                     "user_id": "u-001",
-                    "user_principal_name": "dr.smith@clinic.com",
+                    "user_principal_name": active_user,
                     "mfa_enforced": True,
                     "account_enabled": True,
                     "last_sign_in": (now - timedelta(hours=2)).isoformat(),
@@ -59,7 +65,7 @@ def get_demo_telemetry(org_id: str) -> List[RawEvent]:
                 },
                 {
                     "user_id": "u-002",
-                    "user_principal_name": "former.nurse@clinic.com",
+                    "user_principal_name": stale_user,
                     "mfa_enforced": False,
                     "account_enabled": True,
                     "last_sign_in": (now - timedelta(days=45)).isoformat(),  # Stale! (Q1)
@@ -69,7 +75,7 @@ def get_demo_telemetry(org_id: str) -> List[RawEvent]:
             "intune_devices": [
                 {
                     "device_id": "d-001",
-                    "device_name": "FRONT-DESK-PC",
+                    "device_name": workstation,
                     "compliance_state": "noncompliant", # Non-compliant! (Q3)
                     "bitlocker_status": "not_encrypted",
                     "os_version": "10.0.19044"
@@ -94,7 +100,7 @@ def get_demo_telemetry(org_id: str) -> List[RawEvent]:
         source_event_id=f"sync-v-{int(time.time())}",
         organization_id=org_id,
         payload={
-            "system_name": "Patient Database Server",
+            "system_name": backed_up_system,
             "last_successful_backup": (now - timedelta(hours=28)).isoformat(), # Failed! (Q2)
             "backup_type": "full"
         }
