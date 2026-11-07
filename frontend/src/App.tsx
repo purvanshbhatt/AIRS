@@ -30,6 +30,7 @@ import HealthcareDefenseGuide from './pages/solutions/HealthcareDefenseGuide';
 
 // MORNING OPERATIONS
 import TodayPage from './features/readiness/TodayPage';
+import TodayPageV2, { DASHBOARD_V2_FLAG } from './features/readiness/TodayPageV2';
 import NeedsAttentionPage from './features/readiness/NeedsAttentionPage';
 import RecoveryReadinessPage from './features/readiness/RecoveryReadinessPage';
 import DocumentsPage from './pages/Documents';
@@ -74,6 +75,30 @@ function ApiConfigBanner() {
   );
 }
 
+/**
+ * Morning brief V2 gate.
+ * - localStorage resilai_dashboard_v2 = 'false'  -> classic view, even on staging (explicit opt-out)
+ * - localStorage resilai_dashboard_v2 = 'true'   -> V2 anywhere (preview)
+ * - otherwise V2 only on staging builds (VITE_APP_ENV === 'staging').
+ * Vitest loads .env (VITE_APP_ENV=staging) under MODE 'test', so tests default to the
+ * classic view unless they set the flag.
+ */
+export function shouldUseMorningBriefV2(): boolean {
+  let flag: string | null = null;
+  try {
+    flag = typeof window !== 'undefined' ? window.localStorage.getItem(DASHBOARD_V2_FLAG) : null;
+  } catch {
+    flag = null;
+  }
+  if (flag === 'false') return false;
+  if (flag === 'true') return true;
+  return import.meta.env.VITE_APP_ENV === 'staging' && import.meta.env.MODE !== 'test';
+}
+
+export function MorningBriefRoute() {
+  return shouldUseMorningBriefV2() ? <TodayPageV2 /> : <TodayPage />;
+}
+
 function MainAppRoutes() {
   return (
     <ProtectedRoute>
@@ -82,7 +107,7 @@ function MainAppRoutes() {
         
         <Route element={<RequireOrganization><AppLayout /></RequireOrganization>}>
           {/* EXECUTIVE BRIEFING & MORNING OPERATIONS */}
-          <Route path="/morning-brief" element={<TodayPage />} />
+          <Route path="/morning-brief" element={<MorningBriefRoute />} />
           <Route path="/needs-attention" element={<NeedsAttentionPage />} />
           <Route path="/recovery" element={<RecoveryReadinessPage />} />
           <Route path="/documents" element={<DocumentsPage />} />
