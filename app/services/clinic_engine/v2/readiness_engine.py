@@ -249,6 +249,55 @@ class ReadinessEngine:
 
         connector_health_pct = 100 if all(c.status == "healthy" for c in connectors_readiness) else 60 if connectors_readiness else 0
 
+        # 9b. Timeline: what was checked overnight, in plain words, chronological.
+        # Built from the evaluated checks (timestamped by the moment that
+        # produced them) and connector sync times. Never fabricated.
+        timeline: List[TimelineEvent] = []
+        moment_by_label = {}
+        for m in moments:
+            try:
+                moment_by_label[m.translation.headline] = m
+            except Exception:
+                continue
+        def _ts_for(check):
+            m = moment_by_label.get(check.label)
+            return getattr(m, "generated_at", None) or datetime.now(timezone.utc)
+        def _source_for(check):
+            v = getattr(check, "verification", None)
+            src = getattr(v, "source", None) or getattr(v, "connector_name", None) if v else None
+            return src or "ResilAI checks"
+        for check in failed_checks:
+            timeline.append(TimelineEvent(timestamp=_ts_for(check), icon="error", label=check.label,
+                                          detail=check.detail, source=_source_for(check)))
+        for check in warnings:
+            timeline.append(TimelineEvent(timestamp=_ts_for(check), icon="warning", label=check.label,
+                                          detail=check.detail, source=_source_for(check)))
+        for check in passed_checks:
+            timeline.append(TimelineEvent(timestamp=_ts_for(check), icon="check", label=check.label,
+                                          detail=check.detail, source=_source_for(check)))
+        for c in connectors_readiness:
+            if c.last_verified_at:
+                timeline.append(TimelineEvent(timestamp=c.last_verified_at, icon="info",
+                                              label=f"{c.name} sent fresh data",
+                                              detail=f"Covers: {', '.join(c.coverage)}" if c.coverage else None,
+                                              source=c.name))
+        # One entry per distinct label (repeated findings collapse into a count).
+        seen = {}
+        deduped: List[TimelineEvent] = []
+        for e in timeline:
+            key = (e.icon, e.label)
+            if key in seen:
+                seen[key] += 1
+                continue
+            seen[key] = 1
+            deduped.append(e)
+        for e in deduped:
+            n = seen[(e.icon, e.label)]
+            if n > 1:
+                e.detail = f"{e.detail + ' ' if e.detail else ''}({n} occurrences)"
+        deduped.sort(key=lambda e: e.timestamp.timestamp() if e.timestamp else 0, reverse=True)
+        timeline = deduped[:40]
+
         # 10. Assemble Product Contract
         report = DailyReadinessReport(
             report_id=str(uuid.uuid4()),
@@ -260,7 +309,7 @@ class ReadinessEngine:
             connector_health_pct=95,  # Mock for now
             greeting=greeting,
             summary=summary,
-            timeline=[], # Can be populated from ledger
+            timeline=timeline,
             business_continuity=business_continuity,
             passed_checks=passed_checks,
             failed_checks=failed_checks,

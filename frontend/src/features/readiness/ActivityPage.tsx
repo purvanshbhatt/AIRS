@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { LoadingState, ErrorState } from '../../components/readiness/ReadinessStates';
 import { getDailyReadinessReport } from '../../api';
-import type { DailyReadinessReport } from '../../types/readiness';
+import type { DailyReadinessReport, NormalizedTimelineEvent } from '../../types/readiness';
+import { normalizeTimelineEvent } from '../../types/readiness';
 import { useActiveOrg } from '../../hooks/useActiveOrg';
 import { ContextualDemoBanner } from '../../components/common/ContextualDemoBanner';
 import { Link } from 'react-router-dom';
@@ -73,13 +74,15 @@ export default function ActivityPage() {
   if (error) return <ErrorState error={error} onRetry={loadReport} />;
   if (!report) return null;
 
-  // Group timeline by category
-  const groupedEvents = report.timeline.reduce((acc, event) => {
+  // Normalise backend {timestamp, icon, label} entries and group by day
+  const normalized: NormalizedTimelineEvent[] = (report.timeline || []).map((e) => normalizeTimelineEvent(e));
+  const groupedEvents = normalized.reduce((acc, event) => {
     const cat = event.category || 'today';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(event);
     return acc;
-  }, {} as Record<string, typeof report.timeline>);
+  }, {} as Record<string, NormalizedTimelineEvent[]>);
+  const connectedSystems = (report.connectors || []).length;
 
   const renderIcon = (type: string) => {
     switch (type) {
@@ -107,6 +110,21 @@ export default function ActivityPage() {
         </div>
       </div>
 
+      {normalized.length === 0 && (
+        <div data-testid="activity-empty" className="rounded-3xl border border-outline-variant/40 bg-surface-container p-8 text-center space-y-3">
+          <h2 className="text-lg font-bold text-on-surface">Nothing has been checked yet</h2>
+          <p className="text-sm text-on-surface-variant max-w-md mx-auto">
+            {connectedSystems === 0
+              ? 'Activity appears here once a system is connected and the first overnight check runs. Connect where your email, files or backups live to start.'
+              : 'Your connected systems have not reported yet. The first overnight check will fill this page.'}
+          </p>
+          {connectedSystems === 0 && !isDemo && (
+            <Link to="/connectors" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ready-emerald text-slate-950 text-sm font-semibold">
+              Connect a system <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
+        </div>
+      )}
       <div className="space-y-12">
         {['today', 'yesterday', 'last_week'].map(category => {
           const events = groupedEvents[category];
@@ -130,6 +148,9 @@ export default function ActivityPage() {
                           {event.impact}
                         </p>
                       )}
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                        {event.time}{event.source ? ` · ${event.source}` : ''}
+                      </p>
                       <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">{event.time}</p>
                     </div>
                   </div>

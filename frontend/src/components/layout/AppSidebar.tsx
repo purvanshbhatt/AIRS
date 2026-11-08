@@ -45,7 +45,13 @@ export interface AppSidebarProps {
 export function AppSidebar({ mobile = false, onClose }: AppSidebarProps = {}) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { orgName, isDemo } = useActiveOrg();
+  const { orgName, isDemo, org, orgId } = useActiveOrg();
+  const industryKey = (org?.industry || (orgId || '').replace(/-/g, ' ')).toLowerCase();
+  const readinessLabel = /legal|law|cole|lex/.test(industryKey)
+    ? 'Legal Practice Readiness'
+    : /health|clinic|medical|dental/.test(industryKey)
+      ? 'Healthcare Readiness'
+      : 'Incident Readiness';
 
   const l1Group: NavGroup = {
     label: 'L1: Executive Briefing',
@@ -133,7 +139,7 @@ export function AppSidebar({ mobile = false, onClose }: AppSidebarProps = {}) {
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-on-surface-variant font-medium">Healthcare Readiness</p>
+            <p className="text-[11px] text-on-surface-variant font-medium">{readinessLabel}</p>
           </div>
         </Link>
 

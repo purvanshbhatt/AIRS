@@ -23,12 +23,53 @@ export interface DailyReadinessReport {
   generated_at: string;
 }
 
+/**
+ * Timeline entry. The backend contract is {timestamp, icon, label, detail, source};
+ * the older UI shape {time, category, event, type, impact} is still accepted so
+ * bundled sample reports keep rendering. Use normalizeTimelineEvent() before display.
+ */
 export interface TimelineEvent {
+  // backend contract
+  timestamp?: string;
+  icon?: 'check' | 'warning' | 'error' | 'info' | string;
+  label?: string;
+  detail?: string | null;
+  source?: string;
+  // legacy UI shape
+  time?: string;
+  category?: 'today' | 'yesterday' | 'last_week';
+  event?: string;
+  type?: 'verified' | 'action_taken' | 'alert' | 'update';
+  impact?: string;
+}
+
+export interface NormalizedTimelineEvent {
   time: string;
-  category: 'today' | 'yesterday' | 'last_week'; // UI derived or backend
+  category: 'today' | 'yesterday' | 'last_week';
   event: string;
   type: 'verified' | 'action_taken' | 'alert' | 'update';
-  impact?: string; // what changed / why it matters
+  impact?: string;
+  source?: string;
+}
+
+export function normalizeTimelineEvent(e: TimelineEvent, now: Date = new Date()): NormalizedTimelineEvent {
+  const iso = e.timestamp || e.time || now.toISOString();
+  const when = new Date(iso);
+  const ageHours = Math.max(0, (now.getTime() - when.getTime()) / 36e5);
+  const category: NormalizedTimelineEvent['category'] =
+    e.category || (ageHours < 24 ? 'today' : ageHours < 48 ? 'yesterday' : 'last_week');
+  const iconType: Record<string, NormalizedTimelineEvent['type']> = {
+    check: 'verified', warning: 'alert', error: 'alert', info: 'update',
+  };
+  const type: NormalizedTimelineEvent['type'] = e.type || iconType[e.icon || ''] || 'update';
+  return {
+    time: Number.isNaN(when.getTime()) ? iso : when.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }),
+    category,
+    event: e.event || e.label || 'Update',
+    type,
+    impact: e.impact ?? (e.detail || undefined),
+    source: e.source,
+  };
 }
 
 export interface OperationalReadiness {
