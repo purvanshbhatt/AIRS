@@ -55,7 +55,7 @@ const MOCK_INVENTORY = [
 ];
 
 import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
-import { NetworkTopologyGraph } from '../../components/network/NetworkTopologyGraph';
+import { NetworkMap } from '../../components/network/NetworkMap';
 
 export function NetworkPage() {
   const [activeTab, setActiveTab] = useState<'topology' | 'overview' | 'events' | 'issues' | 'inventory'>('topology');
@@ -98,7 +98,7 @@ export function NetworkPage() {
         ))}
       </div>
 
-      {activeTab === 'topology' && <NetworkTopologyGraph />}
+      {activeTab === 'topology' && <NetworkMap />}
 
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

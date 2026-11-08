@@ -7,10 +7,11 @@ Exposes:
   POST /api/v1/pilot-leads         — enterprise pilot programme intake form
   POST /api/v1/integrations/siem/event    — legacy SIEM webhook ingestion
   POST /api/v1/telemetry/webhook/event    — canonical governance webhook (Module 2)
+  GET  /api/v1/network/topology    — real network map (connectors, assets, telemetry)
 """
 
 from fastapi import APIRouter
-from app.api.v1 import methodology, pilot_leads, integrations, telemetry, frameworks, config, governance_webhook, connectors, telemetry_events, mobile, inventory, continuous_scoring, simulations, policies, metrics, telemetry_roi, intelligence, control_verification, readiness, technology, decisions, reports, evidence
+from app.api.v1 import methodology, pilot_leads, integrations, telemetry, frameworks, config, governance_webhook, connectors, telemetry_events, mobile, inventory, continuous_scoring, simulations, policies, metrics, telemetry_roi, intelligence, control_verification, readiness, technology, decisions, reports, evidence, network
 
 router = APIRouter()
 router.include_router(config.router, tags=["config"])
@@ -21,6 +22,7 @@ router.include_router(telemetry.router, tags=["telemetry"])
 router.include_router(frameworks.router, tags=["frameworks"])
 router.include_router(governance_webhook.router, tags=["governance"])
 router.include_router(connectors.router, tags=["connectors"])
+router.include_router(network.router, tags=["network"])
 router.include_router(telemetry_events.router, tags=["telemetry-events"])
 router.include_router(mobile.router, tags=["mobile"])
 router.include_router(inventory.router, tags=["inventory"])

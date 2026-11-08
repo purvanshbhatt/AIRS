@@ -2108,6 +2108,70 @@ export const deleteConnector = (connectorId: string, orgId?: string) =>
   });
 
 // =============================================================================
+// NETWORK TOPOLOGY API (V1) — the real map of what is connected
+// =============================================================================
+
+export type NetworkNodeType =
+  | 'connector' | 'server' | 'workstation' | 'database' | 'bucket' | 'identity' | 'security_group' | 'internet';
+export type NetworkZone =
+  | 'internet' | 'cloud' | 'security' | 'servers' | 'workstations' | 'data' | 'backups' | 'identity';
+export type NetworkNodeStatus = 'healthy' | 'warning' | 'attention' | 'error' | 'unknown';
+export type NetworkEdgeKind = 'monitors' | 'backs_up' | 'authenticates' | 'exposed_to_internet';
+
+export interface NetworkTopologyIssue {
+  title: string;
+  severity: string;
+}
+
+export interface NetworkTopologyNode {
+  id: string;
+  type: NetworkNodeType;
+  label: string;
+  sublabel?: string | null;
+  status: NetworkNodeStatus;
+  zone: NetworkZone;
+  meta: {
+    issues?: NetworkTopologyIssue[];
+    seen_by?: string[];
+    last_seen?: string | null;
+    internet_exposed?: boolean;
+    [key: string]: any;
+  };
+}
+
+export interface NetworkTopologyEdge {
+  source: string;
+  target: string;
+  kind: NetworkEdgeKind;
+  label?: string;
+}
+
+export interface NetworkTopologySummary {
+  empty: boolean;
+  hint?: string;
+  node_count: number;
+  edge_count: number;
+  connectors: number;
+  attention: number;
+  internet_exposed: number;
+  by_type: Record<string, number>;
+  by_zone: Record<string, number>;
+  by_status: Record<string, number>;
+}
+
+export interface NetworkTopologyResponse {
+  nodes: NetworkTopologyNode[];
+  edges: NetworkTopologyEdge[];
+  summary: NetworkTopologySummary;
+  generated_at: string;
+  org_id?: string;
+  demo?: boolean;
+}
+
+export const getNetworkTopology = (orgId: string) =>
+  request<NetworkTopologyResponse>(`/api/v1/network/topology?org_id=${encodeURIComponent(orgId)}`);
+
+// =============================================================================
 // BILLING & CAPABILITIES
 // =============================================================================
 
