@@ -3054,3 +3054,32 @@ Affected Teams:
 * Backend
 * Frontend
 * DevOps
+
+
+---
+
+Date: 2026-11-07
+Agent: Claude Fable 5.1 (Claude Code)
+Task: Activity timeline, industry-aware sidebar, one-screen onboarding, interactive network map (staging)
+Changes Made:
+* ReadinessEngine populates the overnight timeline; Activity page normalises and renders it with an honest empty state.
+* Sidebar readiness label follows org industry.
+* Onboarding reduced to one screen + first-steps checklist; wizard steps 1-6 removed; /new-org unified.
+* Network topology endpoint + interactive map page from real connector/asset/telemetry data; lazy 3D view.
+Files Modified:
+* app/services/clinic_engine/v2/readiness_engine.py, app/api/v1/network.py (new), app/services/network_topology.py (new), app/api/v1/__init__.py, tests/test_network_topology.py (new)
+* frontend/src/features/readiness/ActivityPage.tsx, frontend/src/types/readiness.ts, frontend/src/components/layout/AppSidebar.tsx
+* frontend/src/pages/{Onboarding,NewOrg,Login}.tsx, frontend/src/components/onboarding/* (CreateWorkspaceScreen new; Step1-6 + stepper deleted), frontend/src/components/readiness/FirstRunChecklist.tsx (new), frontend/src/features/readiness/TodayPageV2.tsx, frontend/src/App.tsx
+* frontend/src/components/network/NetworkMap.tsx (new), frontend/src/components/network/map/* (new), frontend/src/pages/technology/NetworkPage.tsx, frontend/src/api.ts, frontend/package.json
+* tests under frontend/src/test (onboarding-one-screen, first-run-checklist, network-map new; tier/challenger wizard tests rewritten)
+Dependencies Created/Updated:
+* react-force-graph-2d 1.29.2, 3d-force-graph 1.80.2 (three.js only in the lazy 3D chunk)
+Business Impact:
+* New users reach a verdict in about 90 seconds instead of a six-step wizard; the Activity page and Network page now show the organization's real systems and checks.
+Next Recommended Task:
+* Microsoft 365 OAuth as the first connector on the checklist; weekly boss-report email; invite-your-boss view-only link.
+Blocked By:
+* None
+Affected Teams:
+* Frontend
+* Backend

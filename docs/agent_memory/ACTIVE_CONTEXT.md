@@ -3,6 +3,11 @@ Date: 2026-11-07
 Status: Daily Backup Snapshot & Remote Backup Branch Synchronization Verified (backup, daily-sync, backup-sync synchronized with staging at cf9d062; workflow & test harness green)
 
 ## Recent Actions
+- 2026-11-07 staging product pass (commits 3a3b63e, 22d7d3e, 43e86cd):
+  - Activity page (`/yesterday`) was always empty because `ReadinessEngine` returned `timeline=[]`; it now lists every check and connector sync chronologically (deduplicated), the page normalises the backend `{timestamp, icon, label, detail, source}` contract and shows a plain-English empty state. Sidebar label derives from the organization's industry (Healthcare / Legal Practice / Incident Readiness).
+  - Onboarding: six-step wizard deleted; `/onboarding` and `/new-org` are one screen (`CreateWorkspaceScreen`: name, Healthcare/Legal/Other, optional size) landing on `/morning-brief`; `FirstRunChecklist` (connect, first verdict, boss report, plus copy-for-IT note) on the v2 brief for real orgs. Council (5 perspectives) was unanimous on sample-first, connect-one-system, kill explainers.
+  - Network map: `GET /api/v1/network/topology?org_id=` (`app/services/network_topology.py`) builds nodes/edges from connectors, discovered hosts and telemetry; `NetworkMap.tsx` renders an interactive force graph (2D default, lazy 3D via `3d-force-graph`), plain-English side panel, zone/status filters. Demo orgs show the recorded AWS environment (21 nodes). Old static `NetworkTopologyGraph.tsx` left unused.
+  - Upstream `cf9d062` (landing overhaul) arrived without test updates; landing tests being realigned.
 - 2026-11-06 AWS demo organizations (healthcare + legal) recorded and torn down:
   - `infra/aws-demo-orgs/demo-org.yaml` (per industry: VPC, 3 SSM-managed t3.micro servers with IMDSv2, open SSH/RDP security group, one unencrypted volume, document bucket with public-access block off, IAM user with a long-lived key), `deploy.sh` (base Security Hub/GuardDuty/CloudTrail stack from `infra/aws-test/template.yaml`, FSBP + CIS standards, Config via `deploy-healthcare.sh`, both org stacks, GuardDuty sample findings, SSM software-inventory association), `teardown.sh [--all]`.
   - Live connector tests passed against the environment: `pytest tests/aws_integration -m aws_integration` (5 passed). All 6 servers were SSM-online; Security Hub produced ~400 findings; GuardDuty 11.
