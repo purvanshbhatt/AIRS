@@ -216,112 +216,74 @@ describe('Tier 2: Boundary & Corner Cases (R1 - R8)', () => {
   // =========================================================================
   // R3: Onboarding Boundaries
   // =========================================================================
-  describe('R3: Onboarding & Getting Started Boundaries', () => {
-    it('T2.R3.01: Step 1 with whitespace-only organization name keeps continue button disabled', async () => {
+  describe('R3: Onboarding Boundaries', () => {
+    it('T2.R3.01: Whitespace-only organisation name keeps the primary button disabled', async () => {
       const user = userEvent.setup();
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
 
       renderWithRouter(<Onboarding />);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
-      });
-
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, '     ');
-
-      const continueButton = screen.getByRole('button', { name: /continue to step 2/i });
-      expect(continueButton).toBeDisabled();
+      await user.type(await screen.findByLabelText(/organisation name/i), '     ');
+      expect(screen.getByRole('button', { name: /create my workspace/i })).toBeDisabled();
+      expect(api.createOrganization).not.toHaveBeenCalled();
     });
 
-    it('T2.R3.02: Rapid clicking on next/prev navigation handles state transitions cleanly', async () => {
+    it('T2.R3.02: Rapid clicking on industry cards leaves exactly one selected', async () => {
       const user = userEvent.setup();
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
 
       renderWithRouter(<Onboarding />);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
-      });
+      const healthcare = await screen.findByRole('radio', { name: /healthcare clinic/i });
+      const legal = screen.getByRole('radio', { name: /legal practice/i });
+      await user.click(legal);
+      await user.click(healthcare);
+      await user.click(legal);
+      await user.click(legal);
 
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, 'Metro Health');
-
-      const step2Btn = screen.getByRole('button', { name: /continue to step 2/i });
-      await user.click(step2Btn);
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /back to profile/i })).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByRole('button', { name: /back to profile/i }));
-
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /Start with Organization Readiness/i })).toBeInTheDocument();
-      });
+      expect(legal).toHaveAttribute('aria-checked', 'true');
+      expect(healthcare).toHaveAttribute('aria-checked', 'false');
     });
 
-    it('T2.R3.03: Navigating to Onboarding when already marked completed in localStorage still allows reviewing steps', async () => {
+    it('T2.R3.03: A stale "completed" flag in localStorage does not hide the screen for a user with no organisation', async () => {
       localStorage.setItem('resilai_onboarding_completed_default-org', 'true');
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
 
       renderWithRouter(<Onboarding />);
 
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /Start with Organization Readiness/i })).toBeInTheDocument();
-      });
+      expect(await screen.findByRole('heading', { name: /set up your workspace/i })).toBeInTheDocument();
     });
 
-    it('T2.R3.04: Step 2 connector toggle toggles connection state and updates sync indicator', async () => {
-      const user = userEvent.setup();
+    it('T2.R3.04: Double-clicking the primary button creates the organisation once', async () => {
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
+      let resolveCreate: (v: any) => void = () => {};
+      vi.mocked(api.createOrganization).mockReturnValue(new Promise((res) => { resolveCreate = res; }));
 
       renderWithRouter(<Onboarding />);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
-      });
+      const nameInput = await screen.findByLabelText(/organisation name/i);
+      fireEvent.change(nameInput, { target: { value: 'Metro Health' } });
+      const btn = screen.getByRole('button', { name: /create my workspace/i });
+      fireEvent.click(btn);
+      fireEvent.click(btn);
 
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, 'Metro Health');
-      await user.click(screen.getByRole('button', { name: /continue to step 2/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText('Microsoft 365 / Entra ID')).toBeInTheDocument();
-      });
-
-      const connectBtns = screen.getAllByRole('button', { name: /connect/i });
-      if (connectBtns.length > 0) {
-        await user.click(connectBtns[0]);
-      }
+      await waitFor(() => expect(btn).toBeDisabled());
+      expect(api.createOrganization).toHaveBeenCalledTimes(1);
+      resolveCreate({ id: 'org-metro', name: 'Metro Health' });
     });
 
-    it('T2.R3.05: Step 3 Evidence Ledger displays empty state if no telemetry events exist', async () => {
+    it('T2.R3.05: An API failure shows a message and keeps the typed name', async () => {
       const user = userEvent.setup();
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
+      vi.mocked(api.createOrganization).mockRejectedValue(new Error('Server unavailable'));
 
       renderWithRouter(<Onboarding />);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
-      });
+      await user.type(await screen.findByLabelText(/organisation name/i), 'Metro Health');
+      await user.click(screen.getByRole('button', { name: /create my workspace/i }));
 
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, 'Metro Health');
-      await user.click(screen.getByRole('button', { name: /continue to step 2/i }));
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /continue to step 3/i })).toBeInTheDocument();
-      });
-      await user.click(screen.getByRole('button', { name: /continue to step 3/i }));
-
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /See What Can Be Verified/i })).toBeInTheDocument();
-      });
+      expect(await screen.findByRole('alert')).toHaveTextContent(/server unavailable/i);
+      expect(screen.getByLabelText(/organisation name/i)).toHaveValue('Metro Health');
     });
   });
 

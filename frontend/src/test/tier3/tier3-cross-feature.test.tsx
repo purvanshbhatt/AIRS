@@ -133,9 +133,10 @@ describe('Tier 3: Cross-Feature Navigation & State Interaction', () => {
     expect(onViewFullEvidence).toHaveBeenCalled();
   });
 
-  it('T3.CF.05: Onboarding -> "Skip to Dashboard" sets localStorage and navigates to /morning-brief', async () => {
+  it('T3.CF.05: Onboarding -> "Create my workspace" stores the org id and navigates to /morning-brief', async () => {
     const user = userEvent.setup();
     vi.mocked(api.getOrganizations).mockResolvedValue([]);
+    vi.mocked(api.createOrganization).mockResolvedValue({ id: 'org-valley', name: 'Valley Outpatient Clinic' } as any);
 
     renderWithRouter(
       <Routes>
@@ -144,42 +145,23 @@ describe('Tier 3: Cross-Feature Navigation & State Interaction', () => {
       </Routes>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /skip to dashboard/i })).toBeInTheDocument();
-    });
+    await user.type(await screen.findByLabelText(/organisation name/i), 'Valley Outpatient Clinic');
+    await user.click(screen.getByRole('button', { name: /create my workspace/i }));
 
-    await user.click(screen.getByRole('button', { name: /skip to dashboard/i }));
-
-    expect(localStorage.getItem('resilai_onboarding_completed_default-org')).toBe('true');
     await waitFor(() => {
       expect(screen.getByTestId('morning-brief-page')).toBeInTheDocument();
     });
+    expect(localStorage.getItem('resilai_selected_org_id')).toBe('org-valley');
   });
 
-  it('T3.CF.06: Onboarding -> Sequential Step 1 -> Step 2 -> Step 3 transition flow', async () => {
-    const user = userEvent.setup();
+  it('T3.CF.06: Onboarding -> "Just show me an example" leads to the /demo entry', async () => {
     vi.mocked(api.getOrganizations).mockResolvedValue([]);
 
     renderWithRouter(<Onboarding />);
 
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
-    });
-
-    const orgInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-    await user.type(orgInput, 'Valley Outpatient Clinic');
-
-    await user.click(screen.getByRole('button', { name: /continue to step 2/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Connect Security Systems/i })).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole('button', { name: /continue to step 3/i }));
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /See What Can Be Verified/i })).toBeInTheDocument();
-    });
+    const exampleLink = await screen.findByRole('link', { name: /just show me an example/i });
+    expect(exampleLink).toHaveAttribute('href', '/demo');
+    expect(screen.queryByRole('button', { name: /continue to step/i })).not.toBeInTheDocument();
   });
 
   it('T3.CF.07: AppSidebar -> Contains accessible navigation links across all tiers', () => {

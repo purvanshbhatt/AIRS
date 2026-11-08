@@ -177,37 +177,20 @@ describe('Tier 4: Real-World Scenarios & Persona Journeys', () => {
       </Routes>
     );
 
-    // Step 1: Organization Profile
+    // One screen: name the practice, confirm the industry, create the workspace.
+    await user.type(await screen.findByLabelText(/organisation name/i), 'Summit Family Medicine');
+    expect(screen.getByRole('radio', { name: /healthcare clinic/i })).toHaveAttribute('aria-checked', 'true');
+    await user.click(screen.getByRole('button', { name: /create my workspace/i }));
+
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
+      expect(api.createOrganization).toHaveBeenCalledWith({ name: 'Summit Family Medicine', industry: 'healthcare', size: '1-50' });
     });
 
-    const orgInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-    await user.type(orgInput, 'Summit Family Medicine');
-
-    const step2Btn = screen.getByRole('button', { name: /continue to step 2/i });
-    await user.click(step2Btn);
-
-    // Step 2: Connect Security Systems
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Connect Security Systems/i })).toBeInTheDocument();
-    });
-
-    const step3Btn = screen.getByRole('button', { name: /continue to step 3/i });
-    await user.click(step3Btn);
-
-    // Step 3: See What Can Be Verified (Evidence Ledger)
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /See What Can Be Verified/i })).toBeInTheDocument();
-    });
-
-    // Step 4: Skip to Dashboard
-    const skipBtn = screen.getByRole('button', { name: /skip to dashboard/i });
-    await user.click(skipBtn);
-
+    // Lands on the morning brief, where the first-run checklist takes over (connectors first).
     await waitFor(() => {
       expect(screen.getByTestId('morning-brief-landing')).toBeInTheDocument();
     });
+    expect(localStorage.getItem('resilai_selected_org_id')).toBe('org-summit-health');
   });
 
   // =========================================================================

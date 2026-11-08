@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getOrganizations } from '../api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Input } from '../components/ui';
-import { Mail, Lock, Chrome, AlertCircle, Sparkles, KeyRound, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Mail, Lock, Chrome, AlertCircle, Sparkles, KeyRound } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,6 +16,23 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
 
   const from = (location.state as { from?: string })?.from || '/morning-brief';
+
+  /**
+   * After a real sign-in: no workspace yet goes to the one-screen setup,
+   * otherwise to the page they were heading for (the morning brief by default).
+   */
+  const goAfterAuth = async () => {
+    try {
+      const orgs = await getOrganizations();
+      if (!orgs || orgs.length === 0) {
+        navigate('/onboarding', { replace: true });
+        return;
+      }
+    } catch (err) {
+      console.warn('[Login] Could not check organisations:', err);
+    }
+    navigate(from, { replace: true });
+  };
 
   // Always clear any stale auth error on page mount
   useEffect(() => {
@@ -41,7 +59,7 @@ export default function Login() {
     setPassword('TestPassword123!');
     try {
       await signInWithEmail('staging-tester@resilai.io', 'TestPassword123!');
-      navigate(from, { replace: true });
+      await goAfterAuth();
     } catch {
       // Handled by context
     } finally {
@@ -54,7 +72,7 @@ export default function Login() {
     clearError();
     try {
       await signInWithGoogle();
-      navigate(from, { replace: true });
+      await goAfterAuth();
     } catch {
       // Handled by context
     } finally {
@@ -74,7 +92,7 @@ export default function Login() {
       } else {
         await signUpWithEmail(email, password);
       }
-      navigate(from, { replace: true });
+      await goAfterAuth();
     } catch {
       // Handled by context
     } finally {
@@ -85,7 +103,7 @@ export default function Login() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-on-surface-variant font-mono text-xs">Authenticating workspace...</div>
+        <div className="animate-pulse text-on-surface-variant font-mono text-xs">Signing you in...</div>
       </div>
     );
   }
@@ -106,7 +124,7 @@ export default function Login() {
               className="h-20 sm:h-24 w-auto object-contain hidden dark:block transition-transform duration-300 hover:scale-105"
             />
           </div>
-          <p className="text-on-surface-variant text-xs mt-1">Healthcare Readiness & Compliance Intelligence</p>
+          <p className="text-on-surface-variant text-xs mt-1">Know every morning that your practice can open and recover.</p>
         </div>
 
         <Card className="bg-surface-container-low border-surface-bright shadow-2xl">
@@ -124,7 +142,7 @@ export default function Login() {
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              Sign In to Workspace
+              Sign in
             </button>
             <button
               type="button"
@@ -138,18 +156,18 @@ export default function Login() {
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              Register New Organization
+              Create account
             </button>
           </div>
 
           <CardHeader className="text-center pt-4 pb-2">
             <CardTitle className="text-lg text-on-surface">
-              {mode === 'signin' ? 'Sign In to Live Workspace' : 'Create Organization Account'}
+              {mode === 'signin' ? 'Welcome back' : 'Create your account'}
             </CardTitle>
             <CardDescription className="text-on-surface-variant text-xs">
               {mode === 'signin'
-                ? 'Authenticate to access your organization evidence & connectors'
-                : 'Register your email to establish an isolated clinic tenant'}
+                ? 'Sign in to see this morning\'s verdict.'
+                : 'Takes a minute. You will set up your workspace right after.'}
             </CardDescription>
           </CardHeader>
 
@@ -165,7 +183,7 @@ export default function Login() {
             <form onSubmit={handleEmailSubmit} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-on-surface mb-1">
-                  Email Address
+                  Email
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
@@ -205,8 +223,8 @@ export default function Login() {
                 className="w-full bg-ready-emerald hover:brightness-110 text-on-primary-container font-bold py-2.5 text-xs rounded-xl shadow-sm"
               >
                 {submitting
-                  ? 'Authenticating...'
-                  : mode === 'signin' ? 'Sign In to Live Workspace' : 'Create & Onboard Organization'}
+                  ? 'One moment...'
+                  : mode === 'signin' ? 'Sign in' : 'Create account'}
               </Button>
             </form>
 
@@ -216,7 +234,7 @@ export default function Login() {
                 <div className="flex items-center gap-2">
                   <KeyRound className="w-4 h-4 text-ready-emerald shrink-0" />
                   <div className="text-left">
-                    <p className="text-[11px] font-bold text-on-surface">Staging Test Account</p>
+                    <p className="text-[11px] font-bold text-on-surface">Staging test account</p>
                     <p className="text-[10px] text-on-surface-variant font-mono">staging-tester@resilai.io</p>
                   </div>
                 </div>
@@ -226,7 +244,7 @@ export default function Login() {
                   disabled={submitting}
                   className="px-3 py-1.5 bg-ready-emerald text-on-primary-container text-[11px] font-bold rounded-lg hover:brightness-110 transition-all shrink-0 shadow-sm"
                 >
-                  Quick Sign In
+                  Quick sign in
                 </button>
               </div>
             )}
@@ -237,7 +255,7 @@ export default function Login() {
                 <div className="w-full border-t border-outline-variant/40" />
               </div>
               <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
-                <span className="px-2 bg-surface-container-low text-on-surface-variant font-mono">or OAuth</span>
+                <span className="px-2 bg-surface-container-low text-on-surface-variant font-mono">or</span>
               </div>
             </div>
 
@@ -257,12 +275,12 @@ export default function Login() {
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    Evaluation Sandbox
+                    See an example first
                   </span>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">SIMULATED DATA</span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">EXAMPLE DATA</span>
                 </div>
                 <p className="text-[11px] text-on-surface-variant leading-relaxed">
-                  Explore ResilAI with pre-populated healthcare clinic telemetry without creating an account.
+                  Look around a sample clinic with example data. No account needed.
                 </p>
                 <Button
                   onClick={handleDemoSignIn}
@@ -270,7 +288,7 @@ export default function Login() {
                   variant="outline"
                   className="w-full flex items-center justify-center gap-1.5 border-ready-emerald/40 text-ready-emerald hover:bg-ready-emerald/10 font-semibold py-1.5 rounded-lg text-xs"
                 >
-                  <span>Enter Demo Environment (Acme Health)</span>
+                  <span>Show me an example</span>
                 </Button>
               </div>
             </div>
@@ -278,7 +296,7 @@ export default function Login() {
         </Card>
 
         <p className="text-center text-[11px] text-on-surface-variant mt-4 font-mono">
-          Deterministic incident readiness powered by live evidence verification.
+          Every answer comes from your own systems, checked around the clock.
         </p>
       </div>
     </div>

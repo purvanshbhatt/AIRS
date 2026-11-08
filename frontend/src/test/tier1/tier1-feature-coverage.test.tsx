@@ -233,108 +233,49 @@ describe('Tier 1: Feature Coverage (R1 - R8)', () => {
   // =========================================================================
   // R3: 6-Step Guided Onboarding & Getting Started Workflow
   // =========================================================================
-  describe('R3: Comprehensive Getting Started & Onboarding Workflow', () => {
-    it('T1.R3.01: Step 1 collects organizational details and validates required name', async () => {
+  describe('R3: One-screen onboarding', () => {
+    it('T1.R3.01: The screen collects the organisation name and enables the primary button once typed', async () => {
       const user = userEvent.setup();
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
 
       renderWithRouter(<Onboarding />);
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /Start with Organization Readiness/i })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /set up your workspace/i })).toBeInTheDocument();
       });
 
-      const continueButton = screen.getByRole('button', { name: /continue to step 2/i });
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, 'Pacific Coast Health');
-
-      expect(continueButton).toBeEnabled();
+      const createButton = screen.getByRole('button', { name: /create my workspace/i });
+      expect(createButton).toBeDisabled();
+      await user.type(screen.getByLabelText(/organisation name/i), 'Pacific Coast Health');
+      expect(createButton).toBeEnabled();
     });
 
-    it('T1.R3.02: Step 2 presents security connectors management', async () => {
+    it('T1.R3.02: Industry is chosen from two cards and sent with the organisation', async () => {
       const user = userEvent.setup();
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
+      vi.mocked(api.createOrganization).mockResolvedValue({ id: 'org-pch', name: 'Pacific Coast Health' } as any);
 
       renderWithRouter(<Onboarding />);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
-      });
-
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, 'Pacific Coast Health');
-      await user.click(screen.getByRole('button', { name: /continue to step 2/i }));
+      await user.type(await screen.findByLabelText(/organisation name/i), 'Pacific Coast Health');
+      await user.click(screen.getByRole('radio', { name: /legal practice/i }));
+      await user.click(screen.getByRole('button', { name: /create my workspace/i }));
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /Connect Security Systems/i })).toBeInTheDocument();
+        expect(api.createOrganization).toHaveBeenCalledWith({ name: 'Pacific Coast Health', industry: 'legal', size: '1-50' });
       });
+      expect(localStorage.getItem('resilai_selected_org_id')).toBe('org-pch');
     });
 
-    it('T1.R3.03: Step 3 presents the evidence ledger and verification telemetry', async () => {
-      const user = userEvent.setup();
+    it('T1.R3.03: No wizard remains: no step counter, no continue buttons, example link goes to /demo', async () => {
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
-
       renderWithRouter(<Onboarding />);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
-      });
-
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, 'Pacific Coast Health');
-      await user.click(screen.getByRole('button', { name: /continue to step 2/i }));
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /continue to step 3/i })).toBeInTheDocument();
-      });
-      await user.click(screen.getByRole('button', { name: /continue to step 3/i }));
-
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /See What Can Be Verified/i })).toBeInTheDocument();
-      });
-    });
-
-    it('T1.R3.04: Skip to Dashboard navigates to /morning-brief and sets completion state', async () => {
-      const user = userEvent.setup();
-      vi.mocked(api.getOrganizations).mockResolvedValue([]);
-
-      renderWithRouter(<Onboarding />);
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /skip to dashboard/i })).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByRole('button', { name: /skip to dashboard/i }));
-      expect(localStorage.getItem('resilai_onboarding_completed_default-org')).toBe('true');
-    });
-
-    it('T1.R3.05: Previous step button transitions safely back to Step 1', async () => {
-      const user = userEvent.setup();
-      vi.mocked(api.getOrganizations).mockResolvedValue([]);
-
-      renderWithRouter(<Onboarding />);
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i)).toBeInTheDocument();
-      });
-
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      await user.clear(nameInput);
-      await user.type(nameInput, 'Pacific Coast Health');
-      await user.click(screen.getByRole('button', { name: /continue to step 2/i }));
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /back to profile/i })).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByRole('button', { name: /back to profile/i }));
-
-      await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /Start with Organization Readiness/i })).toBeInTheDocument();
-      });
+      await screen.findByTestId('create-workspace-screen');
+      expect(screen.queryByText(/step \d of 6/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /continue to step/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /skip to dashboard/i })).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /just show me an example/i })).toHaveAttribute('href', '/demo');
     });
   });
 
@@ -719,12 +660,10 @@ describe('Tier 1: Feature Coverage (R1 - R8)', () => {
       vi.mocked(api.getOrganizations).mockResolvedValue([]);
       renderWithRouter(<Onboarding />);
 
-      await waitFor(() => {
-        expect(screen.getByText(/Organization Name \*/i)).toBeInTheDocument();
-      });
-      expect(screen.getByText(/Company Size/i)).toBeInTheDocument();
-      expect(screen.getByText(/Country \/ Jurisdiction/i)).toBeInTheDocument();
-      expect(screen.getByText(/Region \/ State/i)).toBeInTheDocument();
+      expect(await screen.findByLabelText(/organisation name/i)).toBeInTheDocument();
+      expect(screen.getByRole('radiogroup', { name: /industry/i })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /more \(optional\)/i }));
+      expect(screen.getByLabelText(/team size/i)).toBeInTheDocument();
     });
 
     it('T1.R8.05: AIDrawer close button triggers onClose handler', async () => {

@@ -7,6 +7,7 @@ import type { DailyReadinessReport, ActionCard } from '../../types/readiness';
 import { useActiveOrg } from '../../hooks/useActiveOrg';
 import { LoadingState, ErrorState } from '../../components/readiness/ReadinessStates';
 import { ContextualDemoBanner } from '../../components/common/ContextualDemoBanner';
+import { FirstRunChecklist } from '../../components/readiness/FirstRunChecklist';
 import {
   derivePlainVerdict,
   verdictToneClass,
@@ -213,6 +214,7 @@ export default function TodayPageV2() {
             {plain.today}
           </p>
         </section>
+        <FirstRunChecklist orgId={orgId} report={report} isDemo={isDemo} />
         <ConnectFirstEmptyState />
         <ClassicViewLink />
       </div>
@@ -298,6 +300,8 @@ export default function TodayPageV2() {
           </div>
         </div>
       </motion.section>
+
+      <FirstRunChecklist orgId={orgId} report={report} isDemo={isDemo} />
 
       {/* Three areas a director asks about */}
       <StatusRow areas={areas} />

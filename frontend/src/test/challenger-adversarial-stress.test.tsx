@@ -15,6 +15,7 @@ import {
   getOnboardingStep,
   setOnboardingStep,
 } from '../components/onboarding/onboardingData';
+import { Routes, Route } from 'react-router-dom';
 import { renderWithRouter } from './utils/test-helpers';
 
 vi.mock('../api', async (importOriginal) => {
@@ -167,79 +168,38 @@ describe('Challenger 1: Empirical Adversarial Stress Testing', () => {
   // =========================================================================
   // SCOPE 2: 6-Step Onboarding Workflow Stress Testing
   // =========================================================================
-  describe('Scope 2: 6-Step Onboarding Workflow Stress Testing', () => {
-    it('2.1 Step transitions, backward navigation, and multi-step progress state', async () => {
+  describe('Scope 2: One-screen Onboarding Stress Testing', () => {
+    it('2.1 Typed name survives industry switching and is sent trimmed with the chosen industry', async () => {
+      vi.mocked(api.getOrganizations).mockResolvedValue([]);
       vi.mocked(api.createOrganization).mockResolvedValue({
         id: 'org-test-multi',
         name: 'Bay Area Health Alliance',
-        industry: 'Healthcare',
+        industry: 'legal',
       } as any);
 
       renderWithRouter(<Onboarding />);
 
-      // Step 1: Organization Profile
-      await waitFor(() => {
-        expect(screen.getByText('Start with Organization Readiness')).toBeInTheDocument();
-      });
+      const nameInput = await screen.findByLabelText(/organisation name/i);
+      fireEvent.change(nameInput, { target: { value: '  Bay Area Health Alliance ' } });
 
-      const nameInput = screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i);
-      fireEvent.change(nameInput, { target: { value: 'Bay Area Health Alliance' } });
+      fireEvent.click(screen.getByRole('radio', { name: /legal practice/i }));
+      fireEvent.click(screen.getByRole('radio', { name: /healthcare clinic/i }));
+      fireEvent.click(screen.getByRole('radio', { name: /legal practice/i }));
+      expect((nameInput as HTMLInputElement).value).toBe('  Bay Area Health Alliance ');
 
-      // Advance to Step 2
-      const nextBtn1 = screen.getByRole('button', { name: /Continue to Step 2/i });
-      fireEvent.click(nextBtn1);
-
-      // Step 2: Connect Systems
-      await waitFor(() => {
-        expect(screen.getByText('Connect Security Systems')).toBeInTheDocument();
-      });
-      expect(screen.getByText('Microsoft 365 / Entra ID')).toBeInTheDocument();
-      expect(screen.getByText('Veeam Backup & Replication')).toBeInTheDocument();
-
-      // Advance to Step 3
-      const nextBtn2 = screen.getByRole('button', { name: /Continue to Step 3/i });
-      fireEvent.click(nextBtn2);
-
-      // Step 3: Evidence Ledger
-      await waitFor(() => {
-        expect(screen.getByText('See What Can Be Verified')).toBeInTheDocument();
-      });
-
-      // Backward navigation to Step 2
-      const prevBtn = screen.getByRole('button', { name: /Back to Connectors/i });
-      fireEvent.click(prevBtn);
+      fireEvent.click(screen.getByRole('button', { name: /create my workspace/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('Connect Security Systems')).toBeInTheDocument();
+        expect(api.createOrganization).toHaveBeenCalledWith({ name: 'Bay Area Health Alliance', industry: 'legal', size: '1-50' });
       });
-
-      // Backward navigation to Step 1
-      const prevBtn2 = screen.getByRole('button', { name: /Back to Profile/i });
-      fireEvent.click(prevBtn2);
-
-      await waitFor(() => {
-        expect(screen.getByText('Start with Organization Readiness')).toBeInTheDocument();
-      });
-      expect((screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i) as HTMLInputElement).value).toBe('Bay Area Health Alliance');
+      expect(localStorage.getItem('resilai_selected_org_id')).toBe('org-test-multi');
     });
 
-    it('2.2 Skip handler sets per-org localStorage completion flag and redirects', async () => {
+    it('2.2 Completion persistence helpers remain per-org with a global fallback', () => {
       const targetOrg = 'org-skip-test-999';
-      renderWithRouter(<Onboarding />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Start with Organization Readiness')).toBeInTheDocument();
-      });
-
-      const skipBtn = screen.getByRole('button', { name: /Skip to Dashboard/i });
-      fireEvent.click(skipBtn);
-
-      // Verify completion persistence helper functions
       setOnboardingCompleted(targetOrg, true);
       expect(getOnboardingCompleted(targetOrg)).toBe(true);
       expect(localStorage.getItem(`resilai_onboarding_completed_${targetOrg}`)).toBe('true');
-
-      // Verify isolation: uncompleted org is false
       expect(getOnboardingCompleted('org-uncompleted-333')).toBe(true); // fallback global was set
     });
 
@@ -260,23 +220,22 @@ describe('Challenger 1: Empirical Adversarial Stress Testing', () => {
       expect(localStorage.getItem(`resilai_onboarding_completed_${orgB}`)).toBe('false');
     });
 
-    it('2.4 Demo Mode vs Real Mode initial profile toggle', async () => {
-      renderWithRouter(<Onboarding />);
+    it('2.4 A user who already has an organisation is not shown the create screen again', async () => {
+      renderWithRouter(
+        <Routes>
+          <Route path="/" element={<Onboarding />} />
+          <Route path="/morning-brief" element={<div data-testid="brief">Brief</div>} />
+        </Routes>
+      );
 
       await waitFor(() => {
-        expect(screen.getByText('Start with Organization Readiness')).toBeInTheDocument();
+        expect(screen.getByTestId('brief')).toBeInTheDocument();
       });
-
-      // Toggle to Demo Mode using first matched button
-      const toggleModeButtons = screen.getAllByRole('button', { name: /Switch to Acme Demo/i });
-      fireEvent.click(toggleModeButtons[0]);
-
-      await waitFor(() => {
-        expect((screen.getByPlaceholderText(/e\.g\. Acme Health Systems/i) as HTMLInputElement).value).toBe('Acme Health Systems');
-      });
+      expect(screen.queryByTestId('create-workspace-screen')).not.toBeInTheDocument();
+      expect(localStorage.getItem('resilai_selected_org_id')).toBe('org-challenger-001');
     });
 
-    it('2.5 Persistent header launcher opens 6-step modal and allows step resumption', async () => {
+    it('2.5 Persistent header launcher opens the first-steps modal', async () => {
       setOnboardingStep('org-challenger-001', 3);
       setOnboardingCompleted('org-challenger-001', false);
 
@@ -288,10 +247,10 @@ describe('Challenger 1: Empirical Adversarial Stress Testing', () => {
 
       fireEvent.click(launcherBtn);
 
-      // Verify modal opens
       await waitFor(() => {
-        expect(screen.getByText('See What Can Be Verified')).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
+      expect(screen.getByRole('link', { name: /connect where your email and files live/i })).toBeInTheDocument();
     });
   });
 });

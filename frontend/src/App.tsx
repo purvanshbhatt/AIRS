@@ -25,6 +25,7 @@ import PilotPage from './pages/Pilot';
 import StatusPage from './pages/Status';
 import AuditorView from './pages/AuditorView';
 import Onboarding from './pages/Onboarding';
+import NewOrg from './pages/NewOrg';
 import LegalDefenseGuide from './pages/solutions/LegalDefenseGuide';
 import HealthcareDefenseGuide from './pages/solutions/HealthcareDefenseGuide';
 
@@ -113,6 +114,7 @@ function MainAppRoutes() {
           <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/governance" element={<GovernancePage />} />
           <Route path="/connectors" element={<ConnectorsPage />} />
+          <Route path="/new-org" element={<NewOrg />} />
           <Route path="/yesterday" element={<ActivityPage />} />
           
           {/* IT WORKSPACE & TECHNOLOGY OPERATIONS */}
