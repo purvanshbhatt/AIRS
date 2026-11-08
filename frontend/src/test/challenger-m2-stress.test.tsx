@@ -227,8 +227,9 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
         </MemoryRouter>
       );
 
-      expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
-      expect(screen.getByTestId('landing-focus-areas')).toHaveTextContent('Client data protection');
+      expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
+      // focus-areas section removed in landing overhaul; legal persona question is the equivalent
+      expect(screen.getByText(/Is\ client\ confidentiality\ protected\?/)).toBeInTheDocument();
       unmount();
     });
 
@@ -244,7 +245,7 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
         </MemoryRouter>
       );
 
-      expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+      expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
       unmount();
     });
   });
@@ -336,7 +337,9 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
         </MemoryRouter>
       );
 
-      const liveStreamTab = screen.getByRole('button', { name: /Live Stream/i });
+      // Terminal now lives behind the product canvas "Live Stream" tab (first match); open it first.
+      fireEvent.click(screen.getAllByRole('button', { name: /Live Stream/i })[0]);
+      const liveStreamTab = screen.getAllByRole('button', { name: /Live Stream/i })[1];
       const curlTab = screen.getByRole('button', { name: /cURL/i });
       const jsonTab = screen.getByRole('button', { name: /JSON/i });
 
@@ -346,8 +349,8 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
         fireEvent.click(liveStreamTab);
       }
 
-      // Live stream is still visible and operational
-      expect(screen.getByText('ENGINE ACTIVE')).toBeInTheDocument();
+      // Live stream is still visible and operational (log stream header line)
+      expect(screen.getByText(/INITIALIZING/i)).toBeInTheDocument();
     });
 
     it('handles copy button safely with clipboard API mock', async () => {
@@ -366,7 +369,8 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
         </MemoryRouter>
       );
 
-      const copyBtn = screen.getByTitle('Copy to clipboard');
+      fireEvent.click(screen.getAllByRole('button', { name: /Live Stream/i })[0]);
+      const copyBtn = screen.getByRole('button', { name: /^Copy$/ });
 
       for (let i = 0; i < 5; i++) {
         fireEvent.click(copyBtn);
@@ -400,7 +404,7 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
         </MemoryRouter>
       );
 
-      expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+      expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
     });
 
     it('handles bizarre query parameters safely without crash', () => {
@@ -410,7 +414,7 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
         </MemoryRouter>
       );
 
-      expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+      expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
     });
 
     it('handles rapid sequential route switches across all 3 verticals', async () => {
@@ -421,7 +425,7 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
           </VerticalProvider>
         </MemoryRouter>
       );
-      expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+      expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
 
       rerender(
         <MemoryRouter initialEntries={['/healthcare']}>
@@ -430,7 +434,7 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
           </VerticalProvider>
         </MemoryRouter>
       );
-      expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+      expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
 
       rerender(
         <MemoryRouter initialEntries={['/legal']}>
@@ -439,7 +443,7 @@ describe('Adversarial Challenger Suite — Milestone 2 UI & Isolation Stress', (
           </VerticalProvider>
         </MemoryRouter>
       );
-      expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+      expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
 
       unmount();
     });

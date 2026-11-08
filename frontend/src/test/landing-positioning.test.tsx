@@ -107,16 +107,16 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       const headline = screen.getByTestId('landing-headline');
-      expect(headline).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+      expect(headline).toHaveTextContent('prove your ransomware readiness');
 
       const coreQuestion = screen.getByTestId('landing-core-question');
       expect(coreQuestion).toHaveTextContent('If a security or AI incident happens tomorrow, are you actually ready?');
 
       const badge = screen.getByTestId('hero-badge');
-      expect(badge).toHaveTextContent('Deterministic Verification · AI Incident Readiness');
+      expect(badge).toHaveTextContent('Non-LLM Readiness Scoring');
     });
 
-    it('renders universal cloud, SaaS, and identity focus areas', () => {
+    it('renders general three-persona value section (focus-areas section removed in landing overhaul)', () => {
       render(
         <MemoryRouter initialEntries={['/']}>
           <VerticalProvider initialVertical="general">
@@ -125,11 +125,9 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
         </MemoryRouter>
       );
 
-      const focusAreas = screen.getByTestId('landing-focus-areas');
-      expect(focusAreas).toHaveTextContent('Universal incident readiness');
-      expect(focusAreas).toHaveTextContent('Deterministic scoring & evidence pipeline');
-      expect(focusAreas).toHaveTextContent('SaaS & cloud reliability');
-      expect(focusAreas).toHaveTextContent('Identity & access control');
+      expect(screen.getByText(/Executive\ \(L1\)/)).toBeInTheDocument();
+      expect(screen.getByText(/Are\ we\ ready\ for\ an\ incident\?/)).toBeInTheDocument();
+      expect(screen.getByText(/IT\ \&\ Security\ \(L3\)/)).toBeInTheDocument();
     });
 
     it('seeds Acme Technologies demo organization on CTA click', async () => {
@@ -142,7 +140,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       const heroCta = screen.getByTestId('hero-demo-cta');
-      expect(heroCta).toHaveTextContent(/Acme Technologies/i);
+      expect(heroCta).toHaveTextContent(/Live Sandbox Demo/i);
 
       fireEvent.click(heroCta);
 
@@ -167,16 +165,16 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       const headline = screen.getByTestId('landing-headline');
-      expect(headline).toHaveTextContent('Incident readiness for healthcare organizations');
+      expect(headline).toHaveTextContent("clinic's ransomware readiness");
 
       const coreQuestion = screen.getByTestId('landing-core-question');
       expect(coreQuestion).toHaveTextContent("If ransomware hits your clinic tomorrow morning, can you keep operating and prove you're ready?");
 
       const badge = screen.getByTestId('hero-badge');
-      expect(badge).toHaveTextContent('Deterministic Verification for Healthcare');
+      expect(badge).toHaveTextContent('HIPAA Verified');
     });
 
-    it('renders ransomware resilience and clinical operations focus areas', () => {
+    it('renders healthcare persona questions (focus-areas section removed in landing overhaul)', () => {
       render(
         <MemoryRouter initialEntries={['/healthcare']}>
           <VerticalProvider initialVertical="healthcare">
@@ -185,11 +183,8 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
         </MemoryRouter>
       );
 
-      const focusAreas = screen.getByTestId('landing-focus-areas');
-      expect(focusAreas).toHaveTextContent('Ransomware resilience');
-      expect(focusAreas).toHaveTextContent('EHR clinical operations continuity');
-      expect(focusAreas).toHaveTextContent('Microsoft 365 & Entra ID protection');
-      expect(focusAreas).toHaveTextContent('Veeam immutable backup integrity');
+      expect(screen.getByText(/Can\ we\ treat\ patients\ and\ stay\ open\?/)).toBeInTheDocument();
+      expect(screen.getByText(/Clinical\ IT\ \/\ MSP\ \(L3\)/)).toBeInTheDocument();
     });
 
     it('seeds Northstar Family Health demo organization on CTA click', async () => {
@@ -202,7 +197,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       const heroCta = screen.getByTestId('hero-demo-cta');
-      expect(heroCta).toHaveTextContent(/Northstar Family Health/i);
+      expect(heroCta).toHaveTextContent(/Live Sandbox Demo/i);
 
       fireEvent.click(heroCta);
 
@@ -212,7 +207,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       });
     });
 
-    it('adapts report preview section to Clinical Continuity Audits', () => {
+    it('adapts persona section and hero badge to healthcare (report-preview section removed in landing overhaul)', () => {
       render(
         <MemoryRouter initialEntries={['/healthcare']}>
           <VerticalProvider initialVertical="healthcare">
@@ -221,9 +216,8 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
         </MemoryRouter>
       );
 
-      expect(screen.getByText('Clinical Continuity Audits')).toBeInTheDocument();
-      expect(screen.getByText(/Veeam Cloud Connect Immutable Backups/i)).toBeInTheDocument();
-      expect(screen.getByText(/Immutable Backup Air-Gap Verification/i)).toBeInTheDocument();
+      expect(screen.getByText(/What\ EHR\ or\ backup\ controls\ drifted\?/)).toBeInTheDocument();
+      expect(screen.getByTestId('hero-badge')).toHaveTextContent('Clinical Continuity');
     });
   });
 
@@ -241,16 +235,16 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       const headline = screen.getByTestId('landing-headline');
-      expect(headline).toHaveTextContent('Incident readiness for law firms');
+      expect(headline).toHaveTextContent("firm's ransomware resilience");
 
       const coreQuestion = screen.getByTestId('landing-core-question');
       expect(coreQuestion).toHaveTextContent('If ransomware hits your firm tomorrow morning, can you keep operating and protect client data?');
 
       const badge = screen.getByTestId('hero-badge');
-      expect(badge).toHaveTextContent('Deterministic Verification for Law Firms');
+      expect(badge).toHaveTextContent('ABA 477R Verified');
     });
 
-    it('renders client data protection and ABA compliance focus areas', () => {
+    it('renders legal persona questions (focus-areas section removed in landing overhaul)', () => {
       render(
         <MemoryRouter initialEntries={['/legal']}>
           <VerticalProvider initialVertical="legal">
@@ -259,11 +253,8 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
         </MemoryRouter>
       );
 
-      const focusAreas = screen.getByTestId('landing-focus-areas');
-      expect(focusAreas).toHaveTextContent('Client data protection');
-      expect(focusAreas).toHaveTextContent('Privileged access & confidentiality');
-      expect(focusAreas).toHaveTextContent('Document vault & repository security');
-      expect(focusAreas).toHaveTextContent('ABA & regulatory compliance');
+      expect(screen.getByText(/Is\ client\ confidentiality\ protected\?/)).toBeInTheDocument();
+      expect(screen.getByText(/Managing\ Partner\ \(L1\)/)).toBeInTheDocument();
     });
 
     it('seeds Northstar & Cole LLP demo organization on CTA click', async () => {
@@ -276,7 +267,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       const heroCta = screen.getByTestId('hero-demo-cta');
-      expect(heroCta).toHaveTextContent(/Northstar & Cole LLP/i);
+      expect(heroCta).toHaveTextContent(/Live Sandbox Demo/i);
 
       fireEvent.click(heroCta);
 
@@ -286,7 +277,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       });
     });
 
-    it('adapts report preview section to Client Confidentiality Audits', () => {
+    it('adapts persona section and hero badge to legal (report-preview section removed in landing overhaul)', () => {
       render(
         <MemoryRouter initialEntries={['/legal']}>
           <VerticalProvider initialVertical="legal">
@@ -295,9 +286,8 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
         </MemoryRouter>
       );
 
-      expect(screen.getByText('Firm & Client Confidentiality Audits')).toBeInTheDocument();
-      expect(screen.getByText(/NetDocuments Vault/i)).toBeInTheDocument();
-      expect(screen.getByText(/Privileged Document Vault Access Drift/i)).toBeInTheDocument();
+      expect(screen.getByText(/What\ evidence\ proves\ ABA\ compliance\?/)).toBeInTheDocument();
+      expect(screen.getByTestId('hero-badge')).toHaveTextContent('Document Vault Protection');
     });
   });
 
@@ -388,7 +378,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
       });
     });
 
@@ -400,7 +390,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
       });
     });
 
@@ -412,7 +402,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
       });
     });
 
@@ -424,7 +414,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent(/ransomware hits your clinic/i);
       });
     });
@@ -437,9 +427,69 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent(/protect client data/i);
       });
+    });
+  });
+
+  // ============================================================================
+  // 6. Overhauled page structure: CTAs, FAQ, SEO head, no fabricated numbers
+  // ============================================================================
+  describe('6. Landing page structure (post-overhaul)', () => {
+    const renderVertical = (v: 'general' | 'healthcare' | 'legal') =>
+      render(
+        <MemoryRouter initialEntries={[v === 'general' ? '/' : `/${v}`]}>
+          <VerticalProvider initialVertical={v}>
+            <Landing defaultVertical={v} />
+          </VerticalProvider>
+        </MemoryRouter>
+      );
+
+    it('primary CTA links to /login, carrying the vertical when not general', () => {
+      const { unmount } = renderVertical('general');
+      const general = screen.getAllByRole('link', { name: /Start Free Readiness Scan/i });
+      expect(general.length).toBeGreaterThan(0);
+      general.forEach((a) => expect(a).toHaveAttribute('href', '/login'));
+      unmount();
+
+      renderVertical('legal');
+      screen
+        .getAllByRole('link', { name: /Start Free Readiness Scan/i })
+        .forEach((a) => expect(a).toHaveAttribute('href', '/login?vertical=legal'));
+    });
+
+    it('navbar Pricing link points to /pricing (vertical-aware)', () => {
+      render(
+        <MemoryRouter initialEntries={['/healthcare']}>
+          <VerticalProvider initialVertical="healthcare">
+            <PublicNavbar />
+          </VerticalProvider>
+        </MemoryRouter>
+      );
+      expect(screen.getByRole('link', { name: /Pricing/i })).toHaveAttribute('href', '/pricing?vertical=healthcare');
+    });
+
+    it('renders the FAQ and expands an item on click', () => {
+      renderVertical('general');
+      expect(screen.getByRole('heading', { name: /Frequently asked questions/i })).toBeInTheDocument();
+      const item = screen.getByRole('button', { name: /Do we need to install software agents/i });
+      expect(item).toHaveAttribute('aria-expanded', 'false');
+      fireEvent.click(item);
+      expect(item).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('SEOHead sets a document title and vertical-specific description', async () => {
+      renderVertical('general');
+      await waitFor(() => expect(document.title).toMatch(/ResilAI/));
+      expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBeTruthy();
+    });
+
+    it('does not display fabricated customer counts or testimonial-style stats', () => {
+      renderVertical('general');
+      const text = document.body.textContent ?? '';
+      expect(text).not.toMatch(/\b\d[\d,]*\+?\s+(customers|clients|organizations|companies|users)\b/i);
+      expect(text).not.toMatch(/trusted by \d/i);
     });
   });
 });

@@ -105,10 +105,10 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent('If a security or AI incident happens tomorrow, are you actually ready?');
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Deterministic Verification · AI Incident Readiness');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Acme Technologies/i);
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Non-LLM Readiness Scoring');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -120,10 +120,10 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent("If ransomware hits your clinic tomorrow morning, can you keep operating and prove you're ready?");
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Deterministic Verification for Healthcare');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar Family Health/i);
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('HIPAA Verified');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -135,10 +135,10 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent('If ransomware hits your firm tomorrow morning, can you keep operating and protect client data?');
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Deterministic Verification for Law Firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('ABA 477R Verified');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -150,8 +150,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Acme Technologies/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -167,7 +167,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
       });
     });
 
@@ -183,7 +183,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
       });
     });
 
@@ -199,7 +199,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
       });
     });
 
@@ -215,7 +215,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
       });
     });
   });
@@ -236,10 +236,10 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent('If ransomware hits your firm tomorrow morning, can you keep operating and protect client data?');
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Deterministic Verification for Law Firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('ABA 477R Verified');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -251,9 +251,9 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent(/protect client data/i);
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -265,9 +265,9 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent(/ransomware hits your clinic/i);
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar Family Health/i);
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -279,8 +279,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Acme Technologies/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -292,8 +292,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -305,8 +305,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -318,8 +318,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar Family Health/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
   });
@@ -336,10 +336,10 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent(/ransomware hits your clinic/i);
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Deterministic Verification for Healthcare');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar Family Health/i);
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('HIPAA Verified');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -355,8 +355,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar Family Health/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -368,10 +368,10 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent(/protect client data/i);
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Deterministic Verification for Law Firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('ABA 477R Verified');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -383,8 +383,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar Family Health/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -396,7 +396,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
       });
     });
 
@@ -408,8 +408,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Acme Technologies/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
   });
@@ -430,8 +430,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar Family Health/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -447,8 +447,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -492,7 +492,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       // Assert that the infinite ping-pong loop is eliminated and transitions settle cleanly
       expect(detectedInfiniteLoop).toBe(false);
       expect(transitions).toEqual(['general', 'legal']);
-      expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
+      expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
     });
 
     it('C4.04: Query param ?vertical=legal OVERRIDES defaultVertical="healthcare" at root /', async () => {
@@ -507,8 +507,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -524,7 +524,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
       });
     });
   });
@@ -541,7 +541,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       const heroCta = await screen.findByTestId('hero-demo-cta');
-      expect(heroCta).toHaveTextContent(/Northstar & Cole LLP/i);
+      expect(heroCta).toHaveTextContent(/Live Sandbox Demo/i);
 
       fireEvent.click(heroCta);
 
@@ -559,7 +559,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       const heroCta = await screen.findByTestId('hero-demo-cta');
-      expect(heroCta).toHaveTextContent(/Northstar Family Health/i);
+      expect(heroCta).toHaveTextContent(/Live Sandbox Demo/i);
 
       fireEvent.click(heroCta);
 
@@ -609,8 +609,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Firm & Client Confidentiality Audits')).toBeInTheDocument();
-        expect(screen.getByText(/NetDocuments Vault/i)).toBeInTheDocument();
+        // report-preview section removed in landing overhaul; legal persona question is the vertical-specific equivalent
+        expect(screen.getByText(/What\ evidence\ proves\ ABA\ compliance\?/)).toBeInTheDocument();
       });
     });
   });
@@ -641,7 +641,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
       });
 
       // Navigate to /legal
@@ -650,8 +650,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -664,7 +664,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
       });
 
       // Navigate to /healthcare?vertical=legal
@@ -673,8 +673,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for law firms');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar & Cole LLP/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
 
@@ -687,7 +687,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('ResilAI — AI Incident Readiness Platform');
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent('prove your ransomware readiness');
       });
 
       // Navigate to /healthcare?vertical=invalid_token
@@ -696,8 +696,8 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByTestId('landing-headline')).toHaveTextContent('Incident readiness for healthcare organizations');
-        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Northstar Family Health/i);
+        expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
+        expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
   });
