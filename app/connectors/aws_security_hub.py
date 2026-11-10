@@ -7,6 +7,8 @@ Each data source is then probed on its own and reported separately:
 
   - Security Hub  -> findings (``aws.securityhub.finding``)
   - EC2 / RDS     -> one ``aws.inventory.snapshot`` event
+  - VPC / VPN     -> one ``aws.network.snapshot`` event (networks, subnets,
+                     gateways, VPN tunnels, security groups, peerings)
   - IAM           -> one ``aws.iam.credential_report`` event
   - GuardDuty/SSM -> availability only (their output arrives through
                      Security Hub and the EC2 inventory respectively)
@@ -576,7 +578,11 @@ class AWSSecurityHubConnector(Connector):
             events.extend(self._collect_findings())
 
         if self._session is not None:
-            for collect in (self._collect_inventory_event, self._collect_iam_event):
+            for collect in (
+                self._collect_inventory_event,
+                self._collect_network_event,
+                self._collect_iam_event,
+            ):
                 try:
                     event = collect()
                 except Exception as exc:  # defensive: collectors guard themselves
@@ -662,12 +668,50 @@ class AWSSecurityHubConnector(Connector):
             timestamp=now.isoformat(),
         )
 
+    def _collect_network_event(self) -> Optional[RawEvent]:
+        """VPCs, subnets, gateways, VPNs and security groups as one ``aws.network.snapshot`` event.
+
+        Uses the session built from this connector's own credentials. Each
+        EC2 API is read on its own, so a missing permission only leaves that
+        part of the map out. Returns None when the account shows no network
+        and no VPN (nothing to draw).
+        """
+        try:
+            from app.services.discovery.aws_network import collect_aws_network
+
+            snapshot = collect_aws_network(self._session, self._region, self._client_kwargs())
+        except Exception as exc:  # defensive: the collector guards each call itself
+            self.logger.warning(
+                "AWS network snapshot failed: exception=%s aws_error=%s",
+                type(exc).__name__, _error_code(exc),
+            )
+            return None
+
+        if not snapshot.get("networks") and not snapshot.get("vpns"):
+            return None
+
+        now = datetime.now(timezone.utc)
+        snapshot["account_id"] = self.account_id
+        snapshot["region"] = self._region
+        return RawEvent(
+            event_type="aws.network.snapshot",
+            source_system="aws",
+            source_event_id=(
+                f"aws-network-{self.account_id or 'account'}-{self._region}-"
+                f"{now.strftime('%Y%m%d%H')}"
+            ),
+            payload=json.loads(json.dumps(snapshot, default=str)),
+            timestamp=now.isoformat(),
+        )
+
     @staticmethod
     def _inventory_resource(res: Dict[str, Any]) -> Dict[str, Any]:
         """Discovery resource -> the inventory shape the network map reads."""
         source = str(res.get("source") or "")
         raw = res.get("raw") if isinstance(res.get("raw"), dict) else {}
         software = res.get("software") if isinstance(res.get("software"), list) else []
+        security_groups = res.get("security_group_ids")
+        security_group_ids = [str(g) for g in security_groups if g] if isinstance(security_groups, list) else []
         if source.startswith("rds:"):
             engine = software[0] if software and isinstance(software[0], dict) else {}
             return {
@@ -683,6 +727,8 @@ class AWSSecurityHubConnector(Connector):
                 "publicly_accessible": raw.get("PubliclyAccessible"),
                 "storage_encrypted": raw.get("StorageEncrypted"),
                 "multi_az": raw.get("MultiAZ"),
+                "vpc_id": res.get("vpc_id"),
+                "security_group_ids": security_group_ids,
                 "source": source,
             }
         return {
@@ -695,6 +741,10 @@ class AWSSecurityHubConnector(Connector):
             "launch_time": res.get("launch_time"),
             "private_ip": res.get("ip"),
             "public_ip": res.get("public_ip"),
+            "vpc_id": res.get("vpc_id"),
+            "subnet_id": res.get("subnet_id"),
+            "security_group_ids": security_group_ids,
+            "availability_zone": res.get("availability_zone"),
             "software_count": len(software),
             "source": source,
         }

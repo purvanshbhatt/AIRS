@@ -3,6 +3,23 @@ Custom Webhook / Generic API Connector — MSP & Ingestion Telemetry.
 
 Manages generic webhook endpoints for receiving custom audit evidence,
 MSP monitoring alerts, and third-party CI/CD compliance payloads.
+
+Network topology push
+---------------------
+Firewalls and VPN tools (Tailscale, UniFi, pfSense, WireGuard, ...) can push
+what they know about the network to the same endpoint::
+
+    POST /api/v1/connectors/webhook/webhook?org_id=<org>
+    X-Webhook-Secret: <secret>
+    {"event_type": "network.snapshot", "provider": "unifi",
+     "networks": [...], "subnets": [...], "gateways": [...], "vpns": [...],
+     "security_groups": [...], "devices": [...], "links": [...], "peerings": [...]}
+
+The body is stored unchanged as a telemetry event of that type (any event
+type is accepted; nothing is filtered) and the network map reads it through
+``app.services.network_topology``. Every list is optional. The map uses the
+newest snapshot per ``provider`` (and optional ``scope``), so a tool should
+send its complete current view each time.
 """
 from __future__ import annotations
 
@@ -21,6 +38,9 @@ from app.connectors.registry import register_connector
 from app.services.clinic_engine.v2.schema import ConnectorCapability
 
 logger = logging.getLogger("airs.connectors.webhook")
+
+# Event type of a pushed network topology document (see module docstring).
+NETWORK_SNAPSHOT_EVENT = "network.snapshot"
 
 
 @register_connector

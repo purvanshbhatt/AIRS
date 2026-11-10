@@ -160,12 +160,16 @@ class WazuhConnector(Connector):
             resp = await client.get(
                 f"{self._base_url}/agents",
                 headers=headers,
-                params={"limit": 500, "select": "id,name,status,ip,os.name,version"},
+                params={
+                    "limit": 500,
+                    "select": "id,name,status,ip,os.name,os.platform,version,lastKeepAlive,group",
+                },
             )
             if resp.status_code == 200:
                 agents = resp.json().get("data", {}).get("affected_items", [])
                 for agent in agents:
                     agent_id = agent.get("id", "000")
+                    os_info = agent.get("os") if isinstance(agent.get("os"), dict) else {}
                     events.append(NormalizedEvent(
                         event_type="wazuh.agent_status",
                         source_system="wazuh",
@@ -176,8 +180,12 @@ class WazuhConnector(Connector):
                             "name": agent.get("name"),
                             "status": agent.get("status"),
                             "ip": agent.get("ip"),
-                            "os": agent.get("os", {}).get("name") if isinstance(agent.get("os"), dict) else None,
+                            "os": os_info.get("name") or os_info.get("platform"),
                             "version": agent.get("version"),
+                            # Read by the network map: when the agent last
+                            # checked in and which Wazuh groups it is in.
+                            "last_keep_alive": agent.get("lastKeepAlive"),
+                            "group": agent.get("group"),
                         },
                     ))
         except Exception as exc:

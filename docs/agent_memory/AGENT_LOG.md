@@ -3171,3 +3171,29 @@ Blocked By:
 Affected Teams:
 * Backend
 * Frontend
+
+---
+
+Date: 2026-11-09
+Agent: Claude Fable 5.2 (Claude Code)
+Task: 3D infrastructure map with networks, VPN and live telemetry
+Changes Made:
+* Network Map added to the sidebar; `/network` shows only the real map (mock summary and tabs removed).
+* Topology builder understands networks, subnets, gateways, VPNs and device-to-device links from AWS, a generic pushed `network.snapshot`, Wazuh agents and Splunk host inventory; adds a `live` block and VPN / network counts.
+* New AWS network collector (read-only EC2 describe calls); demo organisations get a scripted, labelled sample network.
+* 3D view rebuilt as stacked floors with shaped nodes, status rings, VPN tunnels, live refresh, search, full screen and click-to-fly.
+Files Modified:
+* app/services/network_topology.py, app/services/discovery/aws_network.py (new), app/services/discovery/aws_discovery.py, app/services/demo/network_demo_telemetry.py (new), app/connectors/aws_security_hub.py, app/connectors/wazuh.py, app/connectors/splunk.py, app/connectors/webhook.py, app/api/v1/connectors.py, app/api/clinic/router.py, tests/test_network_topology.py, tests/test_aws_network_collector.py (new)
+* frontend/src/components/network/NetworkMap.tsx, frontend/src/components/network/map/{Graph3D,Graph2D,NodeDetailPanel}.tsx, frontend/src/components/network/map/palette.ts, frontend/src/pages/technology/NetworkPage.tsx, frontend/src/components/layout/AppSidebar.tsx, frontend/src/api.ts, frontend/src/test/network-map.test.tsx
+Dependencies Created/Updated:
+* frontend: `three` ^0.187.0 (already installed transitively, now explicit), `@types/three` ^0.187.0 (dev)
+Business Impact:
+* An owner or reviewer can open one page and see which device sits on which network, how offices, cloud and remote staff are joined by VPN, what is open to the internet and what needs attention, without reading a table.
+Next Recommended Task:
+* Verify against a real AWS account and a real Wazuh manager; give `wazuh.agent_status` an hourly inventory event so agent status refreshes; decide whether the map counts toward any plan tier.
+Blocked By:
+* None
+Affected Teams:
+* Backend
+* Frontend
+

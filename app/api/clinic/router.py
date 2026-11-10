@@ -20,6 +20,7 @@ from app.services.clinic_engine.v2.pilot import PilotService, OrgMode
 from app.services.clinic_engine.v2.metrics_engine import MetricsEngine
 from app.models.clinic_moment import MomentStatus
 from app.services.demo.aws_demo_telemetry import get_aws_demo_telemetry
+from app.services.demo.network_demo_telemetry import build_demo_network_snapshot
 from app.core.config import Environment
 
 router = APIRouter(tags=["clinic"])
@@ -109,7 +110,12 @@ def get_demo_telemetry(org_id: str) -> List[RawEvent]:
     # 3. AWS Telemetry (Derived from real AWS test machines and recorded e2e runs)
     aws_events = get_aws_demo_telemetry(org_id)
 
-    return [ms_event, backup_event] + aws_events
+    # 4. Network layout (scripted sample: office network, VPC, gateways, VPNs).
+    #    Read only by the network map; no evidence provider consumes it, so the
+    #    readiness score is unaffected.
+    network_event = build_demo_network_snapshot(org_id, workstation, now)
+
+    return [ms_event, backup_event] + aws_events + [network_event]
 
 
 # =============================================================================

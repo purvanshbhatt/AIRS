@@ -220,6 +220,76 @@ describe('NetworkMap', () => {
     expect(screen.getByText(/Demo workspace/)).toBeInTheDocument();
   });
 
+  it('shows networks, VPN links and where the data comes from', async () => {
+    const withNetworks: api.NetworkTopologyResponse = {
+      ...topology,
+      nodes: [
+        ...topology.nodes,
+        { id: 'net:aws:vpc-1', type: 'network', label: 'clinic-vpc', sublabel: '10.20.0.0/16', status: 'healthy', zone: 'network', meta: { issues: [], seen_by: ['Amazon Web Services'], last_seen: null, cidr: '10.20.0.0/16', network_kind: 'vpc' } },
+        { id: 'subnet:aws:subnet-1', type: 'subnet', label: 'private-a', sublabel: '10.20.1.0/24', status: 'healthy', zone: 'network', meta: { issues: [], seen_by: [], last_seen: null, cidr: '10.20.1.0/24' } },
+        { id: 'vpn:aws:vpn-1', type: 'vpn', label: 'Office to cloud VPN', sublabel: 'Site-to-site VPN', status: 'warning', zone: 'network', meta: { issues: [{ title: 'One VPN tunnel is down', severity: 'medium' }], seen_by: [], last_seen: null, vpn_kind: 'site_to_site', tunnels_up: 1, tunnels_total: 2 } },
+        { id: 'gw:aws:igw-1', type: 'gateway', label: 'Internet gateway', sublabel: null, status: 'healthy', zone: 'network', meta: { issues: [], seen_by: [], last_seen: null, gateway_kind: 'internet_gateway' } },
+      ],
+      edges: [
+        ...topology.edges,
+        { source: 'aws:instance:i-1', target: 'subnet:aws:subnet-1', kind: 'member_of', label: 'is on' },
+        { source: 'subnet:aws:subnet-1', target: 'net:aws:vpc-1', kind: 'part_of', label: 'is part of' },
+        { source: 'net:aws:vpc-1', target: 'gw:aws:igw-1', kind: 'routes_to', label: 'routes to' },
+        { source: 'gw:aws:igw-1', target: 'internet', kind: 'routes_to', label: 'routes to' },
+        { source: 'vpn:aws:vpn-1', target: 'net:aws:vpc-1', kind: 'vpn_tunnel', label: 'VPN tunnel' },
+        { source: 'ms:device:d-1', target: 'aws:instance:i-1', kind: 'talks_to', label: 'tcp/443' },
+      ],
+      summary: { ...topology.summary, node_count: 9, edge_count: 9, networks: 1, vpns: 1, vpn_down: 0 },
+      live: {
+        mode: 'live',
+        latest_event_at: new Date().toISOString(),
+        sources: [{ id: 'connector:aws', type: 'aws', label: 'Amazon Web Services', status: 'healthy', last_sync_at: new Date().toISOString(), event_count: 4 }],
+      },
+    };
+    vi.mocked(api.getNetworkTopology).mockResolvedValue(withNetworks);
+    renderWithRouter(<NetworkMap />);
+    await waitFor(() => expect(screen.getByTestId('network-map')).toBeInTheDocument());
+
+    // Extra stats appear only because the data has networks and a VPN.
+    expect(screen.getByText('Networks').nextSibling?.textContent).toBe('1');
+    expect(screen.getByText('VPN links').nextSibling?.textContent).toBe('1');
+
+    // The live strip names the feeding system and says the map is live.
+    const live = screen.getByTestId('network-map-live');
+    expect(within(live).getByText('Live')).toBeInTheDocument();
+    expect(within(live).getByText('Amazon Web Services')).toBeInTheDocument();
+    expect(within(live).getByText(/refreshes by itself/)).toBeInTheDocument();
+
+    // Search finds a network by its address range and opens it.
+    fireEvent.change(screen.getByRole('searchbox', { name: /Find a device or network/ }), { target: { value: '10.20.0' } });
+    fireEvent.click(within(screen.getByRole('listbox', { name: 'Matching systems' })).getByText('clinic-vpc'));
+    let panel = await screen.findByTestId('network-node-panel');
+    expect(within(panel).getByRole('heading', { name: 'clinic-vpc' })).toBeInTheDocument();
+    expect(within(panel).getByText('Cloud network')).toBeInTheDocument(); // network_kind in plain words
+    expect(within(panel).getByText(/Office to cloud VPN tunnels to this/)).toBeInTheDocument();
+
+    // A device shows its way out: segment, network, gateway, internet.
+    fireEvent.click(screen.getByTestId('gnode-aws:instance:i-1'));
+    await waitFor(() =>
+      expect(within(screen.getByTestId('network-node-panel')).getByRole('heading', { name: 'clinic-ehr-app-server' })).toBeInTheDocument(),
+    );
+    panel = screen.getByTestId('network-node-panel');
+    const route = within(panel).getByTestId('network-node-route');
+    expect(within(route).getAllByRole('button').map((b) => b.textContent)).toEqual([
+      'private-a', 'clinic-vpc', 'Internet gateway', 'Internet',
+    ]);
+    expect(within(panel).getByText(/FRONT-DESK-PC talks to this \(tcp\/443\)/)).toBeInTheDocument();
+  });
+
+  it('labels a workspace with nothing reporting as waiting, not live', async () => {
+    vi.mocked(api.getNetworkTopology).mockResolvedValue({ ...topology, live: { mode: 'live', latest_event_at: null, sources: [] } });
+    renderWithRouter(<NetworkMap />);
+    await waitFor(() => expect(screen.getByTestId('network-map')).toBeInTheDocument());
+    const live = screen.getByTestId('network-map-live');
+    expect(within(live).getByText('Waiting for data')).toBeInTheDocument();
+    expect(within(live).queryByText('Live')).not.toBeInTheDocument();
+  });
+
   it('surfaces a retry when the request fails', async () => {
     vi.mocked(api.getNetworkTopology).mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce(topology);
     renderWithRouter(<NetworkMap />);

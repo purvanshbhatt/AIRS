@@ -24,6 +24,7 @@ import {
   FileBarChart,
   X,
   Bot,
+  Network,
 } from 'lucide-react';
 
 interface NavItem {
@@ -75,6 +76,7 @@ export function AppSidebar({ mobile = false, onClose }: AppSidebarProps = {}) {
     items: [
       { label: 'Operations Center', icon: Layers, path: '/operations' },
       { label: '48-Hour Agent Audit', icon: Bot, path: '/agent-audit' },
+      { label: 'Network Map', icon: Network, path: '/network' },
       { label: 'Software Watch', icon: Cpu, path: '/technology/intelligence' },
       { label: 'Reports', icon: FileBarChart, path: '/reports' },
       { label: 'Connectors', icon: Plug, path: '/connectors' },

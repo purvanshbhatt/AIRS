@@ -10,22 +10,35 @@ Nothing here is invented. Every node comes from one of three real sources:
      wrote after talking to AWS / Microsoft Graph.
   3. Recent telemetry events (``TelemetryEvent`` rows, or the recorded demo
      telemetry for explicit demo organizations) — Security Hub findings, AWS
-     inventory snapshots, Microsoft Intune/Entra telemetry, Veeam backup jobs
-     and IAM credential reports.
+     inventory snapshots, Microsoft Intune/Entra telemetry, Veeam backup jobs,
+     IAM credential reports, Wazuh agents and alerts, Splunk host inventory
+     and network snapshots (``aws.network.snapshot`` from the AWS collector,
+     ``network.snapshot`` pushed by a firewall / VPN tool through the webhook).
 
 Edges describe real relationships: a connector ``monitors`` the resources it
 reported, an identity provider ``authenticates`` the identities it manages,
 the backup connector ``backs_up`` a protected system, and the synthetic
 ``internet`` node is ``exposed_to_internet`` to a resource whose security
-group (or public IP) lets 0.0.0.0/0 in.
+group (or public IP) lets 0.0.0.0/0 in. The infrastructure layer adds
+``member_of`` (device -> subnet / network), ``part_of`` (subnet -> network),
+``vpn_tunnel`` (VPN -> the network or gateway at each end, remote device ->
+client VPN), ``routes_to`` (network -> gateway, gateway -> internet, network
+peering), ``protects`` (security group -> device) and ``talks_to`` (observed
+device-to-device traffic).
+
+The only inference made is the "inferred" /24 network: a device with a
+private IPv4 address and no reported network is attached to a network node
+named after its /24, and that node is flagged ``meta.inferred = True``.
 
 An organization with nothing connected yields an empty graph with
 ``summary.empty = True`` so the UI can say so in plain English.
 """
 from __future__ import annotations
 
+import ipaddress
 import json
 import logging
+import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Optional
@@ -35,10 +48,85 @@ logger = logging.getLogger("airs.services.network_topology")
 INTERNET_NODE_ID = "internet"
 
 # Node / edge vocabulary shared with the frontend.
-NODE_TYPES = ("connector", "server", "workstation", "database", "bucket", "identity", "security_group", "internet")
-ZONES = ("internet", "cloud", "security", "servers", "workstations", "data", "backups", "identity")
+NODE_TYPES = (
+    "connector", "server", "workstation", "database", "bucket", "identity", "security_group", "internet",
+    "network", "subnet", "vpn", "gateway",
+)
+ZONES = ("internet", "cloud", "security", "servers", "workstations", "data", "backups", "identity", "network")
 STATUSES = ("healthy", "warning", "attention", "error", "unknown")
-EDGE_KINDS = ("monitors", "backs_up", "authenticates", "exposed_to_internet")
+EDGE_KINDS = (
+    "monitors", "backs_up", "authenticates", "exposed_to_internet",
+    "member_of", "part_of", "vpn_tunnel", "routes_to", "protects", "talks_to",
+)
+
+NETWORK_KINDS = ("vpc", "office_lan", "wifi", "vpn_pool", "inferred", "other")
+VPN_KINDS = ("site_to_site", "client")
+GATEWAY_KINDS = (
+    "internet_gateway", "nat_gateway", "vpn_gateway", "customer_gateway", "transit_gateway", "firewall", "router",
+)
+
+# One handler serves the generic push and the AWS collector.
+SNAPSHOT_EVENT_TYPES = ("network.snapshot", "aws.network.snapshot")
+# Events that describe the current state of something (the newest one counts).
+STATE_EVENT_TYPES = SNAPSHOT_EVENT_TYPES + ("wazuh.agent_status", "splunk.host_inventory")
+_MAX_STATE_EVENTS = 500
+
+# Devices a network can contain (also the only nodes matched by name).
+_DEVICE_TYPES = ("server", "workstation", "database")
+
+_MAX_SNAPSHOT_ITEMS = 200
+_MAX_ALERT_ISSUES_PER_NODE = 5
+
+_NETWORK_KIND_ALIASES = {
+    "lan": "office_lan", "office": "office_lan", "office-lan": "office_lan", "on_prem": "office_lan",
+    "wi-fi": "wifi", "wlan": "wifi", "guest_wifi": "wifi", "guest-wifi": "wifi", "wireless": "wifi",
+    "vpn": "vpn_pool", "vpn-pool": "vpn_pool", "client_vpn": "vpn_pool",
+    "vnet": "vpc", "cloud": "vpc",
+}
+_NETWORK_KIND_LABELS = {
+    "vpc": "Cloud network (VPC)",
+    "office_lan": "Office network",
+    "wifi": "Wi-Fi network",
+    "vpn_pool": "VPN address pool",
+    "inferred": "Network worked out from device addresses",
+    "other": "Network",
+}
+_GATEWAY_KIND_ALIASES = {
+    "igw": "internet_gateway", "internet": "internet_gateway",
+    "nat": "nat_gateway", "natgw": "nat_gateway",
+    "vgw": "vpn_gateway", "virtual_private_gateway": "vpn_gateway",
+    "cgw": "customer_gateway",
+    "tgw": "transit_gateway",
+    "fw": "firewall",
+}
+_GATEWAY_KIND_LABELS = {
+    "internet_gateway": "Internet gateway",
+    "nat_gateway": "NAT gateway (outbound internet)",
+    "vpn_gateway": "VPN gateway",
+    "customer_gateway": "Office end of the VPN",
+    "transit_gateway": "Transit gateway",
+    "firewall": "Firewall",
+    "router": "Router",
+}
+_INTERNET_GATEWAY_KINDS = {"internet_gateway", "nat_gateway"}
+_VPN_KIND_ALIASES = {
+    "site-to-site": "site_to_site", "s2s": "site_to_site", "ipsec": "site_to_site", "site": "site_to_site",
+    "client_vpn": "client", "client-vpn": "client", "remote_access": "client", "remote-access": "client",
+}
+_VPN_UP_STATES = {"up", "connected", "active", "established", "online"}
+_VPN_DOWN_STATES = {"down", "disconnected", "failed", "error", "offline"}
+# Peerings in these states carry no traffic.
+_GONE_STATES = {
+    "deleted", "deleting", "rejected", "failed", "expired",
+    "pending", "pending-acceptance", "initiating-request", "provisioning",
+}
+
+_PRIVATE_V4_NETWORKS = (
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+)
+_WORKSTATION_OS_RE = re.compile(r"windows\s*1[01]\b|mac\s*os", re.IGNORECASE)
 
 # Connector types that are "cloud platforms" rather than security tooling.
 _CLOUD_CONNECTOR_TYPES = {
@@ -160,6 +248,13 @@ class TopologyBuilder:
         self._connector_by_type: Dict[str, str] = {}
         self._bare: Dict[str, bool] = {}
         self._source_count = 0
+        # Live-feed bookkeeping (the ``live`` block of the response).
+        self._connector_last_sync: Dict[str, Optional[str]] = {}
+        self._event_counts: Dict[str, int] = {}
+        self._source_latest: Dict[str, Optional[str]] = {}
+        self._latest_event_at: Optional[str] = None
+        self._wazuh_agents: Dict[str, str] = {}
+        self._alert_issue_counts: Dict[str, int] = {}
 
     # -- nodes ---------------------------------------------------------------
 
@@ -258,6 +353,7 @@ class TopologyBuilder:
             },
         )
         self._connector_by_type.setdefault(ctype, node_id)
+        self._connector_last_sync[node_id] = _iso(last_sync)
         self._source_count += 1
         return node_id
 
@@ -326,32 +422,65 @@ class TopologyBuilder:
     # -- telemetry -----------------------------------------------------------
 
     def add_events(self, events: Iterable[Any]) -> None:
+        """Feed telemetry into the graph.
+
+        Events are handled in phases so matching by name sees every node that
+        could be matched, whatever order the rows arrive in:
+
+          0. inventory, findings, identity, backups (everything else)
+          1. Wazuh agents and Splunk hosts (enrich a same-named node)
+          2. Wazuh alerts (need the agent nodes)
+          3. network snapshots (place devices on networks by id or name)
+
+        Status feeds (phases 1 and 3) describe "now", so only the newest
+        event per source is used: an hour-old "tunnel down" must not outlive
+        the tunnel coming back up.
+        """
+        phases: Dict[int, List[Any]] = {0: [], 1: [], 2: [], 3: []}
         for event in events or []:
-            try:
-                self._add_event(event)
-            except Exception as exc:  # one bad payload must not sink the map
-                logger.debug("Skipping telemetry event for topology: %s", exc)
+            phases[_event_phase(_lower(_get(event, "event_type")))].append(event)
+        phases[1] = _latest_per_key(phases[1])
+        phases[3] = _latest_per_key(phases[3])
+        for phase in sorted(phases):
+            for event in phases[phase]:
+                try:
+                    self._add_event(event)
+                except Exception as exc:  # one bad payload must not sink the map
+                    logger.debug("Skipping telemetry event for topology: %s", type(exc).__name__)
 
     def _add_event(self, event: Any) -> None:
         event_type = _lower(_get(event, "event_type"))
         source = _get(event, "source_system") or ""
-        payload = _get(event, "payload") or {}
-        if isinstance(payload, str):
-            payload = json.loads(payload)
-        seen_at = _iso(_get(event, "timestamp") or _get(event, "created_at") or payload.get("updated_at") or payload.get("created_at"))
+        payload = _event_payload(event)
+        seen_at = _event_seen_at(event, payload)
 
+        cnode: Optional[str] = None
         if event_type == "aws.securityhub.finding":
-            self._add_securityhub_finding(source, payload, seen_at)
+            cnode = self._add_securityhub_finding(source, payload, seen_at)
         elif event_type == "aws.inventory.snapshot":
-            self._add_aws_inventory(source, payload, seen_at)
+            cnode = self._add_aws_inventory(source, payload, seen_at)
         elif event_type == "microsoft.telemetry":
-            self._add_microsoft(source, payload, seen_at)
+            cnode = self._add_microsoft(source, payload, seen_at)
         elif event_type == "veeam.backup_job":
-            self._add_backup_job(source, payload, seen_at)
+            cnode = self._add_backup_job(source, payload, seen_at)
         elif event_type == "aws.iam.credential_report":
-            self._add_iam_report(source, payload, seen_at)
+            cnode = self._add_iam_report(source, payload, seen_at)
+        elif event_type == "wazuh.agent_status":
+            cnode = self._add_wazuh_agent(source, payload, seen_at)
+        elif event_type == "wazuh.alert":
+            cnode = self._add_wazuh_alert(source, payload, seen_at)
+        elif event_type == "splunk.host_inventory":
+            cnode = self._add_splunk_hosts(source, payload, seen_at)
+        elif event_type in SNAPSHOT_EVENT_TYPES:
+            cnode = self._add_network_snapshot(source, payload, seen_at, event_type)
 
-    def _add_securityhub_finding(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> None:
+        if cnode:
+            # The event contributed to the map: count it for the live block.
+            self._event_counts[cnode] = self._event_counts.get(cnode, 0) + 1
+            self._source_latest[cnode] = _newest(self._source_latest.get(cnode), seen_at)
+            self._latest_event_at = _newest(self._latest_event_at, seen_at)
+
+    def _add_securityhub_finding(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> str:
         cnode = self.connector_for_source(source or "aws_security_hub")
         title = payload.get("title") or "Security finding"
         severity = payload.get("severity_label") or payload.get("severity") or "medium"
@@ -369,8 +498,9 @@ class TopologyBuilder:
                 self._ensure_internet()
                 self.add_edge(INTERNET_NODE_ID, node_id, "exposed_to_internet", "open to the internet")
                 node["meta"]["internet_exposed"] = True
+        return cnode
 
-    def _add_aws_inventory(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> None:
+    def _add_aws_inventory(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> str:
         cnode = self.connector_for_source(source or "aws")
         for res in payload.get("resources") or []:
             kind = _lower(res.get("kind") or res.get("type"))
@@ -414,11 +544,15 @@ class TopologyBuilder:
                     "ssm_managed": res.get("ssm_managed"),
                     "imdsv2": res.get("imdsv2"),
                     "ebs_encrypted": res.get("ebs_encrypted"),
+                    "network_id": res.get("vpc_id"),
+                    "subnet_id": res.get("subnet_id"),
+                    "availability_zone": res.get("availability_zone"),
                     "last_seen": seen_at,
                     "seen_by": [connector_label(source or "aws")],
                 },
             )
             self.add_edge(cnode, node_id, "monitors")
+            self._place_aws_resource(node_id, res, seen_at)
             if res.get("public_ip"):
                 self._ensure_internet()
                 self.add_edge(INTERNET_NODE_ID, node_id, "exposed_to_internet", "public IP")
@@ -428,8 +562,29 @@ class TopologyBuilder:
                 veeam = self._connector_by_type.get("veeam")
                 if veeam:
                     self.add_edge(veeam, node_id, "backs_up", "stores backups")
+        return cnode
 
-    def _add_microsoft(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> None:
+    def _place_aws_resource(self, node_id: str, res: Dict[str, Any], seen_at: Optional[str]) -> None:
+        """Attach an inventory resource to the VPC / subnet / security groups AWS reported for it.
+
+        The network snapshot may not have been seen (or may be denied), so the
+        network, subnet and security-group nodes are created bare here and
+        upgraded with names and CIDRs when the snapshot arrives.
+        """
+        vpc_id = _sid(res.get("vpc_id"))
+        subnet_id = _sid(res.get("subnet_id"))
+        net_node = self._bare_network("aws", vpc_id, seen_at) if vpc_id else None
+        subnet_node = self._bare_subnet("aws", subnet_id, seen_at) if subnet_id else None
+        if subnet_node and net_node:
+            self.add_edge(subnet_node, net_node, "part_of")
+        if subnet_node or net_node:
+            self.add_edge(node_id, subnet_node or net_node, "member_of")
+        for sg_id in _as_list(res.get("security_group_ids"))[:_MAX_SNAPSHOT_ITEMS]:
+            sg_node = self._bare_security_group("aws", _sid(sg_id), seen_at)
+            if sg_node:
+                self.add_edge(sg_node, node_id, "protects")
+
+    def _add_microsoft(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> str:
         cnode = self.connector_for_source(source or "microsoft")
         alerts_by_device: Dict[str, List[Dict[str, Any]]] = {}
         for alert in payload.get("defender_alerts") or []:
@@ -488,8 +643,9 @@ class TopologyBuilder:
             if _is_stale(user.get("last_sign_in")) and user.get("account_enabled", True):
                 self.mark_issue(node_id, "Account still enabled but unused for 30+ days", "medium", seen_at)
             self.add_edge(cnode, node_id, "authenticates")
+        return cnode
 
-    def _add_iam_report(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> None:
+    def _add_iam_report(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> str:
         cnode = self.connector_for_source(source or "aws")
         for user in payload.get("iam_users") or []:
             name = user.get("user_name") or user.get("display_name") or user.get("user_id")
@@ -513,8 +669,9 @@ class TopologyBuilder:
             if user.get("mfa_enforced") is False:
                 self.mark_issue(node_id, "No multi-factor authentication on this account", "high", seen_at)
             self.add_edge(cnode, node_id, "authenticates")
+        return cnode
 
-    def _add_backup_job(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> None:
+    def _add_backup_job(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> str:
         cnode = self.connector_for_source(source or "veeam")
         system = payload.get("system_name") or payload.get("vm_name") or "Protected system"
         node_id = self._find_node_by_label(system) or f"system:{_slug(system)}"
@@ -537,6 +694,566 @@ class TopologyBuilder:
         if stale:
             self.mark_issue(node_id, "Last good backup is more than 24 hours old", "high", seen_at)
         self.add_edge(cnode, node_id, "backs_up")
+        return cnode
+
+    # -- Wazuh / Splunk ------------------------------------------------------
+
+    def _add_wazuh_agent(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> Optional[str]:
+        """One Wazuh agent = one machine that reports (or has stopped reporting)."""
+        agent_id = _sid(payload.get("agent_id") or payload.get("id"))
+        if not agent_id or agent_id == "000":  # 000 is the Wazuh manager itself
+            return None
+        cnode = self.connector_for_source(source or "wazuh")
+        name = _sid(payload.get("name")) or f"agent-{agent_id}"
+        os_name = payload.get("os")
+        if isinstance(os_name, dict):
+            os_name = os_name.get("name")
+        os_name = _sid(os_name) or None
+        agent_status = _lower(payload.get("status"))
+        if agent_status == "active":
+            status = "healthy"
+        elif agent_status in ("disconnected", "never_connected"):
+            status = "warning"
+        else:
+            status = "unknown"
+        meta = {
+            "agent_id": agent_id,
+            "agent_status": payload.get("status"),
+            "ip_address": _ip_or_none(payload.get("ip")),
+            "operating_system": os_name,
+            "agent_version": payload.get("version"),
+            "agent_group": payload.get("group"),
+            "last_seen": _iso_or_none(payload.get("last_keep_alive")) or seen_at,
+            "seen_by": [connector_label(source or "wazuh")],
+        }
+        node_id = self._find_node_by_label(name, _DEVICE_TYPES)
+        if node_id:
+            self._enrich_node(node_id, status=status, meta=meta)
+        else:
+            node_id = f"wazuh:agent:{agent_id}"
+            ntype, zone = _device_type_zone(name, os_name)
+            self.add_node(
+                node_id,
+                type=ntype,
+                label=name,
+                sublabel=" · ".join(x for x in ("Wazuh agent", os_name) if x),
+                zone=zone,
+                status=status,
+                meta=meta,
+            )
+        if status == "warning":
+            self.mark_issue(node_id, "Security agent is not reporting", "medium")
+        self.add_edge(cnode, node_id, "monitors")
+        self._wazuh_agents[agent_id] = node_id
+        return cnode
+
+    def _add_wazuh_alert(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> Optional[str]:
+        """High (level >= 10) and medium (>= 7) alerts become issues on the agent's node."""
+        try:
+            level = int(payload.get("rule_level") or 0)
+        except (TypeError, ValueError):
+            return None
+        if level < 7:
+            return None
+        agent_id = _sid(payload.get("agent_id"))
+        node_id = self._wazuh_agents.get(agent_id) if agent_id else None
+        if not node_id and payload.get("agent_name"):
+            node_id = self._find_node_by_label(payload.get("agent_name"), _DEVICE_TYPES)
+        if not node_id or node_id not in self.nodes:
+            return None
+        if self._alert_issue_counts.get(node_id, 0) >= _MAX_ALERT_ISSUES_PER_NODE:
+            return None
+        issues = self.nodes[node_id]["meta"]["issues"]
+        before = len(issues)
+        title = (_sid(payload.get("rule_description")) or "Security alert")[:160]
+        self.mark_issue(
+            node_id,
+            title,
+            "high" if level >= 10 else "medium",
+            _iso_or_none(payload.get("timestamp")) or seen_at,
+        )
+        if len(issues) > before:
+            self._alert_issue_counts[node_id] = self._alert_issue_counts.get(node_id, 0) + 1
+        return self.connector_for_source(source or "wazuh")
+
+    def _add_splunk_hosts(self, source: str, payload: Dict[str, Any], seen_at: Optional[str]) -> Optional[str]:
+        """Hosts that send logs to Splunk, and the ones that went quiet."""
+        hosts = [
+            h for h in _as_list(payload.get("hosts"))
+            if isinstance(h, dict) and _sid(h.get("host"))
+        ][:_MAX_SNAPSHOT_ITEMS]
+        if not hosts:
+            return None
+        cnode = self.connector_for_source(source or "splunk")
+        now = datetime.now(timezone.utc)
+        for host in hosts:
+            name = _sid(host.get("host"))
+            last_seen = _iso_or_none(host.get("last_seen"))
+            seen_dt = _parse_dt(last_seen)
+            if seen_dt is None:
+                status = "unknown"
+            elif now - seen_dt > timedelta(hours=24):
+                status = "warning"
+            else:
+                status = "healthy"
+            meta = {
+                "last_seen": last_seen,
+                "log_event_count": host.get("event_count"),
+                "seen_by": [connector_label(source or "splunk")],
+            }
+            node_id = self._find_node_by_label(name, _DEVICE_TYPES)
+            if node_id:
+                self._enrich_node(node_id, status=status, meta=meta)
+            else:
+                node_id = f"splunk:host:{name}"
+                ntype, zone = _device_type_zone(name)
+                self.add_node(
+                    node_id,
+                    type=ntype,
+                    label=name,
+                    sublabel="Sends logs to Splunk",
+                    zone=zone,
+                    status=status,
+                    meta=meta,
+                )
+            if status == "warning":
+                self.mark_issue(node_id, "Stopped sending logs", "medium")
+            self.add_edge(cnode, node_id, "monitors")
+        return cnode
+
+    # -- network snapshots ---------------------------------------------------
+
+    def _add_network_snapshot(
+        self, source: str, payload: Dict[str, Any], seen_at: Optional[str], event_type: str
+    ) -> Optional[str]:
+        """Networks, subnets, gateways, VPNs, security groups, devices and links.
+
+        Serves ``aws.network.snapshot`` (AWS collector) and ``network.snapshot``
+        (pushed by a firewall / VPN tool, or the scripted demo). Every list is
+        optional. References between items use the ids of the same snapshot; a
+        referenced item that was not described becomes a bare placeholder node.
+        An item may carry its own ``provider`` when one feed describes several
+        environments (an office firewall that also knows the cloud VPC).
+        """
+        snap = _unwrap_snapshot(payload)
+        if not any(_items(snap, key) for key in _SNAPSHOT_LISTS):
+            return None
+        provider = _provider(snap.get("provider")) or ("aws" if event_type.startswith("aws.") else "manual")
+        sample = bool(snap.get("sample"))
+        cnode = self.connector_for_source(source or provider)
+        seen_by = [connector_label(source or provider)]
+        index: Dict[str, Dict[str, str]] = {"net": {}, "subnet": {}, "gw": {}, "vpn": {}, "sg": {}, "device": {}}
+
+        def prov_of(item: Dict[str, Any]) -> str:
+            return _provider(item.get("provider")) or provider
+
+        def put(node_id: str, *, meta: Optional[Dict[str, Any]] = None, **fields: Any) -> bool:
+            """Add / upgrade a node described by this snapshot. True when it is new."""
+            is_new = node_id not in self.nodes
+            merged = dict(meta or {})
+            merged["seen_by"] = seen_by
+            merged.setdefault("last_seen", seen_at)
+            if sample and is_new:
+                merged["sample"] = True
+            self.add_node(node_id, meta=merged, **fields)
+            return is_new
+
+        def ref(kind: str, raw: Any, prov: str) -> Optional[str]:
+            """Node id for a referenced item; a bare placeholder when it was not described."""
+            raw_id = _sid(raw)
+            if not raw_id:
+                return None
+            known = index[kind].get(raw_id)
+            if known:
+                return known
+            maker = {
+                "net": self._bare_network,
+                "subnet": self._bare_subnet,
+                "gw": self._bare_gateway,
+                "vpn": self._bare_vpn,
+                "sg": self._bare_security_group,
+            }[kind]
+            node_id = maker(prov, raw_id, seen_at, sample=sample, seen_by=seen_by)
+            if node_id:
+                index[kind][raw_id] = node_id
+            return node_id
+
+        def internet() -> str:
+            is_new = INTERNET_NODE_ID not in self.nodes
+            self._ensure_internet()
+            if is_new and sample:
+                self.nodes[INTERNET_NODE_ID]["meta"]["sample"] = True
+            return INTERNET_NODE_ID
+
+        # 1. Networks -------------------------------------------------------
+        for net in _items(snap, "networks"):
+            raw_id = _sid(net.get("id"))
+            if not raw_id:
+                continue
+            prov = prov_of(net)
+            node_id = f"net:{prov}:{raw_id}"
+            kind = _network_kind(net.get("kind"), prov)
+            cidr = _sid(net.get("cidr")) or None
+            put(
+                node_id,
+                type="network",
+                label=_sid(net.get("name")) or raw_id,
+                sublabel=" · ".join(x for x in (_NETWORK_KIND_LABELS[kind], cidr) if x),
+                zone="network",
+                status="healthy",
+                meta={"cidr": cidr, "network_kind": kind, "location": net.get("location")},
+            )
+            index["net"][raw_id] = node_id
+            self.add_edge(cnode, node_id, "monitors")
+
+        # 2. Subnets --------------------------------------------------------
+        for subnet in _items(snap, "subnets"):
+            raw_id = _sid(subnet.get("id"))
+            if not raw_id:
+                continue
+            prov = prov_of(subnet)
+            node_id = f"subnet:{prov}:{raw_id}"
+            cidr = _sid(subnet.get("cidr")) or None
+            public = subnet.get("public") if isinstance(subnet.get("public"), bool) else None
+            kind_label = "Subnet" if public is None else ("Public subnet" if public else "Private subnet")
+            put(
+                node_id,
+                type="subnet",
+                label=_sid(subnet.get("name")) or cidr or raw_id,
+                sublabel=" · ".join(x for x in (kind_label, cidr) if x),
+                zone="network",
+                status="healthy",
+                meta={
+                    "cidr": cidr,
+                    "network_id": _sid(subnet.get("network_id")) or None,
+                    "public": public,
+                    "availability_zone": subnet.get("availability_zone"),
+                },
+            )
+            index["subnet"][raw_id] = node_id
+            self.add_edge(node_id, ref("net", subnet.get("network_id"), prov), "part_of")
+
+        # 3. Gateways -------------------------------------------------------
+        for gateway in _items(snap, "gateways"):
+            raw_id = _sid(gateway.get("id"))
+            if not raw_id:
+                continue
+            prov = prov_of(gateway)
+            node_id = f"gw:{prov}:{raw_id}"
+            kind = _gateway_kind(gateway.get("kind"))
+            put(
+                node_id,
+                type="gateway",
+                label=_sid(gateway.get("name")) or raw_id,
+                sublabel=_GATEWAY_KIND_LABELS.get(kind or "", "Gateway"),
+                zone="network",
+                status="healthy",
+                meta={
+                    "gateway_kind": kind,
+                    "network_id": _sid(gateway.get("network_id")) or None,
+                    "public_ip": gateway.get("public_ip"),
+                    "location": gateway.get("location"),
+                },
+            )
+            index["gw"][raw_id] = node_id
+            # ``network_ids`` covers a firewall / router that serves several networks.
+            for network_id in [gateway.get("network_id")] + _as_list(gateway.get("network_ids"))[:_MAX_SNAPSHOT_ITEMS]:
+                self.add_edge(ref("net", network_id, prov), node_id, "routes_to")
+            if gateway.get("to_internet") is True or (kind in _INTERNET_GATEWAY_KINDS and gateway.get("to_internet") is not False):
+                self.add_edge(node_id, internet(), "routes_to", "to the internet")
+
+        # 4. VPNs -----------------------------------------------------------
+        for vpn in _items(snap, "vpns"):
+            raw_id = _sid(vpn.get("id"))
+            state = _lower(vpn.get("state"))
+            if not raw_id or state in ("deleted", "deleting"):
+                continue
+            prov = prov_of(vpn)
+            node_id = f"vpn:{prov}:{raw_id}"
+            kind = _vpn_kind(vpn.get("kind"))
+            tunnels = [t for t in _as_list(vpn.get("tunnels")) if isinstance(t, dict)]
+            total = len(tunnels)
+            up = sum(1 for t in tunnels if _lower(t.get("status")) == "up")
+            down = sum(1 for t in tunnels if _lower(t.get("status")) == "down")
+            status, issue = _vpn_status(kind, state, up, down, total)
+            tunnels_known = total > 0 and up + down == total
+            tunnel_label = f"{up} of {total} tunnels up" if tunnels_known else None
+            kind_label = {"site_to_site": "Site-to-site VPN", "client": "Remote access VPN"}.get(kind or "", "VPN")
+            put(
+                node_id,
+                type="vpn",
+                label=_sid(vpn.get("name")) or raw_id,
+                sublabel=" · ".join(x for x in (kind_label, tunnel_label) if x),
+                zone="network",
+                status=status,
+                meta={
+                    "vpn_kind": kind,
+                    "tunnels_up": up if tunnels_known else None,
+                    "tunnels_total": total if total else None,
+                    "active_connections": _int_or_none(vpn.get("active_connections")),
+                    "state": vpn.get("state"),
+                    "network_id": _sid(vpn.get("network_id")) or None,
+                },
+            )
+            index["vpn"][raw_id] = node_id
+            if issue:
+                self.mark_issue(node_id, issue[0], issue[1], seen_at)
+            # Each end of the VPN: the gateway when one is named, else the network.
+            for gw_key, net_key in (("gateway_id", "network_id"), ("remote_gateway_id", "remote_network_id")):
+                gw_node = ref("gw", vpn.get(gw_key), prov)
+                net_node = ref("net", vpn.get(net_key), prov)
+                if gw_node:
+                    self.add_edge(node_id, gw_node, "vpn_tunnel", tunnel_label)
+                    self.add_edge(net_node, gw_node, "routes_to")
+                elif net_node:
+                    self.add_edge(node_id, net_node, "vpn_tunnel", tunnel_label)
+
+        # 5. Security groups ------------------------------------------------
+        for group in _items(snap, "security_groups"):
+            raw_id = _sid(group.get("id"))
+            if not raw_id:
+                continue
+            prov = prov_of(group)
+            node_id = _sg_node_id(prov, raw_id)
+            open_ports = [str(p) for p in _as_list(group.get("open_ports")) if p not in (None, "")]
+            put(
+                node_id,
+                type="security_group",
+                label=_sid(group.get("name")) or raw_id,
+                sublabel="Security group (firewall rules)",
+                zone="cloud",
+                status="healthy",
+                meta={
+                    "network_id": _sid(group.get("network_id")) or None,
+                    "open_ports": open_ports or None,
+                    "internet_exposed": True if open_ports else None,
+                },
+            )
+            index["sg"][raw_id] = node_id
+            if open_ports:
+                self.add_edge(internet(), node_id, "exposed_to_internet", "open to the internet")
+
+        # 6. Devices --------------------------------------------------------
+        for device in _items(snap, "devices"):
+            raw_id = (
+                _sid(device.get("id")) or _sid(device.get("instance_id"))
+                or _sid(device.get("device_id")) or _sid(device.get("name"))
+            )
+            if not raw_id:
+                continue
+            prov = prov_of(device)
+            node_id, created = self._resolve_snapshot_device(device, prov, raw_id, put)
+            index["device"][raw_id] = node_id
+            self._enrich_node(node_id, meta={
+                "ip_address": _ip_or_none(device.get("ip")),
+                "network_id": _sid(device.get("network_id")) or None,
+                "subnet_id": _sid(device.get("subnet_id")) or None,
+                "operating_system": device.get("os"),
+                "last_seen": _iso_or_none(device.get("last_seen")) or seen_at,
+                "seen_by": seen_by,
+            })
+            if created:
+                self.add_edge(cnode, node_id, "monitors")
+            subnet_node = ref("subnet", device.get("subnet_id"), prov)
+            net_node = ref("net", device.get("network_id"), prov)
+            if subnet_node and net_node:
+                self.add_edge(subnet_node, net_node, "part_of")
+            self.add_edge(node_id, subnet_node or net_node, "member_of")
+            for sg_id in _as_list(device.get("security_group_ids"))[:_MAX_SNAPSHOT_ITEMS]:
+                self.add_edge(ref("sg", sg_id, prov), node_id, "protects")
+            self.add_edge(node_id, ref("vpn", device.get("via_vpn_id"), prov), "vpn_tunnel", "remote access")
+
+        # 7. Observed traffic -----------------------------------------------
+        for link in _items(snap, "links"):
+            src = self._resolve_link_end(link.get("source"), index["device"])
+            dst = self._resolve_link_end(link.get("target"), index["device"])
+            self.add_edge(src, dst, "talks_to", _sid(link.get("label")) or None)
+
+        # 8. Peerings -------------------------------------------------------
+        for peering in _items(snap, "peerings"):
+            if _lower(peering.get("state")) in _GONE_STATES:
+                continue
+            prov = prov_of(peering)
+            self.add_edge(
+                ref("net", peering.get("a_network_id"), prov),
+                ref("net", peering.get("b_network_id"), prov),
+                "routes_to",
+                "peering",
+            )
+        return cnode
+
+    def _resolve_snapshot_device(
+        self, device: Dict[str, Any], provider: str, raw_id: str, put: Any
+    ) -> tuple:
+        """Find the node a snapshot device refers to, or create a bare one.
+
+        Order: AWS instance id, Microsoft device id, a device with the same
+        name, else a new ``net:device:<provider>:<id>`` node. Returns
+        (node_id, created).
+        """
+        name = _sid(device.get("name"))
+        instance_id = _sid(device.get("instance_id"))
+        device_id = _sid(device.get("device_id"))
+        ntype, zone = _device_type_zone(name, device.get("os"), device.get("kind"))
+        # When the device itself was last seen, not when the snapshot was taken.
+        meta = {"last_seen": _iso_or_none(device.get("last_seen"))}
+        meta = {key: value for key, value in meta.items() if value}
+
+        if instance_id:
+            node_id = f"aws:instance:{instance_id}"
+            if node_id in self.nodes:
+                return node_id, False
+            put(node_id, type=ntype, label=name or instance_id, sublabel="EC2 instance", zone=zone,
+                status="unknown", bare=True, meta=meta)
+            return node_id, True
+        if device_id and provider == "microsoft":
+            node_id = f"ms:device:{device_id}"
+            if node_id in self.nodes:
+                return node_id, False
+            put(
+                node_id,
+                type="workstation" if ntype == "server" else ntype,
+                label=name or device_id,
+                sublabel="Intune managed device",
+                zone="workstations" if ntype == "server" else zone,
+                status="unknown",
+                bare=True,
+                meta=meta,
+            )
+            return node_id, True
+        existing = self._find_node_by_label(name, _DEVICE_TYPES) if name else None
+        if existing:
+            return existing, False
+        node_id = f"net:device:{provider}:{raw_id}"
+        if node_id in self.nodes:
+            return node_id, False
+        put(
+            node_id,
+            type=ntype,
+            label=name or raw_id,
+            sublabel=_sid(device.get("os")) or "Seen on the network",
+            zone=zone,
+            status="unknown",
+            bare=True,
+            meta=meta,
+        )
+        return node_id, True
+
+    def _resolve_link_end(self, raw: Any, devices: Dict[str, str]) -> Optional[str]:
+        """A link end is a device id of the same snapshot, a node id, or a device name."""
+        raw_id = _sid(raw)
+        if not raw_id:
+            return None
+        if raw_id in devices:
+            return devices[raw_id]
+        if raw_id in self.nodes:
+            return raw_id
+        return self._find_node_by_label(raw_id, _DEVICE_TYPES)
+
+    # -- placeholder nodes ---------------------------------------------------
+
+    def _placeholder(self, node_id: str, seen_at: Optional[str], sample: bool, seen_by: Optional[List[str]], **fields: Any) -> str:
+        """Create a placeholder for something referenced but not described yet."""
+        if node_id not in self.nodes:
+            meta = dict(fields.pop("meta", None) or {})
+            meta["last_seen"] = seen_at
+            meta["seen_by"] = seen_by or []
+            if sample:
+                meta["sample"] = True
+            self.add_node(node_id, status="unknown", meta=meta, bare=True, **fields)
+        return node_id
+
+    def _bare_network(self, provider: str, raw_id: str, seen_at: Optional[str], *, sample: bool = False,
+                      seen_by: Optional[List[str]] = None) -> Optional[str]:
+        if not raw_id:
+            return None
+        is_aws = provider == "aws"
+        return self._placeholder(
+            f"net:{provider}:{raw_id}", seen_at, sample, seen_by,
+            type="network", label=raw_id, zone="network",
+            sublabel=_NETWORK_KIND_LABELS["vpc" if is_aws else "other"],
+            meta={"network_kind": "vpc" if is_aws else None},
+        )
+
+    def _bare_subnet(self, provider: str, raw_id: str, seen_at: Optional[str], *, sample: bool = False,
+                     seen_by: Optional[List[str]] = None) -> Optional[str]:
+        if not raw_id:
+            return None
+        return self._placeholder(
+            f"subnet:{provider}:{raw_id}", seen_at, sample, seen_by,
+            type="subnet", label=raw_id, zone="network", sublabel="Subnet",
+        )
+
+    def _bare_gateway(self, provider: str, raw_id: str, seen_at: Optional[str], *, sample: bool = False,
+                      seen_by: Optional[List[str]] = None) -> Optional[str]:
+        if not raw_id:
+            return None
+        return self._placeholder(
+            f"gw:{provider}:{raw_id}", seen_at, sample, seen_by,
+            type="gateway", label=raw_id, zone="network", sublabel="Gateway",
+        )
+
+    def _bare_vpn(self, provider: str, raw_id: str, seen_at: Optional[str], *, sample: bool = False,
+                  seen_by: Optional[List[str]] = None) -> Optional[str]:
+        if not raw_id:
+            return None
+        return self._placeholder(
+            f"vpn:{provider}:{raw_id}", seen_at, sample, seen_by,
+            type="vpn", label=raw_id, zone="network", sublabel="VPN",
+        )
+
+    def _bare_security_group(self, provider: str, raw_id: str, seen_at: Optional[str], *, sample: bool = False,
+                             seen_by: Optional[List[str]] = None) -> Optional[str]:
+        if not raw_id:
+            return None
+        return self._placeholder(
+            _sg_node_id(provider, raw_id), seen_at, sample, seen_by,
+            type="security_group", label=raw_id, zone="cloud", sublabel="Security group (firewall rules)",
+        )
+
+    def _enrich_node(self, node_id: str, *, status: str = "unknown", meta: Optional[Dict[str, Any]] = None) -> None:
+        """Add facts to an existing node without overwriting what its own source said."""
+        node = self.nodes.get(node_id)
+        if not node:
+            return
+        node["status"] = _worse(node["status"], status)
+        for key, value in (meta or {}).items():
+            if key in ("issues", "seen_by"):
+                for item in value or []:
+                    if item not in node["meta"][key]:
+                        node["meta"][key].append(item)
+            elif key == "last_seen":
+                node["meta"]["last_seen"] = _newest(node["meta"].get("last_seen"), value)
+            elif value is not None and node["meta"].get(key) is None:
+                node["meta"][key] = value
+
+    # -- inferred networks ---------------------------------------------------
+
+    def finalize(self) -> None:
+        """Attach devices with a private address and no reported network to an inferred /24.
+
+        This is the one place the map reasons beyond what a source said, so the
+        network node is flagged ``meta.inferred``. A network is only created
+        when at least one device lands on it. Safe to call more than once.
+        """
+        placed = {edge["source"] for edge in self.edges.values() if edge["kind"] == "member_of"}
+        for node_id, node in list(self.nodes.items()):
+            if node["type"] not in _DEVICE_TYPES or node_id in placed:
+                continue
+            cidr = _private_slash24(node["meta"].get("private_ip")) or _private_slash24(node["meta"].get("ip_address"))
+            if not cidr:
+                continue
+            net_id = f"net:inferred:{cidr}"
+            self.add_node(
+                net_id,
+                type="network",
+                label=cidr,
+                sublabel=_NETWORK_KIND_LABELS["inferred"],
+                zone="network",
+                status="unknown",
+                meta={"cidr": cidr, "network_kind": "inferred", "inferred": True},
+            )
+            self.add_edge(node_id, net_id, "member_of", "worked out from address")
 
     # -- helpers -------------------------------------------------------------
 
@@ -571,16 +1288,23 @@ class TopologyBuilder:
             status="unknown",
         )
 
-    def _find_node_by_label(self, label: str) -> Optional[str]:
-        target = _lower(label)
+    def _find_node_by_label(self, label: str, types: Optional[Iterable[str]] = None) -> Optional[str]:
+        """Case-insensitive match on a node's label, optionally limited to node types."""
+        target = _lower(label).strip()
+        if not target:
+            return None
+        allowed = tuple(types) if types else None
         for node_id, node in self.nodes.items():
-            if _lower(node["label"]) == target:
+            if allowed and node["type"] not in allowed:
+                continue
+            if _lower(node["label"]).strip() == target:
                 return node_id
         return None
 
     # -- output --------------------------------------------------------------
 
     def build(self) -> Dict[str, Any]:
+        self.finalize()
         nodes = list(self.nodes.values())
         edges = list(self.edges.values())
         summary = self._summary(nodes, edges)
@@ -588,7 +1312,34 @@ class TopologyBuilder:
             "nodes": nodes,
             "edges": edges,
             "summary": summary,
+            "live": self._live(nodes),
             "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+    def _live(self, nodes: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Which feeds the map was built from and how fresh they are.
+
+        ``last_sync_at`` is the connector row's last sync; a source without a
+        connector row (demo, manually injected events) reports the time of the
+        newest event it contributed instead.
+        """
+        sources = []
+        for node in nodes:
+            if node["type"] != "connector":
+                continue
+            node_id = node["id"]
+            sources.append({
+                "id": node_id,
+                "type": node["meta"].get("connector_type"),
+                "label": node["label"],
+                "status": node["status"],
+                "last_sync_at": _utc_iso(self._connector_last_sync.get(node_id) or self._source_latest.get(node_id)),
+                "event_count": self._event_counts.get(node_id, 0),
+            })
+        return {
+            "mode": "live" if nodes else "empty",
+            "latest_event_at": _utc_iso(self._latest_event_at),
+            "sources": sources,
         }
 
     def _summary(self, nodes: List[Dict[str, Any]], edges: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -601,6 +1352,9 @@ class TopologyBuilder:
                 "connectors": 0,
                 "attention": 0,
                 "internet_exposed": 0,
+                "networks": 0,
+                "vpns": 0,
+                "vpn_down": 0,
                 "by_type": {},
                 "by_zone": {},
                 "by_status": {},
@@ -612,6 +1366,9 @@ class TopologyBuilder:
             "connectors": sum(1 for n in nodes if n["type"] == "connector"),
             "attention": sum(1 for n in nodes if n["status"] in ("attention", "error")),
             "internet_exposed": sum(1 for e in edges if e["kind"] == "exposed_to_internet"),
+            "networks": sum(1 for n in nodes if n["type"] == "network"),
+            "vpns": sum(1 for n in nodes if n["type"] == "vpn"),
+            "vpn_down": sum(1 for n in nodes if n["type"] == "vpn" and n["status"] == "attention"),
             "by_type": dict(Counter(n["type"] for n in nodes)),
             "by_zone": dict(Counter(n["zone"] for n in nodes)),
             "by_status": dict(Counter(n["status"] for n in nodes)),
@@ -677,10 +1434,29 @@ def build_topology_for_org(db, org_id: str, *, demo: bool = False, lookback_days
                 .limit(1000)
                 .all()
             )
+            # State feeds (network snapshots, agents, log sources) arrive rarely
+            # compared with findings and alerts. Load them on their own so a
+            # burst of alerts cannot push the network layout out of the window.
+            loaded = {row.id for row in events}
+            state_rows = (
+                db.query(TelemetryEvent)
+                .filter(
+                    TelemetryEvent.org_id == org_id,
+                    TelemetryEvent.created_at >= cutoff,
+                    TelemetryEvent.event_type.in_(STATE_EVENT_TYPES),
+                )
+                .order_by(TelemetryEvent.created_at.desc())
+                .limit(_MAX_STATE_EVENTS)
+                .all()
+            )
+            events.extend(row for row in state_rows if row.id not in loaded)
         except Exception as exc:
             logger.warning("Topology: could not load telemetry for %s: %s", org_id, exc)
 
-    return build_topology(org_id, connectors=connectors, assets=assets, events=events)
+    topology = build_topology(org_id, connectors=connectors, assets=assets, events=events)
+    if demo:
+        topology["live"]["mode"] = "demo"
+    return topology
 
 
 # ---------------------------------------------------------------------------
@@ -750,3 +1526,239 @@ def _unique(items: List[Any]) -> List[Any]:
 
 def _slug(text: str) -> str:
     return "".join(ch if ch.isalnum() else "-" for ch in _lower(text)).strip("-")
+
+
+# ---------------------------------------------------------------------------
+# Event ordering
+# ---------------------------------------------------------------------------
+
+_SNAPSHOT_LISTS = ("networks", "subnets", "gateways", "vpns", "security_groups", "devices", "links", "peerings")
+_PC_RE = re.compile(r"(?<![a-z])pc(?![a-z])")
+
+
+def _event_payload(event: Any) -> Dict[str, Any]:
+    """Payload as a dict. Raises on malformed JSON so the caller skips the event."""
+    payload = _get(event, "payload") or {}
+    if isinstance(payload, str):
+        payload = json.loads(payload)
+    if not isinstance(payload, dict):
+        raise ValueError("telemetry payload is not an object")
+    return payload
+
+
+def _event_seen_at(event: Any, payload: Dict[str, Any]) -> Optional[str]:
+    return _iso(
+        _get(event, "timestamp") or _get(event, "created_at")
+        or payload.get("updated_at") or payload.get("created_at")
+    )
+
+
+def _event_phase(event_type: str) -> int:
+    if event_type in SNAPSHOT_EVENT_TYPES:
+        return 3
+    if event_type == "wazuh.alert":
+        return 2
+    if event_type in ("wazuh.agent_status", "splunk.host_inventory"):
+        return 1
+    return 0
+
+
+def _unwrap_snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """A pushed snapshot may sit at the top level or under snapshot / payload / data."""
+    if any(key in payload for key in _SNAPSHOT_LISTS):
+        return payload
+    for wrapper in ("snapshot", "payload", "data"):
+        inner = payload.get(wrapper)
+        if isinstance(inner, dict) and any(key in inner for key in _SNAPSHOT_LISTS):
+            return inner
+    return payload
+
+
+def _status_feed_key(event: Any, payload: Dict[str, Any]) -> tuple:
+    """Identity of a "current state" feed: later events replace earlier ones."""
+    event_type = _lower(_get(event, "event_type"))
+    base = (event_type, _lower(_get(event, "source_system")), str(_get(event, "connector_id") or ""))
+    if event_type == "wazuh.agent_status":
+        return base + (str(payload.get("agent_id") or payload.get("id") or ""),)
+    if event_type in SNAPSHOT_EVENT_TYPES:
+        snap = _unwrap_snapshot(payload)
+        # ``scope`` lets one tool push separate partial documents (devices, tunnels).
+        return base + tuple(
+            _lower(snap.get(field)) for field in ("provider", "account_id", "region", "scope")
+        )
+    return base
+
+
+def _latest_per_key(events: List[Any]) -> List[Any]:
+    """Keep the newest event of each status feed, preserving first-seen order."""
+    chosen: Dict[tuple, tuple] = {}
+    unreadable: List[Any] = []
+    for event in events:
+        try:
+            payload = _event_payload(event)
+            key = _status_feed_key(event, payload)
+            when = _parse_dt(_event_seen_at(event, payload))
+        except Exception:
+            unreadable.append(event)  # _add_event reports and skips it
+            continue
+        current = chosen.get(key)
+        if current is None or (when is not None and (current[0] is None or when > current[0])):
+            chosen[key] = (when, event)
+    return [event for _, event in chosen.values()] + unreadable
+
+
+# ---------------------------------------------------------------------------
+# Normalisation helpers for network data
+# ---------------------------------------------------------------------------
+
+def _sid(value: Any) -> str:
+    """Identifier / name as a trimmed string ("" when missing)."""
+    if value is None or isinstance(value, (dict, list)):
+        return ""
+    return str(value).strip()
+
+
+def _as_list(value: Any) -> List[Any]:
+    return value if isinstance(value, list) else []
+
+
+def _items(snapshot: Dict[str, Any], key: str) -> List[Dict[str, Any]]:
+    return [item for item in _as_list(snapshot.get(key)) if isinstance(item, dict)][:_MAX_SNAPSHOT_ITEMS]
+
+
+def _provider(value: Any) -> str:
+    """Provider name safe to embed in a node id."""
+    return "".join(ch if (ch.isalnum() or ch in "-_") else "-" for ch in _lower(value).strip()).strip("-")
+
+
+def _sg_node_id(provider: str, raw_id: str) -> str:
+    """AWS security groups keep the id findings already use."""
+    if provider == "aws" or raw_id.startswith("sg-"):
+        return f"aws:sg:{raw_id}"
+    return f"sg:{provider}:{raw_id}"
+
+
+def _network_kind(value: Any, provider: str) -> str:
+    kind = _lower(value).strip().replace(" ", "_")
+    kind = _NETWORK_KIND_ALIASES.get(kind, kind)
+    if kind in NETWORK_KINDS and kind != "inferred":
+        return kind
+    return "vpc" if (not kind and provider == "aws") else "other"
+
+
+def _gateway_kind(value: Any) -> Optional[str]:
+    kind = _lower(value).strip().replace(" ", "_").replace("-", "_")
+    kind = _GATEWAY_KIND_ALIASES.get(kind, kind)
+    return kind if kind in GATEWAY_KINDS else None
+
+
+def _vpn_kind(value: Any) -> Optional[str]:
+    kind = _lower(value).strip().replace(" ", "_")
+    kind = _VPN_KIND_ALIASES.get(kind, kind)
+    return kind if kind in VPN_KINDS else None
+
+
+def _vpn_status(kind: Optional[str], state: str, up: int, down: int, total: int) -> tuple:
+    """(status, issue) for a VPN. ``issue`` is (title, severity) or None.
+
+    Tunnel telemetry decides when present: all up is healthy, some down is a
+    warning, all down needs attention. Without it, only an explicit up / down
+    state is trusted (a client VPN endpoint has no tunnels, so "available"
+    counts as up for it); anything else stays unknown.
+    """
+    if total and up + down > 0:
+        if down == 0:
+            return ("healthy" if up == total else "unknown"), None
+        if up == 0:
+            return "attention", ("VPN is down", "high")
+        title = "One VPN tunnel is down" if down == 1 else f"{down} of {total} VPN tunnels are down"
+        return "warning", (title, "medium")
+    if state in _VPN_UP_STATES or (kind == "client" and state == "available"):
+        return "healthy", None
+    if state in _VPN_DOWN_STATES:
+        return "attention", ("VPN is down", "high")
+    return "unknown", None
+
+
+def _device_type_zone(name: Any, os_name: Any = None, kind: Any = None) -> tuple:
+    """(type, zone) for a machine, always one of the device types."""
+    explicit = _lower(kind).strip()
+    if explicit in ("laptop", "desktop", "pc", "workstation"):
+        return "workstation", "workstations"
+    if explicit == "database":
+        return "database", "data"
+    if os_name and _WORKSTATION_OS_RE.search(str(os_name)):
+        return "workstation", "workstations"
+    hint = " ".join(str(part) for part in (kind, name, os_name) if part)
+    ntype = type_for_hint(hint, "server")
+    if ntype not in _DEVICE_TYPES:
+        ntype = "server"
+    if ntype == "workstation":
+        return ntype, "workstations"
+    if ntype == "database":
+        return ntype, "data"
+    zone = zone_for_hint(hint, "servers")
+    if zone == "workstations":
+        # zone_for_hint matches a bare "pc" anywhere; only trust it as a word.
+        return ("workstation", "workstations") if _PC_RE.search(_lower(hint)) else ("server", "servers")
+    if zone == "identity":
+        zone = "servers"
+    return ntype, zone
+
+
+def _int_or_none(value: Any) -> Optional[int]:
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _iso_or_none(value: Any) -> Optional[str]:
+    """ISO timestamp from an ISO string, a datetime or epoch seconds; else None."""
+    if value is None or isinstance(value, bool) or value == "":
+        return None
+    if isinstance(value, datetime):
+        return _utc_iso(value.isoformat())
+    if isinstance(value, (int, float)):
+        epoch: Optional[float] = float(value)
+    else:
+        text = str(value).strip()
+        try:
+            epoch = float(text)
+        except ValueError:
+            epoch = None
+        if epoch is None:
+            return text if _parse_dt(text) else None
+    try:
+        return datetime.fromtimestamp(epoch, tz=timezone.utc).isoformat()
+    except (OverflowError, OSError, ValueError):
+        return None
+
+
+def _utc_iso(value: Optional[str]) -> Optional[str]:
+    """Timezone-aware ISO string (naive database timestamps are UTC)."""
+    parsed = _parse_dt(value)
+    return parsed.isoformat() if parsed else None
+
+
+def _ip_or_none(value: Any) -> Optional[str]:
+    text = _sid(value).split("/")[0]
+    if not text:
+        return None
+    try:
+        return str(ipaddress.ip_address(text))
+    except ValueError:
+        return None
+
+
+def _private_slash24(value: Any) -> Optional[str]:
+    """The /24 of an RFC 1918 IPv4 address, e.g. 10.0.1.57 -> "10.0.1.0/24"."""
+    text = _ip_or_none(value)
+    if not text:
+        return None
+    address = ipaddress.ip_address(text)
+    if address.version != 4 or not any(address in network for network in _PRIVATE_V4_NETWORKS):
+        return None
+    return str(ipaddress.ip_network(f"{address}/24", strict=False))

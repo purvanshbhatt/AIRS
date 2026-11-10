@@ -152,6 +152,13 @@ def _name_tag(instance: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def _group_ids(groups: Any, key: str) -> List[str]:
+    """Security group ids from an EC2 ``SecurityGroups`` / RDS ``VpcSecurityGroups`` list."""
+    if not isinstance(groups, list):
+        return []
+    return [str(g[key]) for g in groups if isinstance(g, dict) and g.get(key)]
+
+
 def _evidence_hash(*parts: Any) -> str:
     return hashlib.sha256(":".join(str(p) for p in parts).encode()).hexdigest()
 
@@ -223,8 +230,10 @@ class AWSDiscoveryService:
         """Call EC2/RDS/SSM and return normalized resource dicts. No persistence.
 
         Each resource: {external_id, name, asset_type, os, ip, public_ip, state,
-        instance_type, launch_time, software: [{name, vendor, version, source}],
-        source: "<api path>", raw: {...}}.
+        instance_type, launch_time, vpc_id, subnet_id, security_group_ids,
+        availability_zone, software: [{name, vendor, version, source}],
+        source: "<api path>", raw: {...}}. RDS resources carry vpc_id and
+        security_group_ids (no subnet: a database spans its subnet group).
         """
         resources: List[Dict[str, Any]] = []
 
@@ -252,6 +261,11 @@ class AWSDiscoveryService:
                         "state": state,
                         "instance_type": inst.get("InstanceType"),
                         "launch_time": launch.isoformat() if hasattr(launch, "isoformat") else launch,
+                        "vpc_id": inst.get("VpcId"),
+                        "subnet_id": inst.get("SubnetId"),
+                        "security_group_ids": _group_ids(inst.get("SecurityGroups"), "GroupId"),
+                        "availability_zone": (inst.get("Placement") or {}).get("AvailabilityZone")
+                        if isinstance(inst.get("Placement"), dict) else None,
                         "software": [],
                         "source": API_EC2_DESCRIBE_INSTANCES,
                         "raw": {
@@ -292,6 +306,10 @@ class AWSDiscoveryService:
                     "state": dbi.get("DBInstanceStatus"),
                     "instance_type": dbi.get("DBInstanceClass"),
                     "launch_time": None,
+                    "vpc_id": (dbi.get("DBSubnetGroup") or {}).get("VpcId")
+                    if isinstance(dbi.get("DBSubnetGroup"), dict) else None,
+                    "subnet_id": None,
+                    "security_group_ids": _group_ids(dbi.get("VpcSecurityGroups"), "VpcSecurityGroupId"),
                     "software": [{
                         "name": engine,
                         "vendor": None,

@@ -18,7 +18,9 @@ Credentials:
 """
 from __future__ import annotations
 
+import json
 import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app.connectors.base import (
@@ -33,6 +35,10 @@ from app.integrations.splunk.client import SplunkMCPClient
 from app.integrations.splunk.schemas import SplunkHealthResponse
 
 logger = logging.getLogger("airs.connectors.splunk")
+
+# Every host that has sent events, with when it was last heard from.
+HOST_INVENTORY_QUERY = "| metadata type=hosts index=* | fields host lastTime totalCount"
+_MAX_INVENTORY_HOSTS = 200
 
 
 @register_connector
@@ -122,6 +128,8 @@ class SplunkConnector(Connector):
         events.extend(await self._sync_edr())
         events.extend(await self._sync_logging_health())
         events.extend(await self._sync_notable())
+        # Last: downstream picks the evidence adapter from the first event.
+        events.extend(await self._sync_host_inventory())
 
         self.logger.info("Splunk MCP sync: %d events collected", len(events))
         return events
@@ -184,6 +192,92 @@ class SplunkConnector(Connector):
                 )
             )
         return events
+
+    async def _sync_host_inventory(self) -> List[RawEvent]:
+        """Hosts that send logs to Splunk as ONE ``splunk.host_inventory`` event.
+
+        Feeds the network map (which machines report, which went quiet). A
+        Splunk that refuses the ``metadata`` search is not an error: the sync
+        simply carries no host inventory.
+        """
+        try:
+            response = await self._client.search(
+                query=HOST_INVENTORY_QUERY, earliest_time="-7d", latest_time="now"
+            )
+            rows = list(response.events or [])
+        except Exception as exc:
+            self.logger.info("Splunk host inventory unavailable: %s", type(exc).__name__)
+            return []
+
+        hosts: List[Dict[str, Any]] = []
+        seen: set = set()
+        for row in rows:
+            fields = self._row_fields(row)
+            host = str(fields.get("host") or getattr(row, "host", "") or "").strip()
+            if not host or host in seen:
+                continue
+            seen.add(host)
+            hosts.append({
+                "host": host,
+                # Only what Splunk reported: no lastTime means "unknown", never "now".
+                "last_seen": self._epoch_to_iso(fields.get("lastTime") or fields.get("recentTime")),
+                "event_count": self._to_int(fields.get("totalCount")),
+            })
+            if len(hosts) >= _MAX_INVENTORY_HOSTS:
+                break
+        if not hosts:
+            return []
+
+        now = datetime.now(timezone.utc)
+        return [
+            RawEvent(
+                event_type="splunk.host_inventory",
+                source_system="splunk",
+                source_event_id=f"splunk-host-inventory-{now.strftime('%Y%m%d%H')}",
+                severity="info",
+                payload={"hosts": hosts, "host_count": len(hosts)},
+                timestamp=now.isoformat(),
+            )
+        ]
+
+    @staticmethod
+    def _row_fields(row: Any) -> Dict[str, Any]:
+        """Fields of a search row: ``parsed_fields``, else the raw JSON document."""
+        parsed = getattr(row, "parsed_fields", None)
+        if isinstance(parsed, dict) and parsed:
+            return parsed
+        raw = getattr(row, "raw", None)
+        if isinstance(raw, str) and raw.lstrip().startswith("{"):
+            try:
+                decoded = json.loads(raw)
+            except ValueError:
+                return {}
+            return decoded if isinstance(decoded, dict) else {}
+        return {}
+
+    @staticmethod
+    def _epoch_to_iso(value: Any) -> Optional[str]:
+        """Splunk epoch seconds (or an ISO string) -> ISO 8601 UTC."""
+        if value in (None, ""):
+            return None
+        try:
+            return datetime.fromtimestamp(float(value), tz=timezone.utc).isoformat()
+        except (TypeError, ValueError, OverflowError, OSError):
+            pass
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.isoformat()
+
+    @staticmethod
+    def _to_int(value: Any) -> Optional[int]:
+        try:
+            return int(float(value))
+        except (TypeError, ValueError):
+            return None
 
     # ------------------------------------------------------------------
     # Health Check

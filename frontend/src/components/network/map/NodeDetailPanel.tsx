@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ShieldAlert, Eye, Clock, Link2 } from 'lucide-react';
+import { X, ShieldAlert, Eye, Clock, Link2, Route, ChevronRight } from 'lucide-react';
 import type { NetworkTopologyEdge, NetworkTopologyNode } from '../../../api';
 import {
   EDGE_LABELS,
@@ -47,11 +47,79 @@ const META_LABELS: Record<string, string> = {
   ebs_encrypted: 'Disk encrypted',
   connector_type: 'Connector',
   error_message: 'Last error',
+  cidr: 'Address range',
+  network_kind: 'Kind of network',
+  vpn_kind: 'Kind of VPN',
+  tunnels_up: 'Tunnels working',
+  tunnels_total: 'Tunnels in total',
+  active_connections: 'People connected now',
+  gateway_kind: 'Kind of gateway',
+  location: 'Location',
+  availability_zone: 'Data centre zone',
+  open_ports: 'Ports open to the internet',
+  public: 'Faces the internet',
 };
+
+/** Plain words for the short codes the backend sends. */
+const VALUE_LABELS: Record<string, Record<string, string>> = {
+  network_kind: {
+    vpc: 'Cloud network',
+    office_lan: 'Office network',
+    wifi: 'Wi-Fi',
+    vpn_pool: 'VPN address pool',
+    inferred: 'Worked out from addresses',
+    other: 'Other',
+  },
+  vpn_kind: { site_to_site: 'Joins two networks', client: 'For remote staff' },
+  gateway_kind: {
+    internet_gateway: 'Internet gateway',
+    nat_gateway: 'Outbound-only gateway',
+    vpn_gateway: 'VPN gateway',
+    customer_gateway: 'Your office end of the VPN',
+    transit_gateway: 'Hub joining several networks',
+    firewall: 'Firewall',
+    router: 'Router',
+  },
+};
+
+/** Edge kinds that lead "up" from a device towards the outside world. */
+const UPWARD_KINDS = ['member_of', 'part_of', 'vpn_tunnel', 'routes_to'] as const;
+
+/**
+ * Follow the links from this node up towards the internet: device, the network
+ * it sits on, then the gateway or VPN that network leaves through.
+ */
+function pathOut(
+  node: NetworkTopologyNode,
+  edges: NetworkTopologyEdge[],
+  nodesById: Record<string, NetworkTopologyNode>,
+): NetworkTopologyNode[] {
+  const path: NetworkTopologyNode[] = [];
+  const seen = new Set<string>([node.id]);
+  let current = node;
+  for (let hop = 0; hop < 6; hop += 1) {
+    let next: NetworkTopologyNode | undefined;
+    for (const kind of UPWARD_KINDS) {
+      const edge = edges.find((e) => e.kind === kind && e.source === current.id && !seen.has(e.target) && nodesById[e.target]);
+      if (edge) {
+        next = nodesById[edge.target];
+        break;
+      }
+    }
+    if (!next) break;
+    path.push(next);
+    seen.add(next.id);
+    if (next.type === 'internet') break;
+    current = next;
+  }
+  return path;
+}
 
 function formatValue(key: string, value: unknown): string {
   if (value === null || value === undefined || value === '') return '—';
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (Array.isArray(value)) return value.length ? value.join(', ') : '—';
+  if (VALUE_LABELS[key]) return VALUE_LABELS[key][String(value)] || String(value).replace(/_/g, ' ');
   if (key === 'last_sign_in' || key === 'last_successful_backup') return formatRelative(String(value));
   return String(value);
 }
@@ -61,8 +129,10 @@ export function NodeDetailPanel({ node, edges, nodesById, onClose, onJump }: Nod
   const seenBy = node.meta?.seen_by || [];
   const related = edges.filter((e) => e.source === node.id || e.target === node.id);
   const metaEntries = Object.entries(node.meta || {}).filter(
-    ([key, value]) => META_LABELS[key] && value !== null && value !== undefined && value !== '',
+    ([key, value]) =>
+      META_LABELS[key] && value !== null && value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0),
   );
+  const route = pathOut(node, edges, nodesById);
 
   return (
     <aside
@@ -102,12 +172,46 @@ export function NodeDetailPanel({ node, edges, nodesById, onClose, onJump }: Nod
             {STATUS_LABELS[node.status]}
           </div>
           <p className="mt-1 text-on-surface-variant">{describeNode(node)}</p>
+          {node.meta?.inferred && (
+            <p className="mt-2 rounded-lg border border-outline-variant bg-surface-container p-2 text-xs text-on-surface-variant">
+              No system reported this network directly. We worked it out from the addresses your devices use.
+            </p>
+          )}
+          {node.meta?.sample && (
+            <p className="mt-2 rounded-lg border border-drift-amber/30 bg-drift-amber/10 p-2 text-xs font-semibold text-drift-amber">
+              Sample data for the demo workspace.
+            </p>
+          )}
           {node.meta?.internet_exposed && (
             <p className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-xs font-semibold text-red-500">
               Anyone on the internet can reach this. That is the first thing to fix.
             </p>
           )}
         </section>
+
+        {route.length > 0 && (
+          <section data-testid="network-node-route">
+            <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-on-surface-variant">
+              <Route className="h-3.5 w-3.5" /> How it connects
+            </h4>
+            <ol className="flex flex-wrap items-center gap-1 text-xs">
+              <li className="rounded-md bg-surface-container px-2 py-1 font-semibold">{node.label}</li>
+              {route.map((step) => (
+                <li key={step.id} className="flex items-center gap-1">
+                  <ChevronRight className="h-3 w-3 text-on-surface-variant" aria-hidden />
+                  <button
+                    type="button"
+                    onClick={() => onJump(step.id)}
+                    className="rounded-md border border-outline-variant px-2 py-1 font-semibold hover:bg-surface-container-high"
+                    title={TYPE_LABELS[step.type] || step.type}
+                  >
+                    {step.label}
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         <section>
           <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-on-surface-variant">
@@ -178,10 +282,11 @@ export function NodeDetailPanel({ node, edges, nodesById, onClose, onJump }: Nod
                 const otherId = edge.source === node.id ? edge.target : edge.source;
                 const other = nodesById[otherId];
                 const verb = EDGE_LABELS[edge.kind] || edge.kind;
+                const detail = edge.kind === 'talks_to' && edge.label && edge.label !== 'talks to' ? ` (${edge.label})` : '';
                 const sentence =
-                  edge.source === node.id
+                  (edge.source === node.id
                     ? `${verb} ${other?.label || otherId}`
-                    : `${other?.label || otherId} ${verb} this`;
+                    : `${other?.label || otherId} ${verb} this`) + detail;
                 return (
                   <li key={idx}>
                     <button

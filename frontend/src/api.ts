@@ -2112,11 +2112,14 @@ export const deleteConnector = (connectorId: string, orgId?: string) =>
 // =============================================================================
 
 export type NetworkNodeType =
-  | 'connector' | 'server' | 'workstation' | 'database' | 'bucket' | 'identity' | 'security_group' | 'internet';
+  | 'connector' | 'server' | 'workstation' | 'database' | 'bucket' | 'identity' | 'security_group' | 'internet'
+  | 'network' | 'subnet' | 'vpn' | 'gateway';
 export type NetworkZone =
-  | 'internet' | 'cloud' | 'security' | 'servers' | 'workstations' | 'data' | 'backups' | 'identity';
+  | 'internet' | 'cloud' | 'security' | 'servers' | 'workstations' | 'data' | 'backups' | 'identity' | 'network';
 export type NetworkNodeStatus = 'healthy' | 'warning' | 'attention' | 'error' | 'unknown';
-export type NetworkEdgeKind = 'monitors' | 'backs_up' | 'authenticates' | 'exposed_to_internet';
+export type NetworkEdgeKind =
+  | 'monitors' | 'backs_up' | 'authenticates' | 'exposed_to_internet'
+  | 'member_of' | 'part_of' | 'vpn_tunnel' | 'routes_to' | 'protects' | 'talks_to';
 
 export interface NetworkTopologyIssue {
   title: string;
@@ -2157,6 +2160,25 @@ export interface NetworkTopologySummary {
   by_type: Record<string, number>;
   by_zone: Record<string, number>;
   by_status: Record<string, number>;
+  networks?: number;
+  vpns?: number;
+  vpn_down?: number;
+}
+
+/** One connected system feeding the map, and how fresh its data is. */
+export interface NetworkLiveSource {
+  id: string;
+  type: string;
+  label: string;
+  status: NetworkNodeStatus;
+  last_sync_at?: string | null;
+  event_count?: number;
+}
+
+export interface NetworkLiveState {
+  mode: 'live' | 'demo' | 'empty';
+  latest_event_at?: string | null;
+  sources: NetworkLiveSource[];
 }
 
 export interface NetworkTopologyResponse {
@@ -2166,6 +2188,7 @@ export interface NetworkTopologyResponse {
   generated_at: string;
   org_id?: string;
   demo?: boolean;
+  live?: NetworkLiveState;
 }
 
 export const getNetworkTopology = (orgId: string) =>

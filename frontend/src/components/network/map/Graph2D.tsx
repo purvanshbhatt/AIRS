@@ -17,6 +17,8 @@ export interface GraphViewProps {
   selectedId: string | null;
   onSelect: (node: NetworkTopologyNode | null) => void;
   onHover?: (node: NetworkTopologyNode | null) => void;
+  /** 3D only: draw the links from each security tool to what it watches. */
+  showMonitoring?: boolean;
 }
 
 type GNode = NetworkTopologyNode & { x?: number; y?: number };
@@ -122,7 +124,7 @@ export const Graph2D = forwardRef<GraphHandle, GraphViewProps>(function Graph2D(
       nodeCanvasObject={paintNode as any}
       nodePointerAreaPaint={paintPointerArea as any}
       linkColor={(l: GLink) => edgeColor(l, theme)}
-      linkWidth={(l: GLink) => (l.kind === 'exposed_to_internet' ? 2 : 1)}
+      linkWidth={(l: GLink) => (l.kind === 'exposed_to_internet' || l.kind === 'vpn_tunnel' ? 2 : 1)}
       linkLineDash={(l: GLink) => (l.kind === 'exposed_to_internet' ? [4, 3] : null)}
       linkDirectionalArrowLength={4}
       linkDirectionalArrowRelPos={0.9}

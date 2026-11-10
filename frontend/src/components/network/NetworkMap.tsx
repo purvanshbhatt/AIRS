@@ -1,12 +1,16 @@
 import React, { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Download, Globe, Loader2, Maximize2, PlugZap, RefreshCw, ShieldAlert, Square } from 'lucide-react';
+import {
+  Box, Download, Expand, Eye, EyeOff, Globe, Loader2, Maximize2, Minimize2, Network, PlugZap, Radio, RefreshCw,
+  Search, ShieldAlert, Square, Waypoints,
+} from 'lucide-react';
 import { Button } from '../ui';
 import { useActiveOrgId } from '../../hooks/useActiveOrgId';
 import {
   downloadReportById,
   generateReport,
   getNetworkTopology,
+  type NetworkLiveSource,
   type NetworkNodeStatus,
   type NetworkTopologyNode,
   type NetworkTopologyResponse,
@@ -18,6 +22,7 @@ import {
   STATUS_DOT_CLASS,
   STATUS_LABELS,
   STATUS_ORDER,
+  TYPE_LABELS,
   ZONE_COLORS,
   ZONE_LABELS,
   ZONE_ORDER,
@@ -31,6 +36,13 @@ import {
 const Graph3D = lazy(() => import('./map/Graph3D'));
 
 type ViewMode = '2d' | '3d';
+
+/** How often the map asks the connected systems' latest telemetry for changes. */
+const LIVE_REFRESH_MS = 45_000;
+
+function prefers3D(): boolean {
+  return typeof window !== 'undefined' && window.innerWidth >= 768 && webglAvailable();
+}
 
 function webglAvailable(): boolean {
   if (typeof document === 'undefined') return false;
@@ -91,7 +103,12 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
   const [error, setError] = useState<string | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
-  const [view, setView] = useState<ViewMode>('2d');
+  // The 3D building is the main view wherever the device can draw it.
+  const [view, setView] = useState<ViewMode>(() => (prefers3D() ? '3d' : '2d'));
+  const [showMonitoring, setShowMonitoring] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const [webglMissing, setWebglMissing] = useState(false);
   const [zoneFilter, setZoneFilter] = useState<Set<NetworkZone>>(new Set());
   const [statusFilter, setStatusFilter] = useState<Set<NetworkNodeStatus>>(new Set());
@@ -115,7 +132,6 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
       .then((res) => {
         if (cancelled) return;
         setData(res);
-        setSelectedId(null);
       })
       .catch((err: any) => {
         if (cancelled) return;
@@ -128,6 +144,45 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
       cancelled = true;
     };
   }, [orgId, refreshTick]);
+
+  // A different organisation is a different map: drop the selection.
+  useEffect(() => {
+    setSelectedId(null);
+    setQuery('');
+  }, [orgId]);
+
+  // Live: re-read quietly while the tab is visible. A failed poll keeps the
+  // last good picture on screen instead of replacing it with an error.
+  useEffect(() => {
+    if (!orgId || typeof window === 'undefined') return;
+    let cancelled = false;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'hidden') return;
+      setRefreshing(true);
+      getNetworkTopology(orgId)
+        .then((res) => {
+          if (!cancelled) setData(res);
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (!cancelled) setRefreshing(false);
+        });
+    }, LIVE_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [orgId]);
+
+  // Escape leaves the full-screen map.
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFullscreen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [fullscreen]);
 
   const nodesById = useMemo(() => {
     const map: Record<string, NetworkTopologyNode> = {};
@@ -153,6 +208,23 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
   const statusesPresent = useMemo(() => STATUS_ORDER.filter((s) => (data?.summary?.by_status?.[s] || 0) > 0), [data]);
 
   const selected = selectedId ? nodesById[selectedId] || null : null;
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return (data?.nodes || [])
+      .filter(
+        (n) =>
+          n.label.toLowerCase().includes(q) ||
+          (n.sublabel || '').toLowerCase().includes(q) ||
+          String(n.meta?.private_ip || n.meta?.ip_address || n.meta?.cidr || '').includes(q),
+      )
+      .slice(0, 8);
+  }, [data, query]);
+
+  const hasNetworkLayer = (data?.summary?.networks || 0) > 0 || (data?.summary?.vpns || 0) > 0;
+  // With no networks reported, the watching links are the only links there are.
+  const monitoringVisible = showMonitoring || !hasNetworkLayer;
 
   const toggleZone = (zone: NetworkZone) =>
     setZoneFilter((prev) => {
@@ -278,12 +350,15 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
     selectedId,
     onSelect: handleSelect,
     onHover: setHovered,
+    showMonitoring: monitoringVisible,
   };
+  const live = data.live;
+  const extraStats = (summary.networks || 0) > 0 || (summary.vpns || 0) > 0;
 
   return (
     <div data-testid="network-map" className="space-y-4 text-on-surface">
       {/* Summary strip */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className={`grid grid-cols-2 gap-3 ${extraStats ? 'md:grid-cols-3 xl:grid-cols-6' : 'md:grid-cols-4'}`}>
         <Stat label="Systems on the map" value={summary.node_count} />
         <Stat
           label="Need attention"
@@ -298,12 +373,25 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
           icon={<Globe className="h-4 w-4" />}
         />
         <Stat label="Connected systems" value={summary.connectors} icon={<PlugZap className="h-4 w-4" />} />
+        {extraStats && <Stat label="Networks" value={summary.networks || 0} icon={<Network className="h-4 w-4" />} />}
+        {extraStats && (
+          <Stat
+            label="VPN links"
+            value={summary.vpns || 0}
+            tone={(summary.vpn_down || 0) > 0 ? 'red' : undefined}
+            icon={<Waypoints className="h-4 w-4" />}
+            note={(summary.vpn_down || 0) > 0 ? `${summary.vpn_down} down` : undefined}
+          />
+        )}
       </div>
+
+      <LiveStrip live={live} demo={Boolean(data.demo)} generatedAt={data.generated_at} refreshing={refreshing} />
 
       {data.demo && (
         <p className="rounded-xl border border-outline-variant bg-surface-container px-3 py-2 text-xs text-on-surface-variant">
-          Demo workspace: this map is built from telemetry recorded in the demo organisation's real AWS and
-          Microsoft accounts, the same way it would be for yours.
+          Demo workspace: a sample organisation. The servers and security findings were recorded from a real AWS
+          test account. The office network, VPN and staff devices are a scripted sample, so you can see how your
+          own map will look once your systems are connected.
         </p>
       )}
 
@@ -354,7 +442,53 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
             );
           })}
         </div>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex flex-wrap items-center gap-1.5">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-on-surface-variant" aria-hidden />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Find a device or network"
+              aria-label="Find a device or network on the map"
+              className="h-8 w-44 rounded-lg border border-outline-variant bg-surface-container-lowest pl-7 pr-2 text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus-visible:ring-2 focus-visible:ring-ready-emerald md:w-52"
+            />
+            {matches.length > 0 && (
+              <ul
+                role="listbox"
+                aria-label="Matching systems"
+                className="absolute right-0 top-9 z-30 max-h-64 w-64 overflow-y-auto rounded-xl border border-outline-variant bg-surface-container-low p-1 shadow-xl"
+              >
+                {matches.map((n) => (
+                  <li key={n.id} role="option" aria-selected={n.id === selectedId}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedId(n.id);
+                        setQuery('');
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs hover:bg-surface-container-high"
+                    >
+                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: ZONE_COLORS[n.zone] }} aria-hidden />
+                      <span className="min-w-0 flex-1 truncate font-semibold text-on-surface">{n.label}</span>
+                      <span className="shrink-0 text-on-surface-variant">{TYPE_LABELS[n.type] || n.type}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {view === '3d' && hasNetworkLayer && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMonitoring((v) => !v)}
+              aria-pressed={showMonitoring}
+              title="Show which security tool watches each device"
+            >
+              {showMonitoring ? <Eye className="mr-1 h-3.5 w-3.5" /> : <EyeOff className="mr-1 h-3.5 w-3.5" />} Watching
+            </Button>
+          )}
           <div className="inline-flex rounded-lg border border-outline-variant p-0.5" role="group" aria-label="View mode">
             <button
               type="button"
@@ -383,6 +517,15 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setFullscreen((v) => !v)}
+            aria-label={fullscreen ? 'Leave full screen' : 'Full screen map'}
+            aria-pressed={fullscreen}
+          >
+            {fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Expand className="h-3.5 w-3.5" />}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setRefreshTick((t) => t + 1)}
             aria-label="Refresh map"
             disabled={loading}
@@ -402,11 +545,19 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
       )}
 
       {/* Canvas + panel */}
-      <div className={`grid gap-4 ${selected ? 'md:grid-cols-[minmax(0,1fr)_340px]' : 'md:grid-cols-1'}`}>
+      <div
+        className={
+          fullscreen
+            ? `fixed inset-0 z-[60] grid gap-3 bg-surface p-3 ${selected ? 'md:grid-cols-[minmax(0,1fr)_360px]' : 'md:grid-cols-1'}`
+            : `grid gap-4 ${selected ? 'md:grid-cols-[minmax(0,1fr)_340px]' : 'md:grid-cols-1'}`
+        }
+      >
         <div
           ref={canvasHostRef}
           data-testid="network-map-canvas"
-          className="relative h-[480px] overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest md:h-[600px]"
+          className={`relative overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest ${
+            fullscreen ? 'h-full min-h-0' : view === '3d' ? 'h-[520px] md:h-[680px]' : 'h-[480px] md:h-[600px]'
+          }`}
           onMouseMove={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             setPointer({ x: e.clientX - rect.left, y: e.clientY - rect.top });
@@ -472,8 +623,28 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
               <span className="flex items-center gap-1 text-on-surface-variant">
                 <span className="inline-block h-0 w-4 border-t-2 border-dashed border-red-500" aria-hidden /> open to internet
               </span>
+              {(summary.vpns || 0) > 0 && (
+                <span className="flex items-center gap-1 text-on-surface-variant">
+                  <span className="inline-block h-0 w-4 border-t-[3px] border-ready-emerald" aria-hidden /> VPN tunnel
+                </span>
+              )}
             </div>
           </div>
+
+          {view === '3d' && (
+            <p className="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-surface-container-low/80 px-2 py-1 text-[10px] text-on-surface-variant md:block">
+              Drag to turn · scroll to zoom · right-drag to move · click anything to open it
+            </p>
+          )}
+          {fullscreen && (
+            <button
+              type="button"
+              onClick={() => setFullscreen(false)}
+              className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-lg border border-outline-variant bg-surface-container-low/90 px-2 py-1 text-xs font-bold text-on-surface"
+            >
+              <Minimize2 className="h-3.5 w-3.5" /> Close full screen
+            </button>
+          )}
 
           <p className="absolute right-3 top-3 rounded-md bg-surface-container-low/80 px-2 py-0.5 text-[10px] text-on-surface-variant">
             Updated {formatRelative(data.generated_at)} · {visibleNodes.length}/{summary.node_count} shown
@@ -482,7 +653,9 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
 
         {selected && (
           <div
-            className="fixed inset-x-0 bottom-0 z-40 max-h-[70vh] overflow-hidden rounded-t-2xl border border-outline-variant shadow-2xl md:static md:z-auto md:max-h-none md:h-[600px] md:rounded-2xl md:shadow-none"
+            className={`fixed inset-x-0 bottom-0 z-[61] max-h-[70vh] overflow-hidden rounded-t-2xl border border-outline-variant shadow-2xl md:static md:z-auto md:max-h-none md:rounded-2xl md:shadow-none ${
+              fullscreen ? 'md:h-full md:min-h-0' : view === '3d' ? 'md:h-[680px]' : 'md:h-[600px]'
+            }`}
           >
             <NodeDetailPanel
               node={selected}
@@ -498,16 +671,74 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
   );
 }
 
+function sourceTone(source: NetworkLiveSource): string {
+  if (source.status === 'error' || source.status === 'attention') return 'bg-red-500';
+  if (source.status === 'warning') return 'bg-drift-amber';
+  if (source.status === 'healthy') return 'bg-ready-emerald';
+  return 'bg-on-surface-variant/40';
+}
+
+/** Says, in one line, where the picture comes from and how fresh it is. */
+function LiveStrip({
+  live,
+  demo,
+  generatedAt,
+  refreshing,
+}: {
+  live?: NetworkTopologyResponse['live'];
+  demo: boolean;
+  generatedAt: string;
+  refreshing: boolean;
+}) {
+  const sources = live?.sources || [];
+  const isLive = !demo && live?.mode === 'live' && sources.length > 0;
+  return (
+    <div
+      data-testid="network-map-live"
+      className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-xs"
+    >
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-bold ${
+          isLive ? 'bg-ready-emerald/15 text-ready-emerald' : 'bg-drift-amber/15 text-drift-amber'
+        }`}
+      >
+        <Radio className={`h-3.5 w-3.5 ${isLive && !refreshing ? 'animate-pulse' : ''}`} aria-hidden />
+        {demo ? 'Sample data' : isLive ? 'Live' : 'Waiting for data'}
+      </span>
+      <span className="text-on-surface-variant">
+        {isLive || demo
+          ? `Checked ${formatRelative(generatedAt)}${
+              live?.latest_event_at ? ` · newest report ${formatRelative(live.latest_event_at)}` : ''
+            } · refreshes by itself`
+          : 'The map fills in as your connected systems report.'}
+      </span>
+      {sources.length > 0 && (
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-on-surface-variant" aria-label="Systems feeding this map">
+          {sources.map((source) => (
+            <span key={source.id} className="inline-flex items-center gap-1.5">
+              <span className={`h-1.5 w-1.5 rounded-full ${sourceTone(source)}`} aria-hidden />
+              <span className="font-semibold text-on-surface">{source.label}</span>
+              {source.last_sync_at ? formatRelative(source.last_sync_at) : source.status === 'error' ? 'not reporting' : ''}
+            </span>
+          ))}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function Stat({
   label,
   value,
   tone,
   icon,
+  note,
 }: {
   label: string;
   value: number;
   tone?: 'red' | 'emerald';
   icon?: React.ReactNode;
+  note?: string;
 }) {
   const toneClass = tone === 'red' ? 'text-red-500' : tone === 'emerald' ? 'text-ready-emerald' : 'text-on-surface';
   return (
@@ -516,6 +747,7 @@ function Stat({
         {icon} {label}
       </p>
       <p className={`mt-1 text-2xl font-extrabold ${toneClass}`}>{value}</p>
+      {note && <p className="text-[11px] font-semibold text-red-500">{note}</p>}
     </div>
   );
 }

@@ -535,6 +535,7 @@ async def receive_webhook(
     from datetime import datetime, timezone
 
     from app.connectors.base import NormalizedEvent
+    from app.connectors.webhook import NETWORK_SNAPSHOT_EVENT
     from app.models.connector import Connector, ConnectorStatus, ConnectorType
 
     body = await request.body()
@@ -577,18 +578,27 @@ async def receive_webhook(
         payload = {"data": payload}
 
     now = datetime.now(timezone.utc)
-    source_event_id = str(
+    event_type = str(
+        payload.get("event_type")
+        or request.headers.get("X-GitHub-Event")
+        or f"{connector_type}.event"
+    )
+    explicit_id = (
         payload.get("event_id")
         or payload.get("id")
         or request.headers.get("X-GitHub-Delivery")
-        or hashlib.sha256(body).hexdigest()[:32]
     )
+    if explicit_id:
+        source_event_id = str(explicit_id)
+    else:
+        source_event_id = hashlib.sha256(body).hexdigest()[:32]
+        if event_type.lower() == NETWORK_SNAPSHOT_EVENT:
+            # A network that has not changed is re-sent byte for byte. Keep one
+            # row per hour so the network map (which reads recent telemetry)
+            # still sees a stable network instead of losing it to deduplication.
+            source_event_id = f"{source_event_id}-{now.strftime('%Y%m%d%H')}"
     event = NormalizedEvent(
-        event_type=str(
-            payload.get("event_type")
-            or request.headers.get("X-GitHub-Event")
-            or f"{connector_type}.event"
-        ),
+        event_type=event_type,
         source_system=lookup_type.value,
         source_event_id=source_event_id,
         severity=str(payload.get("severity") or "info"),
