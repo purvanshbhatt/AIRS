@@ -151,6 +151,28 @@ def _sync_firestore_on_startup():
 
 _sync_firestore_on_startup()
 
+
+# ── Durable mirror: connectors, telemetry, reports survive restarts ──
+def _restore_durable_mirror_on_startup():
+    """Restore operational tables that only exist in the in-memory SQL cache."""
+    import os
+    if os.environ.get("TESTING") == "true":
+        return
+    try:
+        import app.models  # noqa: F401 — make sure every mapped class is registered
+        from app.db.durable_mirror import register_durable_mirror, restore_from_mirror
+        from app.db.database import SessionLocal
+        db = SessionLocal()
+        try:
+            restore_from_mirror(db)
+        finally:
+            db.close()
+        register_durable_mirror()
+    except Exception as e:
+        logger.warning("Durable mirror startup skipped: %s", e)
+
+_restore_durable_mirror_on_startup()
+
 # Register the system auditing trace to record all configuration mutations
 register_system_auditor()
 

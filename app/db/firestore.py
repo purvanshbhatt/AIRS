@@ -202,6 +202,9 @@ def _org_to_doc(org) -> Dict[str, Any]:
     return doc
 
 
+UNREADABLE_ORG_MARKER = "_unreadable_in_this_environment"
+
+
 def _decrypt_org_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
     """Decrypt a Firestore org document if it contains an encrypted blob."""
     if "encrypted_blob" not in doc:
@@ -209,7 +212,18 @@ def _decrypt_org_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
     try:
         from app.core.security.encryption import get_encryption_service
         svc = get_encryption_service()
-        return svc.decrypt_fields(doc)
+        result = svc.decrypt_fields(doc)
+        # Staging and production share this collection but use different keys.
+        # A document none of whose encrypted fields came back was written by
+        # another environment (or its key is gone): flag it so callers skip it
+        # instead of showing an "Encrypted Organization (Key Missing)" row.
+        encrypted_fields = doc.get("encrypted_fields") or []
+        placeholder_name = result.get("name") == "Encrypted Organization (Key Missing)"
+        recovered = [f for f in encrypted_fields if f in result and not (f == "name" and placeholder_name)]
+        if svc.enabled and encrypted_fields and not recovered:
+            result = dict(result)
+            result[UNREADABLE_ORG_MARKER] = True
+        return result
     except Exception as exc:
         logger.warning("Decryption failed for org %s: %s", doc.get("id"), exc)
         return doc
@@ -296,7 +310,10 @@ def firestore_get_org(org_id: str) -> Optional[Dict[str, Any]]:
         client = get_firestore_client()
         doc = client.collection("organizations").document(org_id).get()
         if doc.exists:
-            return _decrypt_org_doc(doc.to_dict())
+            decrypted = _decrypt_org_doc(doc.to_dict())
+            if decrypted.get(UNREADABLE_ORG_MARKER):
+                return None
+            return decrypted
         return None
     except Exception as exc:
         logger.error("Firestore get_org failed for %s: %s", org_id, exc)
@@ -318,7 +335,19 @@ def firestore_get_all_orgs(owner_uid: Optional[str] = None) -> List[Dict[str, An
         if owner_uid:
             query = query.where("owner_uid", "==", owner_uid)
         docs = query.stream()
-        return [_decrypt_org_doc(doc.to_dict()) for doc in docs]
+        readable: List[Dict[str, Any]] = []
+        skipped = 0
+        for doc in docs:
+            decrypted = _decrypt_org_doc(doc.to_dict())
+            if decrypted.get(UNREADABLE_ORG_MARKER):
+                skipped += 1
+                continue
+            readable.append(decrypted)
+        if skipped:
+            logger.info(
+                "Skipped %d organization document(s) not readable with this environment's key", skipped
+            )
+        return readable
     except Exception as exc:
         logger.error("Firestore get_all_orgs failed: %s", exc)
         return []
