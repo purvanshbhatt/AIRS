@@ -28,31 +28,73 @@
       ],
       "headers": [
         {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
           "source": "/llms.txt",
           "headers": [
-            { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
-            { "key": "Cache-Control", "value": "public, max-age=3600" }
+            {
+              "key": "Content-Type",
+              "value": "text/plain; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
           ]
         },
         {
           "source": "/llms-full.txt",
           "headers": [
-            { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
-            { "key": "Cache-Control", "value": "public, max-age=3600" }
+            {
+              "key": "Content-Type",
+              "value": "text/plain; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
           ]
         },
         {
           "source": "/robots.txt",
           "headers": [
-            { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
-            { "key": "Cache-Control", "value": "public, max-age=3600" }
+            {
+              "key": "Content-Type",
+              "value": "text/plain; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
           ]
         },
         {
           "source": "/sitemap.xml",
           "headers": [
-            { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
-            { "key": "Cache-Control", "value": "public, max-age=3600" }
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
+          ]
+        },
+        {
+          "source": "/assets/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
           ]
         }
       ],
@@ -73,31 +115,73 @@
       ],
       "headers": [
         {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
           "source": "/llms.txt",
           "headers": [
-            { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
-            { "key": "Cache-Control", "value": "public, max-age=3600" }
+            {
+              "key": "Content-Type",
+              "value": "text/plain; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
           ]
         },
         {
           "source": "/llms-full.txt",
           "headers": [
-            { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
-            { "key": "Cache-Control", "value": "public, max-age=3600" }
+            {
+              "key": "Content-Type",
+              "value": "text/plain; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
           ]
         },
         {
           "source": "/robots.txt",
           "headers": [
-            { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
-            { "key": "Cache-Control", "value": "public, max-age=3600" }
+            {
+              "key": "Content-Type",
+              "value": "text/plain; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
           ]
         },
         {
           "source": "/sitemap.xml",
           "headers": [
-            { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
-            { "key": "Cache-Control", "value": "public, max-age=3600" }
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
+          ]
+        },
+        {
+          "source": "/assets/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
           ]
         }
       ],
@@ -123,6 +207,19 @@
             {
               "key": "X-Robots-Tag",
               "value": "noindex, nofollow"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/assets/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
             }
           ]
         }
@@ -149,6 +246,19 @@
             {
               "key": "X-Robots-Tag",
               "value": "noindex, nofollow"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/assets/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
             }
           ]
         }
