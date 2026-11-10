@@ -231,6 +231,16 @@ class Settings(BaseSettings):
     ENCRYPTION_SECRET: Optional[str] = None
 
     # ===========================================
+    # Platform AWS identity (customer role assumption)
+    # ===========================================
+    # Access key of the ResilAI-owned IAM principal that customer roles
+    # trust. Used only as the base identity for sts:AssumeRole when an AWS
+    # connector is configured with a role ARN and no keys of its own.
+    # When unset, role-ARN-only connectors report NO_PLATFORM_IDENTITY.
+    RESILAI_AWS_ACCESS_KEY_ID: Optional[str] = None
+    RESILAI_AWS_SECRET_ACCESS_KEY: Optional[str] = None
+
+    # ===========================================
     # Stripe Billing Configuration
     # ===========================================
     STRIPE_SECRET_KEY: Optional[str] = None
@@ -245,6 +255,13 @@ class Settings(BaseSettings):
     STRIPE_AUTOMATIC_TAX: bool = False          # enable only after Stripe Tax registrations exist
     STRIPE_PORTAL_CONFIGURATION: Optional[str] = None  # optional billing-portal configuration id
     FOUNDING_SEATS_TOTAL: int = 50              # cap for the $149 founding-sysadmin plan
+
+    # ===========================================
+    # Vulnerability intelligence (technology stack)
+    # ===========================================
+    # Optional NVD API key (https://nvd.nist.gov/developers/request-an-api-key).
+    # Without a key NVD allows 5 requests / 30 s; with a key 50 requests / 30 s.
+    NVD_API_KEY: Optional[str] = None
 
     model_config = SettingsConfigDict(
         case_sensitive=True,

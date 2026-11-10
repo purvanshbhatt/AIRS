@@ -127,7 +127,9 @@ async def _sync_findings(credentials: Dict[str, str]) -> List[Dict[str, Any]]:
     if not await connector.authenticate():
         raise SystemExit("Security Hub authentication failed")
     events = await connector.sync()
-    return [e.model_dump() if hasattr(e, "model_dump") else e.__dict__ for e in events]
+    dumped = [e.model_dump() if hasattr(e, "model_dump") else e.__dict__ for e in events]
+    # sync() also returns inventory and IAM events; only findings belong here.
+    return [e for e in dumped if e.get("event_type") == "aws.securityhub.finding"]
 
 
 def _inventory(session, region: str, credentials: Dict[str, str]) -> Dict[str, List[Dict[str, Any]]]:

@@ -116,6 +116,12 @@ class BaseConnector(abc.ABC):
         self._credentials = credentials
         self._config = config or {}
         self._authenticated = False
+        # Why the last authenticate()/health_check()/sync() failed, in plain
+        # English that is safe to show a user. Never put secrets, raw
+        # exception text or request payloads in here.
+        self.last_error: Optional[str] = None
+        # Stable machine-readable companion to ``last_error`` (e.g. INVALID_KEYS).
+        self.last_error_code: Optional[str] = None
         self.logger = logging.getLogger(f"airs.connectors.{self.CONNECTOR_TYPE}")
 
     # ------------------------------------------------------------------
@@ -154,7 +160,9 @@ class BaseConnector(abc.ABC):
                 auth_ok = await self.authenticate()
                 if not auth_ok:
                     return ConnectorSyncResult(
-                        success=False, error_details="Authentication failed"
+                        success=False,
+                        error_details=self.last_error or "Authentication failed",
+                        duration_ms=int((time.monotonic() - start) * 1000),
                     )
 
             events = await self.sync()

@@ -145,13 +145,7 @@ class ConnectorManager:
             # Instantiate connector implementation
             ConnectorClass = get_connector_class(connector.connector_type)
             credentials = self._decrypt_credentials(connector.encrypted_credentials)
-            cfg_raw = connector.config
-            if isinstance(cfg_raw, str):
-                config = json.loads(cfg_raw) if cfg_raw else {}
-            elif isinstance(cfg_raw, dict):
-                config = cfg_raw
-            else:
-                config = {}
+            config = self._config_dict(connector.config)
 
             impl = ConnectorClass(
                 connector_id=connector_id,
@@ -170,14 +164,35 @@ class ConnectorManager:
                 except Exception as ingest_err:
                     logger.warning("Event ingestion failed: %s", ingest_err)
 
-            # Update connector state
-            connector.status = (
-                ConnectorStatus.active.value if result.success
-                else ConnectorStatus.error.value
+            # Update connector state. A sync is also a check: record what it
+            # proved so the UI can say why a connector is (not) working.
+            sources = self._impl_sources(impl)
+            readable = any(state == "available" for state in sources.values())
+            if result.success:
+                # Signed in but nothing readable is degraded, not healthy.
+                check_status = "healthy" if (readable or not sources) else "degraded"
+                check_code = None if check_status == "healthy" else getattr(impl, "last_error_code", None)
+                summary = self._impl_summary(impl)
+                synced = f"Synced {result.events_ingested} record{'' if result.events_ingested == 1 else 's'}."
+                check_message = f"{summary} {synced}".strip()
+            else:
+                check_status = "unreachable"
+                check_code = getattr(impl, "last_error_code", None)
+                check_message = result.error_details or "Sync failed."
+
+            self._record_check(
+                connector,
+                status=check_status,
+                message=check_message,
+                code=check_code,
+                sources=sources,
+            )
+            connector.status = self._status_after_check(
+                connector_id, check_status, readable or result.events_ingested > 0
             )
             connector.last_sync_at = datetime.now(timezone.utc)
             connector.error_message = result.error_details
-            connector.health_status = "healthy" if result.success else "error"
+            connector.health_status = check_status if result.success else "error"
 
             # Update sync log
             sync_log.sync_completed_at = datetime.now(timezone.utc)
@@ -201,6 +216,12 @@ class ConnectorManager:
         except Exception as exc:
             connector.status = ConnectorStatus.error.value
             connector.error_message = str(exc)
+            self._record_check(
+                connector,
+                status="unreachable",
+                message=f"Sync could not run ({type(exc).__name__}).",
+                code="SYNC_FAILED",
+            )
             sync_log.sync_completed_at = datetime.now(timezone.utc)
             sync_log.status = "failed"
             sync_log.error_details = str(exc)
@@ -222,27 +243,153 @@ class ConnectorManager:
         Returns:
             ConnectorHealth dataclass.
         """
+        from app.connectors.base import ConnectorHealth
         from app.connectors.registry import get_connector_class
+        from app.models.connector import ConnectorStatus
 
         connector = self._get_connector(connector_id)
-        ConnectorClass = get_connector_class(connector.connector_type)
-        credentials = self._decrypt_credentials(connector.encrypted_credentials)
-        config = connector.config if connector.config else {}
 
-        impl = ConnectorClass(
-            connector_id=connector_id,
-            org_id=self.org_id,
-            credentials=credentials,
-            config=config,
-        )
+        impl = None
+        try:
+            ConnectorClass = get_connector_class(connector.connector_type)
+            impl = ConnectorClass(
+                connector_id=connector_id,
+                org_id=self.org_id,
+                credentials=self._decrypt_credentials(connector.encrypted_credentials),
+                config=self._config_dict(connector.config),
+            )
+            health = await impl.health_check()
+        except Exception as exc:
+            # A check must always end in a verdict, never an unverified connector.
+            logger.error(
+                "Health check crashed for connector %s: %s", connector_id, type(exc).__name__
+            )
+            health = ConnectorHealth(
+                status="unreachable",
+                message=f"The connection check could not run ({type(exc).__name__}).",
+            )
 
-        health = await impl.health_check()
+        sources = self._impl_sources(impl)
+        readable = any(state == "available" for state in sources.values())
+        code = None if health.status == "healthy" else getattr(impl, "last_error_code", None)
 
-        # Update connector health status
+        # Update connector health status and remember why
         connector.health_status = health.status
+        self._record_check(
+            connector,
+            status=health.status,
+            message=health.message,
+            code=code,
+            sources=sources,
+            checked_at=health.checked_at,
+        )
+        # A running sync sets the final status itself; a deactivated
+        # connector stays deactivated.
+        if connector.status not in (
+            ConnectorStatus.syncing.value,
+            ConnectorStatus.inactive.value,
+        ):
+            connector.status = self._status_after_check(connector_id, health.status, readable)
+            connector.error_message = (
+                None if connector.status == ConnectorStatus.active.value else health.message
+            )
         self.db.commit()
 
         return health
+
+    # ------------------------------------------------------------------
+    # Check bookkeeping
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _config_dict(raw: Any) -> Dict[str, Any]:
+        """Connector.config as a dict (the column may hold JSON text or None)."""
+        if isinstance(raw, dict):
+            return raw
+        if isinstance(raw, str) and raw:
+            try:
+                parsed = json.loads(raw)
+            except (json.JSONDecodeError, TypeError):
+                return {}
+            return parsed if isinstance(parsed, dict) else {}
+        return {}
+
+    @staticmethod
+    def _impl_sources(impl: Any) -> Dict[str, str]:
+        """Per-data-source availability, for connectors that report it."""
+        sources = getattr(impl, "sources", None)
+        if not isinstance(sources, dict):
+            return {}
+        return {str(name): str(state) for name, state in sources.items()}
+
+    @staticmethod
+    def _impl_summary(impl: Any) -> str:
+        summarize = getattr(impl, "status_summary", None)
+        if not callable(summarize):
+            return ""
+        try:
+            return str(summarize() or "")
+        except Exception:
+            return ""
+
+    def _record_check(
+        self,
+        connector,
+        status: str,
+        message: Optional[str],
+        code: Optional[str] = None,
+        sources: Optional[Dict[str, str]] = None,
+        checked_at: Optional[str] = None,
+    ) -> None:
+        """Store the outcome of the latest health check / sync in ``config.last_check``.
+
+        Holds only what is safe to show the user: a status, a plain-English
+        message, a stable code and per-source availability. Field names stay
+        clear of the secret markers in ``connector_secrets`` so the object
+        survives ``scrub_secrets``. The dict is reassigned (not mutated) so
+        SQLAlchemy sees the JSON column change.
+        """
+        updated = dict(self._config_dict(connector.config))
+        updated["last_check"] = {
+            "status": status,
+            "message": (message or "")[:600],
+            "code": code,
+            "checked_at": checked_at or datetime.now(timezone.utc).isoformat(),
+            "sources": dict(sources or {}),
+        }
+        connector.config = updated
+
+    def _has_ingested_data(self, connector_id: str) -> bool:
+        from app.models.telemetry_event import TelemetryEvent
+
+        try:
+            return (
+                self.db.query(TelemetryEvent.id)
+                .filter(
+                    TelemetryEvent.org_id == self.org_id,
+                    TelemetryEvent.connector_id == connector_id,
+                )
+                .first()
+                is not None
+            )
+        except Exception as exc:
+            logger.debug("Could not check ingested data for %s: %s", connector_id, exc)
+            return False
+
+    def _status_after_check(self, connector_id: str, check_status: str, has_data: bool) -> str:
+        """Lifecycle status once a check has run: never ``pending_auth``.
+
+        ``active`` when the connector is healthy, or degraded but still
+        delivering (a readable source now, or evidence already ingested).
+        Everything else is ``error``.
+        """
+        from app.models.connector import ConnectorStatus
+
+        if check_status == "healthy":
+            return ConnectorStatus.active.value
+        if check_status == "degraded" and (has_data or self._has_ingested_data(connector_id)):
+            return ConnectorStatus.active.value
+        return ConnectorStatus.error.value
 
     # ------------------------------------------------------------------
     # Listing & Retrieval
@@ -309,7 +456,8 @@ class ConnectorManager:
     ):
         """Update a connector's configuration.
 
-        Passing ``credentials`` replaces the encrypted secret blob and resets
+        Passing ``credentials`` merges them over the stored secret blob (keys
+        that are not sent keep their saved value), re-encrypts it and resets
         the connector to ``pending_auth`` so the next health check / sync
         re-validates the new secrets (unless ``status`` is given explicitly).
 
@@ -324,11 +472,22 @@ class ConnectorManager:
         if display_name is not None:
             connector.display_name = display_name
         if config is not None:
-            connector.config = scrub_secrets(config)
+            new_config = scrub_secrets(config) or {}
+            # The last check result is ours, not the form's: keep it unless
+            # new credentials make it stale.
+            previous_check = self._config_dict(connector.config).get("last_check")
+            if previous_check and not credentials:
+                new_config = {**new_config, "last_check": previous_check}
+            else:
+                new_config.pop("last_check", None)
+            connector.config = new_config
         if sync_interval_minutes is not None:
             connector.sync_interval_minutes = sync_interval_minutes
         if credentials:
-            connector.encrypted_credentials = self._encrypt_credentials(credentials)
+            # The form leaves secret fields blank to mean "keep the saved
+            # value", so merge over what is stored instead of replacing it.
+            merged = {**self._decrypt_credentials(connector.encrypted_credentials), **credentials}
+            connector.encrypted_credentials = self._encrypt_credentials(merged)
             connector.permissions_validated = False
             connector.health_status = "unknown"
             if status is None:

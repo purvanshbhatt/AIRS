@@ -2443,3 +2443,286 @@ export const downloadAgentAuditReport = async (orgId: string, auditId: string): 
   return response.blob();
 };
 
+
+// =============================================================================
+// TECHNOLOGY INTELLIGENCE — software stack, advisories, websites, cloud services
+// =============================================================================
+// Every value shown on /technology/intelligence comes from these endpoints.
+// Nothing is mocked here: demo organizations are answered by the backend
+// (the response carries `demo: true`).
+
+export type StackSeverity = 'critical' | 'high' | 'medium' | 'low' | 'unknown';
+
+export type StackCategory =
+  | 'os'
+  | 'runtime'
+  | 'database'
+  | 'web_server'
+  | 'framework'
+  | 'application'
+  | 'cloud_service'
+  | 'library';
+
+export type StackStatus = 'ok' | 'update_available' | 'vulnerable' | 'end_of_life' | 'unknown';
+
+/** 'confirmed' when the version match was verified; anything else is shown as "Not confirmed". */
+export type TechConfidence = 'confirmed' | 'unconfirmed' | 'possible' | 'unknown' | (string & {});
+
+export interface StackVulnerability {
+  id: string;
+  confidence?: TechConfidence | null;
+  severity: StackSeverity;
+  cvss: number | null;
+  summary: string;
+  fixed_version: string | null;
+  published: string | null;
+  known_exploited: boolean;
+  references: string[];
+  remediation: string;
+}
+
+export interface StackEolInfo {
+  is_eol: boolean;
+  eol_date: string | null;
+  latest_version: string | null;
+  source: string;
+}
+
+export interface StackItem {
+  id: string;
+  name: string;
+  vendor: string;
+  version: string;
+  category: StackCategory;
+  source: string;
+  asset: string | null;
+  last_seen: string | null;
+  eol: StackEolInfo | null;
+  vulnerabilities: StackVulnerability[];
+  status: StackStatus;
+  /** Set only when the backend proves an item-level finding such as end of life. */
+  confidence?: TechConfidence | null;
+  /** False when the product name is not in the catalogue, so nothing was looked up. */
+  checked?: boolean;
+  not_checked_reason?: string | null;
+  canonical?: string | null;
+  vulnerability_count?: number;
+}
+
+export interface StackSummary {
+  total: number;
+  vulnerable: number;
+  critical: number;
+  known_exploited: number;
+  end_of_life: number;
+  last_intel_refresh: string | null;
+}
+
+/**
+ * One entry of the short "Fix this week" list. The backend is still settling
+ * this shape, so every field is optional and read defensively.
+ */
+export interface TechTopAction {
+  id?: string;
+  title?: string;
+  summary?: string;
+  confidence?: TechConfidence | null;
+  /** `known_exploited` or `end_of_life`. */
+  kind?: string;
+  /** Where it is: names of systems or programs, or the backend block. */
+  where?: string[] | string | { count?: number; label?: string; names?: string[] };
+  eol_date?: string | null;
+  affected?: TechAdvisoryAffected[];
+  count?: number;
+  fix?: string;
+  fix_step?: string;
+  steps?: string[];
+  fixed_version?: string | null;
+  send_to_it_text?: string;
+  source_url?: string;
+  references?: string[];
+  cve_id?: string;
+  cve_ids?: string[];
+  known_exploited?: boolean;
+  end_of_life?: boolean;
+}
+
+/** What the check could and could not look at. */
+export interface TechCoverage {
+  sources_seen?: string[];
+  not_seen?: string[];
+  products_total?: number;
+  products_checked?: number;
+  products_not_checked?: number;
+  level?: 'none' | 'poor' | 'partial' | 'good';
+  message?: string;
+  checked?: string[] | string;
+  could_not_see?: string[] | string;
+  [key: string]: unknown;
+}
+
+export interface TechFeedState {
+  status?: string;
+  as_of?: string | null;
+  stale?: boolean;
+  error?: string | null;
+}
+
+/** Fields shared by the stack and advisories answers once the backend sends them. */
+export interface TechWatchMeta {
+  top_actions?: TechTopAction[] | null;
+  coverage?: TechCoverage | null;
+  as_of?: string | null;
+  stale?: boolean;
+  feeds?: Record<string, TechFeedState> | null;
+  failing_feeds?: string[];
+}
+
+export interface StackResponse extends TechWatchMeta {
+  items: StackItem[];
+  summary: StackSummary;
+  sources: Record<string, string>;
+  demo: boolean;
+}
+
+export interface StackRefreshResult {
+  total: number;
+  vulnerable: number;
+  critical: number;
+  known_exploited: number;
+  end_of_life: number;
+  last_intel_refresh: string | null;
+  looked_up: number;
+  errors: string[];
+}
+
+export interface TechAdvisoryAffected {
+  name: string;
+  version: string;
+  asset: string | null;
+}
+
+export interface TechAdvisory {
+  id: string;
+  confidence?: TechConfidence | null;
+  end_of_life?: boolean;
+  send_to_it_text?: string;
+  severity: StackSeverity;
+  cvss: number | null;
+  summary: string;
+  published: string | null;
+  known_exploited: boolean;
+  affected: TechAdvisoryAffected[];
+  fixed_version: string | null;
+  steps: string[];
+  references: string[];
+}
+
+export interface TechAdvisoriesResponse extends TechWatchMeta {
+  advisories: TechAdvisory[];
+  generated_at: string | null;
+}
+
+export interface TechIssue {
+  confidence?: TechConfidence | null;
+  title: string;
+  severity: StackSeverity;
+  fix: string;
+}
+
+export interface WebAssetTls {
+  valid: boolean;
+  expires_at: string | null;
+  days_left: number | null;
+  issuer: string | null;
+}
+
+export interface WebAssetHeaders {
+  hsts: boolean;
+  csp: boolean;
+  x_frame_options: boolean;
+  x_content_type_options: boolean;
+  referrer_policy: boolean;
+}
+
+export interface WebAssetDetected {
+  name: string;
+  version: string | null;
+  evidence: string;
+}
+
+export interface WebAssetScanResult {
+  url: string;
+  reachable: boolean;
+  status_code: number | null;
+  final_url: string;
+  tls: WebAssetTls | null;
+  headers: WebAssetHeaders;
+  detected: WebAssetDetected[];
+  issues: TechIssue[];
+  scanned_at: string;
+}
+
+export interface WebAsset {
+  id: string;
+  url: string;
+  label: string;
+  /** Time of the last scan, or the last scan result itself, when the backend has one. */
+  last_scan: string | WebAssetScanResult | null;
+}
+
+export interface WebAssetsResponse {
+  assets: WebAsset[];
+}
+
+export interface TechDeployment {
+  id: string;
+  type: string;
+  name: string;
+  provider: string;
+  region: string;
+  runtime: string | null;
+  version: string | null;
+  public: boolean | null;
+  issues: TechIssue[];
+}
+
+export interface TechDeploymentsResponse {
+  deployments: TechDeployment[];
+  sources: Record<string, string>;
+  collected_at: string | null;
+}
+
+const techPath = (orgId: string, ...rest: string[]) =>
+  ['/api/v1/technology', ...rest.slice(0, 1), encodeURIComponent(orgId), ...rest.slice(1).map(encodeURIComponent)].join('/');
+
+export const getSoftwareStack = (orgId: string) =>
+  request<StackResponse>(techPath(orgId, 'stack'));
+
+export const refreshSoftwareStack = (orgId: string) =>
+  request<StackRefreshResult>(techPath(orgId, 'stack', 'refresh'), { method: 'POST' });
+
+export const getTechAdvisories = (orgId: string) =>
+  request<TechAdvisoriesResponse>(techPath(orgId, 'advisories'));
+
+export const getWebAssets = (orgId: string) =>
+  request<WebAssetsResponse>(techPath(orgId, 'web-assets'));
+
+export const addWebAsset = (orgId: string, data: { url: string; label: string }) =>
+  request<WebAsset>(techPath(orgId, 'web-assets'), { method: 'POST', body: JSON.stringify(data) });
+
+export const deleteWebAsset = async (orgId: string, assetId: string): Promise<void> => {
+  try {
+    await request<unknown>(techPath(orgId, 'web-assets', assetId), { method: 'DELETE' });
+  } catch (err) {
+    // A successful delete with an empty body (204) fails JSON parsing: that is still a success.
+    if (err instanceof SyntaxError) return;
+    throw err;
+  }
+};
+
+export const scanWebAsset = (orgId: string, assetId: string) =>
+  request<WebAssetScanResult>(techPath(orgId, 'web-assets', assetId, 'scan'), { method: 'POST' });
+
+export const getTechDeployments = (orgId: string) =>
+  request<TechDeploymentsResponse>(techPath(orgId, 'deployments'));

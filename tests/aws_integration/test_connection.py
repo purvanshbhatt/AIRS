@@ -4,7 +4,23 @@ import asyncio
 import pytest
 from unittest.mock import patch, MagicMock
 
+from botocore.exceptions import ClientError
+
 from app.connectors.aws_security_hub import AWSSecurityHubConnector
+
+
+def _boto3_rejecting_keys():
+    """boto3 stub whose STS identity check fails the way AWS rejects bad keys."""
+    mock_client = MagicMock()
+    mock_client.get_caller_identity.side_effect = ClientError(
+            {"Error": {"Code": "InvalidClientTokenId", "Message": "The security token included in the request is invalid."}},
+            "GetCallerIdentity",
+        )
+    mock_session = MagicMock()
+    mock_session.client.return_value = mock_client
+    mock_boto3 = MagicMock()
+    mock_boto3.Session.return_value = mock_session
+    return mock_boto3
 
 
 def _run(coro):
@@ -49,21 +65,14 @@ class TestAWSConnection:
             assert result is False
 
     def test_authenticate_invalid_credentials(self, mock_aws_credentials):
-        """Invalid credentials cause describe_hub to fail, authenticate returns False."""
+        """Invalid credentials fail the STS identity check, authenticate returns False."""
         connector = self._make_connector(mock_aws_credentials)
 
-        mock_session = MagicMock()
-        mock_client = MagicMock()
-        mock_client.describe_hub.side_effect = Exception("InvalidClientTokenId")
-        mock_session.client.return_value = mock_client
-
-        mock_boto3 = MagicMock()
-        mock_boto3.Session.return_value = mock_session
-
-        with patch.dict("sys.modules", {"boto3": mock_boto3}):
+        with patch.dict("sys.modules", {"boto3": _boto3_rejecting_keys()}):
             result = _run(connector.authenticate())
             assert result is False
             assert connector._authenticated is False
+            assert connector.last_error_code == "INVALID_KEYS"
 
     def test_authenticate_with_role_arn(self, mock_aws_credentials):
         """When role_arn is provided, STS assume_role is called."""
@@ -118,12 +127,13 @@ class TestAWSConnection:
         assert result.status == "unreachable"
 
     def test_health_check_not_authenticated(self, mock_aws_credentials):
-        """When hub_client is None, health status is 'unreachable'."""
+        """When AWS rejects the keys, health is 'unreachable' and says why."""
         connector = self._make_connector(mock_aws_credentials)
-        # _hub_client is None by default
-        result = _run(connector.health_check())
+        # _hub_client is None by default, so health_check authenticates first
+        with patch.dict("sys.modules", {"boto3": _boto3_rejecting_keys()}):
+            result = _run(connector.health_check())
         assert result.status == "unreachable"
-        assert "Not authenticated" in result.message
+        assert "AWS rejected the access key or secret" in result.message
 
     def test_validate_permissions_all_present(self, mock_aws_credentials):
         """When all API calls succeed, permissions are valid."""
@@ -149,6 +159,7 @@ class TestAWSConnection:
     def test_validate_permissions_not_authenticated(self, mock_aws_credentials):
         """When not authenticated, permissions validation fails cleanly."""
         connector = self._make_connector(mock_aws_credentials)
-        result = _run(connector.validate_permissions())
+        with patch.dict("sys.modules", {"boto3": _boto3_rejecting_keys()}):
+            result = _run(connector.validate_permissions())
         assert result.valid is False
-        assert "Not authenticated" in result.message
+        assert "AWS rejected the access key or secret" in result.message

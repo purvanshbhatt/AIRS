@@ -3120,3 +3120,54 @@ Blocked By:
 Affected Teams:
 * Frontend
 * Backend
+
+
+---
+
+Date: 2026-11-09
+Agent: Claude Fable 5.2 (Claude Code, backend subagent)
+Task: Technology stack vulnerability intelligence (backend): inventory, online CVE / end-of-life lookup, advisories, website checks, cloud deployments
+Changes Made:
+* Unified stack inventory from HostAsset / InstalledProduct / DiscoveredAsset / web scans / manual tech-stack entries, product names resolved through an explicit alias table (no fuzzy matching).
+* Live lookups against OSV.dev, NVD CVE API 2.0, CISA KEV and endoflife.date with a 24 h DB cache, bounded time budget and NVD rate limiting; version-range matching only, nothing fabricated.
+* Trust tiers (`confirmed` / `unverified`), coverage block, per-feed freshness (`as_of`, `stale`, `failing_feeds`), top 5 confirmed actions with a ready-to-send IT message.
+* SSRF-guarded passive website scanner; AWS deployment collector (Lambda, RDS, EC2, ELBv2, CloudFront, API Gateway, S3 websites, ECS, App Runner, Elastic Beanstalk).
+* Daily scheduler job. Readiness score untouched (counts only).
+Files Modified:
+* app/services/vuln_intel/* (new), app/models/vuln_intel.py (new), app/models/__init__.py, app/services/demo/demo_stack.py (new), app/api/v1/technology.py, app/tasks/scheduler.py, app/core/config.py (NVD_API_KEY), tests/test_vuln_intel.py (new)
+Dependencies Created/Updated:
+* None (httpx, boto3, cryptography already present). External services: api.osv.dev, services.nvd.nist.gov, www.cisa.gov, endoflife.date.
+Business Impact:
+* A clinic or law firm sees which installed software is known-exploited or past end of life, where, and what to tell its IT provider, without the product pretending to be a vulnerability scanner: unverified matches are labelled, uncovered areas are stated.
+Next Recommended Task:
+* Alembic revision for the two new tables if PostgreSQL is used; set NVD_API_KEY in staging; persist web assets to Firestore with the other org data; vendor fixed-version feeds (e.g. Chrome / Microsoft) to raise more findings to `confirmed`.
+Blocked By:
+* None
+Affected Teams:
+* Backend
+* Frontend
+
+---
+
+Date: 2026-11-09
+Agent: Claude Fable 5.2 (Claude Code)
+Task: Recover staging, make connectors reliable, ship Software Watch to staging
+Changes Made:
+* Fixed the blank staging page (vendor chunk cycle) and stopped `index.html` from being cached.
+* Added a Firestore durable mirror for connectors, telemetry, reports, MSP relationships and web assets; organizations encrypted by another environment are skipped instead of shown as "Key Missing".
+* AWS connector: STS-based authentication, per-source probes, coded plain-English errors, auto verify and first sync after Save, removed the pre-filled test role ARN, no ambient-credential fallback.
+* Software Watch UI on top of the vulnerability-intelligence backend: five confirmed actions at most, coverage line, feed freshness, everything else collapsed.
+* Ran an LLM council on the feature scope; verdict recorded in ACTIVE_CONTEXT.
+Files Modified:
+* frontend/vite.config.ts, firebase.json, app/db/durable_mirror.py (new), app/db/firestore.py, app/main.py, app/connectors/aws_security_hub.py, app/connectors/base.py, app/services/connector_manager.py, app/services/discovery/aws_discovery.py, scripts/capture_aws_demo_telemetry.py, frontend/src/pages/Connectors.tsx, frontend/src/pages/TechnologyIntelligence.tsx, frontend/src/components/techintel/* (new), frontend/src/features/readiness/TodayPageV2.tsx, frontend/src/components/layout/AppSidebar.tsx, frontend/src/api.ts, tests (durable mirror, cross-environment isolation, AWS diagnostics, connectors auto-verify, tech-intel)
+Dependencies Created/Updated:
+* None
+Business Impact:
+* A pilot customer can connect AWS, see why a connection fails in plain words, and keep the connection after a restart. Software Watch gives a non-technical buyer a short list to forward to IT instead of a vulnerability feed.
+Next Recommended Task:
+* Verify connector persistence across a staging restart; set `NVD_API_KEY`; decide on a platform AWS identity for role-based connectors; Cloud Run `max-instances=1` while the SQL cache is per instance; promote to production after owner verification.
+Blocked By:
+* Stripe write access and live keys (owner); GitHub repository visibility (owner)
+Affected Teams:
+* Backend
+* Frontend

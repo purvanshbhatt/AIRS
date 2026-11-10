@@ -52,6 +52,16 @@ class TaskScheduler:
             )
         )
 
+        # Daily vulnerability-intelligence refresh for organizations with inventory
+        self.tasks["vuln_intel_refresh"] = asyncio.create_task(
+            self._run_periodic(
+                name="VulnIntelRefresh",
+                interval_seconds=86400,  # 24 hours
+                coro_func=self._refresh_vuln_intel,
+                initial_delay_seconds=300
+            )
+        )
+
     def stop(self):
         """Stop all background tasks."""
         self.running = False
@@ -138,6 +148,19 @@ class TaskScheduler:
         finally:
             db.close()
         logger.info("Connector health monitoring executed.")
+
+
+    async def _refresh_vuln_intel(self):
+        """Re-check each organization's software against the public vulnerability feeds.
+
+        Bounded per run (see app.services.vuln_intel.jobs). Runs in a worker
+        thread because the lookups and the database work are synchronous.
+        """
+        from app.services.vuln_intel.jobs import run_daily_refresh
+
+        logger.info("Vulnerability intelligence refresh executing...")
+        totals = await asyncio.to_thread(run_daily_refresh)
+        logger.info("Vulnerability intelligence refresh executed: %s", totals)
 
 
 # Global instance

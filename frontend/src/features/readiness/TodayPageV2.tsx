@@ -19,6 +19,7 @@ import { ReadinessRing } from '../../components/readiness/v2/ReadinessRing';
 import { StatusRow, deriveAreaStatuses } from '../../components/readiness/v2/StatusRow';
 import { AttentionCard } from '../../components/readiness/v2/AttentionCard';
 import { OvernightStrip } from '../../components/readiness/v2/OvernightStrip';
+import { AdvisoryAlert } from '../../components/techintel/AdvisoryAlert';
 
 /**
  * Morning brief, V2 (staging preview).
@@ -302,6 +303,8 @@ export default function TodayPageV2() {
       </motion.section>
 
       <FirstRunChecklist orgId={orgId} report={report} isDemo={isDemo} />
+
+      <AdvisoryAlert orgId={orgId} />
 
       {/* Three areas a director asks about */}
       <StatusRow areas={areas} />

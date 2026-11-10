@@ -167,7 +167,11 @@ async def test_aws_connector_passes_external_id_to_sts(db_session, test_org):
     mock_boto3.Session.return_value = mock_session
     mock_boto3.client.return_value = mock_sts
 
-    with patch.dict("sys.modules", {"boto3": mock_boto3}):
+    # A role ARN with no keys of its own is assumed from the platform identity.
+    with patch.dict("sys.modules", {"boto3": mock_boto3}), patch(
+        "app.connectors.aws_security_hub._platform_identity",
+        return_value=("AKIA_PLATFORM", "PLATFORM_SECRET"),
+    ):
         ok = await connector.authenticate()
         assert ok is True
         mock_sts.assume_role.assert_called_once_with(

@@ -79,9 +79,12 @@ from app.models.lifecycle_catalog import (
     LifecycleReference,
 )
 from app.models.agent_audit import AgentAudit
+from app.models.vuln_intel import VulnIntelCache, WebAsset
 
 __all__ = [
     "AgentAudit",
+    "VulnIntelCache",
+    "WebAsset",
     "ClinicMomentRecord",
     "MomentStatus",
     "DiscoveredAsset",

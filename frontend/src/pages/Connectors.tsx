@@ -39,7 +39,39 @@ import {
   CreditCard
 } from 'lucide-react';
 
-type ConnectorStatus = 'CONNECTED' | 'DEGRADED' | 'NOT CONFIGURED' | 'AUTHENTICATION FAILED' | 'NO RECENT EVIDENCE';
+type ConnectorStatus =
+  | 'CONNECTED'
+  | 'DEGRADED'
+  | 'NOT CONFIGURED'
+  | 'SAVED, NOT VERIFIED'
+  | 'AUTHENTICATION FAILED'
+  | 'CONNECTION FAILED'
+  | 'NO RECENT EVIDENCE';
+
+/** Outcome of the latest health check / sync, stored by the backend in `config.last_check`. */
+interface ConnectorLastCheck {
+  status?: string;
+  message?: string;
+  code?: string | null;
+  checked_at?: string;
+  sources?: Record<string, string>;
+}
+
+// `last_check.code` values that mean the credentials themselves were refused.
+const AUTH_FAILURE_CODES = new Set([
+  'INVALID_KEYS',
+  'EXPIRED_TOKEN',
+  'ROLE_NOT_ASSUMABLE',
+  'NO_PLATFORM_IDENTITY',
+  'PLATFORM_IDENTITY_INVALID',
+  'MISSING_CREDENTIALS',
+  'INVALID_ROLE_ARN',
+]);
+
+const getLastCheck = (connector: any): ConnectorLastCheck | null => {
+  const check = connector?.config?.last_check;
+  return check && typeof check === 'object' ? (check as ConnectorLastCheck) : null;
+};
 
 interface ConnectorCardDef {
   type: string;
@@ -119,11 +151,12 @@ const CONNECTOR_DEFINITIONS: ConnectorCardDef[] = [
     missing: ['CloudTrail Ingestion', 'S3 Encryption State'],
     icon: 'cloud_done',
     configFields: [
-      { key: 'role_arn', label: 'Cross-Account IAM Role ARN', placeholder: 'arn:aws:iam::505467908065:role/resilai-test-connector-role', defaultValue: 'arn:aws:iam::505467908065:role/resilai-test-connector-role' },
-      { key: 'external_id', label: 'External ID (Optional)', placeholder: 'resilai-org-external-id' },
+      { key: 'aws_access_key_id', label: 'Access Key ID', placeholder: 'AKIA...' },
+      { key: 'aws_secret_access_key', label: 'Secret Access Key', placeholder: '••••••••', type: 'password' },
+      { key: 'aws_session_token', label: 'Session token (temporary credentials only)', placeholder: 'Leave blank for a normal IAM user key', type: 'password' },
       { key: 'aws_region', label: 'AWS Region', placeholder: 'us-east-1', defaultValue: 'us-east-1' },
-      { key: 'aws_access_key_id', label: 'Access Key ID (Optional / Direct Auth)', placeholder: 'AKIA...' },
-      { key: 'aws_secret_access_key', label: 'Secret Access Key (Optional / Direct Auth)', placeholder: '••••••••', type: 'password' },
+      { key: 'role_arn', label: 'IAM Role ARN (Optional)', placeholder: 'arn:aws:iam::123456789012:role/ResilAIReadOnly', help: 'Only if your workspace has a platform identity. Otherwise leave this blank and use an access key.' },
+      { key: 'external_id', label: 'External ID (Optional)', placeholder: 'resilai-org-external-id', help: 'Only used together with a role ARN.' },
     ],
   },
   {
@@ -162,6 +195,7 @@ const SECRET_CONFIG_KEYS = new Set([
   'secret_key',
   'aws_secret_access_key',
   'aws_access_key_id',
+  'aws_session_token',
   'webhook_secret',
 ]);
 
@@ -169,6 +203,10 @@ const isSecretField = (def: ConnectorCardDef, key: string) =>
   SECRET_CONFIG_KEYS.has(key) || def.configFields.some(f => f.key === key && f.type === 'password');
 
 const PASSWORD_SAVED_PLACEHOLDER = '•••• saved, enter to replace';
+
+// The API returns sync error details as text; older typings describe a list.
+const syncErrorText = (details: unknown): string =>
+  Array.isArray(details) ? details.join(' ') : typeof details === 'string' ? details : '';
 
 export default function ConnectorsPage() {
   const navigate = useNavigate();
@@ -315,6 +353,56 @@ export default function ConnectorsPage() {
     setActiveConfigDef(def);
   };
 
+  // After a Save: check the connection, then pull the first evidence if it works.
+  const verifySavedConnector = async (connectorId: string, def: ConnectorCardDef) => {
+    setHealthCheckingId(def.type);
+    try {
+      const health = await checkConnectorHealth(connectorId, orgId);
+      const healthy = health.status === 'healthy';
+      if (!healthy && health.status !== 'degraded') {
+        addToast({
+          title: `${def.name} could not connect`,
+          message: health.message || 'The connection check failed. Review the details and try again.',
+          type: 'error',
+        });
+        return;
+      }
+      addToast({
+        title: healthy ? `${def.name} is connected` : `${def.name} is connected, but limited`,
+        message: health.message || 'The connection works.',
+        type: healthy ? 'ready' : 'drift',
+      });
+
+      setHealthCheckingId(null);
+      setSyncingId(def.type);
+      const sync = await syncConnectorNow(connectorId, orgId);
+      if (sync.success) {
+        addToast({
+          title: 'First sync complete',
+          message: sync.events_ingested > 0
+            ? `Pulled ${sync.events_ingested} record${sync.events_ingested === 1 ? '' : 's'} from ${def.name}.`
+            : `${def.name} is connected. There was nothing new to pull yet.`,
+          type: 'ready',
+        });
+      } else {
+        addToast({
+          title: 'Connected, but the first sync failed',
+          message: syncErrorText(sync.error_details) || 'Try "Sync Now" again in a minute.',
+          type: 'drift',
+        });
+      }
+    } catch (err: any) {
+      addToast({
+        title: 'Saved, but the connection could not be checked',
+        message: err?.message || 'Use "Test Health" on the connector card to try again.',
+        type: 'error',
+      });
+    } finally {
+      setHealthCheckingId(null);
+      setSyncingId(null);
+    }
+  };
+
   // Submit Connector Configuration
   const handleSaveConnector = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -346,6 +434,7 @@ export default function ConnectorsPage() {
             aws_region: formData.aws_region || 'us-east-1',
             aws_access_key_id: formData.aws_access_key_id || '',
             aws_secret_access_key: formData.aws_secret_access_key || '',
+            aws_session_token: formData.aws_session_token || '',
           };
           break;
         case 'microsoft':
@@ -428,6 +517,7 @@ export default function ConnectorsPage() {
       const existing = registeredConnectors.find(
         c => c.connector_type === connectorType && c.status !== 'inactive'
       );
+      let saved: { id?: string } | null | undefined;
 
       if (existing) {
         // Blank password fields mean "keep the saved secret"; only send credentials the user re-entered.
@@ -435,14 +525,18 @@ export default function ConnectorsPage() {
         Object.entries(credentials).forEach(([key, value]) => {
           if (!isSecretField(activeConfigDef, key) || value) credentialsToSend[key] = value;
         });
-        await updateConnector(existing.id, {
+        // A new AWS key replaces the saved session token too: a stale token would break a long-lived key.
+        if (connectorType === 'aws' && (credentials.aws_access_key_id || credentials.aws_secret_access_key)) {
+          credentialsToSend.aws_session_token = credentials.aws_session_token || '';
+        }
+        saved = await updateConnector(existing.id, {
           credentials: credentialsToSend,
           config: nonSecretConfig,
           sync_interval_minutes: syncIntervalMinutes,
           display_name: activeConfigDef.name,
         }, orgId);
       } else {
-        await createConnector({
+        saved = await createConnector({
           connector_type: connectorType,
           display_name: activeConfigDef.name,
           auth_method: authMethod,
@@ -453,15 +547,18 @@ export default function ConnectorsPage() {
       }
 
       addToast({
-        title: existing ? 'Connector Updated' : 'Connector Configured',
-        message: existing
-          ? `${activeConfigDef.name} credentials re-encrypted and configuration updated.`
-          : `${activeConfigDef.name} has been successfully registered and encrypted at rest.`,
-        type: 'ready',
+        title: existing ? 'Connector Updated' : 'Connector Saved',
+        message: `${activeConfigDef.name} is saved and encrypted. Checking the connection now…`,
+        type: 'info',
       });
 
+      const savedDef = activeConfigDef;
       setActiveConfigDef(null);
       setModalPaywallError(null);
+
+      // Saving proves nothing: check the connection straight away, then pull the first evidence.
+      const savedId = saved?.id || existing?.id;
+      if (savedId) await verifySavedConnector(savedId, savedDef);
       await loadData();
     } catch (err: any) {
       console.error('Failed to save connector:', err);
@@ -513,8 +610,8 @@ export default function ConnectorsPage() {
       const res = await checkConnectorHealth(registered.id, orgId);
       addToast({
         title: `Health Check: ${res.status.toUpperCase()}`,
-        message: `${res.message || 'Connected successfully'}. Latency: ${res.latency_ms || 0}ms.`,
-        type: res.status === 'healthy' || res.status === 'active' ? 'ready' : 'error',
+        message: res.message || 'Connected successfully.',
+        type: res.status === 'healthy' || res.status === 'active' ? 'ready' : res.status === 'degraded' ? 'drift' : 'error',
       });
       await loadData();
     } catch (err: any) {
@@ -562,8 +659,8 @@ export default function ConnectorsPage() {
         });
       } else {
         addToast({
-          title: 'Sync Warning',
-          message: `Sync completed with ${res.errors_count} warnings. Check logs.`,
+          title: 'Sync Failed',
+          message: syncErrorText(res.error_details) || `Sync completed with ${res.errors_count} warnings.`,
           type: 'drift',
         });
       }
@@ -598,6 +695,14 @@ export default function ConnectorsPage() {
       return 'CONNECTED';
     }
 
+    // Saved but never checked: do not let it pass for "not configured" (or for working).
+    if (registered?.status === 'pending_auth') return 'SAVED, NOT VERIFIED';
+    if (registered?.status === 'error') {
+      const lastCheck = getLastCheck(registered);
+      if (lastCheck?.status === 'degraded') return 'DEGRADED';
+      return lastCheck?.code && AUTH_FAILURE_CODES.has(lastCheck.code) ? 'AUTHENTICATION FAILED' : 'CONNECTION FAILED';
+    }
+
     return 'NOT CONFIGURED';
   };
 
@@ -606,8 +711,10 @@ export default function ConnectorsPage() {
       case 'CONNECTED':
         return 'bg-ready-emerald/15 text-ready-emerald border-ready-emerald/30';
       case 'AUTHENTICATION FAILED':
+      case 'CONNECTION FAILED':
         return 'bg-critical-red/15 text-critical-red border-critical-red/30';
       case 'DEGRADED':
+      case 'SAVED, NOT VERIFIED':
         return 'bg-amber-500/15 text-amber-500 border-amber-500/30';
       case 'NOT CONFIGURED':
       default:
@@ -763,6 +870,12 @@ export default function ConnectorsPage() {
           const status = getConnectorStatus(def);
           const isConnected = status === 'CONNECTED';
           const registered = registeredConnectors.find(c => c.connector_type === def.type);
+          const lastCheck = isDemo ? null : getLastCheck(registered);
+          const lastCheckTone = lastCheck?.status === 'healthy'
+            ? 'text-on-surface-variant'
+            : lastCheck?.status === 'degraded'
+              ? 'text-amber-500'
+              : 'text-critical-red';
 
           return (
             <div 
@@ -801,6 +914,25 @@ export default function ConnectorsPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Why the connector is (not) working, from the latest check */}
+                {lastCheck?.message ? (
+                  <p
+                    className={`text-[11px] leading-relaxed mb-3 ${lastCheckTone}`}
+                    data-testid={`connector-last-check-${def.type}`}
+                  >
+                    {lastCheck.message}
+                    {lastCheck.checked_at && (
+                      <span className="font-mono text-on-surface-variant">
+                        {' '}· checked {new Date(lastCheck.checked_at).toLocaleString()}
+                      </span>
+                    )}
+                  </p>
+                ) : registered?.status === 'pending_auth' && !isDemo ? (
+                  <p className="text-[11px] leading-relaxed mb-3 text-amber-500" data-testid={`connector-last-check-${def.type}`}>
+                    Saved, but the connection has not been checked yet. Click Test Health.
+                  </p>
+                ) : null}
 
                 <p className="text-xs text-on-surface-variant leading-relaxed mb-4">
                   {def.description}
@@ -991,6 +1123,18 @@ export default function ConnectorsPage() {
                 Credentials are encrypted using AES-256-GCM at rest and never exposed to the frontend or narrative engine.
               </p>
 
+              {activeConfigDef.type === 'aws' && (
+                <div className="p-3 bg-surface-container rounded-xl border border-surface-bright space-y-1.5 text-xs text-on-surface-variant leading-relaxed">
+                  <p>
+                    <strong className="text-on-surface">Recommended:</strong> create a read-only IAM user, attach the AWS-managed{' '}
+                    <code className="font-mono text-on-surface">SecurityAudit</code> policy, and paste its access key below.
+                  </p>
+                  <p>
+                    Use a role ARN only if your workspace has a platform identity. Security Hub is optional: without it we still read your servers, databases and user accounts.
+                  </p>
+                </div>
+              )}
+
               {activeConfigDef.configFields.map((field) => (
                 <div key={field.key} className="space-y-1">
                   <label className="block text-xs font-semibold text-on-surface">
@@ -1001,7 +1145,7 @@ export default function ConnectorsPage() {
                     value={formData[field.key] || ''}
                     onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
                     placeholder={
-                      field.type === 'password' && registeredConnectors.some(c => c.connector_type === activeConfigDef.type)
+                      field.type === 'password' && field.key !== 'aws_session_token' && registeredConnectors.some(c => c.connector_type === activeConfigDef.type)
                         ? PASSWORD_SAVED_PLACEHOLDER
                         : field.placeholder
                     }

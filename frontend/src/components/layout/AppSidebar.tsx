@@ -75,7 +75,7 @@ export function AppSidebar({ mobile = false, onClose }: AppSidebarProps = {}) {
     items: [
       { label: 'Operations Center', icon: Layers, path: '/operations' },
       { label: '48-Hour Agent Audit', icon: Bot, path: '/agent-audit' },
-      { label: 'Tech Stack & Inventory', icon: Cpu, path: '/technology/intelligence' },
+      { label: 'Software Watch', icon: Cpu, path: '/technology/intelligence' },
       { label: 'Reports', icon: FileBarChart, path: '/reports' },
       { label: 'Connectors', icon: Plug, path: '/connectors' },
       { label: 'Telemetry & Evidence', icon: Activity, path: '/activity' },

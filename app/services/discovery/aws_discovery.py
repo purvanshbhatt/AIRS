@@ -76,6 +76,22 @@ def build_boto3_session(credentials: Dict[str, Any], config: Optional[Dict[str, 
         base_kwargs["aws_secret_access_key"] = secret_key
         if session_token:
             base_kwargs["aws_session_token"] = session_token
+    elif role_arn:
+        # Role-only connector: the role is assumed from the ResilAI-owned
+        # identity, the same rule the connector itself applies.
+        from app.connectors.aws_security_hub import _platform_identity
+
+        platform = _platform_identity()
+        if not platform:
+            raise ValueError(
+                "Role-based access is not available on this workspace yet. "
+                "Use a read-only IAM user access key instead."
+            )
+        base_kwargs["aws_access_key_id"], base_kwargs["aws_secret_access_key"] = platform
+    else:
+        # Never fall back to the server's ambient AWS identity: that would
+        # show one tenant the platform's own account.
+        raise ValueError("AWS connector has no access key and no role ARN.")
 
     if not role_arn:
         return boto3.Session(**base_kwargs)

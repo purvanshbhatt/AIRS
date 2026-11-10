@@ -4,7 +4,23 @@ import asyncio
 import pytest
 from unittest.mock import patch, MagicMock
 
+from botocore.exceptions import ClientError
+
 from app.connectors.aws_security_hub import AWSSecurityHubConnector
+
+
+def _boto3_rejecting_keys():
+    """boto3 stub whose STS identity check fails the way AWS rejects bad keys."""
+    mock_client = MagicMock()
+    mock_client.get_caller_identity.side_effect = ClientError(
+            {"Error": {"Code": "InvalidClientTokenId", "Message": "The security token included in the request is invalid."}},
+            "GetCallerIdentity",
+        )
+    mock_session = MagicMock()
+    mock_session.client.return_value = mock_client
+    mock_boto3 = MagicMock()
+    mock_boto3.Session.return_value = mock_session
+    return mock_boto3
 
 
 def _run(coro):
@@ -18,7 +34,7 @@ class TestNegativeCases:
     Expected behaviors:
     - Invalid credentials: auth fails, no crash
     - Missing permissions: PermissionResult.valid=False
-    - Security Hub not enabled: health unreachable
+    - Security Hub not enabled, no verified identity: health unreachable
     - Malformed findings: graceful skip, no crash
     - Partial failures: no false positives
     """
@@ -35,17 +51,10 @@ class TestNegativeCases:
         connector = self._make_connector(
             {"aws_access_key_id": "INVALID", "aws_secret_access_key": "INVALID"}
         )
-        mock_session = MagicMock()
-        mock_client = MagicMock()
-        mock_client.describe_hub.side_effect = Exception("InvalidClientTokenId")
-        mock_session.client.return_value = mock_client
-
-        mock_boto3 = MagicMock()
-        mock_boto3.Session.return_value = mock_session
-
-        with patch.dict("sys.modules", {"boto3": mock_boto3}):
+        with patch.dict("sys.modules", {"boto3": _boto3_rejecting_keys()}):
             result = _run(connector.authenticate())
             assert result is False
+            assert connector.last_error_code == "INVALID_KEYS"
 
     def test_insufficient_permissions(self):
         """Missing GetFindings permission is reported in PermissionResult."""
@@ -59,7 +68,11 @@ class TestNegativeCases:
         assert "securityhub:GetFindings" in result.missing_permissions
 
     def test_security_hub_not_enabled(self):
-        """When Security Hub is not enabled, health returns unreachable."""
+        """A lone Security Hub client that cannot read the hub is unreachable.
+
+        No AWS identity was verified here. With a verified identity the same
+        account is healthy/degraded: see tests/test_aws_connector_diagnostics.py.
+        """
         connector = self._make_connector()
         connector._hub_client = MagicMock()
         connector._hub_client.describe_hub.side_effect = Exception(
@@ -114,6 +127,7 @@ class TestNegativeCases:
         connector = self._make_connector(
             {"aws_access_key_id": "INVALID", "aws_secret_access_key": "INVALID"}
         )
-        result = _run(connector.validate_permissions())
+        with patch.dict("sys.modules", {"boto3": _boto3_rejecting_keys()}):
+            result = _run(connector.validate_permissions())
         assert result.valid is False
-        assert "Not authenticated" in result.message
+        assert "AWS rejected the access key or secret" in result.message
