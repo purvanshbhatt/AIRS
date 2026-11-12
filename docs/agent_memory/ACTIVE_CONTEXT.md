@@ -1,8 +1,12 @@
 # Active Context
-Date: 2026-11-09
-Status: Daily Backup Snapshot & Remote Backup Branch Synchronization Verified (backup, daily-sync, backup-sync synchronized with staging at ee5ed0d; workflow & test harness green)
+Date: 2026-11-11
+Status: Daily Backup Snapshot & Remote Backup Branch Synchronization Verified (backup, daily-sync, backup-sync synchronized with staging; workflow & test harness green)
 
 ## Recent Actions
+- 2026-11-11 GitHub Actions Daily Snapshot & Remote Backup Synchronization (backup, daily-sync, backup-sync):
+  - Verified `.github/workflows/daily-backup-sync.yml` against all required specifications: schedule cron `0 4 * * *`, `workflow_dispatch`, repository checkout with full history, remote branch `daily-sync` merge from `staging`, origin push with mirror to `backup` and `backup-sync`, strict branch protection blocking pushes to `main` and `demo-stable`, and markdown audit summary logged to `$GITHUB_STEP_SUMMARY`.
+  - Synchronized branches `backup`, `daily-sync`, and `staging` with `origin`.
+  - Ran `tests/test_daily_git_sync.py`: 36/36 passed (100%).
 - 2026-11-09 3D infrastructure map with networks, VPN and live telemetry (staging):
   - Sidebar entry "Network Map" (`/network`). The page is now the real map only; the illustrative summary card and mock tabs (Palo Alto / Meraki inventory, 97 score) were removed from `NetworkPage.tsx`.
   - Topology vocabulary (`app/services/network_topology.py`): node types `network`, `subnet`, `vpn`, `gateway` (zone `network`); edge kinds `member_of`, `part_of`, `vpn_tunnel`, `routes_to`, `protects`, `talks_to`. Response adds `live {mode, latest_event_at, sources[]}` and `summary.networks / vpns / vpn_down`.
