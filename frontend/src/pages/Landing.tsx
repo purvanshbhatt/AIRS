@@ -710,12 +710,12 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 onClick={() => setIsVideoModalOpen(true)}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 text-on-surface font-medium rounded-xl border border-outline-variant/60 bg-surface-container-low hover:bg-surface-container-high hover:border-ready-emerald/40 transition-all active:scale-[0.98] min-h-[48px] text-sm text-center cursor-pointer group"
                 data-testid="hero-video-cta"
-                aria-label="Watch 24-second product launch teaser video"
+                aria-label="Watch the 20-second product video"
               >
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ready-emerald/15 text-ready-emerald group-hover:bg-ready-emerald group-hover:text-slate-950 transition-colors">
                   <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
                 </span>
-                <span>Watch 24s Teaser</span>
+                <span>Watch 20s Video</span>
               </button>
             </div>
 
@@ -1227,12 +1227,12 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 type="button"
                 onClick={() => setIsVideoModalOpen(true)}
                 className="relative w-24 h-14 rounded-xl overflow-hidden border border-outline-variant/80 shrink-0 bg-black flex items-center justify-center group cursor-pointer"
-                aria-label="Play ResilAI 24-second launch teaser video"
+                aria-label="Play the 20-second ResilAI product video"
                 data-testid="showcase-video-thumbnail"
               >
                 <img
-                  src="/videos/resilai-launch-teaser-poster.jpg"
-                  alt="ResilAI launch teaser preview thumbnail"
+                  src="/videos/resilai-insurance-answers-poster.jpg"
+                  alt="ResilAI product video preview"
                   className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
@@ -1245,14 +1245,14 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-mono uppercase font-bold text-ready-emerald tracking-wide">
-                    Product Teaser · 0:24
+                    Product Video · 0:20
                   </span>
                 </div>
                 <h4 className="text-sm sm:text-base font-bold text-on-surface">
-                  Continuous Telemetry in 24 Seconds
+                  Insurance Answers in 20 Seconds
                 </h4>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Watch live ingestion from Splunk, AWS, and Microsoft 365 into an immutable evidence ledger.
+                  See the cyber-insurance form answered from a practice's own systems, with the source and time beside each answer. Sample data.
                 </p>
               </div>
             </div>
@@ -1264,7 +1264,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
               data-testid="showcase-video-cta"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Watch 24s Walkthrough</span>
+              <span>Watch 20s Walkthrough</span>
             </button>
           </div>
 
@@ -1541,14 +1541,14 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
         </div>
       </section>
 
-      {/* Video Modal (0:24 Product Launch Teaser) */}
+      {/* Video Modal (0:20 product video, sample data) */}
       <VideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        videoSrc="/videos/resilai-launch-teaser.mp4"
-        posterSrc="/videos/resilai-launch-teaser-poster.jpg"
-        title="ResilAI Platform Launch Teaser"
-        caption="Illustrative scenario: Overnight continuous telemetry verification for a clinical practice."
+        videoSrc="/videos/resilai-insurance-answers.mp4"
+        posterSrc="/videos/resilai-insurance-answers-poster.jpg"
+        title="ResilAI Product Video"
+        caption="Sample data. The practice, accounts and answers shown are examples, not a customer."
       />
 
       {/* Footer */}

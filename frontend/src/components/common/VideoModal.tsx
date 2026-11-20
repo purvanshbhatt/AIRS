@@ -16,8 +16,8 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   onClose,
   videoSrc,
   posterSrc,
-  title = "ResilAI Platform Launch Teaser",
-  caption = "Illustrative scenario: Overnight continuous telemetry verification for a clinical practice.",
+  title = "ResilAI Product Video",
+  caption = "Sample data. The practice, accounts and answers shown are examples, not a customer.",
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -95,7 +95,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
               <h3 id="video-modal-title" className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-2">
                 <span>{title}</span>
                 <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
-                  0:24 Teaser
+                  0:20 · Sample data
                 </span>
               </h3>
             </div>

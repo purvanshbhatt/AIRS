@@ -3344,3 +3344,25 @@ Blocked By:
 Affected Teams:
 * Frontend
 * Security
+
+---
+
+Date: 2026-11-19
+Agent: Claude Fable 5.2 (Claude Code)
+Task: Push the work to git; replace the landing page video that showed invented figures
+Changes Made:
+* Committed and pushed the working tree to the public staging branch, leaving out the prospect lists, investor brief, legal drafts and video work folders.
+* Replaced the landing page video with the 20-second insurance-answers video (sample data tagged) and matched the surrounding wording.
+Files Modified:
+* frontend/public/videos/ (old video and poster removed, new pair added), frontend/src/pages/Landing.tsx, frontend/src/components/common/VideoModal.tsx, frontend/src/test/landing-positioning.test.tsx
+Dependencies Created/Updated:
+* None
+Business Impact:
+* The public landing page no longer shows a score, recovery time or compliance line that the product cannot back.
+Next Recommended Task:
+* Owner: promote the security fixes and this video to production.
+Blocked By:
+* Owner: production promotion; decision on how the private folders travel between machines.
+Affected Teams:
+* Frontend
+* Marketing

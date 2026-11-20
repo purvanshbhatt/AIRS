@@ -545,12 +545,12 @@ describe('Landing page states only what the product does', () => {
 
       const heroVideoBtn = screen.getByTestId('hero-video-cta');
       expect(heroVideoBtn).toBeInTheDocument();
-      expect(heroVideoBtn).toHaveAttribute('aria-label', expect.stringContaining('24-second'));
-      expect(heroVideoBtn).toHaveTextContent(/Watch 24s Teaser/i);
+      expect(heroVideoBtn).toHaveAttribute('aria-label', expect.stringContaining('20-second'));
+      expect(heroVideoBtn).toHaveTextContent(/Watch 20s Video/i);
 
       const showcaseCta = screen.getByTestId('showcase-video-cta');
       expect(showcaseCta).toBeInTheDocument();
-      expect(showcaseCta).toHaveTextContent(/Watch 24s Walkthrough/i);
+      expect(showcaseCta).toHaveTextContent(/Watch 20s Walkthrough/i);
 
       const showcaseThumb = screen.getByTestId('showcase-video-thumbnail');
       expect(showcaseThumb).toBeInTheDocument();
@@ -579,13 +579,16 @@ describe('Landing page states only what the product does', () => {
       // Check player attributes
       const player = screen.getByTestId('video-modal-player') as HTMLVideoElement;
       expect(player).toBeInTheDocument();
-      expect(player.getAttribute('src')).toBe('/videos/resilai-launch-teaser.mp4');
-      expect(player.getAttribute('poster')).toBe('/videos/resilai-launch-teaser-poster.jpg');
+      expect(player.getAttribute('src')).toBe('/videos/resilai-insurance-answers.mp4');
+      expect(player.getAttribute('poster')).toBe('/videos/resilai-insurance-answers-poster.jpg');
+      // The earlier teaser showed an invented clinic, score and recovery time. It must not come back.
+      expect(document.body.innerHTML).not.toMatch(/launch-teaser/);
 
-      // Check Hallmark honest copy disclaimer
+      // The video shows example data, and the page says so next to it.
       expect(screen.getByTestId('video-modal-description')).toHaveTextContent(
-        /Illustrative scenario: Overnight continuous telemetry verification for a clinical practice/i
+        /Sample data\. The practice, accounts and answers shown are examples, not a customer/i
       );
+      expect(modal).toHaveTextContent(/0:20 · Sample data/);
 
       // Dismiss via close button
       const closeBtn = screen.getByTestId('video-modal-close');

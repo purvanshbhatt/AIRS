@@ -75,6 +75,12 @@ Status: ResilAI Launch Teaser Video Successfully Deployed & Verified Live on Pro
   - LLM Council evaluation conducted across 5 advisor personas.
 
 ## Recent Actions
+- 2026-11-19 landing page video replaced (staging; committed and pushed):
+  - The landing page embedded `frontend/public/videos/resilai-launch-teaser.mp4`, which showed an invented clinic ("Memorial Health Clinic"), a 94% score, "100% mathematical audit defense", "1.44s Measured Standby RTO" and a HIPAA "verified" line. Removed, with its poster.
+  - Replaced by `resilai-insurance-answers.mp4` (20 s, 1080p, sample data tagged on screen; source `brag-output-2026-11-15-011006/brag.mp4`) and its poster. New file names so no cached copy of the old video is served.
+  - `Landing.tsx` and `VideoModal.tsx` wording now matches the video: "0:20", "Insurance Answers in 20 Seconds", caption "Sample data. The practice, accounts and answers shown are examples, not a customer." A test fails if `launch-teaser` returns.
+  - Rule for any future video or image on a public page: it follows the same no-invented-numbers rule as the product. The `brag-output/` folder holds the old video and stays out of git.
+  - From 2026-11-19 the owner wants work committed and pushed at the end of every session. The repository is public: `docs/marketing/`, `docs/investor/`, `docs/legal/` and the `brag-output*` folders are kept out of git.
 - 2026-11-16 built-in test login removed from the sign-in page (staging only, nothing committed):
   - `frontend/src/pages/Login.tsx` had a "Staging test account" box whose button signed in with an email and password written in the code. It was shown in every environment and is in the committed history (since 22d7d3e) and in the production bundle. Handler and box removed; `frontend/src/test/login-no-test-account.test.tsx` reads all shipped source and fails if a sign-in call or the password field is given a literal value again.
   - Account closed; production redeploy still OPEN: the account `staging-tester@resilai.io` exists in the real Firebase user pool (project `gen-lang-client-0384513977`, shared by staging and production), enabled, with that password. Removing the button does not protect it: the password stays in git history and in the production bundle until production is redeployed. The account must be disabled or its password changed. Done 2026-11-16 on the owner's yes: the account is disabled and its sessions ended (`disableUser`, `validSince`). Not deleted. To use it again, re-enable it in Firebase console > Authentication and set a new password first.
