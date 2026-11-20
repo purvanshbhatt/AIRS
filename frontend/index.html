@@ -18,9 +18,25 @@
     <meta name="keywords" content="ransomware readiness healthcare, clinic cyber resilience, healthcare backup verification, Veeam immutability audit, EHR disaster recovery, continuous security verification, ResilAI, MSP healthcare security" />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="https://resilai.org/" />
+    <link rel="alternate" hreflang="x-default" href="https://resilai.org/" />
+    <link rel="alternate" hreflang="en-US" href="https://resilai.org/us" />
+    <link rel="alternate" hreflang="en-GB" href="https://resilai.org/europe" />
+    <link rel="alternate" hreflang="en-IE" href="https://resilai.org/europe" />
+    <link rel="alternate" hreflang="en-DE" href="https://resilai.org/europe" />
+    <link rel="alternate" hreflang="en-FR" href="https://resilai.org/europe" />
+    <link rel="alternate" hreflang="en-NL" href="https://resilai.org/europe" />
+    <link rel="alternate" hreflang="en-AE" href="https://resilai.org/gulf" />
+    <link rel="alternate" hreflang="en-SA" href="https://resilai.org/gulf" />
+    <link rel="alternate" hreflang="en-QA" href="https://resilai.org/gulf" />
+    <link rel="alternate" hreflang="en-BH" href="https://resilai.org/gulf" />
+    <link rel="alternate" hreflang="en-KW" href="https://resilai.org/gulf" />
+    <link rel="alternate" hreflang="en-OM" href="https://resilai.org/gulf" />
+    <link rel="alternate" hreflang="en-AU" href="https://resilai.org/australia" />
     <meta property="og:title" content="ResilAI — Continuous Incident Readiness &amp; Cybersecurity Verification" />
     <meta property="og:description" content="Know and prove your ransomware readiness with continuous, deterministic incident readiness scoring and automated control verification for healthcare clinics." />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ResilAI" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:url" content="https://resilai.org/" />
     <meta property="og:image" content="https://resilai.org/brand/horizontal/resilai_horizontal_dark_solid.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -32,12 +48,22 @@
       "@context": "https://schema.org",
       "@graph": [
         {
+          "@type": "WebSite",
+          "@id": "https://resilai.org/#website",
+          "url": "https://resilai.org/",
+          "name": "ResilAI",
+          "inLanguage": "en",
+          "publisher": { "@id": "https://resilai.org/#organization" }
+        },
+        {
           "@type": "Organization",
           "@id": "https://resilai.org/#organization",
           "name": "ResilAI",
           "url": "https://resilai.org",
           "logo": "https://resilai.org/brand/horizontal/resilai_horizontal_light_trans.png",
-          "description": "Continuous incident readiness and cybersecurity verification platform for healthcare clinics, medical practices, and critical infrastructure.",
+          "description": "Continuous incident readiness and cybersecurity verification platform for healthcare clinics, law firms and small businesses.",
+          "areaServed": ["US", "EU", "GB", "AE", "SA", "QA", "BH", "KW", "OM", "AU"],
+          "sameAs": ["https://github.com/purvanshbhatt/AIRS"],
           "founder": {
             "@type": "Person",
             "name": "Purvansh Bhatt",
@@ -52,10 +78,15 @@
           "operatingSystem": "Cloud, Web",
           "description": "Deterministic cybersecurity readiness scoring, automated control verification, and executive impact translation.",
           "url": "https://resilai.org",
+          "areaServed": ["US", "EU", "GB", "AE", "SA", "QA", "BH", "KW", "OM", "AU"],
+          "publisher": { "@id": "https://resilai.org/#organization" },
           "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+            "@type": "AggregateOffer",
+            "priceCurrency": "USD",
+            "lowPrice": "149",
+            "highPrice": "399",
+            "offerCount": 2,
+            "url": "https://resilai.org/pricing"
           }
         }
       ]

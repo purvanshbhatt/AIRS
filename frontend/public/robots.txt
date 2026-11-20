@@ -48,6 +48,10 @@ Disallow: /onboarding
 
 # Generative AI & LLM Search Crawlers (ChatGPT Search, Perplexity, Claude, Gemini, SearchGPT)
 User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: Perplexity-User
+User-agent: Claude-SearchBot
+User-agent: Claude-User
 User-agent: ChatGPT-User
 User-agent: PerplexityBot
 User-agent: ClaudeBot
@@ -102,6 +106,5 @@ Disallow: /connectors
 Disallow: /settings
 Disallow: /agent-audit
 
-# Sitemaps and LLM Index Reference
+# Sitemap. The LLM index is at https://resilai.org/llms.txt
 Sitemap: https://resilai.org/sitemap.xml
-Sitemap: https://resilai.org/llms.txt

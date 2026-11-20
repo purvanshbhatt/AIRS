@@ -25,6 +25,8 @@ import PilotPage from './pages/Pilot';
 import InsuranceRenewalPage from './pages/InsuranceRenewal';
 import DataAccessPage from './pages/DataAccess';
 import StatusPage from './pages/Status';
+import RegionLanding from './pages/RegionLanding';
+import { RouteSEO } from './components/common/RouteSEO';
 import AuditorView from './pages/AuditorView';
 import Onboarding from './pages/Onboarding';
 import NewOrg from './pages/NewOrg';
@@ -256,6 +258,7 @@ export default function App() {
             <VerticalProvider>
               <ToastProvider>
                 <VerticalRouteSync />
+                <RouteSEO />
                 <AuthRedirectHandler />
                 <ApiConfigBanner />
                 <DiagnosticsFooter />
@@ -266,6 +269,17 @@ export default function App() {
                   <Route path="/healthcare" element={<Landing defaultVertical="healthcare" />} />
                   <Route path="/legal" element={<Landing defaultVertical="legal" />} />
                   <Route path="/general" element={<Landing defaultVertical="general" />} />
+
+                  {/* Regional pages: one per market, each with its own laws and frameworks */}
+                  <Route path="/us" element={<RegionLanding path="/us" />} />
+                  <Route path="/europe" element={<RegionLanding path="/europe" />} />
+                  <Route path="/gulf" element={<RegionLanding path="/gulf" />} />
+                  <Route path="/australia" element={<RegionLanding path="/australia" />} />
+                  <Route path="/eu" element={<Navigate to="/europe" replace />} />
+                  <Route path="/uk" element={<Navigate to="/europe" replace />} />
+                  <Route path="/gcc" element={<Navigate to="/gulf" replace />} />
+                  <Route path="/middle-east" element={<Navigate to="/gulf" replace />} />
+                  <Route path="/au" element={<Navigate to="/australia" replace />} />
                   <Route path="/readiness" element={<Navigate to="/morning-brief" replace />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/about" element={<About />} />

@@ -146,6 +146,31 @@ export function Footer() {
                 </Link>
               </li>
             </ul>
+            <p className="pt-3 text-xs font-mono font-bold uppercase tracking-wider text-on-surface">
+              Regions
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/us" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  United States
+                </Link>
+              </li>
+              <li>
+                <Link to="/europe" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Europe
+                </Link>
+              </li>
+              <li>
+                <Link to="/gulf" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Gulf states
+                </Link>
+              </li>
+              <li>
+                <Link to="/australia" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Australia
+                </Link>
+              </li>
+            </ul>
           </div>
 
           {/* Product Column */}

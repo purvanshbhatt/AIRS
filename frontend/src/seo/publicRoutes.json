@@ -1,0 +1,552 @@
+{
+  "site": "https://resilai.org",
+  "lastmod": "2026-11-20",
+  "defaultImage": "https://resilai.org/brand/horizontal/resilai_horizontal_dark_solid.png",
+  "hreflang": [
+    {
+      "hreflang": "x-default",
+      "path": "/"
+    },
+    {
+      "hreflang": "en-US",
+      "path": "/us"
+    },
+    {
+      "hreflang": "en-GB",
+      "path": "/europe"
+    },
+    {
+      "hreflang": "en-IE",
+      "path": "/europe"
+    },
+    {
+      "hreflang": "en-DE",
+      "path": "/europe"
+    },
+    {
+      "hreflang": "en-FR",
+      "path": "/europe"
+    },
+    {
+      "hreflang": "en-NL",
+      "path": "/europe"
+    },
+    {
+      "hreflang": "en-AE",
+      "path": "/gulf"
+    },
+    {
+      "hreflang": "en-SA",
+      "path": "/gulf"
+    },
+    {
+      "hreflang": "en-QA",
+      "path": "/gulf"
+    },
+    {
+      "hreflang": "en-BH",
+      "path": "/gulf"
+    },
+    {
+      "hreflang": "en-KW",
+      "path": "/gulf"
+    },
+    {
+      "hreflang": "en-OM",
+      "path": "/gulf"
+    },
+    {
+      "hreflang": "en-AU",
+      "path": "/australia"
+    }
+  ],
+  "dailyChecks": [
+    {
+      "title": "Backups",
+      "text": "Whether backups ran, whether they are protected from deletion, and whether they can be restored."
+    },
+    {
+      "title": "Sign-in protection",
+      "text": "Whether multi-factor authentication is on and which accounts are no longer used, from Microsoft Entra ID and Okta."
+    },
+    {
+      "title": "Devices",
+      "text": "Whether endpoint protection is active on every device, from tools such as CrowdStrike."
+    },
+    {
+      "title": "Cloud and email",
+      "text": "Findings from Microsoft 365 and AWS Security Hub, read with read-only access."
+    },
+    {
+      "title": "Evidence",
+      "text": "Every record is stored with a SHA-256 hash, so you can show what was true and when."
+    },
+    {
+      "title": "Reports",
+      "text": "A one-page report for leadership and answers for a cyber-insurance application, each with its source."
+    }
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "title": "ResilAI — Continuous Incident Readiness & Cybersecurity Verification Platform",
+      "description": "Transform fragmented security telemetry into deterministic readiness scoring, continuous compliance verification, and plain-English executive impact translation.",
+      "h1": "ResilAI: continuous incident readiness and cybersecurity verification",
+      "summary": [
+        "ResilAI connects read-only to the systems a small organisation already runs, such as Microsoft 365, Entra ID, AWS, Veeam, CrowdStrike and Okta, and checks every day whether the safeguards that matter in an incident are really working.",
+        "Leaders get one plain-English answer each morning: if an incident happened today, could we keep operating and prove we were ready? Scoring is deterministic and every piece of evidence carries a SHA-256 hash.",
+        "ResilAI lists the laws and frameworks that apply where you operate: the United States, the European Union and United Kingdom, the Gulf states and Australia."
+      ],
+      "priority": "1.0",
+      "changefreq": "weekly",
+      "hreflangCluster": true
+    },
+    {
+      "path": "/us",
+      "title": "Incident Readiness for US Clinics & Law Firms | ResilAI",
+      "description": "Daily, evidence-backed incident readiness for US clinics, law firms and small businesses. Maps live controls to the HIPAA Security Rule, NIST CSF 2.0 and CIS Controls.",
+      "keywords": "incident readiness software United States, HIPAA Security Rule readiness, NIST CSF 2.0 continuous verification, ransomware readiness clinic, law firm cybersecurity ABA 477R, cyber insurance application",
+      "priority": "0.90",
+      "changefreq": "monthly",
+      "hreflangCluster": true,
+      "region": {
+        "code": "US",
+        "name": "United States",
+        "areaServed": [
+          "US"
+        ],
+        "eyebrow": "United States",
+        "h1": "Incident readiness for US clinics, law firms and small businesses",
+        "intro": "ResilAI checks every day whether the safeguards you rely on in a ransomware incident are really working, and shows which HIPAA, NIST and CIS requirements your live evidence supports. It is built for organisations with a small IT team or a managed service provider.",
+        "frameworks": [
+          {
+            "name": "HIPAA Security Rule (45 CFR Part 164)",
+            "note": "Listed when you handle protected health information. Safeguards are checked from live evidence, not from a yearly questionnaire."
+          },
+          {
+            "name": "NIST Cybersecurity Framework 2.0",
+            "note": "The baseline ResilAI maps every control to."
+          },
+          {
+            "name": "CIS Controls",
+            "note": "Mapped alongside NIST CSF 2.0 for a practical, prioritised baseline."
+          },
+          {
+            "name": "ABA Formal Opinion 477R and Model Rule 1.6(c)",
+            "note": "For law firms that must show reasonable efforts to protect client information."
+          },
+          {
+            "name": "Cyber-insurance applications",
+            "note": "ResilAI fills in renewal answers from what your connected systems show today, with the source and time beside each answer."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Which US laws and frameworks does ResilAI cover?",
+            "a": "ResilAI maps live control evidence to the HIPAA Security Rule, NIST Cybersecurity Framework 2.0 and CIS Controls. For law firms it also references ABA Formal Opinion 477R and Model Rule 1.6(c). HIPAA is listed when you tell ResilAI that you handle protected health information."
+          },
+          {
+            "q": "Does ResilAI make a US clinic HIPAA compliant?",
+            "a": "No tool can do that alone, and ResilAI does not certify compliance or give legal advice. It shows, every day, which HIPAA Security Rule safeguards your connected systems give evidence for and which ones need attention, so a risk assessment starts from facts."
+          },
+          {
+            "q": "Can ResilAI help with a US cyber-insurance renewal?",
+            "a": "Yes. ResilAI fills in a cyber-insurance application from what your connected systems show today and puts the source and time beside every answer. You review, sign and send it."
+          },
+          {
+            "q": "How is ResilAI priced in the United States?",
+            "a": "Plans are billed in US dollars through Stripe. The Founding plan is $149 per month for the first 50 customers, Growth is $399 per month, and Enterprise is a custom contract."
+          }
+        ]
+      }
+    },
+    {
+      "path": "/europe",
+      "title": "Incident Readiness for EU & UK Organisations | ResilAI",
+      "description": "Evidence-backed incident readiness for organisations in the EU and UK. Lists GDPR, NIS2, DORA and the EU AI Act where they apply and checks controls every day.",
+      "keywords": "NIS2 readiness software, DORA ICT risk evidence, EU AI Act AI inventory, GDPR security of processing, UK GDPR incident readiness, ISO 27001 continuous verification Europe",
+      "priority": "0.90",
+      "changefreq": "monthly",
+      "hreflangCluster": true,
+      "region": {
+        "code": "EU",
+        "name": "Europe",
+        "areaServed": [
+          "EU",
+          "GB"
+        ],
+        "eyebrow": "European Union and United Kingdom",
+        "h1": "Incident readiness for organisations in the EU and the UK",
+        "intro": "Tell ResilAI where you operate and what data you hold. It lists the European laws that apply to you, checks your live controls every day, and keeps an inventory of the AI systems you use for the EU AI Act.",
+        "frameworks": [
+          {
+            "name": "GDPR",
+            "note": "Listed when you hold personal data and operate in the EU. An EU member state given as your country counts as the EU."
+          },
+          {
+            "name": "UK GDPR and Data Protection Act 2018",
+            "note": "Listed for organisations that operate in the United Kingdom and hold personal data."
+          },
+          {
+            "name": "NIS2 Directive (EU) 2022/2555",
+            "note": "Listed as advisory. ResilAI shows evidence for measures such as multi-factor authentication and backup recovery."
+          },
+          {
+            "name": "DORA (Regulation (EU) 2022/2554)",
+            "note": "Listed as mandatory for financial entities only."
+          },
+          {
+            "name": "EU AI Act",
+            "note": "Listed when you use AI and have an EU presence. ResilAI keeps an inventory of your AI systems."
+          },
+          {
+            "name": "ISO/IEC 27001 and ISO/IEC 42001",
+            "note": "Listed as advisory international standards for security management and AI management."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Which European laws and frameworks does ResilAI cover?",
+            "a": "For the EU, ResilAI lists GDPR, the NIS2 Directive, DORA for financial entities and the EU AI Act for organisations that use AI. For the UK it lists UK GDPR and the Data Protection Act 2018. ISO/IEC 27001 and ISO/IEC 42001 are listed as advisory standards."
+          },
+          {
+            "q": "Does NIS2 apply to my organisation?",
+            "a": "That depends on your sector and size, and ResilAI does not decide it for you. ResilAI lists NIS2 as advisory for organisations in the EU and shows which of its security measures your connected systems give evidence for, so you and your adviser can judge the gap."
+          },
+          {
+            "q": "How does ResilAI help with the EU AI Act?",
+            "a": "When you use AI and have an EU presence, ResilAI lists the EU AI Act and keeps an inventory of the AI systems you use. The scoring itself is deterministic: AI is only used to explain verified findings in plain English."
+          },
+          {
+            "q": "Does ResilAI make us GDPR or NIS2 compliant?",
+            "a": "No. ResilAI does not certify compliance or give legal advice. It shows which requirements your live evidence supports and which need attention, with a reason and an official link for every framework it lists."
+          }
+        ]
+      }
+    },
+    {
+      "path": "/gulf",
+      "title": "Incident Readiness for UAE, Saudi & Gulf Organisations | ResilAI",
+      "description": "Evidence-backed incident readiness for organisations in the UAE, Saudi Arabia, Qatar, Bahrain, Kuwait and Oman. Lists each state's data protection law and Saudi NCA ECC.",
+      "keywords": "UAE PDPL readiness, Saudi PDPL compliance evidence, NCA ECC-2:2024 controls, Qatar PDPPL, Bahrain PDPL, Oman PDPL, Kuwait CITRA data privacy, cybersecurity readiness GCC",
+      "priority": "0.90",
+      "changefreq": "monthly",
+      "hreflangCluster": true,
+      "region": {
+        "code": "GCC",
+        "name": "Gulf states",
+        "areaServed": [
+          "AE",
+          "SA",
+          "QA",
+          "BH",
+          "KW",
+          "OM"
+        ],
+        "eyebrow": "UAE, Saudi Arabia, Qatar, Bahrain, Kuwait and Oman",
+        "h1": "Incident readiness for organisations in the Gulf states",
+        "intro": "Pick the Gulf states where you have clients, staff or data. ResilAI lists the data protection law of each one, adds the Saudi NCA controls for Saudi Arabia, and checks your live safeguards every day.",
+        "frameworks": [
+          {
+            "name": "UAE PDPL (Federal Decree-Law No. 45 of 2021)",
+            "note": "Listed when you hold personal data and operate in the United Arab Emirates."
+          },
+          {
+            "name": "Saudi PDPL (Personal Data Protection Law)",
+            "note": "Listed when you hold personal data and operate in Saudi Arabia."
+          },
+          {
+            "name": "Saudi NCA Essential Cybersecurity Controls (ECC-2:2024)",
+            "note": "Listed as advisory for organisations in Saudi Arabia."
+          },
+          {
+            "name": "Qatar PDPPL (Law No. 13 of 2016)",
+            "note": "Listed when you hold personal data and operate in Qatar."
+          },
+          {
+            "name": "Bahrain PDPL (Law No. 30 of 2018)",
+            "note": "Listed when you hold personal data and operate in Bahrain."
+          },
+          {
+            "name": "Kuwait CITRA Data Privacy Protection Regulation",
+            "note": "Listed when you hold personal data and operate in Kuwait."
+          },
+          {
+            "name": "Oman PDPL (Royal Decree 6/2022)",
+            "note": "Listed when you hold personal data and operate in Oman."
+          },
+          {
+            "name": "ISO/IEC 27001",
+            "note": "Listed as an advisory international standard."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Which Gulf laws and frameworks does ResilAI cover?",
+            "a": "ResilAI lists the UAE PDPL, the Saudi PDPL, the Qatar PDPPL, the Bahrain PDPL, the Kuwait CITRA Data Privacy Protection Regulation and the Oman PDPL, each for the state where you operate. For Saudi Arabia it also lists the NCA Essential Cybersecurity Controls (ECC-2:2024) as advisory."
+          },
+          {
+            "q": "Can I choose the whole GCC at once?",
+            "a": "Yes. GCC is shorthand for all six states, and ResilAI then lists the data protection law of each one. You can also pick single states."
+          },
+          {
+            "q": "Does ResilAI make us compliant with the UAE or Saudi PDPL?",
+            "a": "No. ResilAI does not certify compliance or give legal advice. It shows which safeguards your connected systems give evidence for, with a reason and an official link for every law it lists."
+          },
+          {
+            "q": "How is ResilAI priced in the Gulf?",
+            "a": "Plans are billed in US dollars through Stripe. The Founding plan is $149 per month for the first 50 customers, Growth is $399 per month, and Enterprise is a custom contract with private deployment."
+          }
+        ]
+      }
+    },
+    {
+      "path": "/australia",
+      "title": "Incident Readiness & Essential Eight Evidence for Australia | ResilAI",
+      "description": "Evidence-backed incident readiness for Australian clinics, law firms and small businesses. Lists the Privacy Act 1988 and the ASD Essential Eight and checks controls daily.",
+      "keywords": "Essential Eight maturity evidence, ASD Essential Eight software, Australian Privacy Act 1988 security, ransomware readiness Australia, cyber readiness medical practice Australia, ISO 27001 Australia",
+      "priority": "0.90",
+      "changefreq": "monthly",
+      "hreflangCluster": true,
+      "region": {
+        "code": "AU",
+        "name": "Australia",
+        "areaServed": [
+          "AU"
+        ],
+        "eyebrow": "Australia",
+        "h1": "Incident readiness for Australian clinics, law firms and small businesses",
+        "intro": "ResilAI checks every day whether your backups, sign-in protection and devices would hold up in an incident, and shows your evidence against the ASD Essential Eight and the Privacy Act 1988.",
+        "frameworks": [
+          {
+            "name": "Australian Privacy Act 1988",
+            "note": "Listed when you handle personal information in Australia. Health service providers are covered whatever their size."
+          },
+          {
+            "name": "ASD Essential Eight",
+            "note": "The Australian government baseline, listed as a maturity benchmark."
+          },
+          {
+            "name": "ISO/IEC 27001",
+            "note": "Listed as an advisory international standard."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Which Australian laws and frameworks does ResilAI cover?",
+            "a": "ResilAI lists the Australian Privacy Act 1988 for organisations that handle personal information in Australia, and the ASD Essential Eight as a maturity benchmark. ISO/IEC 27001 is listed as an advisory standard."
+          },
+          {
+            "q": "Does ResilAI assess Essential Eight maturity?",
+            "a": "ResilAI shows which Essential Eight strategies your connected systems give evidence for, such as multi-factor authentication and regular backups, and which need attention. It does not issue a formal maturity assessment or certification."
+          },
+          {
+            "q": "Is a small Australian medical practice covered by the Privacy Act?",
+            "a": "Health service providers are covered by the Privacy Act 1988 whatever their size. ResilAI lists the Act for them and links to the Office of the Australian Information Commissioner. It does not give legal advice."
+          },
+          {
+            "q": "How is ResilAI priced in Australia?",
+            "a": "Plans are billed in US dollars through Stripe. The Founding plan is US$149 per month for the first 50 customers, Growth is US$399 per month, and Enterprise is a custom contract."
+          }
+        ]
+      }
+    },
+    {
+      "path": "/healthcare",
+      "title": "Incident Readiness for Healthcare Organizations | ResilAI",
+      "description": "Deterministic incident readiness and ransomware defense for healthcare clinics. See whether backups can be restored and map your safeguards to the HIPAA Security Rule.",
+      "h1": "Incident readiness for healthcare clinics and medical practices",
+      "summary": [
+        "ResilAI gives a clinic one daily answer to the question: can we safely treat patients today? It checks whether backups can be restored, whether sign-in protection is on, and maps safeguards to the HIPAA Security Rule."
+      ],
+      "priority": "0.90",
+      "changefreq": "weekly"
+    },
+    {
+      "path": "/legal",
+      "title": "Incident Readiness for Legal Firms & Law Practices | ResilAI",
+      "description": "Deterministic incident readiness and client confidentiality verification for law practices. Protect document vaults, prevent ransomware, and comply with ABA Formal Opinion 477R.",
+      "h1": "Incident readiness for law firms and legal practices",
+      "summary": [
+        "ResilAI checks every day whether a law firm's document systems, sign-in protection and backups would hold up in an incident, and references ABA Formal Opinion 477R and Model Rule 1.6(c)."
+      ],
+      "priority": "0.90",
+      "changefreq": "weekly"
+    },
+    {
+      "path": "/solutions/healthcare-cyber-attacks",
+      "title": "How to Stop Attacks on Healthcare Businesses & Medical Clinics | ResilAI",
+      "description": "Learn how to stop cyber attacks and prevent ransomware in healthcare businesses. Protect clinical EHR systems, maintain patient continuity, and ensure continuous HIPAA compliance.",
+      "h1": "How to stop cyber attacks on healthcare businesses",
+      "summary": [
+        "A five-step protocol for clinics: segment clinical networks, keep immutable backups, tighten clinical sign-in hygiene, verify HIPAA Security Rule safeguards continuously, and give leaders a daily readiness verdict."
+      ],
+      "priority": "0.95",
+      "changefreq": "weekly"
+    },
+    {
+      "path": "/solutions/legal-firm-cyber-attacks",
+      "title": "How to Stop Cyber Attacks on Legal Firms & Law Practices | ResilAI",
+      "description": "Comprehensive 5-step operational protocol to stop cyber attacks, prevent ransomware, and protect confidential client matters in law firms. Aligned to ABA Opinion 477R.",
+      "h1": "How to stop cyber attacks on legal firms",
+      "summary": [
+        "A five-step protocol for law firms: phishing-resistant sign-in, immutable document backups, matter-level access separation, continuous verification of device protection, and a daily readiness benchmark."
+      ],
+      "priority": "0.95",
+      "changefreq": "weekly"
+    },
+    {
+      "path": "/insurance-renewal",
+      "title": "Answer your insurance renewal with proof | ResilAI",
+      "description": "ResilAI fills in a cyber-insurance application from what your connected systems show today, with the source and time beside every answer. You review, sign and send it.",
+      "h1": "Answer your cyber-insurance renewal with proof",
+      "summary": [
+        "ResilAI fills in a cyber-insurance application from what your connected systems show today, with the source and time beside every answer. You review, sign and send it."
+      ],
+      "priority": "0.85",
+      "changefreq": "monthly"
+    },
+    {
+      "path": "/pricing",
+      "title": "ResilAI Pricing — Early Access & Enterprise Tiers",
+      "description": "Transparent pricing for agentless incident readiness: $149/mo Founding Sysadmin seats, $399/mo Growth, and custom Enterprise deployments. Free trial, no card required.",
+      "h1": "ResilAI pricing",
+      "summary": [
+        "Founding Sysadmin: $149 per month, locked for the first 50 customers, up to 250 endpoints. Growth: $399 per month, up to 500 endpoints and 5 admins. Enterprise: custom contract with private deployment, SSO and a 99.9% SLA. Prices are in US dollars."
+      ],
+      "priority": "0.80",
+      "changefreq": "monthly"
+    },
+    {
+      "path": "/results",
+      "title": "Results: From Security Telemetry to Executive Readiness | ResilAI",
+      "description": "See how ResilAI turns raw security telemetry into a daily readiness verdict that leaders can act on, with evidence behind every finding.",
+      "h1": "From security telemetry to executive readiness",
+      "summary": [
+        "How ResilAI turns raw security telemetry into a daily readiness verdict that leaders can act on, with evidence behind every finding."
+      ],
+      "priority": "0.85",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/ai",
+      "title": "AI That Explains Security Risk, Not AI That Invents It | ResilAI",
+      "description": "ResilAI scoring is deterministic code. AI is used only to explain verified findings in plain English, so no score or control status is ever generated by a language model.",
+      "h1": "AI that explains security risk, not AI that invents it",
+      "summary": [
+        "ResilAI scoring is deterministic code. AI is used only to explain verified findings in plain English, so no score or control status is ever generated by a language model."
+      ],
+      "priority": "0.85",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/about",
+      "title": "About ResilAI: Security Telemetry for Executive Decisions",
+      "description": "ResilAI bridges the gap between cybersecurity telemetry and executive decision-making for clinics, law firms and small businesses. Meet the team and the mission.",
+      "h1": "Bridging the gap between cybersecurity telemetry and executive decision-making",
+      "summary": [
+        "ResilAI was founded by Purvansh Bhatt to give clinics, law firms and small businesses a clear daily answer about their incident readiness, backed by evidence."
+      ],
+      "priority": "0.80",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/security",
+      "title": "Security & Data Handling | ResilAI",
+      "description": "How ResilAI protects customer data: read-only connectors with least-privilege access, tenant isolation, field-level encryption and tamper-evident SHA-256 evidence records.",
+      "h1": "Security and data handling at ResilAI",
+      "summary": [
+        "ResilAI connects with read-only, least-privilege access. Each organisation's data is isolated and encrypted at field level, and every evidence record carries a SHA-256 hash."
+      ],
+      "priority": "0.75",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/trust/data-access",
+      "title": "What ResilAI reads, and where it is kept | ResilAI",
+      "description": "The systems ResilAI connects to, exactly what it reads from each, the access it asks for, where the data is stored, and what happens when you remove a connection.",
+      "h1": "What ResilAI reads, and where it is kept",
+      "summary": [
+        "The systems ResilAI connects to, exactly what it reads from each, the access it asks for, where the data is stored, and what happens when you remove a connection."
+      ],
+      "priority": "0.75",
+      "changefreq": "monthly"
+    },
+    {
+      "path": "/pilot",
+      "title": "Join the ResilAI Enterprise Pilot",
+      "description": "Apply to the ResilAI pilot: connect your systems read-only and get a daily, evidence-backed incident readiness verdict for your organisation.",
+      "h1": "Join the ResilAI Enterprise Pilot",
+      "summary": [
+        "Apply to the ResilAI pilot: connect your systems read-only and get a daily, evidence-backed incident readiness verdict for your organisation."
+      ],
+      "priority": "0.70",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/contact",
+      "title": "Contact ResilAI: Talk About Your Incident Readiness",
+      "description": "Talk to ResilAI about incident readiness for your clinic, law firm or business in the United States, Europe, the Gulf or Australia.",
+      "h1": "Let's talk about your incident readiness",
+      "summary": [
+        "Talk to ResilAI about incident readiness for your clinic, law firm or business in the United States, Europe, the Gulf or Australia."
+      ],
+      "priority": "0.70",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/docs/methodology",
+      "title": "Verification Methodology | ResilAI Docs",
+      "description": "How ResilAI scores incident readiness: deterministic control checks, evidence hashing with SHA-256, and how each finding is weighted and explained.",
+      "h1": "ResilAI verification methodology",
+      "summary": [
+        "How ResilAI scores incident readiness: deterministic control checks, evidence hashing with SHA-256, and how each finding is weighted and explained."
+      ],
+      "priority": "0.70",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/docs/frameworks",
+      "title": "Framework Mappings: NIST CSF 2.0, HIPAA, NIS2, DORA, EU AI Act | ResilAI Docs",
+      "description": "The frameworks ResilAI maps controls to, including NIST CSF 2.0, HIPAA and CIS, plus regional laws such as NIS2, DORA, the EU AI Act, Gulf data protection laws and the Essential Eight.",
+      "h1": "Framework mappings",
+      "summary": [
+        "The frameworks ResilAI maps controls to, including NIST CSF 2.0, HIPAA and CIS, plus regional laws such as NIS2, DORA, the EU AI Act, Gulf data protection laws and the ASD Essential Eight."
+      ],
+      "priority": "0.70",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/docs/security",
+      "title": "Security & Privacy Documentation | ResilAI Docs",
+      "description": "ResilAI security and privacy documentation: connector permissions, tenant isolation, encryption and how customer data is handled.",
+      "h1": "Security and privacy documentation",
+      "summary": [
+        "ResilAI security and privacy documentation: connector permissions, tenant isolation, encryption and how customer data is handled."
+      ],
+      "priority": "0.60",
+      "changefreq": "monthly",
+      "managed": true
+    },
+    {
+      "path": "/docs/api",
+      "title": "API Reference | ResilAI Docs",
+      "description": "Reference for the ResilAI API: readiness scores, findings, evidence records and reports for your organisation.",
+      "h1": "ResilAI API reference",
+      "summary": [
+        "Reference for the ResilAI API: readiness scores, findings, evidence records and reports for your organisation."
+      ],
+      "priority": "0.60",
+      "changefreq": "monthly",
+      "managed": true
+    }
+  ]
+}

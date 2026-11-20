@@ -8,6 +8,8 @@ export interface SEOHeadProps {
   ogType?: 'website' | 'article';
   ogImage?: string;
   schema?: Record<string, any> | Array<Record<string, any>>;
+  /** hreflang links to the regional versions of this page. */
+  alternates?: Array<{ hreflang: string; href: string }>;
 }
 
 export function SEOHead({
@@ -16,8 +18,9 @@ export function SEOHead({
   keywords,
   canonicalUrl = 'https://resilai.org',
   ogType = 'website',
-  ogImage = '/favicon.png',
+  ogImage = '/brand/horizontal/resilai_horizontal_dark_solid.png',
   schema,
+  alternates,
 }: SEOHeadProps) {
   useEffect(() => {
     // 1. Update Document Title
@@ -65,7 +68,18 @@ export function SEOHead({
     }
     canonicalTag.href = canonicalUrl;
 
-    // 6. Structured Data (JSON-LD)
+    // 6. hreflang links. Replaced on every page so none are left over
+    // from the page the visitor came from.
+    document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((tag) => tag.remove());
+    (alternates || []).forEach((alternate) => {
+      const tag = document.createElement('link');
+      tag.rel = 'alternate';
+      tag.hreflang = alternate.hreflang;
+      tag.href = alternate.href;
+      document.head.appendChild(tag);
+    });
+
+    // 7. Structured Data (JSON-LD)
     const scriptId = 'resilai-page-jsonld';
     let scriptTag = document.getElementById(scriptId) as HTMLScriptElement | null;
     if (schema) {
@@ -83,7 +97,7 @@ export function SEOHead({
     return () => {
       document.title = originalTitle;
     };
-  }, [title, description, keywords, canonicalUrl, ogType, ogImage, schema]);
+  }, [title, description, keywords, canonicalUrl, ogType, ogImage, schema, alternates]);
 
   return null;
 }

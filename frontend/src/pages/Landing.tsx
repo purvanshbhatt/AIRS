@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { PublicNavbar } from '../components/layout/PublicNavbar';
 import { Footer } from '../components/layout/Footer';
+import { alternatesFor, findPublicRoute } from '../seo';
 import { SEOHead } from '../components/common/SEOHead';
 import { VideoModal } from '../components/common/VideoModal';
 import { useVertical, detectVerticalFromLocation } from '../contexts/VerticalContext';
@@ -526,7 +527,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
           applicationCategory: 'SecurityApplication',
           operatingSystem: 'Cloud, Web',
           description: 'Deterministic continuous incident readiness and ransomware defense for healthcare clinics.',
-          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+          offers: { '@type': 'AggregateOffer', priceCurrency: 'USD', lowPrice: '149', highPrice: '399', offerCount: 2, url: 'https://resilai.org/pricing' }
         }
       };
     }
@@ -543,7 +544,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
           applicationCategory: 'SecurityApplication',
           operatingSystem: 'Cloud, Web',
           description: 'Deterministic continuous incident readiness and client confidentiality verification for law practices.',
-          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+          offers: { '@type': 'AggregateOffer', priceCurrency: 'USD', lowPrice: '149', highPrice: '399', offerCount: 2, url: 'https://resilai.org/pricing' }
         }
       };
     }
@@ -552,6 +553,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
       description: 'Transform fragmented security telemetry into deterministic readiness scoring, continuous compliance verification, and plain-English executive impact translation.',
       keywords: 'how to stop attacks on legal firms, how to stop attacks on healthcare businesses, AI incident readiness, cybersecurity verification, continuous security audit, NIST CSF 2.0, ResilAI',
       canonicalUrl: 'https://resilai.org/',
+      alternates: alternatesFor(findPublicRoute('/')),
       schema: {
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
@@ -559,7 +561,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
         applicationCategory: 'SecurityApplication',
         operatingSystem: 'Cloud, Web',
         description: 'Continuous incident readiness and deterministic cybersecurity verification platform.',
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+        offers: { '@type': 'AggregateOffer', priceCurrency: 'USD', lowPrice: '149', highPrice: '399', offerCount: 2, url: 'https://resilai.org/pricing' }
       }
     };
   }, [currentVertical]);

@@ -1,0 +1,30 @@
+# Handoff
+_Updated by the last agent session. Keep under 40 lines._
+
+## Current state
+- Branch `staging`. SEO work for the US, Europe, the Gulf and Australia is committed and pushed. Not yet deployed to production (`resilai.org`).
+- Frontend: `tsc -b` clean, 559 vitest tests pass, `npm run build:production` works.
+
+## What changed last session (2026-11-20)
+- New regional pages `/us`, `/europe`, `/gulf`, `/australia` (`frontend/src/pages/RegionLanding.tsx`). Short aliases `/eu`, `/uk`, `/gcc`, `/middle-east`, `/au` redirect to them.
+- One data file drives titles, descriptions, regional copy, hreflang and the sitemap: `frontend/src/seo/publicRoutes.json`. Edit copy there, nowhere else.
+- `frontend/scripts/prerender-seo.mjs` runs after `build` and `build:production`. It writes a static `<route>.html` for 22 public routes (own title, canonical, hreflang, JSON-LD, plain-text body) and `sitemap.xml`. Reason: AI crawlers do not run JavaScript and were reading the home page's tags on every URL.
+- `firebase.json`: `cleanUrls: true` on the `marketing` target only, so `/europe` serves `europe.html`. Checked locally with `firebase serve --only hosting:marketing`.
+- `RouteSEO` sets tags on public pages that had none (About, Results, AI, Contact, Security, Pilot, Docs).
+- `SEOHead` takes `alternates` (hreflang). Home schema no longer says the price is 0.
+- `llms.txt` and `llms-full.txt` have a regional section. `robots.txt` names the AI search crawlers and no longer lists `llms.txt` as a sitemap.
+- OpenSEO plugin installed for Claude Code (user scope). Not signed in yet.
+
+## Next steps
+1. Deploy production (`hosting:marketing`), then open `https://resilai.org/europe` and check "view source" shows the EU title.
+2. Submit `https://resilai.org/sitemap.xml` in Google Search Console and Bing Webmaster Tools.
+3. Sign in to OpenSEO (`/mcp` → OpenSEO), then run `/openseo:seo-audit` and `/openseo:ai-visibility-audit` for real ranking data.
+4. `public/sitemap.xml` is generated. Refresh it with `node scripts/prerender-seo.mjs dist-production --public` after editing the JSON, and bump `lastmod` there.
+
+## Open questions / gotchas
+- Regional copy only claims what `app/services/governance/compliance_engine.py` lists. If a framework is added or removed there, update `publicRoutes.json`.
+- Pages with their own `<SEOHead>` (Landing, Pricing, guides) duplicate their title and description in `publicRoutes.json` for the static file. Keep both in step.
+- Google Maps "local SEO" does not apply: there is no storefront or Google Business Profile.
+- `npm run lint` fails before it starts: installed ESLint is 4.19.1 but the config is the v9 flat format. Not touched.
+- Files that were already uncommitted before this session (agent instruction files, `graphify-out/`, untracked local folders) were left alone.
+- Staging and demo builds are not prerendered and have no `cleanUrls`.

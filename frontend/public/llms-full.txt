@@ -114,3 +114,108 @@ Every evidence record collected from operational connectors (AWS Security Hub, S
 - Tier 2: Business Impact & Drift (operational consequences, affected clinical/legal operations).
 - Tier 3: Technical Telemetry & Verification (affected systems, configuration keys, recommended remediation).
 - Tier 4: Cryptographic Provenance (connector ID, timestamp, raw payload, SHA-256 hash).
+
+================================================================================
+REGIONAL COVERAGE — UNITED STATES, EUROPE, GULF STATES, AUSTRALIA
+================================================================================
+
+ResilAI lists the laws and frameworks that apply where an organisation operates and what data it holds. It shows the evidence connected systems give for each one. It does not certify compliance or give legal advice. Plans are billed in US dollars in every region.
+
+### ResilAI in United States (United States)
+*URL: https://resilai.org/us*
+
+ResilAI checks every day whether the safeguards you rely on in a ransomware incident are really working, and shows which HIPAA, NIST and CIS requirements your live evidence supports. It is built for organisations with a small IT team or a managed service provider.
+
+Laws and frameworks ResilAI lists:
+- **HIPAA Security Rule (45 CFR Part 164)**: Listed when you handle protected health information. Safeguards are checked from live evidence, not from a yearly questionnaire.
+- **NIST Cybersecurity Framework 2.0**: The baseline ResilAI maps every control to.
+- **CIS Controls**: Mapped alongside NIST CSF 2.0 for a practical, prioritised baseline.
+- **ABA Formal Opinion 477R and Model Rule 1.6(c)**: For law firms that must show reasonable efforts to protect client information.
+- **Cyber-insurance applications**: ResilAI fills in renewal answers from what your connected systems show today, with the source and time beside each answer.
+
+**Q: Which US laws and frameworks does ResilAI cover?**
+A: ResilAI maps live control evidence to the HIPAA Security Rule, NIST Cybersecurity Framework 2.0 and CIS Controls. For law firms it also references ABA Formal Opinion 477R and Model Rule 1.6(c). HIPAA is listed when you tell ResilAI that you handle protected health information.
+
+**Q: Does ResilAI make a US clinic HIPAA compliant?**
+A: No tool can do that alone, and ResilAI does not certify compliance or give legal advice. It shows, every day, which HIPAA Security Rule safeguards your connected systems give evidence for and which ones need attention, so a risk assessment starts from facts.
+
+**Q: Can ResilAI help with a US cyber-insurance renewal?**
+A: Yes. ResilAI fills in a cyber-insurance application from what your connected systems show today and puts the source and time beside every answer. You review, sign and send it.
+
+**Q: How is ResilAI priced in the United States?**
+A: Plans are billed in US dollars through Stripe. The Founding plan is $149 per month for the first 50 customers, Growth is $399 per month, and Enterprise is a custom contract.
+
+### ResilAI in Europe (European Union and United Kingdom)
+*URL: https://resilai.org/europe*
+
+Tell ResilAI where you operate and what data you hold. It lists the European laws that apply to you, checks your live controls every day, and keeps an inventory of the AI systems you use for the EU AI Act.
+
+Laws and frameworks ResilAI lists:
+- **GDPR**: Listed when you hold personal data and operate in the EU. An EU member state given as your country counts as the EU.
+- **UK GDPR and Data Protection Act 2018**: Listed for organisations that operate in the United Kingdom and hold personal data.
+- **NIS2 Directive (EU) 2022/2555**: Listed as advisory. ResilAI shows evidence for measures such as multi-factor authentication and backup recovery.
+- **DORA (Regulation (EU) 2022/2554)**: Listed as mandatory for financial entities only.
+- **EU AI Act**: Listed when you use AI and have an EU presence. ResilAI keeps an inventory of your AI systems.
+- **ISO/IEC 27001 and ISO/IEC 42001**: Listed as advisory international standards for security management and AI management.
+
+**Q: Which European laws and frameworks does ResilAI cover?**
+A: For the EU, ResilAI lists GDPR, the NIS2 Directive, DORA for financial entities and the EU AI Act for organisations that use AI. For the UK it lists UK GDPR and the Data Protection Act 2018. ISO/IEC 27001 and ISO/IEC 42001 are listed as advisory standards.
+
+**Q: Does NIS2 apply to my organisation?**
+A: That depends on your sector and size, and ResilAI does not decide it for you. ResilAI lists NIS2 as advisory for organisations in the EU and shows which of its security measures your connected systems give evidence for, so you and your adviser can judge the gap.
+
+**Q: How does ResilAI help with the EU AI Act?**
+A: When you use AI and have an EU presence, ResilAI lists the EU AI Act and keeps an inventory of the AI systems you use. The scoring itself is deterministic: AI is only used to explain verified findings in plain English.
+
+**Q: Does ResilAI make us GDPR or NIS2 compliant?**
+A: No. ResilAI does not certify compliance or give legal advice. It shows which requirements your live evidence supports and which need attention, with a reason and an official link for every framework it lists.
+
+### ResilAI in Gulf states (UAE, Saudi Arabia, Qatar, Bahrain, Kuwait and Oman)
+*URL: https://resilai.org/gulf*
+
+Pick the Gulf states where you have clients, staff or data. ResilAI lists the data protection law of each one, adds the Saudi NCA controls for Saudi Arabia, and checks your live safeguards every day.
+
+Laws and frameworks ResilAI lists:
+- **UAE PDPL (Federal Decree-Law No. 45 of 2021)**: Listed when you hold personal data and operate in the United Arab Emirates.
+- **Saudi PDPL (Personal Data Protection Law)**: Listed when you hold personal data and operate in Saudi Arabia.
+- **Saudi NCA Essential Cybersecurity Controls (ECC-2:2024)**: Listed as advisory for organisations in Saudi Arabia.
+- **Qatar PDPPL (Law No. 13 of 2016)**: Listed when you hold personal data and operate in Qatar.
+- **Bahrain PDPL (Law No. 30 of 2018)**: Listed when you hold personal data and operate in Bahrain.
+- **Kuwait CITRA Data Privacy Protection Regulation**: Listed when you hold personal data and operate in Kuwait.
+- **Oman PDPL (Royal Decree 6/2022)**: Listed when you hold personal data and operate in Oman.
+- **ISO/IEC 27001**: Listed as an advisory international standard.
+
+**Q: Which Gulf laws and frameworks does ResilAI cover?**
+A: ResilAI lists the UAE PDPL, the Saudi PDPL, the Qatar PDPPL, the Bahrain PDPL, the Kuwait CITRA Data Privacy Protection Regulation and the Oman PDPL, each for the state where you operate. For Saudi Arabia it also lists the NCA Essential Cybersecurity Controls (ECC-2:2024) as advisory.
+
+**Q: Can I choose the whole GCC at once?**
+A: Yes. GCC is shorthand for all six states, and ResilAI then lists the data protection law of each one. You can also pick single states.
+
+**Q: Does ResilAI make us compliant with the UAE or Saudi PDPL?**
+A: No. ResilAI does not certify compliance or give legal advice. It shows which safeguards your connected systems give evidence for, with a reason and an official link for every law it lists.
+
+**Q: How is ResilAI priced in the Gulf?**
+A: Plans are billed in US dollars through Stripe. The Founding plan is $149 per month for the first 50 customers, Growth is $399 per month, and Enterprise is a custom contract with private deployment.
+
+### ResilAI in Australia (Australia)
+*URL: https://resilai.org/australia*
+
+ResilAI checks every day whether your backups, sign-in protection and devices would hold up in an incident, and shows your evidence against the ASD Essential Eight and the Privacy Act 1988.
+
+Laws and frameworks ResilAI lists:
+- **Australian Privacy Act 1988**: Listed when you handle personal information in Australia. Health service providers are covered whatever their size.
+- **ASD Essential Eight**: The Australian government baseline, listed as a maturity benchmark.
+- **ISO/IEC 27001**: Listed as an advisory international standard.
+
+**Q: Which Australian laws and frameworks does ResilAI cover?**
+A: ResilAI lists the Australian Privacy Act 1988 for organisations that handle personal information in Australia, and the ASD Essential Eight as a maturity benchmark. ISO/IEC 27001 is listed as an advisory standard.
+
+**Q: Does ResilAI assess Essential Eight maturity?**
+A: ResilAI shows which Essential Eight strategies your connected systems give evidence for, such as multi-factor authentication and regular backups, and which need attention. It does not issue a formal maturity assessment or certification.
+
+**Q: Is a small Australian medical practice covered by the Privacy Act?**
+A: Health service providers are covered by the Privacy Act 1988 whatever their size. ResilAI lists the Act for them and links to the Office of the Australian Information Commissioner. It does not give legal advice.
+
+**Q: How is ResilAI priced in Australia?**
+A: Plans are billed in US dollars through Stripe. The Founding plan is US$149 per month for the first 50 customers, Growth is US$399 per month, and Enterprise is a custom contract.
+

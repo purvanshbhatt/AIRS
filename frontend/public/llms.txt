@@ -59,6 +59,62 @@ Healthcare organizations, medical practices, diagnostic centers, and hospital ne
 
 ---
 
+## Regional Coverage: United States, Europe, Gulf States, Australia
+
+ResilAI lists the laws and frameworks that apply where an organisation operates and what data it holds. It shows the evidence connected systems give for each one. It does not certify compliance or give legal advice. Plans are billed in US dollars in every region.
+
+### ResilAI in United States (United States)
+*URL: https://resilai.org/us*
+
+ResilAI checks every day whether the safeguards you rely on in a ransomware incident are really working, and shows which HIPAA, NIST and CIS requirements your live evidence supports. It is built for organisations with a small IT team or a managed service provider.
+
+Laws and frameworks ResilAI lists:
+- **HIPAA Security Rule (45 CFR Part 164)**: Listed when you handle protected health information. Safeguards are checked from live evidence, not from a yearly questionnaire.
+- **NIST Cybersecurity Framework 2.0**: The baseline ResilAI maps every control to.
+- **CIS Controls**: Mapped alongside NIST CSF 2.0 for a practical, prioritised baseline.
+- **ABA Formal Opinion 477R and Model Rule 1.6(c)**: For law firms that must show reasonable efforts to protect client information.
+- **Cyber-insurance applications**: ResilAI fills in renewal answers from what your connected systems show today, with the source and time beside each answer.
+
+### ResilAI in Europe (European Union and United Kingdom)
+*URL: https://resilai.org/europe*
+
+Tell ResilAI where you operate and what data you hold. It lists the European laws that apply to you, checks your live controls every day, and keeps an inventory of the AI systems you use for the EU AI Act.
+
+Laws and frameworks ResilAI lists:
+- **GDPR**: Listed when you hold personal data and operate in the EU. An EU member state given as your country counts as the EU.
+- **UK GDPR and Data Protection Act 2018**: Listed for organisations that operate in the United Kingdom and hold personal data.
+- **NIS2 Directive (EU) 2022/2555**: Listed as advisory. ResilAI shows evidence for measures such as multi-factor authentication and backup recovery.
+- **DORA (Regulation (EU) 2022/2554)**: Listed as mandatory for financial entities only.
+- **EU AI Act**: Listed when you use AI and have an EU presence. ResilAI keeps an inventory of your AI systems.
+- **ISO/IEC 27001 and ISO/IEC 42001**: Listed as advisory international standards for security management and AI management.
+
+### ResilAI in Gulf states (UAE, Saudi Arabia, Qatar, Bahrain, Kuwait and Oman)
+*URL: https://resilai.org/gulf*
+
+Pick the Gulf states where you have clients, staff or data. ResilAI lists the data protection law of each one, adds the Saudi NCA controls for Saudi Arabia, and checks your live safeguards every day.
+
+Laws and frameworks ResilAI lists:
+- **UAE PDPL (Federal Decree-Law No. 45 of 2021)**: Listed when you hold personal data and operate in the United Arab Emirates.
+- **Saudi PDPL (Personal Data Protection Law)**: Listed when you hold personal data and operate in Saudi Arabia.
+- **Saudi NCA Essential Cybersecurity Controls (ECC-2:2024)**: Listed as advisory for organisations in Saudi Arabia.
+- **Qatar PDPPL (Law No. 13 of 2016)**: Listed when you hold personal data and operate in Qatar.
+- **Bahrain PDPL (Law No. 30 of 2018)**: Listed when you hold personal data and operate in Bahrain.
+- **Kuwait CITRA Data Privacy Protection Regulation**: Listed when you hold personal data and operate in Kuwait.
+- **Oman PDPL (Royal Decree 6/2022)**: Listed when you hold personal data and operate in Oman.
+- **ISO/IEC 27001**: Listed as an advisory international standard.
+
+### ResilAI in Australia (Australia)
+*URL: https://resilai.org/australia*
+
+ResilAI checks every day whether your backups, sign-in protection and devices would hold up in an incident, and shows your evidence against the ASD Essential Eight and the Privacy Act 1988.
+
+Laws and frameworks ResilAI lists:
+- **Australian Privacy Act 1988**: Listed when you handle personal information in Australia. Health service providers are covered whatever their size.
+- **ASD Essential Eight**: The Australian government baseline, listed as a maturity benchmark.
+- **ISO/IEC 27001**: Listed as an advisory international standard.
+
+---
+
 ## Technical Architecture & Invariants
 
 1. **Deterministic Verification Engine**:
@@ -82,6 +138,10 @@ Healthcare organizations, medical practices, diagnostic centers, and hospital ne
 ## Canonical Documentation & Links
 
 - **Main Homepage**: https://resilai.org/
+- **ResilAI in United States**: https://resilai.org/us
+- **ResilAI in Europe**: https://resilai.org/europe
+- **ResilAI in Gulf states**: https://resilai.org/gulf
+- **ResilAI in Australia**: https://resilai.org/australia
 - **Healthcare Incident Readiness**: https://resilai.org/healthcare
 - **Legal Incident Readiness**: https://resilai.org/legal
 - **Guide: Stop Attacks on Legal Firms**: https://resilai.org/solutions/legal-firm-cyber-attacks

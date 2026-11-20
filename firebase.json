@@ -21,6 +21,7 @@
     {
       "target": "marketing",
       "public": "frontend/dist-production",
+      "cleanUrls": true,
       "ignore": [
         "firebase.json",
         "**/.*",

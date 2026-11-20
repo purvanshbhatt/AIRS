@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/prerender-seo.mjs dist-production",
     "build:staging": "tsc -b && vite build --mode staging",
     "deploy:staging": "npm run build:staging && firebase deploy --only hosting:resilai-staging && node scripts/verify-deploy.js",
     "build:demo": "tsc -b && vite build --mode demo",
-    "build:production": "tsc -b && vite build --mode production",
+    "build:production": "tsc -b && vite build --mode production && node scripts/prerender-seo.mjs dist-production",
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview"
