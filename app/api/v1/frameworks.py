@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.core.auth import User, require_auth, require_org_access
 from app.db.database import get_db
 from app.models.framework_mapping import FrameworkMappingRegistry
 
@@ -38,10 +39,12 @@ async def get_framework_mappings(db: Session = Depends(get_db)) -> Dict[str, Lis
 @router.get("/coverage/{org_id}")
 async def get_framework_coverage_data(
     org_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
 ) -> List[Dict[str, Any]]:
     """
     Returns the AI framework coverage for a specific organization.
     """
+    require_org_access(db, user, org_id)
     from app.services.ai_frameworks import calculate_ai_framework_coverage
     return calculate_ai_framework_coverage(db, org_id)

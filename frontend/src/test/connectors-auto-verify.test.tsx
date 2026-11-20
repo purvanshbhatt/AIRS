@@ -220,4 +220,32 @@ describe('Connectors page: a Save is verified straight away', () => {
     expect(screen.getByText('SecurityAudit')).toBeInTheDocument();
     expect(screen.getByText('Session token (temporary credentials only)')).toBeInTheDocument();
   });
+
+  it('removes a connection only after a second, explicit confirmation', async () => {
+    vi.mocked(api.getConnectorsList).mockResolvedValue(listOf(awsConnector({ status: 'active' })));
+    vi.mocked(api.deleteConnector).mockResolvedValue(undefined as any);
+
+    renderWithRouter(<ConnectorsPage />);
+    await waitFor(() => expect(within(awsCard()).getByRole('button', { name: /configure/i })).toBeInTheDocument());
+    fireEvent.click(within(awsCard()).getByRole('button', { name: /configure/i }));
+
+    fireEvent.click(screen.getByTestId('connector-remove'));
+    expect(api.deleteConnector).not.toHaveBeenCalled();
+    expect(screen.getByTestId('connector-remove-confirm')).toHaveTextContent('This cannot be undone.');
+
+    fireEvent.click(screen.getByRole('button', { name: /^keep$/i }));
+    expect(api.deleteConnector).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId('connector-remove'));
+    fireEvent.click(screen.getByRole('button', { name: /yes, remove/i }));
+    await waitFor(() => expect(api.deleteConnector).toHaveBeenCalledWith('conn-aws-1', ORG));
+    await waitFor(() => expect(addToast).toHaveBeenCalledWith(expect.objectContaining({ title: 'Connection removed' })));
+  });
+
+  it('offers no Remove control for a connection that was never saved', async () => {
+    renderWithRouter(<ConnectorsPage />);
+    await waitFor(() => expect(api.getConnectorsList).toHaveBeenCalled());
+    fireEvent.click(within(awsCard()).getByRole('button', { name: /setup/i }));
+    expect(screen.queryByTestId('connector-remove')).not.toBeInTheDocument();
+  });
 });

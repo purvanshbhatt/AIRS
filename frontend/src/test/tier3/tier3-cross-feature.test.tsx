@@ -29,6 +29,26 @@ vi.mock('../../api');
 vi.mock('../../hooks/useActiveOrg');
 vi.mock('../../contexts/AuthContext');
 
+/**
+ * The bundled sample content on the Documents and Governance pages is shown
+ * only in the demo workspace. A real organisation sees its own data
+ * (covered in governance-documents-live.test.tsx).
+ */
+function enterDemoWorkspace() {
+  vi.spyOn(useActiveOrgHook, 'useActiveOrg').mockReturnValue({
+    orgId: 'demo-health-org',
+    orgName: 'Acme Health Systems (Demo)',
+    org: null,
+    orgs: [],
+    isDemo: true,
+    hasOrg: true,
+    loading: false,
+    selectOrg: vi.fn(),
+    resetOrg: vi.fn(),
+    refresh: vi.fn(),
+  } as any);
+}
+
 describe('Tier 3: Cross-Feature Navigation & State Interaction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -97,6 +117,8 @@ describe('Tier 3: Cross-Feature Navigation & State Interaction', () => {
   });
 
   it('T3.CF.03: TodayPage -> Click "Fix Now" triggers problem remediation API call', async () => {
+    // The fix flow is simulated and exists only in the demo workspace.
+    enterDemoWorkspace();
     const mockReport = createMockDailyReadinessReport();
     vi.mocked(api.getDailyReadinessReport).mockResolvedValue(mockReport);
     vi.mocked(api.triggerProblemFix).mockResolvedValue({ success: true, message: 'Remediation initiated' } as any);
@@ -187,6 +209,7 @@ describe('Tier 3: Cross-Feature Navigation & State Interaction', () => {
   });
 
   it('T3.CF.08: GovernancePage -> Framework card selection opens framework details modal', async () => {
+    enterDemoWorkspace();
     vi.mocked(api.getGovernanceHealthIndex).mockResolvedValue(createMockGovernanceData() as any);
     vi.mocked(api.getApplicableFrameworks).mockResolvedValue(createMockFrameworks() as any);
 
@@ -205,6 +228,7 @@ describe('Tier 3: Cross-Feature Navigation & State Interaction', () => {
   });
 
   it('T3.CF.09: DocumentsPage -> Tab switching between Evidence Vault and Audit Sync Ledger', async () => {
+    enterDemoWorkspace();
     const user = userEvent.setup();
     vi.mocked(api.getEvidenceLedger).mockResolvedValue([
       {

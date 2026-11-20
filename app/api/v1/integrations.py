@@ -414,7 +414,9 @@ async def configure_splunk(
             )
             db.add(conn)
             
-        conn.encrypted_credentials = json.dumps({"api_key": api_key})
+        # Stored encrypted (AES-256-GCM), never as plain JSON.
+        from app.services.connector_manager import ConnectorManager
+        conn.encrypted_credentials = ConnectorManager(db, org_id)._encrypt_credentials({"api_key": api_key})
         conn.config = {"mcp_url": mcp_url, "base_url": mcp_url}
         db.commit()
         

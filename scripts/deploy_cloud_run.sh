@@ -271,7 +271,7 @@ DEPLOY_ARGS=(
     run deploy "$SERVICE_NAME"
     --source .
     --region "$REGION"
-    --memory 512Mi
+    --memory "${MEMORY:-512Mi}"
     --cpu 1
     --min-instances 0
     --max-instances "$MAX_INSTANCES"

@@ -31,6 +31,26 @@ vi.mock('../../api');
 vi.mock('../../hooks/useActiveOrg');
 vi.mock('../../contexts/AuthContext');
 
+/**
+ * The bundled sample content on the Documents and Governance pages is shown
+ * only in the demo workspace. A real organisation sees its own data
+ * (covered in governance-documents-live.test.tsx).
+ */
+function enterDemoWorkspace() {
+  vi.spyOn(useActiveOrgHook, 'useActiveOrg').mockReturnValue({
+    orgId: 'demo-health-org',
+    orgName: 'Acme Health Systems (Demo)',
+    org: null,
+    orgs: [],
+    isDemo: true,
+    hasOrg: true,
+    loading: false,
+    selectOrg: vi.fn(),
+    resetOrg: vi.fn(),
+    refresh: vi.fn(),
+  } as any);
+}
+
 describe('Tier 2: Boundary & Corner Cases (R1 - R8)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -362,6 +382,8 @@ describe('Tier 2: Boundary & Corner Cases (R1 - R8)', () => {
     });
 
     it('T2.R5.02: Failed remediation API call handles error without crashing component', async () => {
+      // The fix flow is simulated and exists only in the demo workspace.
+      enterDemoWorkspace();
       const mockReport = createMockDailyReadinessReport();
       vi.mocked(api.getDailyReadinessReport).mockResolvedValue(mockReport);
       vi.mocked(api.triggerProblemFix).mockRejectedValue(new Error('Network error'));
@@ -501,6 +523,7 @@ describe('Tier 2: Boundary & Corner Cases (R1 - R8)', () => {
   // =========================================================================
   describe('R7: Documents & Governance Boundaries', () => {
     it('T2.R7.01: Documents search filter narrows audit folders and reports in real time', async () => {
+      enterDemoWorkspace();
       renderWithRouter(<DocumentsPage />);
 
       await waitFor(() => {
@@ -528,6 +551,7 @@ describe('Tier 2: Boundary & Corner Cases (R1 - R8)', () => {
     });
 
     it('T2.R7.03: Copy evidence SHA-256 hash in Governance drift table provides feedback', async () => {
+      enterDemoWorkspace();
       vi.mocked(api.getGovernanceHealthIndex).mockResolvedValue(createMockGovernanceData() as any);
       vi.mocked(api.getApplicableFrameworks).mockResolvedValue(createMockFrameworks() as any);
 
@@ -547,6 +571,7 @@ describe('Tier 2: Boundary & Corner Cases (R1 - R8)', () => {
     });
 
     it('T2.R7.04: Governance framework search filter narrows down displayed frameworks', async () => {
+      enterDemoWorkspace();
       vi.mocked(api.getGovernanceHealthIndex).mockResolvedValue(createMockGovernanceData() as any);
       vi.mocked(api.getApplicableFrameworks).mockResolvedValue(createMockFrameworks() as any);
 
@@ -564,6 +589,7 @@ describe('Tier 2: Boundary & Corner Cases (R1 - R8)', () => {
     });
 
     it('T2.R7.05: Governance framework click selects framework and opens details', async () => {
+      enterDemoWorkspace();
       vi.mocked(api.getGovernanceHealthIndex).mockResolvedValue(createMockGovernanceData() as any);
       vi.mocked(api.getApplicableFrameworks).mockResolvedValue(createMockFrameworks() as any);
 

@@ -26,6 +26,7 @@ from __future__ import annotations
 import enum
 import json
 import logging
+import os
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
@@ -56,6 +57,11 @@ MIRROR_SPECS: List[MirrorSpec] = [
     MirrorSpec("telemetry_events", max_restore=20000, restore_window_days=30),
     MirrorSpec("reports", max_restore=2000),
     MirrorSpec("msp_relationships"),
+    # Auditor share links: only the token hash is stored. Without this a link
+    # stopped working at the next restart.
+    MirrorSpec("auditor_links", max_restore=2000, restore_window_days=30),
+    # EU AI Act inventory: what the owner typed about each AI system.
+    MirrorSpec("ai_act_systems", max_restore=5000),
     # Registered when the vulnerability-intelligence models exist.
     MirrorSpec("tech_web_assets"),
     MirrorSpec("web_assets"),
@@ -63,6 +69,16 @@ MIRROR_SPECS: List[MirrorSpec] = [
 
 _registered = False
 _client_factory: Optional[Callable[[], Any]] = None  # injectable for tests
+
+# Erasure markers. A tombstone holds only an identifier and a time; restore
+# skips (and removes) any mirrored row that belongs to a tombstoned
+# organization or connector, so erased data cannot come back after a restart.
+TOMBSTONE_TABLE = "tombstones"
+_ORG_COLUMNS = ("org_id", "organization_id")
+
+
+class MirrorPurgeError(RuntimeError):
+    """The durable copy could not be erased; the caller must not report success."""
 
 
 def _env_prefix() -> str:
@@ -219,6 +235,114 @@ def register_durable_mirror() -> None:
     logger.info("Durable mirror registered for tables: %s", ", ".join(s.table for s in MIRROR_SPECS))
 
 
+# ── Erasure ──────────────────────────────────────────────────────────
+
+def mirror_enabled() -> bool:
+    """False under the test runner unless a client was injected (matches startup)."""
+    return _client_factory is not None or os.environ.get("TESTING") != "true"
+
+
+def _purge_client():
+    """Client for erasure. ``None`` means no durable copy exists to erase."""
+    if not mirror_enabled():
+        return None
+    if _client_factory is not None:
+        return _client_factory()
+    from app.db.firestore import get_firestore_client, is_firestore_available
+    if not is_firestore_available():
+        return None
+    return get_firestore_client()
+
+
+def _equals(collection: Any, column: str, value: Any) -> Any:
+    try:
+        from google.cloud.firestore_v1.base_query import FieldFilter
+        return collection.where(filter=FieldFilter(column, "==", value))
+    except ImportError:
+        return collection.where(column, "==", value)
+
+
+def _delete_refs(client: Any, refs: List[Any]) -> None:
+    unique: Dict[Any, Any] = {}
+    for ref in refs:  # one write per document in a batch
+        unique.setdefault(getattr(ref, "path", None) or id(ref), ref)
+    refs = list(unique.values())
+    for start in range(0, len(refs), _BATCH_SIZE):
+        batch = client.batch()
+        for ref in refs[start:start + _BATCH_SIZE]:
+            batch.delete(ref)
+        batch.commit()
+
+
+def org_column_for(table: str) -> Optional[str]:
+    """Name of the column that ties a mirrored table to its organization."""
+    model = _model_for_table(table)
+    if model is None:
+        return None
+    columns = {attr.key for attr in inspect(model).mapper.column_attrs}
+    for name in _ORG_COLUMNS:
+        if name in columns:
+            return name
+    return None
+
+
+def record_tombstone(kind: str, identifier: str) -> None:
+    """Mark an organization (``org``) or connector (``connector``) as erased."""
+    try:
+        client = _purge_client()
+        if client is None:
+            return
+        client.collection(collection_name(TOMBSTONE_TABLE)).document(f"{kind}|{identifier}").set(
+            {"kind": kind, "id": identifier, "erased_at": datetime.now(timezone.utc)}
+        )
+    except Exception as exc:
+        raise MirrorPurgeError(f"Could not record the erasure marker for {kind} {identifier}: {exc}") from exc
+
+
+def purge_mirror_rows(table: str, column: str, value: str, *, document_id: Optional[str] = None) -> int:
+    """Erase mirrored rows of ``table`` where ``column == value``. Returns rows erased.
+
+    ``document_id`` also removes that one document by key (the row itself).
+    Raises ``MirrorPurgeError`` when the durable copy cannot be reached, so a
+    caller never reports data as erased while a copy is still stored.
+    """
+    try:
+        client = _purge_client()
+        if client is None:
+            return 0
+        collection = client.collection(collection_name(table))
+        refs = [doc.reference for doc in _equals(collection, column, value).stream()]
+        if document_id:
+            refs.append(collection.document(document_id))
+        _delete_refs(client, refs)
+        return len(refs)
+    except MirrorPurgeError:
+        raise
+    except Exception as exc:
+        raise MirrorPurgeError(f"Could not erase mirrored {table} rows: {exc}") from exc
+
+
+def _load_tombstones(client: Any) -> Dict[str, set]:
+    found: Dict[str, set] = {"org": set(), "connector": set()}
+    try:
+        for doc in client.collection(collection_name(TOMBSTONE_TABLE)).stream():
+            data = doc.to_dict() or {}
+            if data.get("kind") in found and data.get("id"):
+                found[data["kind"]].add(str(data["id"]))
+    except Exception as exc:
+        logger.warning("Erasure markers could not be read: %s", exc)
+    return found
+
+
+def _is_erased(table: str, data: Dict[str, Any], tombstones: Dict[str, set]) -> bool:
+    for name in _ORG_COLUMNS:
+        if data.get(name) and str(data[name]) in tombstones["org"]:
+            return True
+    if data.get("connector_id") and str(data["connector_id"]) in tombstones["connector"]:
+        return True
+    return table == "connectors" and str(data.get("id")) in tombstones["connector"]
+
+
 # ── Startup restore ──────────────────────────────────────────────────
 
 def _model_for_table(table: str):
@@ -240,6 +364,7 @@ def restore_from_mirror(db: Session) -> Dict[str, int]:
     if client is None:
         return restored
 
+    tombstones = _load_tombstones(client)
     db.info[_SUPPRESS_KEY] = True
     try:
         for spec in MIRROR_SPECS:
@@ -251,10 +376,18 @@ def restore_from_mirror(db: Session) -> Dict[str, int]:
             if spec.restore_window_days:
                 cutoff = datetime.now(timezone.utc) - timedelta(days=spec.restore_window_days)
             count = 0
+            erased_refs: List[Any] = []
             try:
                 docs = client.collection(collection_name(spec.table)).limit(spec.max_restore).stream()
                 for doc in docs:
                     data = doc.to_dict() or {}
+                    if _is_erased(spec.table, data, tombstones):
+                        # Belongs to an erased organization or connector: never
+                        # restore it, and remove the leftover copy.
+                        ref = getattr(doc, "reference", None)
+                        if ref is not None:
+                            erased_refs.append(ref)
+                        continue
                     ts = data.get(spec.timestamp_column)
                     if cutoff and isinstance(ts, datetime):
                         ts_aware = ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
@@ -271,6 +404,12 @@ def restore_from_mirror(db: Session) -> Dict[str, int]:
             except Exception as exc:
                 db.rollback()
                 logger.error("Mirror restore failed for %s: %s", spec.table, exc)
+            if erased_refs:
+                try:
+                    _delete_refs(client, erased_refs)
+                    logger.info("Mirror restore removed %d erased %s rows", len(erased_refs), spec.table)
+                except Exception as exc:
+                    logger.warning("Erased %s rows could not be removed from the mirror: %s", spec.table, exc)
             if count:
                 restored[spec.table] = count
     finally:

@@ -173,7 +173,7 @@ export default function AgentAuditPage() {
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-on-primary font-medium text-sm rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-2 px-4 py-2.5 bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Start 48-Hour Audit
@@ -183,7 +183,7 @@ export default function AgentAuditPage() {
 
       {/* Paywall Banner if 402 */}
       {paywallError && (
-        <div className="p-6 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl">
+        <div className="p-6 bg-surface-container-low border border-amber-500/30 rounded-2xl shadow-xs">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
               <Lock className="w-6 h-6" />
@@ -196,13 +196,13 @@ export default function AgentAuditPage() {
               <div className="mt-4 flex items-center gap-3">
                 <button
                   onClick={() => navigate('/pricing')}
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs uppercase tracking-wider rounded-lg transition-colors"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer"
                 >
                   View Plans & Enroll
                 </button>
                 <button
                   onClick={() => navigate('/pilot')}
-                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg border border-outline-variant/60 transition-colors"
+                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-xl border border-outline-variant/60 transition-colors cursor-pointer"
                 >
                   Request 14-Day Pilot
                 </button>
@@ -331,8 +331,8 @@ export default function AgentAuditPage() {
 
       {/* Create Audit Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-surface-container-low border border-outline-variant rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 dark:bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-surface-container-low border border-outline-variant/60 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6">
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-lg font-bold text-on-surface">Start 48-Hour Blast-Radius Audit</h3>
@@ -342,7 +342,7 @@ export default function AgentAuditPage() {
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-on-surface-variant hover:text-on-surface text-sm"
+                className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg text-sm cursor-pointer"
               >
                 ✕
               </button>
@@ -359,7 +359,7 @@ export default function AgentAuditPage() {
                   placeholder="e.g., Triage AI Assistant or Client Document Vault Bot"
                   value={agentName}
                   onChange={(e) => setAgentName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
+                  className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:border-ready-emerald focus:ring-1 focus:ring-ready-emerald/50"
                 />
               </div>
 
@@ -371,11 +371,11 @@ export default function AgentAuditPage() {
                   <select
                     value={environment}
                     onChange={(e) => setEnvironment(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm focus:outline-none focus:border-primary"
+                    className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm focus:outline-none focus:border-ready-emerald"
                   >
-                    <option value="Production">Production</option>
-                    <option value="Staging">Staging</option>
-                    <option value="Sandbox">Sandbox</option>
+                    <option value="Production" className="bg-surface text-on-surface dark:bg-surface-container dark:text-on-surface">Production</option>
+                    <option value="Staging" className="bg-surface text-on-surface dark:bg-surface-container dark:text-on-surface">Staging</option>
+                    <option value="Sandbox" className="bg-surface text-on-surface dark:bg-surface-container dark:text-on-surface">Sandbox</option>
                   </select>
                 </div>
 
@@ -386,12 +386,12 @@ export default function AgentAuditPage() {
                   <select
                     value={sourceType}
                     onChange={(e) => setSourceType(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm focus:outline-none focus:border-primary"
+                    className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm focus:outline-none focus:border-ready-emerald"
                   >
-                    <option value="splunk">Splunk MCP</option>
-                    <option value="datadog">Datadog MCP</option>
-                    <option value="cloudwatch">AWS CloudWatch</option>
-                    <option value="agent_trace">OpenTelemetry Traces</option>
+                    <option value="splunk" className="bg-surface text-on-surface dark:bg-surface-container dark:text-on-surface">Splunk MCP</option>
+                    <option value="datadog" className="bg-surface text-on-surface dark:bg-surface-container dark:text-on-surface">Datadog MCP</option>
+                    <option value="cloudwatch" className="bg-surface text-on-surface dark:bg-surface-container dark:text-on-surface">AWS CloudWatch</option>
+                    <option value="agent_trace" className="bg-surface text-on-surface dark:bg-surface-container dark:text-on-surface">OpenTelemetry Traces</option>
                   </select>
                 </div>
               </div>
@@ -405,13 +405,13 @@ export default function AgentAuditPage() {
                   placeholder="Describe what data and tools this agent has access to..."
                   value={businessContext}
                   onChange={(e) => setBusinessContext(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
+                  className="w-full px-3.5 py-2.5 bg-surface-container border border-outline-variant/60 rounded-xl text-on-surface text-sm placeholder:text-on-surface-variant/50 focus:outline-none focus:border-ready-emerald focus:ring-1 focus:ring-ready-emerald/50"
                 />
               </div>
 
               <div className="p-3.5 bg-surface-container border border-outline-variant/60 rounded-xl">
                 <div className="flex items-start gap-2.5 text-xs text-on-surface-variant">
-                  <Shield className="w-4 h-4 flex-shrink-0 mt-0.5 text-primary" />
+                  <Shield className="w-4 h-4 flex-shrink-0 mt-0.5 text-ready-emerald" />
                   <span>
                     Deterministic rules evaluate score and findings against NIST AI RMF. Gemini synthesizes executive explanations.
                   </span>
@@ -422,14 +422,14 @@ export default function AgentAuditPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-medium rounded-xl border border-outline-variant/60 transition-colors"
+                  className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-medium rounded-xl border border-outline-variant/60 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-5 py-2 bg-primary hover:bg-primary-hover text-on-primary text-sm font-semibold rounded-xl shadow-lg transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2 bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 text-sm font-bold rounded-xl shadow-md transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {submitting && <RefreshCw className="w-4 h-4 animate-spin" />}
                   Initialize 48h Window

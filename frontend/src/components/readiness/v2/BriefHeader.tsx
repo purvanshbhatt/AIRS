@@ -23,11 +23,23 @@ export function BriefHeader({
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-testid="brief-header">
       <div className="min-w-0">
-        <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-on-surface-variant">
-          Morning brief
-          {isDemo && <span className="ml-2 text-drift-amber">Sandbox</span>}
-        </p>
-        <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-on-surface truncate" data-testid="brief-org-name">
+        <div className="flex items-center gap-2 mb-1">
+          <img
+            src="/brand/emblem/resilai_emblem_light_trans.png"
+            alt="ResilAI"
+            className="w-4 h-4 object-contain block dark:hidden"
+          />
+          <img
+            src="/brand/emblem/resilai_emblem_dark_trans.png"
+            alt="ResilAI"
+            className="w-4 h-4 object-contain hidden dark:block"
+          />
+          <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+            <span>ResilAI Morning Brief</span>
+            {isDemo && <span className="text-drift-amber">• Sandbox</span>}
+          </p>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-on-surface truncate" data-testid="brief-org-name">
           {orgName}
         </h1>
         <p className="mt-1 text-sm text-on-surface-variant" data-testid="brief-date">

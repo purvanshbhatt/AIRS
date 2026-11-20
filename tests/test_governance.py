@@ -346,7 +346,15 @@ class TestComplianceEngineCombinations:
         assert "FedRAMP" in names
         # PII+EU → GDPR, NOT Privacy Framework
         assert "NIST Privacy Framework" not in names
-        assert len(fws) == 10
+        # An EU presence adds the EU and international frameworks to the ten above.
+        assert {
+            "EU AI Act (Regulation (EU) 2024/1689)",
+            "NIS2 Directive (EU) 2022/2555",
+            "DORA (Regulation (EU) 2022/2554)",
+            "ISO/IEC 27001",
+            "ISO/IEC 42001",
+        } <= set(names)
+        assert len(fws) == 15
 
     def test_empty_profile(self, db):
         """Entirely empty profile, non-tech industry → zero frameworks."""

@@ -6,6 +6,10 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { fetchRuntimeConfig } from './runtimeConfig'
 import './index.css'
+import { applyPreferences } from './lib/preferences'
+
+// Reduce-motion and other display preferences apply before the first paint.
+applyPreferences()
 
 // Redirect default Firebase Hosting domains to custom enterprise domains
 if (typeof window !== 'undefined') {

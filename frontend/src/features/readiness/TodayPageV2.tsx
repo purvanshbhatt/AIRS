@@ -345,6 +345,7 @@ export default function TodayPageV2() {
                 index={index}
                 fixing={fixingId === (action.id || (action as any).action_id)}
                 onFix={handleFix}
+                readOnly={!isDemo}
               />
             ))}
           </div>

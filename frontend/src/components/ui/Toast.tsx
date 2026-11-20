@@ -78,22 +78,37 @@ function ToastItem({ toast }: { toast: Toast }) {
     }
   }, [duration, removeToast, toast.id]);
 
-  const icons = {
+  // "ready" and "drift" are the product's own words for success and warning.
+  // Every type in the Toast union must have an entry here: a missing icon is
+  // an undefined component, which takes the whole app down, not just the toast.
+  const successStyle =
+    'bg-success-50 dark:bg-success-900/20 border-success-500 text-success-600 dark:text-success-300';
+  const warningStyle =
+    'bg-warning-50 dark:bg-warning-900/20 border-warning-500 text-warning-600 dark:text-warning-300';
+  const infoStyle =
+    'bg-primary-50 dark:bg-primary-900/20 border-primary-500 text-primary-600 dark:text-primary-300';
+
+  const icons: Record<NonNullable<Toast['type']>, typeof Info> = {
     success: CheckCircle,
+    ready: CheckCircle,
     error: AlertCircle,
     warning: AlertTriangle,
+    drift: AlertTriangle,
     info: Info,
   };
 
-  const styles = {
-    success: 'bg-success-50 dark:bg-success-900/20 border-success-500 text-success-600 dark:text-success-300',
+  const styles: Record<NonNullable<Toast['type']>, string> = {
+    success: successStyle,
+    ready: successStyle,
     error: 'bg-danger-50 dark:bg-danger-900/20 border-danger-500 text-danger-600 dark:text-danger-300',
-    warning: 'bg-warning-50 dark:bg-warning-900/20 border-warning-500 text-warning-600 dark:text-warning-300',
-    info: 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 text-primary-600 dark:text-primary-300',
+    warning: warningStyle,
+    drift: warningStyle,
+    info: infoStyle,
   };
 
-  const Icon = icons[toast.type || 'info'];
-  const typeStyle = styles[toast.type || 'info'];
+  // Fall back to "info" for a type this component has never heard of.
+  const Icon = icons[toast.type || 'info'] ?? Info;
+  const typeStyle = styles[toast.type || 'info'] ?? infoStyle;
 
   return (
     <div

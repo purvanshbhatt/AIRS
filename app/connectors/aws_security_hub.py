@@ -822,6 +822,9 @@ class AWSSecurityHubConnector(Connector):
             # Able to sign in at all: console password or a live access key.
             "account_enabled": bool(is_root or password_enabled or key_1_active or key_2_active),
             "last_sign_in": password_last_used or key_last_used,
+            # Lets a consumer tell a brand-new account from one that has sat
+            # unused for months.
+            "created_at": _report_value(row.get("user_creation_time")),
             "mfa_active": mfa_active,
             "password_enabled": password_enabled,
             "password_last_used": password_last_used,
@@ -858,6 +861,9 @@ class AWSSecurityHubConnector(Connector):
                 "severity_normalized": severity.get("Normalized", 0),
                 "resources": resource_ids,
                 "generator_id": finding.get("GeneratorId", ""),
+                # True for test data AWS generated on request (GuardDuty
+                # "sample findings"); it must never read as real activity.
+                "sample": bool(finding.get("Sample")),
                 "created_at": finding.get("CreatedAt", ""),
                 "updated_at": finding.get("UpdatedAt", ""),
             },

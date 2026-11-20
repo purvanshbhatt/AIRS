@@ -12,6 +12,9 @@ class ApplicableFramework(BaseModel):
     reason: str                        # e.g. "Organization processes PHI"
     mandatory: bool = True             # Whether compliance is mandatory vs. recommended
     reference_url: Optional[str] = None
+    jurisdiction: Optional[str] = None   # e.g. "European Union", "Saudi Arabia"
+    # Which ResilAI checks can support this framework, and what it does not cover.
+    evidence_note: Optional[str] = None
 
 
 class ComplianceApplicabilityResponse(BaseModel):

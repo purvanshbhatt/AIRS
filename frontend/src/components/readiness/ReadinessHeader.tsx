@@ -66,7 +66,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
   };
 
   return (
-    <header className="h-14 sm:h-16 md:h-20 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-outline-variant/40 flex items-center justify-between px-3 sm:px-4 md:px-8 z-40 sticky top-0 transition-all duration-200">
+    <header className="h-14 sm:h-16 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-outline-variant/40 flex items-center justify-between px-3 sm:px-4 md:px-8 z-40 sticky top-0 transition-all duration-200">
       <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={onMenuClick}
@@ -76,57 +76,79 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
           <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link to="/morning-brief" className="flex items-center gap-2 shrink-0 group focus-visible:outline-none" aria-label="ResilAI Home">
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
+          {/* The sidebar already carries the logo from md up; repeating it here crowded the bar. */}
+          <Link to="/morning-brief" className="flex md:hidden items-center gap-2 shrink-0 group focus-visible:outline-none" aria-label="ResilAI Home">
+            {/* Desktop & Tablet: Full High-Res Horizontal Lockup */}
             <img
               src="/brand/horizontal/resilai_horizontal_light_trans.png"
               alt="ResilAI"
-              className="h-6 sm:h-7 md:h-8 w-auto object-contain block dark:hidden group-hover:scale-105 transition-transform shrink-0"
+              className="h-7 sm:h-8 md:h-9 w-auto object-contain hidden sm:block dark:hidden group-hover:scale-105 transition-transform shrink-0"
             />
             <img
               src="/brand/horizontal/resilai_horizontal_dark_trans.png"
               alt="ResilAI"
-              className="h-6 sm:h-7 md:h-8 w-auto object-contain hidden dark:block group-hover:scale-105 transition-transform shrink-0"
+              className="h-7 sm:h-8 md:h-9 w-auto object-contain hidden sm:dark:block group-hover:scale-105 transition-transform shrink-0"
             />
+            {/* Mobile: Standalone 6-Fold Node Network Emblem with Bold Title */}
+            <div className="flex sm:hidden items-center gap-1.5 shrink-0">
+              <img
+                src="/brand/emblem/resilai_emblem_light_trans.png"
+                alt="ResilAI"
+                className="h-7 w-7 object-contain block dark:hidden shrink-0"
+              />
+              <img
+                src="/brand/emblem/resilai_emblem_dark_trans.png"
+                alt="ResilAI"
+                className="h-7 w-7 object-contain hidden dark:block shrink-0"
+              />
+              <span className="text-sm font-extrabold tracking-tight text-on-surface">ResilAI</span>
+            </div>
             <span className="sr-only">ResilAI</span>
           </Link>
-          <span className="text-outline-variant/60 text-sm font-light">/</span>
+          <span className="md:hidden text-outline-variant/60 text-sm font-light">/</span>
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-ready-emerald/10 border border-ready-emerald/30 flex items-center justify-center text-ready-emerald font-bold text-xs shadow-sm shrink-0">
             {orgName ? orgName.charAt(0).toUpperCase() : 'R'}
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-on-surface flex items-center gap-1.5 sm:gap-2">
-              <span className="truncate max-w-[110px] sm:max-w-[220px]">{orgName || 'Workspace'}</span>
+            <h2 className="text-xs sm:text-sm font-bold text-on-surface flex items-center gap-1 sm:gap-2">
+              <span className="truncate max-w-[110px] sm:max-w-[220px] xl:max-w-[320px]" title={orgName || 'Workspace'}>
+                {orgName || 'Workspace'}
+              </span>
               
               {isDemo ? (
-                <span className="px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold font-mono uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
-                  <span className="hidden sm:inline">DEMO WORKSPACE (SIMULATED DATA)</span>
-                  <span className="sm:hidden">DEMO</span>
+                <span
+                  title="Demo workspace: synthetic security data"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold font-mono uppercase whitespace-nowrap bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shrink-0"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span>Demo</span>
                 </span>
               ) : (
-                <span className="px-2 sm:px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold font-mono uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm shrink-0">
+                <span
+                  title="Live workspace: your organisation's own data"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold font-mono uppercase whitespace-nowrap bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shrink-0"
+                >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                  <span className="hidden sm:inline">LIVE WORKSPACE</span>
-                  <span className="sm:hidden">LIVE</span>
+                  <span>Live</span>
                 </span>
               )}
 
               {isMspTenant && (
-                <span className="hidden sm:flex px-2 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-surface-container-high text-on-surface-variant border border-outline-variant/30 items-center gap-1">
-                  MSP Managed
+                <span
+                  title="Managed by your IT provider"
+                  className="hidden lg:flex px-2 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase whitespace-nowrap bg-surface-container-high text-on-surface-variant border border-outline-variant/30 items-center gap-1"
+                >
+                  MSP
                 </span>
               )}
             </h2>
-            <p className="text-[11px] text-on-surface-variant hidden sm:block truncate">
-              {isDemo ? 'This workspace uses synthetic security data to demonstrate ResilAI.' : 'Continuous mathematical evidence verification'}
-            </p>
           </div>
         </div>
       </div>
 
       {/* Global Ask ResilAI / Search Bar */}
-      <div className="flex-1 max-w-md mx-6 hidden lg:flex items-center relative">
+      <div className="flex-1 max-w-md mx-4 hidden xl:flex items-center relative">
         <Search className="w-4 h-4 absolute left-3.5 text-on-surface-variant/60" />
         <input
           type="text"
@@ -136,33 +158,32 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
       </div>
 
       {/* Header Actions & User Profile Menu */}
-      <div className="flex items-center gap-1.5 sm:gap-3">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
         {/* Persistent Getting Started 6-Step Guide Launcher */}
         <button
           onClick={() => setIsGettingStartedOpen(true)}
-          className={`px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm m3-state-layer cursor-pointer ${
+          className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 m3-state-layer cursor-pointer ${
             !isOnboardingDone
-              ? 'bg-ready-emerald/20 border-ready-emerald/50 text-ready-emerald hover:bg-ready-emerald hover:text-slate-950 animate-pulse'
-              : 'bg-surface-container-high hover:bg-surface-container-highest border-outline-variant/60 text-on-surface'
+              ? 'bg-ready-emerald/15 border-ready-emerald/50 text-ready-emerald hover:bg-ready-emerald hover:text-slate-950'
+              : 'bg-transparent hover:bg-surface-container-high border-transparent text-on-surface-variant'
           }`}
           aria-label="Getting Started 6-Step Guide"
           title="Getting Started with ResilAI 6-Step Guide"
         >
           <Compass className="w-4 h-4 text-ready-emerald shrink-0" />
-          <span className="hidden sm:inline">
-            {!isOnboardingDone ? `Getting Started (${onboardingCurrentStep}/6)` : 'Getting Started'}
-          </span>
-          <span className="sm:hidden">Start</span>
+          {/* Once setup is finished this shrinks to its icon; the guide stays one click away. */}
+          {!isOnboardingDone && <span>Setup {onboardingCurrentStep}/6</span>}
         </button>
 
         {/* Quick Exit Demo CTA */}
         {isDemo && (
           <button
             onClick={handleExitDemoAndLogin}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-ready-emerald/15 border border-ready-emerald/30 text-ready-emerald hover:bg-ready-emerald hover:text-on-primary-container text-xs font-semibold rounded-xl transition-all shadow-sm m3-state-layer cursor-pointer"
+            title="Leave the demo and sign in to your own workspace"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-ready-emerald/15 border border-ready-emerald/30 text-ready-emerald hover:bg-ready-emerald hover:text-on-primary-container text-xs font-semibold whitespace-nowrap rounded-xl transition-colors m3-state-layer cursor-pointer"
           >
             <UserCheck className="w-3.5 h-3.5" />
-            <span>Sign In / Real Mode</span>
+            <span>Sign in</span>
           </button>
         )}
 
@@ -173,7 +194,7 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
           title="Scoring Methodology & Trust Contract"
         >
           <BookOpen className="w-4 h-4" />
-          <span className="hidden md:inline">Docs</span>
+          <span className="hidden 2xl:inline">Docs</span>
         </Link>
 
         {/* Product Guide Modal Trigger */}
@@ -181,14 +202,14 @@ export function ReadinessHeader({ onMenuClick, isMspTenant = false }: ReadinessH
           onClick={() => setIsGuideOpen(true)}
           className="p-2 text-on-surface-variant hover:text-ready-emerald hover:bg-surface-container-high rounded-full transition-colors flex items-center gap-1.5 text-xs font-medium m3-state-layer cursor-pointer"
           aria-label="Product Guide"
-          title="How ResilAI Works"
+          title="Guide: how ResilAI works"
         >
           <HelpCircle className="w-4 h-4" />
-          <span className="hidden md:inline">Guide</span>
+          <span className="hidden 2xl:inline">Guide</span>
         </button>
 
-        {/* Theme Toggle (Light / Dark / System) - Visible on Mobile and Desktop */}
-        <div className="flex items-center">
+        {/* Theme toggle: in the bar only where there is room; always in the account menu. */}
+        <div className="hidden 2xl:flex items-center">
           <ThemeToggle />
         </div>
 

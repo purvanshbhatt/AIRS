@@ -171,7 +171,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       expect(coreQuestion).toHaveTextContent("If ransomware hits your clinic tomorrow morning, can you keep operating and prove you're ready?");
 
       const badge = screen.getByTestId('hero-badge');
-      expect(badge).toHaveTextContent('HIPAA Verified');
+      expect(badge).toHaveTextContent('Mapped to the HIPAA Security Rule');
     });
 
     it('renders healthcare persona questions (focus-areas section removed in landing overhaul)', () => {
@@ -241,7 +241,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
       expect(coreQuestion).toHaveTextContent('If ransomware hits your firm tomorrow morning, can you keep operating and protect client data?');
 
       const badge = screen.getByTestId('hero-badge');
-      expect(badge).toHaveTextContent('ABA 477R Verified');
+      expect(badge).toHaveTextContent('Mapped to ABA Opinion 477R');
     });
 
     it('renders legal persona questions (focus-areas section removed in landing overhaul)', () => {
@@ -286,7 +286,7 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
         </MemoryRouter>
       );
 
-      expect(screen.getByText(/What\ evidence\ proves\ ABA\ compliance\?/)).toBeInTheDocument();
+      expect(screen.getByText(/What\ evidence\ supports\ our\ ABA\ 477R\ safeguards\?/)).toBeInTheDocument();
       expect(screen.getByTestId('hero-badge')).toHaveTextContent('Document Vault Protection');
     });
   });
@@ -493,3 +493,130 @@ describe('Milestone 2: Three Distinct Landing & Positioning Experiences', () => 
     });
   });
 });
+
+// ============================================================================
+// Claims the product cannot back must not return to the landing page
+// ============================================================================
+describe('Landing page states only what the product does', () => {
+  const UNPROVEN = [
+    /Coalition|Chubb|Travelers/,
+    /15[ -]minutes?/i,
+    /role based access/i,
+    /single console/i,
+    /4-hour RTO/i,
+    /24\/7/,
+    /AWS SSM/,
+    /continuous HIPAA/i,
+  ];
+
+  // Product names such as an EHR or a document vault still appear inside the hero
+  // product illustration, which is labelled "Sample data"; they are not checked here.
+  it.each(['general', 'healthcare', 'legal'] as const)('%s landing page carries no unproven claim', (vertical) => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <VerticalProvider initialVertical={vertical}>
+          <Landing />
+        </VerticalProvider>
+      </MemoryRouter>
+    );
+
+    // Open every FAQ answer so its text is in the page.
+    screen
+      .getAllByRole('button')
+      .filter((button) => button.getAttribute('aria-expanded') === 'false')
+      .forEach((button) => fireEvent.click(button));
+
+    const text = document.body.textContent || '';
+    for (const pattern of UNPROVEN) {
+      expect(text).not.toMatch(pattern);
+    }
+    expect(text).toMatch(/each organization has one owner account/);
+    expect(text).toMatch(/Cisco Duo/);
+    expect(screen.getByTestId('landing-sample-data-label')).toHaveTextContent(/sample data/i);
+  });
+
+  describe('Video Launch Teaser Embedding & Modal Interaction', () => {
+    it('renders hero video trigger and showcase banner with accessible labels', () => {
+      render(
+        <MemoryRouter initialEntries={['/']}>
+          <Landing defaultVertical="general" />
+        </MemoryRouter>
+      );
+
+      const heroVideoBtn = screen.getByTestId('hero-video-cta');
+      expect(heroVideoBtn).toBeInTheDocument();
+      expect(heroVideoBtn).toHaveAttribute('aria-label', expect.stringContaining('24-second'));
+      expect(heroVideoBtn).toHaveTextContent(/Watch 24s Teaser/i);
+
+      const showcaseCta = screen.getByTestId('showcase-video-cta');
+      expect(showcaseCta).toBeInTheDocument();
+      expect(showcaseCta).toHaveTextContent(/Watch 24s Walkthrough/i);
+
+      const showcaseThumb = screen.getByTestId('showcase-video-thumbnail');
+      expect(showcaseThumb).toBeInTheDocument();
+    });
+
+    it('opens video modal on hero CTA click with accessible dialog and honest scenario caption', async () => {
+      render(
+        <MemoryRouter initialEntries={['/']}>
+          <Landing defaultVertical="general" />
+        </MemoryRouter>
+      );
+
+      expect(screen.queryByTestId('video-modal')).not.toBeInTheDocument();
+
+      const heroVideoBtn = screen.getByTestId('hero-video-cta');
+      fireEvent.click(heroVideoBtn);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('video-modal')).toBeInTheDocument();
+      });
+
+      const modal = screen.getByTestId('video-modal');
+      expect(modal).toHaveAttribute('role', 'dialog');
+      expect(modal).toHaveAttribute('aria-modal', 'true');
+
+      // Check player attributes
+      const player = screen.getByTestId('video-modal-player') as HTMLVideoElement;
+      expect(player).toBeInTheDocument();
+      expect(player.getAttribute('src')).toBe('/videos/resilai-launch-teaser.mp4');
+      expect(player.getAttribute('poster')).toBe('/videos/resilai-launch-teaser-poster.jpg');
+
+      // Check Hallmark honest copy disclaimer
+      expect(screen.getByTestId('video-modal-description')).toHaveTextContent(
+        /Illustrative scenario: Overnight continuous telemetry verification for a clinical practice/i
+      );
+
+      // Dismiss via close button
+      const closeBtn = screen.getByTestId('video-modal-close');
+      fireEvent.click(closeBtn);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('video-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    it('dismisses modal on Escape key press', async () => {
+      render(
+        <MemoryRouter initialEntries={['/']}>
+          <Landing defaultVertical="general" />
+        </MemoryRouter>
+      );
+
+      const showcaseCta = screen.getByTestId('showcase-video-cta');
+      fireEvent.click(showcaseCta);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('video-modal')).toBeInTheDocument();
+      });
+
+      fireEvent.keyDown(window, { key: 'Escape' });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('video-modal')).not.toBeInTheDocument();
+      });
+    });
+  });
+});
+
+

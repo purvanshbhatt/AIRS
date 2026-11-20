@@ -99,3 +99,6 @@ Thumbs.db
 /staging_*.html
 /scratch_*.py
 archive/scratch/
+
+# AWS connector test: local record of what deploy.sh turned on
+infra/aws-connector-test/.deploy-state

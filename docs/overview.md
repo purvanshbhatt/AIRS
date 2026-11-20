@@ -1,7 +1,11 @@
-﻿# ResilAI Overview
+# ResilAI Overview
 
 <p align="center">
-  <img src="assets/airs-logo-dark.png" alt="ResilAI logo" width="150" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/airs-logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/airs-logo-light.png">
+    <img src="assets/airs-logo-dark.png" alt="ResilAI Logo" width="300" />
+  </picture>
 </p>
 
 ResilAI is an **AI Incident Readiness Platform** that helps organizations evaluate readiness, prioritize risk reduction, and communicate posture to executives.

@@ -68,10 +68,6 @@ export function Footer() {
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                 <span>Deterministic Scoring Engine: Active</span>
               </div>
-              <span className="text-slate-300 dark:text-slate-700">|</span>
-              <div className="text-slate-500 dark:text-slate-400">
-                <span>Latency: {isStaging ? '35ms' : '18ms'}</span>
-              </div>
             </div>
           </div>
         )}
@@ -174,6 +170,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/insurance-renewal" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  Insurance renewal
+                </Link>
+              </li>
+              <li>
                 <Link to="/pricing" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
                   Pricing & Tiers
                 </Link>
@@ -239,6 +240,11 @@ export function Footer() {
               <li>
                 <Link to="/docs/api" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
                   API & Verification
+                </Link>
+              </li>
+              <li>
+                <Link to="/trust/data-access" className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+                  What we read
                 </Link>
               </li>
               <li>

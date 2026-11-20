@@ -31,10 +31,17 @@ class UnauthorizedAccessCapability(BaseCapability):
     def evaluate(cls, evidence: List[Evidence]) -> List[EvaluationResult]:
         results = []
         now = datetime.now(timezone.utc)
+        seen_users = set()
         for e in evidence:
             if e.kind != EvidenceKind.USER_ACCOUNT_STATUS:
                 continue
             payload = e.payload
+            # Connectors resend the whole directory on every sync, so the same
+            # account arrives many times. It is reported once.
+            user_key = (e.source_connector, payload.get('user_id') or e.source_id)
+            if user_key in seen_users:
+                continue
+            seen_users.add(user_key)
             account_enabled = payload.get('account_enabled')
             if not account_enabled:
                 continue
@@ -81,24 +88,62 @@ class UnauthorizedAccessCapability(BaseCapability):
                         'display_name': payload.get('display_name', 'Unknown User'),
                         'user_id': payload.get('user_id', e.source_id),
                         'last_sign_in': last_sign_in_str,
-                        'days_inactive': days_inactive
+                        'days_inactive': days_inactive,
+                        'never_signed_in': last_sign_in is None,
+                        'identity_provider': payload.get('identity_provider') or e.source_connector,
                     }
                 ))
         return results
+
+    @classmethod
+    def _is_cloud_account(cls, result: EvaluationResult) -> bool:
+        return str(result.details.get('identity_provider') or '').startswith('aws')
 
     @classmethod
     def translate(cls, result: EvaluationResult) -> MomentTranslation:
         details = result.details
         display_name = details.get('display_name')
         days_inactive = details.get('days_inactive')
+
+        if details.get('never_signed_in'):
+            # No sign-in on record. Saying "0 days" here would be a made-up number.
+            if days_inactive:
+                what = (
+                    f"{display_name}'s account is still active but has never been used "
+                    f"since it was created {days_inactive} days ago."
+                )
+            else:
+                what = f"{display_name}'s account is still active but has no sign-in on record."
+        else:
+            what = f"{display_name}'s account is still active but they haven't signed in for {days_inactive} days."
+
+        if cls._is_cloud_account(result):
+            return MomentTranslation(
+                what_happened=what,
+                why_care="Anyone who holds this account's password or access key can get into your AWS account.",
+                ignore_impact="An unused cloud account is a way in that nobody is watching."
+            )
         return MomentTranslation(
-            what_happened=f"{display_name}'s account is still active but they haven't signed in for {days_inactive} days.",
+            what_happened=what,
             why_care="Anyone with their password could access patient records, billing data, and email right now.",
             ignore_impact="If this account is compromised, your clinic faces a HIPAA violation and potential data breach."
         )
 
     @classmethod
     def get_actions(cls, result: EvaluationResult) -> List[ActionIntent]:
+        if cls._is_cloud_account(result):
+            # Not a Microsoft 365 user: there is nothing here ResilAI can suspend.
+            return [
+                ActionIntent(
+                    action_id='review_cloud_account',
+                    label='Review in AWS IAM',
+                    can_automate=False,
+                    automation_params={
+                        'user_id': result.details.get('user_id'),
+                        'display_name': result.details.get('display_name'),
+                    },
+                )
+            ]
         return [
             ActionIntent(
                 action_id='disable_account',

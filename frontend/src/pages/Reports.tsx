@@ -108,7 +108,7 @@ const REPORT_TEMPLATES: ReportTemplate[] = [
     title: 'Cyber Insurance Underwriter Verification Binder',
     category: 'Insurance & Audit',
     description:
-      'Telemetry-backed evidence packet pre-mapped to standard underwriter questionnaires (Coalition, Chubb, Travelers) verifying MFA, immutable backups, and lateral containment.',
+      'Evidence packet for a cyber-insurance application: the observed state of MFA, backups, endpoint protection and account removal, each with its source and time.',
     defaultFormat: 'pdf',
     estimatedPages: '3-4 pages',
     badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',

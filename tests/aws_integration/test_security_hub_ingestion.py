@@ -105,7 +105,7 @@ class TestSecurityHubIngestion:
             "title", "description", "product_name", "company_name",
             "compliance_status", "record_state", "workflow_status",
             "severity_label", "severity_normalized", "resources",
-            "generator_id", "created_at", "updated_at",
+            "generator_id", "sample", "created_at", "updated_at",
         }
         assert set(event.payload.keys()) == expected_keys
 

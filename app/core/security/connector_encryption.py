@@ -71,13 +71,32 @@ def _load_key_from_secret_manager() -> Optional[str]:
     return None
 
 
+def _previous_keys() -> list:
+    """Retired keys, newest first.
+
+    Credentials saved before a key rotation stay readable; every new write
+    uses the current key.
+    """
+    keys: list = []
+    for name in ("CONNECTOR_ENCRYPTION_KEY_PREVIOUS", "ENCRYPTION_SECRET_PREVIOUS"):
+        keys.extend(k.strip() for k in os.environ.get(name, "").split(",") if k.strip())
+    return keys
+
+
+def _must_encrypt() -> bool:
+    """Hosted environments never store a credential unencrypted."""
+    from app.core.config import Environment, settings
+
+    return settings.ENV in (Environment.PROD, Environment.STAGING)
+
+
 @lru_cache(maxsize=1)
 def _get_connector_encryption_service():
     """Return a dedicated EncryptionService for connector credentials."""
     from app.core.security.encryption import EncryptionService
 
     key_b64 = _load_key_from_secret_manager()
-    svc = EncryptionService(secret_b64=key_b64)
+    svc = EncryptionService(secret_b64=key_b64, previous_secrets_b64=_previous_keys())
 
     if not svc.enabled:
         logger.warning(
@@ -91,10 +110,16 @@ def encrypt_value(plaintext: str) -> str:
     """Encrypt a string value (typically JSON credentials).
 
     Returns a base64-encoded ciphertext string suitable for database storage.
-    Falls through to plaintext if encryption is disabled.
+    On a developer machine with no key it falls through to plaintext. In
+    staging and production it refuses instead: a missing or malformed key must
+    never lead to a stored plaintext credential.
     """
     svc = _get_connector_encryption_service()
     if not svc.enabled:
+        if _must_encrypt():
+            raise RuntimeError(
+                "Connector credentials were not saved: no valid encryption key is loaded."
+            )
         return plaintext
 
     payload = {"value": plaintext}

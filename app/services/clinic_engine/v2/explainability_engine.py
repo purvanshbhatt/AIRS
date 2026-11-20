@@ -63,6 +63,13 @@ TAXONOMY = {
         "what_it_means": "ResilAI verifies that harmful links and attachments are blocked before reaching staff inboxes.",
         "why_it_matters": "Phishing emails are the #1 way attackers break into healthcare organizations.",
     },
+    # Cloud
+    "cloud_posture": {
+        "business_label": "Cloud Account Security",
+        "technical_label": "Cloud Security Posture (AWS Security Hub / GuardDuty)",
+        "what_it_means": "ResilAI reads the findings your cloud provider's own security service reports for your account.",
+        "why_it_matters": "A misconfigured or compromised cloud account can expose data or take your systems offline.",
+    },
 }
 
 FALLBACK_TAXONOMY = {

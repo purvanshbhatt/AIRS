@@ -94,7 +94,7 @@ export function AIDrawer({
     title.toLowerCase().includes('email') || title.toLowerCase().includes('phish') ? '/email' :
     title.toLowerCase().includes('network') || title.toLowerCase().includes('firewall') || title.toLowerCase().includes('vpn') ? '/network' :
     title.toLowerCase().includes('cloud') || title.toLowerCase().includes('aws') || title.toLowerCase().includes('azure') ? '/cloud' :
-    title.toLowerCase().includes('ai') || title.toLowerCase().includes('model') ? '/ai' :
+    /\bai\b/i.test(title) || title.toLowerCase().includes('model') ? '/operations/ai' :
     '/backups'
   );
 

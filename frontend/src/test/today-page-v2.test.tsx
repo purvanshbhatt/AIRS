@@ -121,7 +121,9 @@ describe('Morning brief V2 (staging preview)', () => {
     expect(card).toHaveTextContent('Why it matters');
     expect(card).toHaveTextContent('Who fixes it');
     expect(card).toHaveTextContent('How long');
-    expect(screen.getByRole('button', { name: /Fix now/i })).toBeInTheDocument();
+    // A real organisation's systems are only read, so no "Fix now" is offered.
+    expect(screen.queryByRole('button', { name: /Fix now/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Send to IT \/ MSP/i })).toBeInTheDocument();
     expect(screen.getByTestId('overnight-strip')).toBeInTheDocument();
     expect(screen.getByTestId('technical-details')).toBeInTheDocument();
   });

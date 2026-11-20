@@ -75,8 +75,21 @@ const MOCK_BACKUP_INVENTORY = [
 ];
 
 import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+import { DomainLiveView } from '../../components/technology/DomainLiveView';
+import { useActiveOrg } from '../../hooks/useActiveOrg';
 
+/**
+ * Real organisations see what their own connected systems report
+ * (`DomainLiveView`). The illustrative walkthrough below is shown only in the
+ * demo workspace, under its "Simulated Telemetry" banner.
+ */
 export function BackupsPage() {
+  const { isDemo } = useActiveOrg();
+  if (!isDemo) return <DomainLiveView domain="backups" icon={Database} />;
+  return <BackupsSample />;
+}
+
+function BackupsSample() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
   return (

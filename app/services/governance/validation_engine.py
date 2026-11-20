@@ -298,7 +298,11 @@ def compute_compliance(
 
     # Score: compliance awareness. Having identified frameworks = awareness.
     # Deduction only if profile is empty (no attributes set → score is lower).
-    if result.total_frameworks > 0:
+    # A framework listed only because of where the organisation operates
+    # (advisory, tied to a jurisdiction) says nothing about its own profile,
+    # so picking a region alone never raises the score.
+    profile_driven = [f for f in frameworks if f.mandatory or not f.jurisdiction]
+    if profile_driven:
         result.score = 100.0
     else:
         # No frameworks triggered — check if profile is configured at all

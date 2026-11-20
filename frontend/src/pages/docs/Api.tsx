@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Code,
-  ExternalLink,
   Terminal,
   Copy,
   Check,
@@ -17,6 +16,7 @@ import {
   Key,
 } from 'lucide-react';
 import { getApiBaseUrl } from '../../api';
+import { ApiExplorerLazy } from '../../components/apidocs';
 
 interface Endpoint {
   method: 'GET' | 'POST';
@@ -167,10 +167,21 @@ export default function DocsApi() {
   const [collapsed, setCollapsed] = useState(false);
   const [activeGroup, setActiveGroup] = useState('intro');
   const apiBaseUrl = getApiBaseUrl();
-  const openApiUrl = `${apiBaseUrl}/docs`;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-140px)]">
+    <div className="space-y-8 text-left">
+      <div>
+        <h1 className="text-3xl font-extrabold text-slate-950 dark:text-slate-50 mb-2">ResilAI REST API</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
+          Integrate security scoring, audit triggers, and continuous compliance alerts into your pipeline.
+        </p>
+      </div>
+
+      {/* Interactive explorer: browse, run and live-check the API without leaving the product.
+          Signed-out visitors get a sign-in notice here and the static reference below. */}
+      <ApiExplorerLazy />
+
+    <div className="flex flex-col lg:flex-row gap-8">
       {/* Sidebar Nav */}
       <motion.aside
         animate={{ width: collapsed ? 64 : 260 }}
@@ -221,32 +232,6 @@ export default function DocsApi() {
 
       {/* Main pane */}
       <div className="flex-1 space-y-10 text-left">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-950 dark:text-slate-50 mb-2">ResilAI REST API</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
-            Integrate security scoring, audit triggers, and continuous compliance alerts into your pipeline.
-          </p>
-        </div>
-
-        {/* Interactive Swagger Link Panel */}
-        <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-3xl border border-blue-100 dark:border-blue-900/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-1">OpenAPI Interactive Swagger</h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Use your API Keys to test actual endpoints live from your browser context.
-            </p>
-          </div>
-          <a
-            href={openApiUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-2xl shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Launch Swagger
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
-
         {/* Active Group Details */}
         {activeGroup === 'intro' && (
           <section className="space-y-6">
@@ -359,6 +344,7 @@ export default function DocsApi() {
           </div>
         </section>
       </div>
+    </div>
     </div>
   );
 }

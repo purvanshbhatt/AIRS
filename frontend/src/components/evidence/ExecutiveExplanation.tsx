@@ -60,21 +60,11 @@ export function ExecutiveExplanation({
 
   const statusTextColor = isVerified ? 'text-ready-emerald' : isWarning ? 'text-drift-amber' : 'text-critical-red';
 
-  // Resolve source connector and cryptographic provenance
-  const resolvedConnector = sourceConnector || (
-    explanation.technical_label?.toLowerCase().includes('backup') || explanation.business_label?.toLowerCase().includes('backup') ? 'Veeam Backup & Replication API' :
-    explanation.technical_label?.toLowerCase().includes('entra') || explanation.business_label?.toLowerCase().includes('mfa') ? 'Microsoft Graph (Entra ID)' :
-    explanation.technical_label?.toLowerCase().includes('endpoint') || explanation.business_label?.toLowerCase().includes('computer') ? 'CrowdStrike Falcon & Intune' :
-    'Continuous Telemetry Collector'
-  );
-
-  // Deterministic SHA-256 evidence hash fallback
-  const resolvedHash = evidenceHash || (
-    'sha256:' + Array.from(explanation.technical_label + explanation.business_label + (explanation.last_verified_at || ''))
-      .reduce((acc, char) => ((acc << 5) - acc) + char.charCodeAt(0) | 0, 0)
-      .toString(16)
-      .padStart(16, '7f83b165') + 'e4a2c98d7120fa'
-  );
+  // Provenance is shown only as recorded. A source name guessed from the
+  // wording, or a hash built in the browser, would look like evidence and be
+  // neither.
+  const resolvedConnector = sourceConnector || 'Not recorded for this item';
+  const resolvedHash = evidenceHash || '';
 
   const handleCopyHash = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -251,8 +241,9 @@ export function ExecutiveExplanation({
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px]">
                       <span className="text-on-surface-variant">Ingestion Timestamp:</span>
-                      <span className="font-mono text-on-surface">{explanation.last_verified_at || new Date().toUTCString()}</span>
+                      <span className="font-mono text-on-surface">{explanation.last_verified_at || 'Not recorded'}</span>
                     </div>
+                    {resolvedHash && (
                     <div className="pt-2 border-t border-surface-bright/40 flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <span className="text-[10px] font-mono uppercase text-on-surface-variant block">SHA-256 Proof Hash</span>
@@ -269,6 +260,7 @@ export function ExecutiveExplanation({
                         <span>{copiedHash ? 'Copied' : 'Copy'}</span>
                       </button>
                     </div>
+                    )}
                   </div>
                 </div>
               </div>

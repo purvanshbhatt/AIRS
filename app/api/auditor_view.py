@@ -56,6 +56,7 @@ async def generate_auditor_link(
         org_name=org.name,
         created_by=user.uid,
         ttl_hours=ttl_hours,
+        db=db,
     )
     return result
 
@@ -78,7 +79,7 @@ async def get_auditor_links(
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    links = list_active_tokens(org_id)
+    links = list_active_tokens(org_id, db=db)
     return {"org_id": org_id, "active_links": links, "count": len(links)}
 
 
@@ -95,7 +96,13 @@ async def revoke_auditor_link(
     _: None = Depends(require_writable),
 ):
     """DELETE /api/governance/orgs/{org_id}/auditor-link"""
-    revoked = revoke_token(token)
+    from app.services.organization import OrganizationService
+
+    service = OrganizationService(db, owner_uid=user.uid if user else None)
+    if not service.get(org_id):
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    revoked = revoke_token(token, org_id=org_id, db=db)
     if not revoked:
         raise HTTPException(status_code=404, detail="Token not found or already revoked")
     return {"status": "revoked"}
@@ -117,7 +124,7 @@ async def auditor_view(
     db: Session = Depends(get_db),
 ):
     """GET /api/governance/auditor-view?token=..."""
-    meta = validate_token(token)
+    meta = validate_token(token, db=db)
     if not meta:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

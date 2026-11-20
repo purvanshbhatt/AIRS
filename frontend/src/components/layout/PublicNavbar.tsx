@@ -167,7 +167,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
                   <a
                     key={label}
                     href={to}
-                    className="px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                    className="px-3 py-1.5 text-sm font-medium text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors"
                   >
                     {label}
                   </a>
@@ -180,8 +180,8 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
                   className={({ isActive }) =>
                     `px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                       isActive
-                        ? 'text-primary-600 dark:text-primary-400 bg-primary-50/70 dark:bg-primary-950/40 font-semibold'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                        ? 'text-ready-emerald bg-ready-emerald/10 font-semibold'
+                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                     }`
                   }
                 >
@@ -191,7 +191,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
             })}
             <Link
               to={docsLink}
-              className="px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center gap-1"
+              className="px-3 py-1.5 text-sm font-medium text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors flex items-center gap-1"
             >
               Docs
             </Link>
@@ -202,13 +202,13 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
             <SafeThemeToggle />
             <Link
               to={loginLink}
-              className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+              className="text-sm font-medium text-on-surface-variant hover:text-on-surface px-3 py-2 rounded-lg hover:bg-surface-container transition-colors"
             >
               Sign In
             </Link>
             <button
               onClick={handleEnterSandbox}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-[0.98] cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface-container text-on-surface border border-outline-variant/60 hover:bg-surface-container-high transition-all active:scale-[0.98] cursor-pointer"
               title={`Explore ${config.demoOrgName} Demo Sandbox`}
               data-testid="navbar-demo-cta"
             >
@@ -217,7 +217,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
             </button>
             <Link
               to={loginLink}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-primary-600 to-emerald-500 text-white shadow-xs hover:shadow-md hover:shadow-primary-500/20 transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 shadow-xs hover:shadow-md transition-all active:scale-[0.98]"
             >
               <span>Get Started</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -229,7 +229,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
             <SafeThemeToggle />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
+              className="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ready-emerald"
               aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={mobileMenuOpen}
             >
@@ -241,7 +241,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-outline-variant/40 bg-background/95 backdrop-blur-lg px-4 pt-2 pb-6 space-y-3 animate-fadeIn">
+        <div className="lg:hidden border-b border-outline-variant/40 bg-background/98 backdrop-blur-lg px-4 pt-2 pb-6 space-y-3 animate-fadeIn">
           <nav className="flex flex-col space-y-1">
             {navLinks.map(({ label, to }) => {
               const isAnchor = to.includes('#');
@@ -251,7 +251,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
                     key={label}
                     href={to}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2.5 text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-lg transition-colors"
+                    className="px-3 py-2.5 text-base font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors"
                   >
                     {label}
                   </a>
@@ -265,8 +265,8 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
                   className={({ isActive }) =>
                     `px-3 py-2.5 text-base font-medium rounded-lg transition-colors ${
                       isActive
-                        ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40 font-semibold'
-                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                        ? 'text-ready-emerald bg-ready-emerald/10 font-semibold'
+                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                     }`
                   }
                 >
@@ -277,17 +277,17 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
             <Link
               to={docsLink}
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2.5 text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-lg transition-colors"
+              className="px-3 py-2.5 text-base font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors"
             >
               Scoring Methodology & Docs
             </Link>
           </nav>
 
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800/80 flex flex-col gap-2.5">
+          <div className="pt-4 border-t border-outline-variant/60 flex flex-col gap-2.5">
             <Link
               to={loginLink}
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="w-full text-center py-2.5 text-sm font-semibold text-on-surface bg-surface-container rounded-xl hover:bg-surface-container-high border border-outline-variant/60 transition-colors"
             >
               Sign In to Organization
             </Link>
@@ -296,7 +296,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
                 setMobileMenuOpen(false);
                 handleEnterSandbox();
               }}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all cursor-pointer"
               data-testid="navbar-mobile-demo-cta"
             >
               <Sparkles className="w-4 h-4 text-amber-500" />
@@ -305,7 +305,7 @@ export function PublicNavbar({ transparent = false, currentVertical: propCurrent
             <Link
               to={loginLink}
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-primary-600 to-emerald-500 text-white shadow-md hover:shadow-lg transition-all"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-xl bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 shadow-md hover:shadow-lg transition-all"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />

@@ -295,3 +295,19 @@ __all__ = [
     "get_user_org_id",
 ]
 
+
+def require_org_access(db, user: Optional["User"], org_id: str):
+    """Return the organization if ``user`` owns it, else raise 404.
+
+    For endpoints that take an organization id in the path or query string:
+    being signed in is not enough, the caller must own that organization.
+    404 (not 403) so the response does not confirm that the id exists.
+    """
+    from fastapi import HTTPException
+    from app.services.organization import OrganizationService
+
+    org = OrganizationService(db, owner_uid=user.uid if user else None).get(org_id)
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    return org
+

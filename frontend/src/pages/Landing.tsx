@@ -32,10 +32,12 @@ import {
   RefreshCw,
   FileText,
   Plug,
+  Play,
 } from 'lucide-react';
 import { PublicNavbar } from '../components/layout/PublicNavbar';
 import { Footer } from '../components/layout/Footer';
 import { SEOHead } from '../components/common/SEOHead';
+import { VideoModal } from '../components/common/VideoModal';
 import { useVertical, detectVerticalFromLocation } from '../contexts/VerticalContext';
 import { DEFAULT_VERTICAL, getVerticalConfig, isVerticalKey } from '../config/verticals';
 import type { VerticalKey, VerticalConfig } from '../types/vertical';
@@ -66,7 +68,7 @@ const getPersonasForVertical = (vertical: VerticalKey) => {
         role: 'Clinical IT / MSP (L3)',
         question: 'What telemetry proves our readiness?',
         description:
-          'Trace findings directly to immutable backup verification, EHR uptime telemetry, and Active Directory audit logs.',
+          'Trace findings directly to backup job results, device protection status, and Entra ID sign-in settings.',
       },
     ];
   }
@@ -89,9 +91,9 @@ const getPersonasForVertical = (vertical: VerticalKey) => {
       {
         icon: TerminalIcon,
         role: 'Legal IT / MSP (L3)',
-        question: 'What evidence proves ABA compliance?',
+        question: 'What evidence supports our ABA 477R safeguards?',
         description:
-          'Cryptographic evidence connecting NetDocuments access logs, MFA enforcement, and secure repository retention.',
+          'Hashed evidence linking MFA enforcement, device protection and backup results to each safeguard.',
       },
     ];
   }
@@ -123,7 +125,7 @@ const getPersonasForVertical = (vertical: VerticalKey) => {
 const loopSteps = [
   {
     number: '01',
-    title: 'Connect in 15 minutes',
+    title: 'Connect read-only',
     subtitle: 'Zero agents installed',
     description: 'Connect read only APIs for Microsoft 365, Veeam Backup, Wazuh, and Splunk without installing workstation drivers.',
     icon: Plug,
@@ -146,7 +148,7 @@ const loopSteps = [
     number: '04',
     title: 'Prove readiness',
     subtitle: 'One click boss reports',
-    description: 'Export consultant grade executive PDFs and insurance binders pre mapped to Coalition, Chubb, and Travelers.',
+    description: 'Export executive PDFs and a cyber-insurance answer pack built from your evidence, each answer with its source and time.',
     icon: FileText,
   },
 ];
@@ -154,7 +156,7 @@ const loopSteps = [
 const faqs = [
   {
     q: 'Do we need to install software agents on our servers or endpoints?',
-    a: 'No. ResilAI is completely agentless. It connects exclusively through read only cloud APIs and established log forwarders including Microsoft Graph, Veeam Cloud Connect, Wazuh SIEM, and Splunk HEC. There are zero kernel drivers, background daemons, or workstation agents to deploy or patch.',
+    a: 'No. ResilAI installs nothing on your computers. In each system you connect, you create a read-only key or app registration and paste it into ResilAI. The Trust page lists the exact permissions each connector asks for.',
   },
   {
     q: 'Why deterministic mathematical scoring instead of an AI model?',
@@ -162,19 +164,19 @@ const faqs = [
   },
   {
     q: 'How long does initial setup and telemetry ingestion take?',
-    a: 'Most clinics and law practices complete initial API authorization in under 15 minutes. Once authorized, initial control verification and baseline readiness scoring populate within the first scan cycle.',
+    a: 'Each connection is one read-only key or app registration, created in the system you connect and pasted into ResilAI. How long that takes depends on who holds administrator access to that system. Your first readiness result appears when the first sync completes.',
   },
   {
     q: 'Does sensitive patient health data (PHI) or confidential legal material leave our network?',
-    a: 'Never. ResilAI ingests only security posture metadata, configuration attributes, and audit event heartbeats such as backup completion status, MFA enforcement flags, and disk encryption states. Raw patient charts and confidential legal documents are never accessed or transmitted.',
+    a: 'ResilAI does not read patient charts, client files, mailboxes or documents, and the read-only access it asks for does not allow it. It reads settings and status: account names and their sign-in protection, device names and their protection status, backup job results, and security findings. That information is stored by ResilAI. The Trust page lists what each connector reads and where it is kept.',
   },
   {
     q: 'Which infrastructure connectors are supported today?',
-    a: 'Out of the box connectors include Microsoft 365 and Entra ID, Veeam Backup and Replication, Wazuh EDR and SIEM, Splunk SIEM, and AWS SSM. Custom webhook endpoints are also available for proprietary SIEM feeds.',
+    a: 'Microsoft 365 / Entra ID, AWS, Veeam Backup & Replication, Cisco Duo, Wazuh, Splunk, and a custom JSON webhook. The Trust page lists what each connector reads.',
   },
   {
     q: 'Can our Managed Service Provider (MSP) manage ResilAI on our behalf?',
-    a: 'Yes. ResilAI includes multi tenant workspace support and role based access controls, allowing MSPs and clinical IT partners to monitor readiness and export Monday morning boss reports across all their client practices from a single console.',
+    a: 'Partly. One account can hold several client organizations and switch between them, and the MSP Readiness Summary report gives each practice a hand-off page. There are no separate staff logins or roles yet: each organization has one owner account. Managing several organizations is part of the Enterprise plan.',
   },
 ];
 
@@ -387,6 +389,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
   // Interactive Product Canvas State
   type ProductTab = 'posture' | 'connectors' | 'ledger' | 'telemetry';
   const [productTab, setProductTab] = useState<ProductTab>('posture');
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   // Terminal Subtabs State
   const [terminalTab, setTerminalTab] = useState<'telemetry' | 'request' | 'response'>('telemetry');
@@ -420,25 +423,25 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
 
   useEffect(() => {
     const healthcareEvents = [
-      () => `[${new Date().toISOString()}] [INFO] Checked Epic EHR Clinical API - 200 OK`,
-      () => `[${new Date().toISOString()}] [SYNC] Synced Veeam Cloud Connect Immutable Snapshot ID v-9481`,
+      () => `[${new Date().toISOString()}] [INFO] Read Microsoft 365 sign-in policy - 200 OK`,
+      () => `[${new Date().toISOString()}] [SYNC] Read Veeam backup job results`,
       () => `[${new Date().toISOString()}] [POLL] Fetched clinical workstation posture: Score=86.5%`,
-      () => `[${new Date().toISOString()}] [INFO] HIPAA Security Rule §164.312(a)(2)(iv) verified`,
+      () => `[${new Date().toISOString()}] [INFO] HIPAA Security Rule §164.312(a)(2)(iv) encryption control checked`,
       () => `[${new Date().toISOString()}] [WARN] Endpoint latency drift: Clinic Workstation 04 (3.2d since scan)`,
       () => `[${new Date().toISOString()}] [SYNC] Microsoft 365 Entra ID conditional access policy matched`,
-      () => `[${new Date().toISOString()}] [INFO] Re-validating PACS imaging recovery SLA...`,
-      () => `[${new Date().toISOString()}] [SUCCESS] All 340 clinical telemetry loops validated`,
+      () => `[${new Date().toISOString()}] [INFO] Re-reading backup job results...`,
+      () => `[${new Date().toISOString()}] [SUCCESS] Sync complete: clinic checks re-scored`,
     ];
 
     const legalEvents = [
-      () => `[${new Date().toISOString()}] [INFO] Checked NetDocuments Vault API - 200 OK`,
+      () => `[${new Date().toISOString()}] [INFO] Read Microsoft 365 sign-in policy - 200 OK`,
       () => `[${new Date().toISOString()}] [SYNC] Synced ABA Formal Opinion 477R Control ID L-204`,
       () => `[${new Date().toISOString()}] [POLL] Fetched partner laptop disk encryption posture: Score=89.0%`,
-      () => `[${new Date().toISOString()}] [INFO] Elite 3E practice management ledger sync completed`,
+      () => `[${new Date().toISOString()}] [INFO] Read Veeam backup job results`,
       () => `[${new Date().toISOString()}] [WARN] Privileged share link expiration warning: 24h remaining`,
       () => `[${new Date().toISOString()}] [SYNC] Azure AD MFA enforcement matched for litigation team`,
       () => `[${new Date().toISOString()}] [INFO] Re-validating client document vault backup snapshot...`,
-      () => `[${new Date().toISOString()}] [SUCCESS] All 340 firm telemetry loops validated`,
+      () => `[${new Date().toISOString()}] [SUCCESS] Sync complete: firm checks re-scored`,
     ];
 
     const generalEvents = [
@@ -449,7 +452,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
       () => `[${new Date().toISOString()}] [WARN] Endpoint latency drift warning: min 14d, current 3.0d`,
       () => `[${new Date().toISOString()}] [SYNC] Telemetry logs matched OWASP AI Top 10 guidelines`,
       () => `[${new Date().toISOString()}] [INFO] Re-validating FastAPI core runtime status...`,
-      () => `[${new Date().toISOString()}] [SUCCESS] All 340 engineering log loops validated`,
+      () => `[${new Date().toISOString()}] [SUCCESS] Sync complete: checks re-scored`,
     ];
 
     const events =
@@ -513,7 +516,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
     if (currentVertical === 'healthcare') {
       return {
         title: 'Incident Readiness for Healthcare Organizations | ResilAI',
-        description: 'Deterministic incident readiness and ransomware defense for healthcare clinics. Protect clinical EHR systems, guarantee 4-hour RTO, and verify continuous HIPAA compliance.',
+        description: 'Deterministic incident readiness and ransomware defense for healthcare clinics. See whether backups can be restored and map your safeguards to the HIPAA Security Rule.',
         keywords: 'how to stop attacks on healthcare businesses, healthcare ransomware protection, clinical continuity, protect clinic EHR, HIPAA Security Rule, ResilAI',
         canonicalUrl: 'https://resilai.org/healthcare',
         schema: {
@@ -636,9 +639,9 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
               <span className="w-2 h-2 rounded-full bg-ready-emerald animate-pulse" />
               <span>
                 {currentVertical === 'healthcare'
-                  ? 'Continuous Clinical Continuity · HIPAA Verified'
+                  ? 'Continuous Clinical Continuity · Mapped to the HIPAA Security Rule'
                   : currentVertical === 'legal'
-                  ? 'Document Vault Protection · ABA 477R Verified'
+                  ? 'Document Vault Protection · Mapped to ABA Opinion 477R'
                   : 'Deterministic Engine · Non-LLM Readiness Scoring'}
               </span>
             </div>
@@ -677,10 +680,10 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
             {/* Specific Value Description */}
             <p className="text-sm sm:text-base text-on-surface-variant/90 max-w-2xl mx-auto leading-relaxed [text-wrap:pretty]">
               {currentVertical === 'healthcare'
-                ? "Connect Microsoft 365, Veeam Backup, Wazuh, and your EHR in under 15 minutes. Verify whether clinical workstations and immutable backups actually withstand attack before patient care is disrupted."
+                ? "Connect Microsoft 365, Veeam Backup and Wazuh through read-only access. Verify whether clinical workstations and backups actually withstand attack before patient care is disrupted."
                 : currentVertical === 'legal'
-                ? "Connect Microsoft 365, NetDocuments, Veeam, and partner laptops in under 15 minutes. Verify whether privileged client files and matter repositories remain protected before an extortion attempt occurs."
-                : "Connect Microsoft 365, Veeam Backup, Wazuh EDR, and Splunk in under 15 minutes. Transform raw telemetry into continuous mathematical readiness scoring without generative model hallucinations."}
+                ? "Connect Microsoft 365 and Veeam through read-only access. Verify whether the accounts, devices and backups behind privileged client files remain protected before an extortion attempt occurs."
+                : "Connect Microsoft 365, Veeam Backup, Wazuh EDR, and Splunk through read-only access. Transform raw telemetry into continuous mathematical readiness scoring without generative model hallucinations."}
             </p>
 
             {/* Primary Call to Action Stack */}
@@ -701,11 +704,24 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 <Sparkles className="w-4 h-4 text-ready-emerald shrink-0" />
                 <span>Explore Live Sandbox Demo</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setIsVideoModalOpen(true)}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 text-on-surface font-medium rounded-xl border border-outline-variant/60 bg-surface-container-low hover:bg-surface-container-high hover:border-ready-emerald/40 transition-all active:scale-[0.98] min-h-[48px] text-sm text-center cursor-pointer group"
+                data-testid="hero-video-cta"
+                aria-label="Watch 24-second product launch teaser video"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ready-emerald/15 text-ready-emerald group-hover:bg-ready-emerald group-hover:text-slate-950 transition-colors">
+                  <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                </span>
+                <span>Watch 24s Teaser</span>
+              </button>
             </div>
 
             {/* Risk Reversals */}
             <p className="text-xs text-on-surface-variant/80 font-medium">
-              15 minute setup · 100% agentless · No credit card required · Instant posture report
+              Read-only setup · No software installed · No credit card required
             </p>
 
             {/* Proof Signals Strip */}
@@ -717,18 +733,18 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
               </div>
               <div className="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/40">
                 <span className="text-[11px] font-mono text-on-surface-variant uppercase block">Deployment</span>
-                <span className="text-sm font-bold text-on-surface mt-0.5 block">&lt; 15 Minutes</span>
+                <span className="text-sm font-bold text-on-surface mt-0.5 block">Read-Only</span>
                 <span className="text-[11px] text-on-surface-variant/80">Zero workstation agents</span>
               </div>
               <div className="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/40">
                 <span className="text-[11px] font-mono text-on-surface-variant uppercase block">Evidence Integrity</span>
                 <span className="text-sm font-bold text-on-surface mt-0.5 block">SHA-256 Ledger</span>
-                <span className="text-[11px] text-on-surface-variant/80">Immutable audit chain</span>
+                <span className="text-[11px] text-on-surface-variant/80">Every evidence record hashed</span>
               </div>
               <div className="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/40">
-                <span className="text-[11px] font-mono text-on-surface-variant uppercase block">Recovery SLA</span>
-                <span className="text-sm font-bold text-on-surface mt-0.5 block">4-Hour RTO Proof</span>
-                <span className="text-[11px] text-on-surface-variant/80">Verified WORM storage</span>
+                <span className="text-[11px] font-mono text-on-surface-variant uppercase block">Backup Evidence</span>
+                <span className="text-sm font-bold text-on-surface mt-0.5 block">Restore Readiness</span>
+                <span className="text-[11px] text-on-surface-variant/80">Read from your backup system</span>
               </div>
             </div>
 
@@ -752,6 +768,12 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                   <span>{config.demoOrgName}</span>
                   <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-ready-emerald/10 text-ready-emerald border border-ready-emerald/20">
                     Active Workspace
+                  </span>
+                  <span
+                    className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-drift-amber/10 text-drift-amber border border-drift-amber/30"
+                    data-testid="landing-sample-data-label"
+                  >
+                    Sample data
                   </span>
                 </div>
               </div>
@@ -855,7 +877,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                           Regulatory Scope
                         </span>
                         <span className="text-base font-bold text-ready-emerald">
-                          {currentVertical === 'healthcare' ? 'HIPAA Verified' : currentVertical === 'legal' ? 'ABA 477R Verified' : 'NIST CSF 2.0'}
+                          {currentVertical === 'healthcare' ? 'HIPAA Security Rule' : currentVertical === 'legal' ? 'ABA Opinion 477R' : 'NIST CSF 2.0'}
                         </span>
                         <span className="text-[11px] text-on-surface-variant block mt-0.5">Continuous audit alignment</span>
                       </div>
@@ -1179,7 +1201,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
               <ul className="space-y-3 text-xs sm:text-sm text-on-surface">
                 <li className="flex items-start gap-2.5">
                   <CheckCircle className="w-4 h-4 text-ready-emerald shrink-0 mt-0.5" />
-                  <span>Continuous 24/7 telemetry sync from real infrastructure APIs</span>
+                  <span>Read-only sync from your real systems, not a questionnaire</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle className="w-4 h-4 text-ready-emerald shrink-0 mt-0.5" />
@@ -1187,15 +1209,63 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle className="w-4 h-4 text-ready-emerald shrink-0 mt-0.5" />
-                  <span>Cryptographic proof of immutable WORM storage and 4-hour RTO</span>
+                  <span>SHA-256 evidence ledger: every finding traceable to its source and time</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle className="w-4 h-4 text-ready-emerald shrink-0 mt-0.5" />
-                  <span>Pre mapped insurance binders accepted by Coalition, Chubb, and Travelers</span>
+                  <span>Cyber-insurance answer pack built from your evidence, with source and time</span>
                 </li>
               </ul>
             </div>
 
+          </div>
+
+          {/* Dedicated Launch Teaser Showcase Card */}
+          <div className="max-w-5xl mx-auto p-4 sm:p-6 rounded-2xl bg-surface-container-low border border-outline-variant/60 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 text-left w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setIsVideoModalOpen(true)}
+                className="relative w-24 h-14 rounded-xl overflow-hidden border border-outline-variant/80 shrink-0 bg-black flex items-center justify-center group cursor-pointer"
+                aria-label="Play ResilAI 24-second launch teaser video"
+                data-testid="showcase-video-thumbnail"
+              >
+                <img
+                  src="/videos/resilai-launch-teaser-poster.jpg"
+                  alt="ResilAI launch teaser preview thumbnail"
+                  className="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-colors">
+                  <div className="w-7 h-7 rounded-full bg-ready-emerald text-slate-950 flex items-center justify-center shadow-md">
+                    <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                  </div>
+                </div>
+              </button>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono uppercase font-bold text-ready-emerald tracking-wide">
+                    Product Teaser · 0:24
+                  </span>
+                </div>
+                <h4 className="text-sm sm:text-base font-bold text-on-surface">
+                  Continuous Telemetry in 24 Seconds
+                </h4>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  Watch live ingestion from Splunk, AWS, and Microsoft 365 into an immutable evidence ledger.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsVideoModalOpen(true)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold text-slate-950 bg-ready-emerald hover:bg-ready-emerald/90 transition-all cursor-pointer shrink-0 shadow-sm active:scale-[0.98]"
+              data-testid="showcase-video-cta"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Watch 24s Walkthrough</span>
+            </button>
           </div>
 
         </div>
@@ -1329,7 +1399,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 </div>
                 <h3 className="text-xl font-bold text-on-surface">How to Stop Attacks on Legal Firms</h3>
                 <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                  Protect confidential client matters, satisfy ABA Formal Opinion 477R, enforce hardware MFA, and secure NetDocuments document vaults against extortion.
+                  Protect confidential client matters, map your safeguards to ABA Formal Opinion 477R, check MFA coverage, and verify the backups behind your document systems.
                 </p>
                 <ul className="space-y-2 text-xs text-on-surface pt-2">
                   <li className="flex items-center gap-2">
@@ -1367,7 +1437,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
                 </div>
                 <h3 className="text-xl font-bold text-on-surface">How to Stop Attacks on Healthcare Businesses</h3>
                 <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                  Prevent clinical EHR shutdowns, isolate diagnostic imaging systems, guarantee 4-hour RTO, and enforce continuous HIPAA Security Rule compliance.
+                  Reduce the risk of clinical system shutdowns, check that backups can be restored, and map your safeguards to the HIPAA Security Rule.
                 </p>
                 <ul className="space-y-2 text-xs text-on-surface pt-2">
                   <li className="flex items-center gap-2">
@@ -1435,7 +1505,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
         <div className="max-w-3xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-xs font-mono font-medium border border-outline-variant/60">
             <Clock className="w-3.5 h-3.5 text-ready-emerald" />
-            <span>Deterministic verification in 15 minutes</span>
+            <span>Deterministic, read-only verification</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-on-surface [text-wrap:balance]">
@@ -1443,7 +1513,7 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
           </h2>
 
           <p className="text-sm sm:text-base text-on-surface-variant max-w-xl mx-auto leading-relaxed [text-wrap:pretty]">
-            Connect your infrastructure read only APIs in 15 minutes. Generate your first deterministic readiness report and Monday morning boss brief today.
+            Connect your systems through read-only access. Generate your first deterministic readiness report and Monday morning boss brief once the first sync completes.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
@@ -1470,6 +1540,16 @@ export default function Landing({ defaultVertical }: LandingProps = {}) {
           </p>
         </div>
       </section>
+
+      {/* Video Modal (0:24 Product Launch Teaser) */}
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        videoSrc="/videos/resilai-launch-teaser.mp4"
+        posterSrc="/videos/resilai-launch-teaser-poster.jpg"
+        title="ResilAI Platform Launch Teaser"
+        caption="Illustrative scenario: Overnight continuous telemetry verification for a clinical practice."
+      />
 
       {/* Footer */}
       <Footer />

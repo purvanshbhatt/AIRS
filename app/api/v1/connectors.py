@@ -395,21 +395,39 @@ async def update_connector(
 @router.delete(
     "/{connector_id}",
     status_code=204,
-    summary="Deactivate connector",
-    description="Soft-deletes a connector. Audit trail and telemetry events are preserved.",
+    summary="Remove connector",
+    description=(
+        "Erases the connector: its stored keys, its sync history, the events it ingested and the "
+        "evidence records built from them. This cannot be undone. Reports already generated and score "
+        "history are kept. To pause a connector without erasing anything, PATCH it with "
+        "`status: inactive`."
+    ),
 )
-async def deactivate_connector(
+async def delete_connector(
     connector_id: str,
     org_id: Optional[str] = ORG_ID_QUERY,
     user: User = Depends(require_auth),
     db: Session = Depends(get_db),
 ):
+    from fastapi.concurrency import run_in_threadpool
+    from app.services.audit import record_audit_event
+    from app.services.data_erasure import ErasureError
+
     org_id = _get_org_id(user, db, org_id)
     mgr = ConnectorManager(db, org_id)
     try:
-        mgr.deactivate_connector(connector_id)
+        connector_type = str(getattr(mgr.get_connector(connector_id), "connector_type", "") or "connector")
+        connector_type = connector_type.split(".")[-1]
+        await run_in_threadpool(mgr.delete_connector, connector_id)
     except ConnectorNotFoundError:
         raise HTTPException(status_code=404, detail="Connector not found")
+    except ErasureError as exc:
+        logger.error("Connector erasure failed for %s (org=%s): %s", connector_id, org_id, exc)
+        raise HTTPException(
+            status_code=503,
+            detail="The connector could not be fully erased. Nothing was reported as deleted; try again.",
+        )
+    record_audit_event(db, org_id, f"connector.{connector_type}.deleted", user.uid)
 
 
 # =============================================================================

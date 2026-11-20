@@ -282,7 +282,7 @@ export default function AgentAuditDetailPage() {
 
       {/* Paywall Banner if 402 */}
       {paywallError && (
-        <div className="p-6 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl">
+        <div className="p-6 bg-surface-container-low border border-amber-500/30 rounded-2xl shadow-xs">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
               <Lock className="w-6 h-6" />
@@ -295,7 +295,7 @@ export default function AgentAuditDetailPage() {
               <div className="mt-4 flex items-center gap-3">
                 <button
                   onClick={() => navigate('/pricing')}
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs uppercase tracking-wider rounded-lg transition-colors"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors cursor-pointer"
                 >
                   View Plans & Enroll
                 </button>
@@ -351,7 +351,7 @@ export default function AgentAuditDetailPage() {
             <button
               onClick={handleRunAnalysis}
               disabled={evaluating}
-              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary text-xs font-semibold rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 text-xs font-bold rounded-xl shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer"
             >
               <Play className={`w-3.5 h-3.5 ${evaluating ? 'animate-spin' : ''}`} />
               {evaluating ? 'Evaluating Blast Radius...' : 'Run Deterministic Analysis'}
@@ -545,7 +545,7 @@ export default function AgentAuditDetailPage() {
                     <button
                       onClick={() => handleRemediateFinding(f.finding_id)}
                       disabled={remediatingId === f.finding_id}
-                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50"
+                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50 cursor-pointer"
                     >
                       <Wrench className="w-3.5 h-3.5" />
                       {remediatingId === f.finding_id ? 'Applying Policy...' : 'Fix Issue Now'}

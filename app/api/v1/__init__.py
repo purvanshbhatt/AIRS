@@ -8,10 +8,14 @@ Exposes:
   POST /api/v1/integrations/siem/event    — legacy SIEM webhook ingestion
   POST /api/v1/telemetry/webhook/event    — canonical governance webhook (Module 2)
   GET  /api/v1/network/topology    — real network map (connectors, assets, telemetry)
+  GET  /api/v1/reference/openapi   — customer-safe API reference for the in-app explorer
+  GET  /api/v1/reference/status    — live API status for the in-app explorer
+  GET  /api/v1/questionnaires/insurance      — cyber-insurance answer pack from live evidence
+  GET  /api/v1/questionnaires/insurance/pdf  — the same pack as a PDF to review and sign
 """
 
 from fastapi import APIRouter
-from app.api.v1 import methodology, pilot_leads, integrations, telemetry, frameworks, config, governance_webhook, connectors, telemetry_events, mobile, inventory, continuous_scoring, simulations, policies, metrics, telemetry_roi, intelligence, control_verification, readiness, technology, decisions, reports, evidence, network
+from app.api.v1 import methodology, pilot_leads, integrations, telemetry, frameworks, config, governance_webhook, connectors, telemetry_events, mobile, inventory, continuous_scoring, simulations, policies, metrics, telemetry_roi, intelligence, control_verification, readiness, technology, decisions, reports, evidence, network, api_reference, questionnaires, ai_act
 
 router = APIRouter()
 router.include_router(config.router, tags=["config"])
@@ -20,6 +24,7 @@ router.include_router(pilot_leads.router, tags=["pilot"])
 router.include_router(integrations.router, tags=["integrations"])
 router.include_router(telemetry.router, tags=["telemetry"])
 router.include_router(frameworks.router, tags=["frameworks"])
+router.include_router(ai_act.router)
 router.include_router(governance_webhook.router, tags=["governance"])
 router.include_router(connectors.router, tags=["connectors"])
 router.include_router(network.router, tags=["network"])
@@ -38,3 +43,5 @@ router.include_router(readiness.router, tags=["readiness"])
 router.include_router(technology.router, tags=["technology"])
 router.include_router(decisions.router, tags=["decisions"])
 router.include_router(evidence.router, tags=["evidence"])
+router.include_router(api_reference.router, tags=["reference"])
+router.include_router(questionnaires.router, tags=["questionnaires"])

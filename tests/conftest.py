@@ -59,6 +59,7 @@ def _mock_firestore_if_no_emulator():
     patchers = [
         patch("app.db.firestore.firestore_save_org", return_value=True),
         patch("app.db.firestore.firestore_delete_org", return_value=True),
+        patch("app.db.firestore.firestore_purge_org_documents", return_value=0),
         patch("app.db.firestore.firestore_save_assessment", return_value=True),
         patch("app.db.firestore.firestore_delete_assessment", return_value=True),
         patch(

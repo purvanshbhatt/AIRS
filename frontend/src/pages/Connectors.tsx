@@ -311,6 +311,8 @@ export default function ConnectorsPage() {
   const [healthCheckingId, setHealthCheckingId] = useState<string | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [modalPaywallError, setModalPaywallError] = useState<string | null>(null);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -336,6 +338,7 @@ export default function ConnectorsPage() {
 
   // Open configuration modal
   const handleOpenConfig = (def: ConnectorCardDef) => {
+    setConfirmingRemove(false);
     const existing = registeredConnectors.find(c => c.connector_type === def.type);
     const initial: Record<string, string> = {};
     
@@ -582,6 +585,33 @@ export default function ConnectorsPage() {
     }
   };
 
+  // Remove a connection: erases its stored keys and everything collected through it.
+  const handleRemoveConnector = async () => {
+    if (!activeConfigDef) return;
+    const existing = registeredConnectors.find(c => c.connector_type === activeConfigDef.type);
+    if (!existing) return;
+    try {
+      setRemoving(true);
+      await deleteConnector(existing.id, orgId);
+      addToast({
+        title: 'Connection removed',
+        message: `${activeConfigDef.name} was removed. Its stored keys and collected evidence were erased.`,
+        type: 'success',
+      });
+      setActiveConfigDef(null);
+      await loadData();
+    } catch (err: any) {
+      addToast({
+        title: 'Could not remove connection',
+        message: err?.message || 'Nothing was removed. Try again.',
+        type: 'error',
+      });
+    } finally {
+      setRemoving(false);
+      setConfirmingRemove(false);
+    }
+  };
+
   // Test Health
   const handleTestHealth = async (def: ConnectorCardDef) => {
     const registered = registeredConnectors.find(c => c.connector_type === def.type);
@@ -724,6 +754,15 @@ export default function ConnectorsPage() {
 
   const activeCount = CONNECTOR_DEFINITIONS.filter(d => getConnectorStatus(d) === 'CONNECTED').length;
   const hasLiveConnector = registeredConnectors.some(c => c.status === 'active' || c.status === 'syncing');
+  // The newest sync any connector reports, or a plain "no sync yet". Nothing
+  // here promises a refresh interval.
+  const latestSyncMs = registeredConnectors
+    .map(c => (c.last_sync_at ? new Date(c.last_sync_at).getTime() : NaN))
+    .filter(t => !Number.isNaN(t))
+    .sort((a, b) => b - a)[0];
+  const latestSyncLabel = latestSyncMs
+    ? `Last sync ${new Date(latestSyncMs).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`
+    : activeCount > 0 ? 'No sync yet' : 'No Feed';
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -859,7 +898,7 @@ export default function ConnectorsPage() {
         <div className="flex items-center gap-3 bg-surface-container px-4 py-2.5 rounded-xl border border-outline-variant/30 shrink-0">
           <span className="text-xs font-mono text-on-surface-variant">Data Freshness:</span>
           <span className="text-xs font-mono text-ready-emerald font-bold">
-            {activeCount > 0 || isDemo ? 'Real-time (< 15m)' : 'No Feed'}
+            {isDemo ? 'Real-time (< 15m)' : latestSyncLabel}
           </span>
         </div>
       </div>
@@ -976,7 +1015,7 @@ export default function ConnectorsPage() {
               <div className="pt-4 border-t border-surface-bright flex flex-wrap items-center justify-between gap-3">
                 <span className="text-[11px] font-mono text-on-surface-variant">
                   {isConnected 
-                    ? (isDemo ? 'Last Sync: 2m ago' : `Last Sync: ${registered?.last_sync_at ? new Date(registered.last_sync_at).toLocaleTimeString() : 'Recent'}`)
+                    ? (isDemo ? 'Last Sync: 2m ago' : `Last Sync: ${registered?.last_sync_at ? new Date(registered.last_sync_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'not yet'}`)
                     : 'Last Sync: Never'}
                 </span>
 
@@ -1186,6 +1225,39 @@ export default function ConnectorsPage() {
                     <span>View Subscription Plans</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
+                ) : registeredConnectors.some(c => c.connector_type === activeConfigDef.type) ? (
+                  confirmingRemove ? (
+                    <div className="flex flex-wrap items-center gap-2" data-testid="connector-remove-confirm">
+                      <span className="text-xs text-on-surface-variant">
+                        Erase its stored keys and collected evidence? This cannot be undone.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleRemoveConnector}
+                        disabled={removing}
+                        className="px-3 py-2 rounded-xl text-xs font-bold text-critical-red border border-critical-red/40 hover:bg-critical-red/10 disabled:opacity-50"
+                      >
+                        {removing ? 'Removing...' : 'Yes, remove'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmingRemove(false)}
+                        disabled={removing}
+                        className="px-3 py-2 rounded-xl text-xs font-semibold text-on-surface-variant hover:bg-surface-container"
+                      >
+                        Keep
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingRemove(true)}
+                      className="px-3 py-2 text-xs font-semibold text-on-surface-variant hover:text-critical-red hover:underline"
+                      data-testid="connector-remove"
+                    >
+                      Remove connection
+                    </button>
+                  )
                 ) : (
                   <div />
                 )}

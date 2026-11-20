@@ -99,6 +99,21 @@ class TelemetryEvent(Base):
         server_default=func.now(),
         comment="Row creation timestamp.",
     )
+    last_seen_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="UTC time the source system last reported this event again. Null until it is reported a second time.",
+    )
+
+    @property
+    def seen_at(self):
+        """When the source system last reported this event (first stored, if never again)."""
+        return self.last_seen_at or self.created_at
+
+    @classmethod
+    def seen_at_column(cls):
+        """SQL form of ``seen_at`` for filters and ordering."""
+        return func.coalesce(cls.last_seen_at, cls.created_at)
 
     __table_args__ = (
         UniqueConstraint(

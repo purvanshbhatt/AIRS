@@ -1,0 +1,357 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  ResilAI connector test organization. A small, short-lived AWS environment
+  for testing the ResilAI AWS connector and network map against real data:
+  one VPC with a public and a private subnet, three t3.micro instances, a
+  site-to-site VPN to a pretend office (tunnels stay down, nothing answers),
+  and a read-only IAM user whose access key is stored in Secrets Manager.
+  Nothing here is reachable from the internet. Delete the stack after testing.
+
+Parameters:
+  OrgSlug:
+    Type: String
+    Default: lakeside-clinic
+    Description: Short slug used in resource names.
+    AllowedPattern: '[a-z0-9-]+'
+  VpcCidr:
+    Type: String
+    Default: 10.40.0.0/16
+  OfficeCidr:
+    Type: String
+    Default: 192.168.10.0/24
+    Description: Address range of the pretend office behind the VPN.
+  OfficePublicIp:
+    Type: String
+    Default: 203.0.113.10
+    Description: >
+      Public address of the pretend office firewall. The default is from the
+      documentation range (TEST-NET-3), so the VPN tunnels never come up.
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  InstanceType:
+    Type: String
+    Default: t3.micro
+
+Resources:
+  # -- Network -----------------------------------------------------------
+  TestVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-cloud-network'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+        - {Key: Owner, Value: ResilAI}
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref TestVPC
+      CidrBlock: !Select [0, !Cidr [!Ref VpcCidr, 4, 8]]
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-public'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref TestVPC
+      CidrBlock: !Select [1, !Cidr [!Ref VpcCidr, 4, 8]]
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-private'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-internet-gateway'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref TestVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TestVPC
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-public-routes'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  # The private subnet has no route to the internet gateway on purpose.
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TestVPC
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-private-routes'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  PrivateSubnetRouteAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  # -- Site-to-site VPN to the pretend office -----------------------------
+  VpnGateway:
+    Type: AWS::EC2::VPNGateway
+    Properties:
+      Type: ipsec.1
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-vpn-gateway'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  VpnGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref TestVPC
+      VpnGatewayId: !Ref VpnGateway
+
+  OfficeGateway:
+    Type: AWS::EC2::CustomerGateway
+    Properties:
+      Type: ipsec.1
+      BgpAsn: 65000
+      IpAddress: !Ref OfficePublicIp
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-office-firewall'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  OfficeVpn:
+    Type: AWS::EC2::VPNConnection
+    DependsOn: VpnGatewayAttachment
+    Properties:
+      Type: ipsec.1
+      StaticRoutesOnly: true
+      CustomerGatewayId: !Ref OfficeGateway
+      VpnGatewayId: !Ref VpnGateway
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-office-to-cloud-vpn'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  OfficeVpnRoute:
+    Type: AWS::EC2::VPNConnectionRoute
+    Properties:
+      VpnConnectionId: !Ref OfficeVpn
+      DestinationCidrBlock: !Ref OfficeCidr
+
+  # -- Security groups ----------------------------------------------------
+  # Deliberate finding: admin ports open to the world. It is attached only
+  # to the instance in the private subnet, which has no public address and
+  # no internet route, so nothing can actually reach it.
+  OpenAdminSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'TEST MISCONFIG - SSH and RDP rules open to the world (instance is not reachable)'
+      VpcId: !Ref TestVPC
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: 0.0.0.0/0}
+        - {IpProtocol: tcp, FromPort: 3389, ToPort: 3389, CidrIp: 0.0.0.0/0}
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-open-admin-rules'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  InternalSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Internal traffic only - HTTPS from the cloud network and the office'
+      VpcId: !Ref TestVPC
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: !Ref VpcCidr}
+        - {IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: !Ref OfficeCidr}
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-internal-rules'}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  # -- Instances (no SSH keys; Systems Manager only) ------------------------
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'resilai-test-${OrgSlug}-instance-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ec2.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub 'resilai-test-${OrgSlug}-instance-profile'
+      Roles: [!Ref InstanceRole]
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub 'resilai-test-${OrgSlug}-launch-template'
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile: {Arn: !GetAtt InstanceProfile.Arn}
+        MetadataOptions: {HttpTokens: required, HttpPutResponseHopLimit: 1}
+        Monitoring: {Enabled: false}
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - {Key: Environment, Value: ResilAI-Connector-Test}
+              - {Key: Owner, Value: ResilAI}
+        UserData:
+          Fn::Base64: |
+            #!/bin/bash
+            # Give the software inventory something to report.
+            dnf -y install nginx postgresql15 >/dev/null 2>&1 || true
+            systemctl enable --now nginx >/dev/null 2>&1 || true
+
+  # Application server: public subnet, internal-only rules, managed by SSM.
+  AppServer:
+    Type: AWS::EC2::Instance
+    DependsOn: PublicRoute
+    Properties:
+      LaunchTemplate: {LaunchTemplateId: !Ref LaunchTemplate, Version: !GetAtt LaunchTemplate.LatestVersionNumber}
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref InternalSecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: {VolumeSize: 8, VolumeType: gp3, Encrypted: true, DeleteOnTermination: true}
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-ehr-app-server'}
+        - {Key: Role, Value: ehr-app-server}
+        - {Key: Department, Value: ClinicalIT}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  # Front desk workstation: public subnet, internal-only rules, managed by SSM.
+  FrontDeskWorkstation:
+    Type: AWS::EC2::Instance
+    DependsOn: PublicRoute
+    Properties:
+      LaunchTemplate: {LaunchTemplateId: !Ref LaunchTemplate, Version: !GetAtt LaunchTemplate.LatestVersionNumber}
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref InternalSecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: {VolumeSize: 8, VolumeType: gp3, Encrypted: true, DeleteOnTermination: true}
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-front-desk-workstation'}
+        - {Key: Role, Value: front-desk-workstation}
+        - {Key: Department, Value: FrontOffice}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  # Backup server: private subnet, carries the open admin rules and an
+  # unencrypted disk as deliberate findings. Unreachable from outside, and
+  # without internet it is also not managed by SSM (a realistic gap).
+  BackupServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate: {LaunchTemplateId: !Ref LaunchTemplate, Version: !GetAtt LaunchTemplate.LatestVersionNumber}
+      SubnetId: !Ref PrivateSubnet
+      SecurityGroupIds: [!Ref OpenAdminSecurityGroup]
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs: {VolumeSize: 8, VolumeType: gp3, Encrypted: false, DeleteOnTermination: true}
+      Tags:
+        - {Key: Name, Value: !Sub '${OrgSlug}-backup-server'}
+        - {Key: Role, Value: backup-server}
+        - {Key: Department, Value: ClinicalIT}
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+  # Software inventory for the SSM-managed instances (feeds Software Watch).
+  SoftwareInventory:
+    Type: AWS::SSM::Association
+    Properties:
+      AssociationName: !Sub 'resilai-test-${OrgSlug}-software-inventory'
+      Name: AWS-GatherSoftwareInventory
+      ScheduleExpression: rate(30 minutes)
+      Targets:
+        - Key: tag:Environment
+          Values: [ResilAI-Connector-Test]
+      Parameters:
+        applications: [Enabled]
+        awsComponents: [Enabled]
+        networkConfig: [Enabled]
+
+  # -- Read-only identity for the ResilAI connector ------------------------
+  ConnectorUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub 'resilai-test-${OrgSlug}-connector-readonly'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+      Policies:
+        - PolicyName: resilai-connector-read
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:GetCallerIdentity
+                  - securityhub:GetFindings
+                  - securityhub:DescribeHub
+                  - securityhub:GetEnabledStandards
+                  - guardduty:ListDetectors
+                  - ec2:Describe*
+                  - rds:DescribeDBInstances
+                  - iam:GetAccountSummary
+                  - iam:GenerateCredentialReport
+                  - iam:GetCredentialReport
+                  - ssm:DescribeInstanceInformation
+                  - ssm:ListInventoryEntries
+                Resource: '*'
+      Tags:
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+        - {Key: Purpose, Value: Read-only access for the ResilAI AWS connector}
+
+  ConnectorAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref ConnectorUser
+
+  # The key is written straight into Secrets Manager. It never appears in
+  # stack outputs, logs or a terminal.
+  ConnectorKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub 'resilai-test/${OrgSlug}/connector-access-key'
+      Description: Read-only access key for the ResilAI connector test. Removed with the stack.
+      SecretString: !Sub '{"aws_access_key_id":"${ConnectorAccessKey}","aws_secret_access_key":"${ConnectorAccessKey.SecretAccessKey}","aws_region":"${AWS::Region}"}'
+      Tags:
+        - {Key: Environment, Value: ResilAI-Connector-Test}
+
+Outputs:
+  VpcId: {Value: !Ref TestVPC}
+  VpnConnectionId: {Value: !Ref OfficeVpn}
+  ConnectorUserName: {Value: !Ref ConnectorUser}
+  ConnectorKeySecretName:
+    Description: Open this secret in the AWS console to copy the access key into ResilAI.
+    Value: !Sub 'resilai-test/${OrgSlug}/connector-access-key'
+  Region: {Value: !Ref 'AWS::Region'}

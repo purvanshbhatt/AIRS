@@ -31,6 +31,26 @@ vi.mock('../../api');
 vi.mock('../../hooks/useActiveOrg');
 vi.mock('../../contexts/AuthContext');
 
+/**
+ * The bundled sample content on the Documents and Governance pages is shown
+ * only in the demo workspace. A real organisation sees its own data
+ * (covered in governance-documents-live.test.tsx).
+ */
+function enterDemoWorkspace() {
+  vi.spyOn(useActiveOrgHook, 'useActiveOrg').mockReturnValue({
+    orgId: 'demo-health-org',
+    orgName: 'Acme Health Systems (Demo)',
+    org: null,
+    orgs: [],
+    isDemo: true,
+    hasOrg: true,
+    loading: false,
+    selectOrg: vi.fn(),
+    resetOrg: vi.fn(),
+    refresh: vi.fn(),
+  } as any);
+}
+
 describe('Tier 1: Feature Coverage (R1 - R8)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -120,6 +140,8 @@ describe('Tier 1: Feature Coverage (R1 - R8)', () => {
     });
 
     it('T1.R1.04: Stage 4 (What Should We Do) provides interactive fix trigger with executing state', async () => {
+      // The fix flow is simulated and exists only in the demo workspace.
+      enterDemoWorkspace();
       const mockReport = createMockDailyReadinessReport();
       vi.mocked(api.getDailyReadinessReport).mockResolvedValue(mockReport);
       vi.mocked(api.triggerProblemFix).mockResolvedValue({ status: 'dispatched' } as any);
@@ -538,6 +560,7 @@ describe('Tier 1: Feature Coverage (R1 - R8)', () => {
     });
 
     it('T1.R7.02: Evidence Vault presents audit-ready folders and disaster recovery playbooks', async () => {
+      enterDemoWorkspace();
       renderWithRouter(<DocumentsPage />);
 
       await waitFor(() => {
@@ -574,6 +597,7 @@ describe('Tier 1: Feature Coverage (R1 - R8)', () => {
     });
 
     it('T1.R7.04: Governance page frames framework compliance as "Readiness evidence aligned to..."', async () => {
+      enterDemoWorkspace();
       vi.mocked(api.getGovernanceHealthIndex).mockResolvedValue(createMockGovernanceData() as any);
       vi.mocked(api.getApplicableFrameworks).mockResolvedValue(createMockFrameworks() as any);
 
@@ -588,6 +612,7 @@ describe('Tier 1: Feature Coverage (R1 - R8)', () => {
     });
 
     it('T1.R7.05: Compliance Drift Tracking table displays baseline, telemetry state, and variance', async () => {
+      enterDemoWorkspace();
       vi.mocked(api.getGovernanceHealthIndex).mockResolvedValue(createMockGovernanceData() as any);
       vi.mocked(api.getApplicableFrameworks).mockResolvedValue(createMockFrameworks() as any);
 

@@ -1087,6 +1087,98 @@ export const updateOrganizationProfile = (orgId: string, data: import('./types')
   );
 
 // =============================================================================
+// EU AI ACT — system inventory and first risk classification
+// =============================================================================
+
+export type AIActRiskClass = 'prohibited' | 'high' | 'limited' | 'minimal';
+export type AIActDutyStatus = 'not_answered' | 'in_place' | 'not_in_place';
+export type AIActRole = 'deployer' | 'provider';
+
+export interface AIActOption {
+  key: string;
+  article: string;
+  text: string;
+}
+
+export interface AIActQuestionnaire {
+  regulation: string;
+  scope_note: string;
+  roles: { key: AIActRole; text: string }[];
+  sections: { id: string; title: string; article: string; help: string; options: AIActOption[] }[];
+  statuses: AIActDutyStatus[];
+  disclaimer: string;
+}
+
+export interface AIActDuty {
+  id: string;
+  article: string;
+  title: string;
+  detail: string;
+  /** "supplier" means the duty sits with whoever built the system. */
+  duty_of: 'you' | 'supplier';
+  /** The owner's own statement. Never verified by ResilAI. */
+  status: AIActDutyStatus;
+}
+
+export interface AIActSystem {
+  id: string;
+  org_id: string;
+  name: string;
+  purpose: string;
+  vendor: string | null;
+  role: AIActRole;
+  answers: Record<string, boolean>;
+  risk_class: AIActRiskClass;
+  risk_label: string;
+  basis: { article: string; text: string }[];
+  obligations: AIActDuty[];
+  exception_note: string | null;
+  disclaimer: string;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface AIActSystemInput {
+  name: string;
+  purpose: string;
+  vendor?: string | null;
+  role: AIActRole;
+  answers: Record<string, boolean>;
+}
+
+export interface AIActSystemList {
+  org_id: string;
+  systems: AIActSystem[];
+  total: number;
+  by_risk_class: Record<AIActRiskClass, number>;
+  disclaimer: string;
+}
+
+export const getAIActQuestionnaire = () =>
+  request<AIActQuestionnaire>('/api/v1/ai-act/questionnaire');
+
+export const listAIActSystems = (orgId: string) =>
+  request<AIActSystemList>(`/api/v1/ai-act/${encodeURIComponent(orgId)}/systems`);
+
+export const createAIActSystem = (orgId: string, data: AIActSystemInput) =>
+  request<AIActSystem>(`/api/v1/ai-act/${encodeURIComponent(orgId)}/systems`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const setAIActDutyStatus = (orgId: string, systemId: string, dutyId: string, status: AIActDutyStatus) =>
+  request<AIActSystem>(
+    `/api/v1/ai-act/${encodeURIComponent(orgId)}/systems/${encodeURIComponent(systemId)}/obligations/${encodeURIComponent(dutyId)}`,
+    { method: 'PUT', body: JSON.stringify({ status }) }
+  );
+
+export const deleteAIActSystem = (orgId: string, systemId: string) =>
+  request<{ status: string; id: string }>(
+    `/api/v1/ai-act/${encodeURIComponent(orgId)}/systems/${encodeURIComponent(systemId)}`,
+    { method: 'DELETE' }
+  );
+
+// =============================================================================
 // GOVERNANCE — Compliance Applicability
 // =============================================================================
 
@@ -1670,6 +1762,31 @@ export const getBoardStoryPdfUrl = (orgId: string): string => {
   return `${base}/api/v1/reports/board-story.pdf?org_id=${encodeURIComponent(orgId)}`;
 };
 
+/**
+ * Downloads the Board Story PDF with the caller's sign-in attached.
+ * The endpoint only serves the organisation's owner, so a plain link cannot be used.
+ */
+export const downloadBoardStoryPdf = async (orgId: string): Promise<void> => {
+  const authHeaders = await getAuthHeaders();
+  const response = await fetch(getBoardStoryPdfUrl(orgId), { headers: authHeaders });
+  if (response.status === 401) {
+    handleUnauthorized();
+    throw new ApiRequestError({ message: 'Sign in to download the board story.', status: 401 });
+  }
+  if (!response.ok) {
+    throw new ApiRequestError({ message: 'Failed to download the board story.', status: response.status });
+  }
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = 'board-story.pdf';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
+};
+
 export const getRecommendedActions = (orgId: string) =>
   request<RecommendedAction[]>(`/api/v1/decisions/recommended-actions/${orgId}`);
 
@@ -1994,30 +2111,58 @@ export interface EvidenceLedgerItem {
   evidence_hash: string;
 }
 
-export const getEvidencePackages = async (orgId?: string) => ({
-  hipaa: { available: true },
-  security: { available: true },
-  backup: { available: true },
-});
+// Evidence packages are bundled sample content: only the demo workspace
+// (org ids starting with `demo-`) may be told a package is available. A real
+// organisation is never told a package exists that was not built for it.
+export const getEvidencePackages = async (orgId?: string) => {
+  const available = Boolean(orgId && orgId.startsWith('demo-'));
+  return {
+    hipaa: { available },
+    security: { available },
+    backup: { available },
+  };
+};
 
-export const getEvidenceLedger = async (orgId?: string, limit?: number): Promise<EvidenceLedgerItem[]> => [
-  {
-    id: 'led-1',
-    timestamp: new Date().toISOString(),
-    source_name: 'Veeam Backup & Replication',
-    event_type: 'Immutable Snapshot Check',
-    verification_status: 'verified',
-    evidence_hash: 'sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
-  },
-  {
-    id: 'led-2',
-    timestamp: new Date(Date.now() - 3600000).toISOString(),
-    source_name: 'Microsoft 365 Graph API',
-    event_type: 'MFA Enforcement Audit',
-    verification_status: 'verified',
-    evidence_hash: 'sha256:9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72',
-  },
-];
+// Evidence ledger (audit trail). Demo workspaces (org ids starting with
+// `demo-`) get the bundled sample rows. Every other organisation is read from
+// GET /api/v1/evidence/ledger; a failure is thrown to the caller, never
+// replaced with sample rows.
+export const getEvidenceLedger = async (orgId?: string, limit?: number): Promise<EvidenceLedgerItem[]> => {
+  if (!orgId) return [];
+
+  if (orgId.startsWith('demo-')) {
+    return [
+      {
+        id: 'led-1',
+        timestamp: new Date().toISOString(),
+        source_name: 'Veeam Backup & Replication',
+        event_type: 'Immutable Snapshot Check',
+        verification_status: 'verified',
+        evidence_hash: 'sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
+      },
+      {
+        id: 'led-2',
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        source_name: 'Microsoft 365 Graph API',
+        event_type: 'MFA Enforcement Audit',
+        verification_status: 'verified',
+        evidence_hash: 'sha256:9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72',
+      },
+    ];
+  }
+
+  const params = new URLSearchParams({ org_id: orgId, limit: String(limit ?? 50) });
+  const rows = await request<any[]>(`/api/v1/evidence/ledger?${params.toString()}`);
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => ({
+    id: String(row?.id ?? ''),
+    timestamp: row?.timestamp ? String(row.timestamp) : '',
+    source_name: row?.source_name ? String(row.source_name) : '',
+    event_type: row?.event_type ? String(row.event_type) : '',
+    verification_status: row?.verification_status ? String(row.verification_status) : '',
+    evidence_hash: row?.evidence_hash ? String(row.evidence_hash) : '',
+  }));
+};
 
 // =============================================================================
 // CONNECTORS MANAGEMENT API (V1)
@@ -2193,6 +2338,89 @@ export interface NetworkTopologyResponse {
 
 export const getNetworkTopology = (orgId: string) =>
   request<NetworkTopologyResponse>(`/api/v1/network/topology?org_id=${encodeURIComponent(orgId)}`);
+
+// =============================================================================
+// QUESTIONNAIRE ANSWER PACKS (deterministic answers from live evidence)
+// =============================================================================
+
+export type QuestionnaireAnswerValue = 'yes' | 'no' | 'partial' | 'not_verified' | 'human_only';
+
+export interface QuestionnaireAnswer {
+  id: string;
+  topic: string;
+  topic_label: string;
+  question: string;
+  help: string | null;
+  mode: 'telemetry' | 'human';
+  value: QuestionnaireAnswerValue;
+  value_label: string;
+  /** Plain-English sentence saying what the evidence shows. */
+  basis: string;
+  /** Connected source(s) the answer rests on; null when nothing was used. */
+  evidence_source: string | null;
+  /** Oldest observation the answer rests on (ISO); null when nothing was used. */
+  evidence_time: string | null;
+  evidence: { source: string; source_label: string; observed_at: string | null }[];
+  coverage: { checked: string[]; not_checked: string[] };
+}
+
+export interface QuestionnaireSource {
+  source: string;
+  label: string;
+  state: 'fresh' | 'stale' | 'failed' | 'no_data' | 'not_connected';
+  reason: string | null;
+  as_of: string | null;
+}
+
+export interface InsuranceAnswerPack {
+  questionnaire: { id: string; title: string; version: string };
+  organization: { id: string; name: string; is_demo: boolean };
+  is_demo: boolean;
+  data_label: string;
+  generated_at: string;
+  evidence_max_age_hours: number;
+  /** "You attest. ResilAI shows the evidence it has, as of <time>." */
+  notice: string;
+  attestation: { statement: string; submitted_by_resilai: boolean };
+  summary: {
+    total: number;
+    counts: Record<QuestionnaireAnswerValue, number>;
+    from_evidence: number;
+    generated_at: string;
+    question_bank_version: string;
+  };
+  topics: { id: string; label: string }[];
+  sources: QuestionnaireSource[];
+  answers: QuestionnaireAnswer[];
+}
+
+export const getInsuranceAnswerPack = (orgId: string) =>
+  request<InsuranceAnswerPack>(`/api/v1/questionnaires/insurance?org_id=${encodeURIComponent(orgId)}`);
+
+/** The same pack as a PDF (notice on page one, blank signature block). */
+export async function downloadInsuranceAnswerPackPdf(orgId: string): Promise<Blob> {
+  let authHeaders: Record<string, string> = {};
+  try {
+    authHeaders = await getAuthHeaders();
+  } catch {
+    authHeaders = {};
+  }
+  const url = `${getApiBaseUrl()}/api/v1/questionnaires/insurance/pdf?org_id=${encodeURIComponent(orgId)}`;
+  let response: Response;
+  try {
+    response = await fetch(url, { headers: authHeaders });
+  } catch {
+    throw new ApiRequestError({ message: 'Unable to download the answer pack. Check your connection.' });
+  }
+  if (response.status === 401) {
+    handleUnauthorized();
+    throw new ApiRequestError({ message: 'Sign in to download the answer pack.', status: 401 });
+  }
+  if (!response.ok) {
+    throw new ApiRequestError({ message: 'Could not build the answer pack PDF.', status: response.status });
+  }
+  return response.blob();
+}
 
 // =============================================================================
 // BILLING & CAPABILITIES
@@ -2749,3 +2977,162 @@ export const scanWebAsset = (orgId: string, assetId: string) =>
 
 export const getTechDeployments = (orgId: string) =>
   request<TechDeploymentsResponse>(techPath(orgId, 'deployments'));
+
+// =============================================================================
+// IN-APP API EXPLORER (/api/v1/reference)
+// =============================================================================
+
+/** What the API explorer is allowed to see of a response. Never the token. */
+export interface RawApiResponse {
+  status: number;
+  ok: boolean;
+  durationMs: number;
+  /** Only the headers the explorer shows: content-type and x-request-id. */
+  headers: Record<string, string>;
+  /** Response body as text, cut at `maxBodyChars`. Empty when `readBody` is false. */
+  bodyText: string;
+  truncated: boolean;
+  /** Full body length in characters, before any cut. */
+  bodyLength: number;
+}
+
+export interface RawApiRequestOptions {
+  method?: string;
+  /** JSON text to send as the body. */
+  body?: string;
+  /** Abort after this many milliseconds. Default 30 s. */
+  timeoutMs?: number;
+  /** Keep at most this many characters of the body. Default 200 000. */
+  maxBodyChars?: number;
+  /** Set false to skip the body (status and timing only). */
+  readBody?: boolean;
+  signal?: AbortSignal;
+}
+
+const RAW_API_HEADERS_OF_INTEREST = ['content-type', 'x-request-id'];
+
+/**
+ * Send one request for the API explorer and return the raw outcome.
+ *
+ * - The address is always this deployment's API base URL plus `path`; a full
+ *   URL, a protocol-relative path or anything that resolves to another host is
+ *   refused.
+ * - The signed-in user's token is attached here and never handed back, so the
+ *   explorer cannot display it.
+ * - No retries and no login redirect: the explorer shows whatever came back.
+ */
+export async function sendRawApiRequest(
+  path: string,
+  options: RawApiRequestOptions = {},
+): Promise<RawApiResponse> {
+  const method = (options.method || 'GET').toUpperCase();
+
+  if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) {
+    throw new ApiRequestError({ message: 'Only paths on this API can be called.' });
+  }
+  const baseUrl = getApiBaseUrl().replace(/\/+$/, '');
+  const url = `${baseUrl}${path}`;
+  if (typeof window !== 'undefined') {
+    const expectedOrigin = new URL(baseUrl || '/', window.location.origin).origin;
+    if (new URL(url, window.location.origin).origin !== expectedOrigin) {
+      throw new ApiRequestError({ message: 'Only paths on this API can be called.' });
+    }
+  }
+
+  // Same read-only rule as request(): the interactive demo never writes.
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const search = typeof window !== 'undefined' ? window.location.search : '';
+  const isDemo = host === 'demo.resilai.org' ||
+                 host.includes('demo') ||
+                 search.includes('env=demo') ||
+                 import.meta.env.VITE_APP_ENV === 'demo' ||
+                 import.meta.env.MODE === 'demo';
+  if (isDemo && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+    throw new ApiRequestError({
+      message: 'Read-Only Demo: Saving changes is disabled in the interactive demo.',
+      status: 403,
+    });
+  }
+
+  let authHeaders: Record<string, string> = {};
+  try {
+    authHeaders = await getAuthHeaders();
+  } catch {
+    // Proceed without a token; the API answers 401 and the explorer shows it.
+  }
+
+  const controller = new AbortController();
+  const timeoutMs = options.timeoutMs ?? 30000;
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  const onOuterAbort = () => controller.abort();
+  if (options.signal) {
+    if (options.signal.aborted) controller.abort();
+    else options.signal.addEventListener('abort', onOuterAbort);
+  }
+
+  const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const elapsed = () =>
+    Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - started);
+
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        Accept: 'application/json',
+        ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...authHeaders,
+      },
+      body: options.body,
+      signal: controller.signal,
+    });
+
+    const headers: Record<string, string> = {};
+    for (const name of RAW_API_HEADERS_OF_INTEREST) {
+      const value = response.headers.get(name);
+      if (value) headers[name] = value;
+    }
+
+    let bodyText = '';
+    let bodyLength = 0;
+    let truncated = false;
+    if (options.readBody === false) {
+      response.body?.cancel().catch(() => undefined);
+    } else {
+      const text = await response.text();
+      const limit = options.maxBodyChars ?? 200000;
+      bodyLength = text.length;
+      truncated = text.length > limit;
+      bodyText = truncated ? text.slice(0, limit) : text;
+    }
+
+    return {
+      status: response.status,
+      ok: response.ok,
+      durationMs: elapsed(),
+      headers,
+      bodyText,
+      truncated,
+      bodyLength,
+    };
+  } catch (error) {
+    if (timedOut) {
+      throw new ApiRequestError({
+        message: `No answer within ${Math.round(timeoutMs / 1000)} seconds.`,
+      });
+    }
+    if (options.signal?.aborted) {
+      throw new ApiRequestError({ message: 'Stopped.' });
+    }
+    throw new ApiRequestError({
+      message: 'The API could not be reached. Check your connection and try again.',
+      detail: error instanceof Error ? error.message : undefined,
+    });
+  } finally {
+    clearTimeout(timer);
+    options.signal?.removeEventListener('abort', onOuterAbort);
+  }
+}

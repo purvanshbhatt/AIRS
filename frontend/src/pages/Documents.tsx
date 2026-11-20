@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import {
   FileText,
   Download,
@@ -30,10 +31,19 @@ import {
   MoreVertical,
   ExternalLink,
   FileCode,
+  Plug,
 } from 'lucide-react';
-import { getBoardStoryPdfUrl, getEvidencePackages, getEvidenceLedger, EvidenceLedgerItem } from '../api';
-import { useActiveOrgId } from '../hooks/useActiveOrgId';
-import { LoadingState } from '../components/readiness/ReadinessStates';
+import {
+  downloadBoardStoryPdf,
+  getEvidencePackages,
+  getEvidenceLedger,
+  getReports,
+  downloadReportById,
+  EvidenceLedgerItem,
+} from '../api';
+import { useActiveOrg } from '../hooks/useActiveOrg';
+import { LoadingState, ErrorState } from '../components/readiness/ReadinessStates';
+import type { BackendReport } from '../types/reports';
 import { ContextualDemoBanner } from '../components/common/ContextualDemoBanner';
 
 interface AuditFolder {
@@ -254,8 +264,23 @@ const EXECUTIVE_SUMMARIES: ExecutiveSummaryItem[] = [
   },
 ];
 
+/**
+ * Documents page ("Customer Evidence").
+ *
+ * The demo workspace shows the bundled sample vault (`DocumentsDemoView`),
+ * tagged "Sample data". A real organisation only ever sees the reports that
+ * were generated for it and the evidence ledger recorded for it
+ * (`DocumentsLiveView`), or a plain statement that there is nothing yet.
+ */
 export default function DocumentsPage() {
-  const orgId = useActiveOrgId();
+  const { orgId, isDemo, loading } = useActiveOrg();
+  if (isDemo) return <DocumentsDemoView orgId={orgId} />;
+  if (loading) return <LoadingState message="Loading documents..." />;
+  return <DocumentsLiveView orgId={orgId} />;
+}
+
+/** Sample vault. Demo workspace only: every folder, file, hash and summary below is illustrative. */
+function DocumentsDemoView({ orgId }: { orgId: string }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'pdf' | 'csv' | 'packages'>('all');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -291,8 +316,7 @@ export default function DocumentsPage() {
   const handleDownloadBoardStory = async () => {
     setDownloadingId('board-story-pdf');
     try {
-      const url = await getBoardStoryPdfUrl(orgId);
-      window.open(url, '_blank');
+      await downloadBoardStoryPdf(orgId);
     } catch (err) {
       console.error('Board story download error:', err);
     } finally {
@@ -418,11 +442,17 @@ export default function DocumentsPage() {
       {/* Page Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/30 pb-6">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight">Documents & Evidence Vault</h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-ready-emerald/10 text-ready-emerald border border-ready-emerald/20 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-ready-emerald animate-pulse" />
               Audit-Ready
+            </span>
+            <span
+              data-testid="sample-data-tag"
+              className="px-2 py-0.5 rounded text-[10px] uppercase font-mono font-bold tracking-wider bg-drift-amber/10 text-drift-amber border border-drift-amber/30"
+            >
+              Sample data
             </span>
           </div>
           <p className="text-sm md:text-base text-on-surface-variant mt-1.5 max-w-3xl">
@@ -800,74 +830,7 @@ export default function DocumentsPage() {
                 <LoadingState />
               </div>
             ) : ledger && ledger.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="bg-surface-container text-xs font-mono uppercase text-on-surface-variant border-b border-outline-variant/50">
-                    <tr>
-                      <th className="px-6 py-3">Timestamp (UTC)</th>
-                      <th className="px-6 py-3">Source Integration</th>
-                      <th className="px-6 py-3">Verification Event</th>
-                      <th className="px-6 py-3">Status</th>
-                      <th className="px-6 py-3">SHA-256 Evidence Hash</th>
-                      <th className="px-6 py-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/40">
-                    {ledger.map((item) => (
-                      <tr key={item.id} className="hover:bg-surface-container/40 transition-colors">
-                        <td className="px-6 py-3.5 font-mono text-on-surface-variant">
-                          {new Date(item.timestamp).toLocaleString()}
-                        </td>
-                        <td className="px-6 py-3.5 font-semibold text-on-surface">
-                          {item.source_name}
-                        </td>
-                        <td className="px-6 py-3.5 text-on-surface-variant">
-                          {item.event_type}
-                        </td>
-                        <td className="px-6 py-3.5">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
-                              item.verification_status === 'verified'
-                                ? 'bg-ready-emerald/10 text-ready-emerald border border-ready-emerald/30'
-                                : 'bg-drift-amber/10 text-drift-amber border border-drift-amber/30'
-                            }`}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                item.verification_status === 'verified' ? 'bg-ready-emerald' : 'bg-drift-amber'
-                              }`}
-                            />
-                            {item.verification_status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3.5 font-mono text-on-surface-variant">
-                          <span className="bg-surface-container px-2 py-1 rounded text-[11px] border border-outline-variant/30">
-                            {item.evidence_hash.substring(0, 16)}...{item.evidence_hash.substring(item.evidence_hash.length - 8)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3.5 text-right">
-                          <button
-                            onClick={() => handleCopyHash(item.evidence_hash)}
-                            className="inline-flex items-center gap-1 text-ready-emerald hover:underline text-xs font-semibold"
-                          >
-                            {copiedHash === item.evidence_hash ? (
-                              <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Copied</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5" />
-                                <span>Copy Hash</span>
-                              </>
-                            )}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <LedgerTable ledger={ledger} copiedHash={copiedHash} onCopy={handleCopyHash} />
             ) : (
               <div className="p-12 text-center text-on-surface-variant space-y-2">
                 <ShieldCheck className="w-8 h-8 text-ready-emerald mx-auto" />
@@ -1016,6 +979,517 @@ export default function DocumentsPage() {
                 Close Summary
               </button>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared: evidence ledger table                                               */
+/* -------------------------------------------------------------------------- */
+
+/** Backend timestamps without a zone are UTC. Falls back to the raw text when it cannot be parsed. */
+function formatWhen(value: string | null | undefined): string {
+  if (!value) return 'Not recorded';
+  const text = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(value) ? `${value}Z` : value;
+  const date = new Date(text);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+}
+
+function LedgerTable({
+  ledger,
+  copiedHash,
+  onCopy,
+  live = false,
+}: {
+  ledger: EvidenceLedgerItem[];
+  copiedHash: string | null;
+  onCopy: (hash: string) => void;
+  /** Real organisation: neutral column names, and every cell is exactly what the backend recorded. */
+  live?: boolean;
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-xs whitespace-nowrap">
+        <thead className="bg-surface-container text-xs font-mono uppercase text-on-surface-variant border-b border-outline-variant/50">
+          <tr>
+            <th className="px-6 py-3">{live ? 'Recorded' : 'Timestamp (UTC)'}</th>
+            <th className="px-6 py-3">{live ? 'Source' : 'Source Integration'}</th>
+            <th className="px-6 py-3">{live ? 'Event' : 'Verification Event'}</th>
+            <th className="px-6 py-3">Status</th>
+            <th className="px-6 py-3">{live ? 'Evidence Hash' : 'SHA-256 Evidence Hash'}</th>
+            <th className="px-6 py-3 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-outline-variant/40">
+          {ledger.map((item, index) => {
+            const hash = item.evidence_hash || '';
+            const verified = item.verification_status === 'verified';
+            return (
+              <tr key={item.id || index} className="hover:bg-surface-container/40 transition-colors">
+                <td className="px-6 py-3.5 font-mono text-on-surface-variant">
+                  {live ? formatWhen(item.timestamp) : new Date(item.timestamp).toLocaleString()}
+                </td>
+                <td className="px-6 py-3.5 font-semibold text-on-surface">{item.source_name}</td>
+                <td className="px-6 py-3.5 text-on-surface-variant">{item.event_type}</td>
+                <td className="px-6 py-3.5">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
+                      verified
+                        ? 'bg-ready-emerald/10 text-ready-emerald border border-ready-emerald/30'
+                        : 'bg-drift-amber/10 text-drift-amber border border-drift-amber/30'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${verified ? 'bg-ready-emerald' : 'bg-drift-amber'}`} />
+                    {item.verification_status || 'not recorded'}
+                  </span>
+                </td>
+                <td className="px-6 py-3.5 font-mono text-on-surface-variant">
+                  {hash ? (
+                    <span className="bg-surface-container px-2 py-1 rounded text-[11px] border border-outline-variant/30">
+                      {hash.length > 28 ? `${hash.substring(0, 16)}...${hash.substring(hash.length - 8)}` : hash}
+                    </span>
+                  ) : (
+                    <span>Not recorded</span>
+                  )}
+                </td>
+                <td className="px-6 py-3.5 text-right">
+                  {hash && (
+                    <button
+                      onClick={() => onCopy(hash)}
+                      className="inline-flex items-center gap-1 text-ready-emerald hover:underline text-xs font-semibold"
+                    >
+                      {copiedHash === hash ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Hash</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Live view: a real organisation                                              */
+/* -------------------------------------------------------------------------- */
+
+type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
+
+const DOWNLOADABLE_STATUSES = new Set(['completed', 'ready']);
+
+function DocumentsLiveView({ orgId }: { orgId: string }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'vault' | 'ledger'>('vault');
+
+  const [reports, setReports] = useState<BackendReport[]>([]);
+  const [reportsStatus, setReportsStatus] = useState<LoadStatus>('loading');
+  const [reportsReloadKey, setReportsReloadKey] = useState(0);
+
+  const [ledger, setLedger] = useState<EvidenceLedgerItem[]>([]);
+  const [ledgerStatus, setLedgerStatus] = useState<LoadStatus>('idle');
+  const [ledgerReloadKey, setLedgerReloadKey] = useState(0);
+
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [copiedHash, setCopiedHash] = useState<string | null>(null);
+
+  const reloadReports = useCallback(() => setReportsReloadKey((key) => key + 1), []);
+  const reloadLedger = useCallback(() => setLedgerReloadKey((key) => key + 1), []);
+
+  // Reports generated for this organisation (GET /api/reports?organization_id=...).
+  useEffect(() => {
+    let active = true;
+    if (!orgId) {
+      setReports([]);
+      setReportsStatus('ready');
+      return;
+    }
+    setReportsStatus('loading');
+    (async () => {
+      try {
+        const response = await getReports({ organization_id: orgId, limit: 50 });
+        if (!active) return;
+        const rows = Array.isArray(response?.reports) ? response.reports : [];
+        setReports(
+          rows.filter(
+            (report) =>
+              report &&
+              typeof report.id === 'string' &&
+              typeof report.title === 'string' &&
+              // Never list another organisation's report, whatever the server returned.
+              (!report.organization_id || report.organization_id === orgId)
+          )
+        );
+        setReportsStatus('ready');
+      } catch (err) {
+        console.error('Failed to load reports:', err);
+        if (active) setReportsStatus('error');
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [orgId, reportsReloadKey]);
+
+  // Evidence ledger recorded for this organisation (GET /api/v1/evidence/ledger).
+  useEffect(() => {
+    let active = true;
+    if (activeTab !== 'ledger') return;
+    if (!orgId) {
+      setLedger([]);
+      setLedgerStatus('ready');
+      return;
+    }
+    setLedgerStatus('loading');
+    (async () => {
+      try {
+        const rows = await getEvidenceLedger(orgId, 50);
+        if (!active) return;
+        setLedger(Array.isArray(rows) ? rows : []);
+        setLedgerStatus('ready');
+      } catch (err) {
+        console.error('Failed to load evidence ledger:', err);
+        if (active) setLedgerStatus('error');
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [activeTab, orgId, ledgerReloadKey]);
+
+  const handleDownload = async (report: BackendReport) => {
+    setDownloadingId(report.id);
+    setDownloadError(null);
+    try {
+      const blob = report.download_url
+        ? await downloadReportById(report.id, report.download_url)
+        : await downloadReportById(report.id);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      const safeTitle = report.title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '') || 'report';
+      const created = new Date(report.created_at);
+      const stamp = Number.isNaN(created.getTime()) ? '' : `_${created.toISOString().split('T')[0]}`;
+      anchor.download = `ResilAI_Report_${safeTitle}${stamp}.${report.format || 'pdf'}`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Report download failed:', err);
+      setDownloadError(`"${report.title}" could not be downloaded. Please try again.`);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const handleCopyHash = (hash: string) => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(hash);
+      }
+    } catch {
+      // ignore in test env
+    }
+    setCopiedHash(hash);
+    setTimeout(() => setCopiedHash(null), 2000);
+  };
+
+  const filteredReports = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return reports;
+    return reports.filter(
+      (report) =>
+        report.title.toLowerCase().includes(q) || String(report.report_type || '').toLowerCase().includes(q)
+    );
+  }, [reports, searchQuery]);
+
+  return (
+    <div className="space-y-8 animate-fade-up max-w-7xl mx-auto pb-16" data-testid="documents-live">
+      {/* Page Header */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/30 pb-6">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight">Documents & Evidence Vault</h1>
+          <p className="text-sm md:text-base text-on-surface-variant mt-1.5 max-w-3xl">
+            The reports generated for your organisation, and the evidence ledger recorded from your connected systems.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <Link
+            to="/reports"
+            className="flex items-center gap-2 bg-ready-emerald text-slate-950 px-4 py-2.5 rounded-xl font-semibold text-xs hover:brightness-110 active:scale-[0.98] transition-all shadow-md shadow-ready-emerald/20"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Generate a report</span>
+          </Link>
+        </div>
+      </header>
+
+      {/* Search & Tabs */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-container-low border border-outline-variant/30 rounded-xl p-3">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search your reports..."
+            className="w-full bg-surface-container border border-outline-variant/40 rounded-lg pl-10 pr-4 py-2 text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-ready-emerald transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+          <button
+            onClick={() => setActiveTab('vault')}
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              activeTab === 'vault'
+                ? 'bg-ready-emerald/15 text-ready-emerald border border-ready-emerald/30'
+                : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <FolderCheck className="w-3.5 h-3.5" />
+            <span>Evidence Vault</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('ledger')}
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+              activeTab === 'ledger'
+                ? 'bg-ready-emerald/15 text-ready-emerald border border-ready-emerald/30'
+                : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>Audit Sync Ledger</span>
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'vault' ? (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
+              <History className="w-5 h-5 text-ready-emerald" />
+              <span>Your Generated Reports</span>
+            </h2>
+            {reportsStatus === 'ready' && reports.length > 0 && (
+              <span className="text-xs font-mono text-on-surface-variant">
+                {filteredReports.length} of {reports.length} shown
+              </span>
+            )}
+          </div>
+
+          {downloadError && (
+            <div
+              role="alert"
+              className="p-4 bg-surface-container-low border border-critical-red/30 rounded-xl text-xs text-on-surface flex items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-critical-red shrink-0" />
+                <span>{downloadError}</span>
+              </div>
+              <button
+                onClick={() => setDownloadError(null)}
+                aria-label="Dismiss"
+                className="text-on-surface-variant hover:text-on-surface"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {reportsStatus === 'loading' || reportsStatus === 'idle' ? (
+            <LoadingState message="Loading your documents..." />
+          ) : reportsStatus === 'error' ? (
+            <ErrorState error="We could not load your documents. Please try again." onRetry={reloadReports} />
+          ) : reports.length === 0 ? (
+            <div
+              data-testid="documents-empty-state"
+              className="p-8 rounded-xl bg-surface-container-low border border-dashed border-surface-bright flex flex-col items-center justify-center text-center"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-drift-amber/10 border border-drift-amber/30 flex items-center justify-center text-drift-amber mb-3">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-semibold text-on-surface">No documents yet.</h3>
+              <p className="text-xs text-on-surface-variant max-w-md mt-1 leading-relaxed">
+                Reports generated for your organisation appear here. Generate one on the Reports page, or connect a
+                system first so there is evidence to report on.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  to="/reports"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 text-sm font-bold rounded-xl transition-all active:scale-[0.98]"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Go to Reports</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/connectors"
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-surface-container hover:bg-surface-container-high border border-outline-variant/60 text-on-surface text-sm font-semibold rounded-xl transition-all active:scale-[0.98]"
+                >
+                  <Plug className="w-4 h-4" />
+                  <span>Connect a system</span>
+                </Link>
+              </div>
+            </div>
+          ) : filteredReports.length === 0 ? (
+            <p className="text-xs text-on-surface-variant">No report matches your search.</p>
+          ) : (
+            <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl overflow-hidden shadow-sm">
+              <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-outline-variant/60 text-xs font-mono uppercase text-on-surface-variant bg-surface-container/60">
+                <div className="col-span-8 md:col-span-6">Document Name</div>
+                <div className="hidden md:block col-span-3">Generated</div>
+                <div className="hidden md:block col-span-1">Format</div>
+                <div className="col-span-4 md:col-span-2 text-right">Actions</div>
+              </div>
+
+              <div className="divide-y divide-outline-variant/40">
+                {filteredReports.map((report) => {
+                  const format = String(report.format || 'pdf').toLowerCase();
+                  const reportStatus = String(report.status || 'completed').toLowerCase();
+                  const downloadable = DOWNLOADABLE_STATUSES.has(reportStatus);
+                  const typeLabel = String(report.report_type || '').replace(/_/g, ' ');
+                  return (
+                    <div
+                      key={report.id}
+                      data-testid="documents-report-row"
+                      className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-surface-container-high/40 transition-colors group"
+                    >
+                      <div className="col-span-8 md:col-span-6 flex items-center gap-3.5">
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-surface-container text-on-surface-variant border border-outline-variant/40">
+                          {format === 'csv' ? (
+                            <FileSpreadsheet className="w-4 h-4" />
+                          ) : format === 'json' ? (
+                            <FileCode className="w-4 h-4" />
+                          ) : (
+                            <FileText className="w-4 h-4" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-on-surface truncate">{report.title}</p>
+                          {typeLabel && (
+                            <p className="text-[11px] text-on-surface-variant truncate max-w-sm capitalize">{typeLabel}</p>
+                          )}
+                          <p className="text-[10px] font-mono text-on-surface-variant md:hidden mt-0.5">
+                            {formatWhen(report.created_at)} · {format.toUpperCase()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="hidden md:block col-span-3 text-xs font-mono text-on-surface-variant">
+                        {formatWhen(report.created_at)}
+                      </div>
+
+                      <div className="hidden md:block col-span-1 text-xs font-mono text-on-surface-variant">
+                        {format.toUpperCase()}
+                      </div>
+
+                      <div className="col-span-4 md:col-span-2 flex items-center justify-end gap-2">
+                        {downloadable ? (
+                          <button
+                            onClick={() => handleDownload(report)}
+                            disabled={downloadingId !== null}
+                            className="px-2.5 py-1.5 bg-ready-emerald/10 text-ready-emerald hover:bg-ready-emerald hover:text-slate-950 border border-ready-emerald/30 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                            title={`Download ${report.title}`}
+                            aria-label={`Download ${report.title}`}
+                          >
+                            {downloadingId === report.id ? (
+                              <>
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                <span className="hidden sm:inline">Preparing</span>
+                              </>
+                            ) : (
+                              <>
+                                <Download className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Download</span>
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <span className="text-[11px] font-mono uppercase text-on-surface-variant">{reportStatus}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+      ) : (
+        <div className="space-y-6">
+          <div className="bg-surface-container-low border border-outline-variant/60 rounded-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-outline-variant/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container/60">
+              <div>
+                <h3 className="text-base font-bold text-on-surface flex items-center gap-2">
+                  <History className="w-4 h-4 text-ready-emerald" />
+                  <span>Connector Synchronization & Verification Logs</span>
+                </h3>
+                <p className="text-xs text-on-surface-variant mt-0.5">
+                  Evidence events ResilAI has recorded from the systems connected to your organisation.
+                </p>
+              </div>
+              <button
+                onClick={reloadLedger}
+                disabled={ledgerStatus === 'loading'}
+                className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg border border-outline-variant/50 flex items-center gap-1.5 self-start sm:self-auto disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${ledgerStatus === 'loading' ? 'animate-spin' : ''}`} />
+                <span>Refresh Ledger</span>
+              </button>
+            </div>
+
+            {ledgerStatus === 'loading' || ledgerStatus === 'idle' ? (
+              <div className="p-12 flex justify-center">
+                <LoadingState message="Loading evidence ledger..." />
+              </div>
+            ) : ledgerStatus === 'error' ? (
+              <div className="p-8">
+                <ErrorState error="We could not load the evidence ledger. Please try again." onRetry={reloadLedger} />
+              </div>
+            ) : ledger.length > 0 ? (
+              <LedgerTable ledger={ledger} copiedHash={copiedHash} onCopy={handleCopyHash} live />
+            ) : (
+              <div className="p-12 text-center text-on-surface-variant space-y-2" data-testid="documents-ledger-empty-state">
+                <ShieldCheck className="w-8 h-8 text-on-surface-variant mx-auto" />
+                <p className="text-sm font-semibold text-on-surface">No evidence events recorded yet.</p>
+                <p className="text-xs max-w-md mx-auto">
+                  Once a connected system has been checked, each evidence event is listed here.
+                </p>
+                <Link
+                  to="/connectors"
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-ready-emerald hover:underline"
+                >
+                  <Plug className="w-3.5 h-3.5" />
+                  <span>Connect a system</span>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

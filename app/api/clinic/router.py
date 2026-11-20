@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 
 from app.services.clinic_engine.v2.schema import RawEvent
 from app.services.clinic_engine.v2.engine import ClinicEvaluationEngine
+from app.services.clinic_engine.v2.evidence_collection import evaluate_events
 from app.services.clinic_engine.v2.morning_check import MorningCheckGeneratorV2, MorningCheckV2
 from app.services.clinic_engine.v2.providers import ProviderRegistry
 from app.core.auth import get_current_user, User, get_optional_user
@@ -135,16 +136,19 @@ def _fetch_persisted_telemetry(db: Session, org_id: str) -> List[RawEvent]:
     """
     from app.models.telemetry_event import TelemetryEvent
 
-    # Fetch recent telemetry events (last 24h) for this org
+    # Fetch the telemetry events reported in the last 24h for this org
     cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
     try:
         records = (
             db.query(TelemetryEvent)
             .filter(
                 TelemetryEvent.org_id == org_id,
-                TelemetryEvent.created_at >= cutoff,
+                # "Reported in the last 24 hours", not "first stored in the
+                # last 24 hours": an item that stays open is reported again on
+                # every sync and must stay in the feed.
+                TelemetryEvent.seen_at_column() >= cutoff,
             )
-            .order_by(TelemetryEvent.created_at.desc())
+            .order_by(TelemetryEvent.seen_at_column().desc())
             .limit(500)
             .all()
         )
@@ -163,12 +167,18 @@ def _fetch_persisted_telemetry(db: Session, org_id: str) -> List[RawEvent]:
             elif payload is None:
                 payload = {}
 
+            # When this copy was stored: lets evidence collection keep the
+            # newest observation of an entity that several syncs reported.
+            seen = record.seen_at
+            stored_at = seen.isoformat() if seen else None
+
             events.append(RawEvent(
                 event_type=record.event_type,
                 source_system=record.source_system,
                 source_event_id=record.source_event_id,
                 organization_id=org_id,
                 payload=payload,
+                timestamp=stored_at,
             ))
         except Exception as exc:
             logger.debug(
@@ -311,15 +321,11 @@ async def get_clinic_readiness(
     else:
         events = _fetch_persisted_telemetry(db, org_id)
 
-    # --- Extract Evidence ---
-    evidence = []
+    # --- Extract Evidence, Evaluate Capabilities -> Moments ---
+    # evaluate_events reads each entity once (newest observation) even when
+    # several syncs stored a copy of it, so a finding is listed and scored once.
     try:
-        for provider_cls in ProviderRegistry.list_all().values():
-            evidence.extend(provider_cls.extract(events))
-
-        # Evaluate Capabilities -> Moments
-        engine = ClinicEvaluationEngine()
-        moments = engine.evaluate(evidence)
+        moments, _evidence_stats = evaluate_events(events, ClinicEvaluationEngine())
     except Exception as e:
         # Unknown philosophy: degradation is handled naturally by having 0 moments
         # ReadinessEngine will map missing data to Unknown state
@@ -348,8 +354,18 @@ async def get_clinic_readiness(
 # =============================================================================
 
 @router.post("/problems/{problem_id}/fix")
-async def fix_problem(problem_id: str, db: Session = Depends(get_db)):
-    """Triggers the autofix for a given problem."""
+async def fix_problem(
+    problem_id: str,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_user),
+):
+    """Handle a "fix" request for a problem.
+
+    ResilAI only reads the systems it connects to. For a real organization
+    this endpoint therefore changes nothing and never reports a fix: it says
+    the item has to be fixed in the system itself. Only the demo workspace
+    simulates a fix.
+    """
     repo = MomentRepository(db)
     record = repo.get_moment(problem_id)
 
@@ -364,12 +380,18 @@ async def fix_problem(problem_id: str, db: Session = Depends(get_db)):
             }
         raise HTTPException(status_code=404, detail="Issue not found.")
 
-    if record.status != MomentStatus.ACTIVE:
-        return {"status": "error", "message": "This issue has already been resolved."}
-
-    # Re-evaluate: fetch telemetry based on org mode
+    # A stored problem belongs to an organization: only its owner may act on it.
     pilot = PilotService(db)
     org_mode = pilot.get_mode(record.org_id)
+    if settings.is_auth_required and org_mode != OrgMode.DEMO:
+        if current_user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        from app.services.organization import OrganizationService
+        if not OrganizationService(db, owner_uid=current_user.uid).get(record.org_id):
+            raise HTTPException(status_code=404, detail="Issue not found.")
+
+    if record.status != MomentStatus.ACTIVE:
+        return {"status": "error", "message": "This issue has already been resolved."}
 
     if org_mode == OrgMode.DEMO:
         repo.mark_resolved(problem_id, resolved_by="user_id", method=MomentStatus.RESOLVED_MANUALLY)
@@ -389,13 +411,8 @@ async def fix_problem(problem_id: str, db: Session = Depends(get_db)):
 
     events = _fetch_persisted_telemetry(db, record.org_id)
 
-    evidence = []
     try:
-        for provider_cls in ProviderRegistry.list_all().values():
-            evidence.extend(provider_cls.extract(events))
-
-        engine = ClinicEvaluationEngine()
-        current_moments = engine.evaluate(evidence)
+        current_moments, _evidence_stats = evaluate_events(events, ClinicEvaluationEngine())
     except Exception:
         current_moments = []
 
@@ -405,27 +422,15 @@ async def fix_problem(problem_id: str, db: Session = Depends(get_db)):
         repo.mark_resolved(problem_id, resolved_by="system", method=MomentStatus.RESOLVED_AUTOMATICALLY)
         return {"status": "error", "message": "This issue has already been resolved."}
 
-    # Execute remediation (mock)
-    # The actions are in `record.actions` which is a list of dicts.
-    # We would use `automation_type` and `automation_params`.
-    executed_action = None
-    for action in record.actions:
-        if action.get("can_automate"):
-            executed_action = action
-            break
-
-    if not executed_action:
-        raise HTTPException(status_code=400, detail="This issue cannot be automated.")
-
-    # In a real system, we'd dispatch to a remediation worker using `executed_action["automation_params"]`
-
-    repo.mark_resolved(problem_id, resolved_by="user_id", method=MomentStatus.RESOLVED_MANUALLY)
-    repo.add_audit_log(
-        moment_id=problem_id,
-        actor="user_id",
-        action=f"Execute {executed_action.get('automation_type')}",
-        result="Success",
-        success=True
-    )
-
-    return {"status": "success", "message": "Issue resolved and systems secured."}
+    # Live data still shows the problem. ResilAI holds read-only access to the
+    # connected systems, so it cannot carry out the fix. Nothing is marked as
+    # resolved: the item clears on its own once live data shows the change.
+    return {
+        "status": "manual",
+        "message": (
+            "ResilAI has read-only access and has not changed anything. "
+            "Fix this in the system itself, or send it to whoever manages it. "
+            "It clears here once live data shows the change."
+        ),
+        "problem_id": problem_id,
+    }

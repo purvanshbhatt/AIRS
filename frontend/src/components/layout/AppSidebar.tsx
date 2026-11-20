@@ -25,6 +25,7 @@ import {
   X,
   Bot,
   Network,
+  ClipboardCheck,
 } from 'lucide-react';
 
 interface NavItem {
@@ -79,6 +80,7 @@ export function AppSidebar({ mobile = false, onClose }: AppSidebarProps = {}) {
       { label: 'Network Map', icon: Network, path: '/network' },
       { label: 'Software Watch', icon: Cpu, path: '/technology/intelligence' },
       { label: 'Reports', icon: FileBarChart, path: '/reports' },
+      { label: 'Insurance Answers', icon: ClipboardCheck, path: '/questionnaires/insurance' },
       { label: 'Connectors', icon: Plug, path: '/connectors' },
       { label: 'Telemetry & Evidence', icon: Activity, path: '/activity' },
       { label: 'Audit Calendar', icon: CalendarDays, path: '/audit' },

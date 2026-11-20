@@ -79,6 +79,8 @@ from app.models.lifecycle_catalog import (
     LifecycleReference,
 )
 from app.models.agent_audit import AgentAudit
+from app.models.auditor_link import AuditorLink
+from app.models.ai_act_system import AIActSystem
 from app.models.vuln_intel import VulnIntelCache, WebAsset
 
 __all__ = [

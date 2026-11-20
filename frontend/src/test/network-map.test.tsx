@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, waitFor, fireEvent, within } from '@testing-library/react';
 import React from 'react';
 import * as api from '../api';
@@ -91,6 +91,12 @@ describe('NetworkMap', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(useActiveOrgIdHook, 'useActiveOrgId').mockReturnValue('org-net-1');
+    // Phone width: the map opens in 2D. Wide screens open in 3D (tested below).
+    Object.defineProperty(window, 'innerWidth', { value: 600, configurable: true, writable: true });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, configurable: true, writable: true });
   });
 
   it('fetches the topology for the active org and wires nodes and edges into the graph', async () => {
@@ -177,24 +183,38 @@ describe('NetworkMap', () => {
     expect(within(tooltip).getByText(/Worth a look/)).toBeInTheDocument();
   });
 
-  it('falls back to 2D with a notice when WebGL is unavailable, and lazy-loads 3D when it is', async () => {
+  it('opens in 3D on a wide screen even when the browser has no WebGL', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 1440, configurable: true, writable: true });
     vi.mocked(api.getNetworkTopology).mockResolvedValue(topology);
     renderWithRouter(<NetworkMap />);
     await waitFor(() => expect(screen.getByTestId('network-map')).toBeInTheDocument());
 
-    // jsdom has no WebGL: the toggle must degrade gracefully.
+    expect(screen.getByTestId('network-map-3d-lite')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /3D/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText(/3D needs WebGL/)).not.toBeInTheDocument();
+  });
+
+  it('draws 3D on a plain canvas when WebGL is unavailable, and lazy-loads the full scene when it is', async () => {
+    vi.mocked(api.getNetworkTopology).mockResolvedValue(topology);
+    renderWithRouter(<NetworkMap />);
+    await waitFor(() => expect(screen.getByTestId('network-map')).toBeInTheDocument());
+
+    // No WebGL (jsdom, or Chrome with graphics acceleration off): 3D still
+    // opens, drawn on a plain canvas, instead of bouncing back to 2D.
     fireEvent.click(screen.getByRole('button', { name: /3D/ }));
-    expect(screen.getByText(/3D needs WebGL/)).toBeInTheDocument();
-    expect(screen.getByTestId('fake-graph-2d')).toBeInTheDocument();
+    expect(screen.getByTestId('network-map-3d-lite')).toBeInTheDocument();
+    expect(screen.getByTestId('network-map-3d-lite-note')).toHaveTextContent(/Lightweight 3D view/);
+    expect(screen.queryByTestId('fake-graph-2d')).not.toBeInTheDocument();
 
     // Pretend WebGL exists: the 3D chunk loads via Suspense.
     const original = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({}) as any;
     try {
       fireEvent.click(screen.getByRole('button', { name: /3D/ }));
-      await waitFor(() => expect(screen.getByTestId('fake-graph-3d')).toBeInTheDocument());
+      // The three.js chunk is lazy: give the import room when the whole suite runs in parallel.
+      await waitFor(() => expect(screen.getByTestId('fake-graph-3d')).toBeInTheDocument(), { timeout: 4000 });
       expect(screen.getByTestId('fake-graph-3d').getAttribute('data-node-count')).toBe('5');
-      expect(screen.queryByText(/3D needs WebGL/)).not.toBeInTheDocument();
+      expect(screen.queryByTestId('network-map-3d-lite-note')).not.toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /2D/ }));
       await waitFor(() => expect(screen.getByTestId('fake-graph-2d')).toBeInTheDocument());
     } finally {

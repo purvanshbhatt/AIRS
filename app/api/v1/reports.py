@@ -17,7 +17,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.core.auth import User, get_optional_user, require_auth
+from app.core.auth import User, get_optional_user, require_auth, require_org_access
 from app.core.config import settings
 from app.core.entitlements import require_entitlement
 from app.models.organization import Organization
@@ -293,11 +293,13 @@ def _build_summary_payload(org: Organization, assessment: Assessment | None) -> 
 def get_board_story(
     org_id: str = Query(..., description="Organization ID"),
     db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
 ):
     """
     Get the Board Story (Executive Narrative + Roadmap) as structured JSON for an organization.
     All numbers in the returned narrative are sourced from the scoring snapshot.
     """
+    require_org_access(db, user, org_id)
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
@@ -316,9 +318,12 @@ def get_board_story(
 def download_board_story_pdf(
     org_id: str = Query(..., description="Organization ID"),
     db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
 ):
     """
     Server-side PDF generation for the Board Story.
+
+    The caller must be signed in and own the organisation.
 
     All numbers embedded in the PDF are sourced directly from the scoring snapshot
     stored in the database. The frontend must never build PDFs client-side.
@@ -342,6 +347,7 @@ def download_board_story_pdf(
         logger.error("reportlab not installed — cannot generate PDF server-side")
         raise HTTPException(status_code=503, detail="PDF generation service unavailable")
 
+    require_org_access(db, user, org_id)
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")

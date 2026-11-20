@@ -1,7 +1,7 @@
 # ResilAI Overview
 
 <p align="center">
-  <img src="assets/resilai_logo.svg" alt="ResilAI logo" width="150" />
+  <img src="assets/resilai_logo.svg" alt="ResilAI logo" width="300" />
 </p>
 
 ResilAI is a **Deterministic Governance Factory** that helps organizations evaluate readiness, execute automated compliance validations, and programmatically verify their overall security compliance posture.

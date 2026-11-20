@@ -298,6 +298,53 @@ def firestore_delete_org(org_id: str) -> bool:
         raise FirestoreUnavailableError(f"Failed to delete organization from Firestore: {exc}")
 
 
+def _delete_document_tree(client, ref) -> int:
+    """Delete a document and everything nested under it. Returns documents removed."""
+    if hasattr(client, "recursive_delete"):
+        return int(client.recursive_delete(ref) or 0)
+    removed = 0
+    for sub in ref.collections():
+        for doc in sub.stream():
+            removed += _delete_document_tree(client, doc.reference)
+    ref.delete()
+    return removed + 1
+
+
+def firestore_purge_org_documents(org_id: str) -> int:
+    """
+    Erase every Firestore document that belongs to an organization, apart
+    from the mirrored tables (see ``app.db.durable_mirror``):
+
+      * its assessments, with their lifecycle and finding-tracking documents
+      * the organization document and everything nested under it
+        (workspaces, audits, intelligence packets, remediation ledger)
+      * its Wazuh configuration
+
+    Returns the number of documents removed. Raises FirestoreUnavailableError
+    on failure so the caller never reports an erasure that did not happen.
+    """
+    require_firestore()
+    try:
+        client = get_firestore_client()
+        removed = 0
+        try:
+            from google.cloud.firestore_v1.base_query import FieldFilter
+            query = client.collection("assessments").where(filter=FieldFilter("organization_id", "==", org_id))
+        except ImportError:
+            query = client.collection("assessments").where("organization_id", "==", org_id)
+        for doc in query.stream():
+            removed += _delete_document_tree(client, doc.reference)
+        removed += _delete_document_tree(client, client.collection("wazuh_configs").document(org_id))
+        removed += _delete_document_tree(client, client.collection("organizations").document(org_id))
+        logger.info("Firestore: erased %d documents for org %s", removed, org_id)
+        return removed
+    except FirestoreUnavailableError:
+        raise
+    except Exception as exc:
+        logger.error("CRITICAL: Firestore purge failed for org %s: %s", org_id, exc)
+        raise FirestoreUnavailableError(f"Failed to erase organization documents from Firestore: {exc}")
+
+
 def firestore_get_org(org_id: str) -> Optional[Dict[str, Any]]:
     """
     Fetch a single organization from Firestore by ID.

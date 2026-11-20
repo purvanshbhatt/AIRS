@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Brain, Download, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '../components/ui';
-import { getOrganizations, getBoardStory, ApiRequestError, BoardStory as BoardStoryType, getBoardStoryPdfUrl } from '../api';
+import { getOrganizations, getBoardStory, ApiRequestError, BoardStory as BoardStoryType, getBoardStoryPdfUrl, downloadBoardStoryPdf } from '../api';
 import type { Organization } from '../types';
 
 /** UUID v4 guard — prevents API calls with garbage org IDs crafted in the URL */
@@ -160,7 +160,13 @@ export function BoardStory() {
           {pdfDownloadUrl ? (
             <a
               href={pdfDownloadUrl}
-              download
+              onClick={(event) => {
+                // The PDF needs the owner's sign-in, which a plain link cannot carry.
+                event.preventDefault();
+                downloadBoardStoryPdf(selectedOrgId).catch((err) => {
+                  setError(err instanceof ApiRequestError ? err.message : 'Failed to download the board story.');
+                });
+              }}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm bg-[#00C853] hover:bg-[#00C853]/90 text-white transition-colors"
             >
               <Download className="w-4 h-4" /> Download PDF Story

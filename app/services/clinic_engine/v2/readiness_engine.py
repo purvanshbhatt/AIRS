@@ -203,10 +203,9 @@ class ReadinessEngine:
         # Let's load the connectors for the org_id to build the connector readiness
         from app.models.connector import Connector, ConnectorStatus
         try:
-            connector_models = self.db.query(Connector).filter(
-                Connector.org_id == org_id,
-                Connector.status == ConnectorStatus.active
-            ).order_by(Connector.display_name).all()
+            # Includes a connector that is mid-sync and has synced before.
+            from app.services.clinic_engine.v2.coverage_engine import connected_connectors
+            connector_models = connected_connectors(self.db, org_id)
         except Exception:
             connector_models = []
         

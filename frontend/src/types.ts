@@ -702,6 +702,10 @@ export interface ApplicableFramework {
   reason: string;
   mandatory: boolean;
   reference_url?: string;
+  /** Where the framework applies, e.g. "European Union". */
+  jurisdiction?: string | null;
+  /** Which ResilAI checks can support it, and what it does not cover. */
+  evidence_note?: string | null;
 }
 
 export interface ComplianceApplicabilityResponse {

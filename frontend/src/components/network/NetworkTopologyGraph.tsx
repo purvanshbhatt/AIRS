@@ -87,7 +87,7 @@ const DEFAULT_NODES: NetworkNode[] = [
     verticalLabels: {
       healthcare: {
         name: 'AWS Health Cloud VPC',
-        description: 'HIPAA-compliant cloud storage hosting encrypted EHR backups.',
+        description: 'Cloud storage hosting encrypted EHR backups.',
       },
       legal: {
         name: 'AWS Legal Vault VPC',

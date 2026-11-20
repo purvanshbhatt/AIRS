@@ -72,14 +72,17 @@ def test_fix_valid_moment(client, db_session):
         
         response = client.post("/api/clinic/problems/active-moment-id/fix")
         assert response.status_code == 200
-        assert response.json()["status"] == "success"
-        
-        # Verify DB updated
+        # ResilAI is read-only: for a real organization it must not claim a fix.
+        body = response.json()
+        assert body["status"] == "manual"
+        assert "read-only" in body["message"]
+        assert "resolved" not in body["message"].lower()
+
+        # Nothing was changed or recorded as executed.
         repo = MomentRepository(db_session)
         record = repo.get_moment("active-moment-id")
-        assert record.status == MomentStatus.RESOLVED_MANUALLY
-        assert len(record.execution_history) == 1
-        assert "Execute m365_disable_user" in record.execution_history[0]["action"]
+        assert record.status == MomentStatus.ACTIVE
+        assert not record.execution_history
 
 def test_stale_moment_cannot_execute(client, db_session):
     """Proves remediation executes only after validation. If evidence changed, it fails gracefully."""

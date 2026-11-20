@@ -22,6 +22,8 @@ import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
 import SecurityPage from './pages/Security';
 import PilotPage from './pages/Pilot';
+import InsuranceRenewalPage from './pages/InsuranceRenewal';
+import DataAccessPage from './pages/DataAccess';
 import StatusPage from './pages/Status';
 import AuditorView from './pages/AuditorView';
 import Onboarding from './pages/Onboarding';
@@ -51,6 +53,7 @@ import AIPage from './pages/technology/AIPage';
 
 // LEGACY & PLATFORM
 import ReportsPage from './pages/Reports';
+import InsuranceAnswerPackPage from './pages/questionnaires/InsuranceAnswerPackPage';
 import { EvidenceNetwork } from './pages/EvidenceNetwork';
 import ComplianceDrift from './pages/ComplianceDrift';
 import ReliabilityDashboard from './pages/ReliabilityDashboard';
@@ -130,6 +133,7 @@ function MainAppRoutes() {
 
           {/* PLATFORM */}
           <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/questionnaires/insurance" element={<InsuranceAnswerPackPage />} />
           <Route path="/activity" element={<EvidenceNetwork />} />
           <Route path="/activity/compliance-drift" element={<ComplianceDrift />} />
           <Route path="/technology/intelligence" element={<TechnologyIntelligence />} />
@@ -152,7 +156,7 @@ function MainAppRoutes() {
           <Route path="/explore/verification" element={<Navigate to="/activity" replace />} />
           <Route path="/explore/evidence" element={<Navigate to="/activity" replace />} />
           <Route path="/explore/systems" element={<Navigate to="/identity" replace />} />
-          <Route path="/explore/integrations" element={<Navigate to="/ai" replace />} />
+          <Route path="/explore/integrations" element={<Navigate to="/connectors" replace />} />
           <Route path="/explore/history" element={<Navigate to="/yesterday" replace />} />
 
           <Route path="/admin/integrations" element={<Navigate to="/connectors" replace />} />
@@ -272,6 +276,8 @@ export default function App() {
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/security" element={<SecurityPage />} />
                   <Route path="/pilot" element={<PilotPage />} />
+                  <Route path="/insurance-renewal" element={<InsuranceRenewalPage />} />
+                  <Route path="/trust/data-access" element={<DataAccessPage />} />
                   <Route path="/status" element={<StatusPage />} />
                   <Route path="/auditor" element={<AuditorView />} />
 

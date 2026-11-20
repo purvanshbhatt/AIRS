@@ -17,12 +17,16 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Type
 
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger("airs.connector_manager")
+
+# A known event that is reported again has its "last reported" time updated at
+# most this often, so repeated manual syncs do not rewrite every row each time.
+_RESEEN_MIN_INTERVAL = timedelta(minutes=15)
 
 
 class ConnectorManagerError(Exception):
@@ -512,6 +516,24 @@ class ConnectorManager:
 
         logger.info("Connector deactivated: %s (org=%s)", connector_id, self.org_id)
 
+    def delete_connector(self, connector_id: str) -> Dict[str, int]:
+        """Erase a connector: its encrypted keys, sync history, ingested
+        events and the evidence records built from them, in SQL and in the
+        durable mirror. Use ``update_connector(status="inactive")`` to pause
+        a connector without erasing anything.
+
+        Raises ``ConnectorNotFoundError`` when this organization has no such
+        connector, and ``ErasureError`` when a stored copy could not be removed.
+        """
+        from app.services.data_erasure import erase_connector
+
+        try:
+            removed = erase_connector(self.db, self.org_id, connector_id)
+        except LookupError as exc:
+            raise ConnectorNotFoundError(str(exc)) from exc
+        logger.info("Connector deleted: %s (org=%s)", connector_id, self.org_id)
+        return removed
+
     # ------------------------------------------------------------------
     # Permission Validation
     # ------------------------------------------------------------------
@@ -624,9 +646,25 @@ class ConnectorManager:
             ``TelemetryEvent`` (legacy table count). Evidence ledger
             counts are logged separately.
         """
+        from app.models.connector import Connector
         from app.models.telemetry_event import TelemetryEvent
 
+        # The connector may have been removed while this sync was reading the
+        # source system. Nothing may be stored for a connector that is gone.
+        # Events that arrive with no connector id are not tied to a connector
+        # row, so there is nothing to have been removed.
+        still_there = connector_id is None or (
+            self.db.query(Connector.id)
+            .filter(Connector.id == connector_id, Connector.org_id == self.org_id)
+            .first()
+        )
+        if not still_there:
+            logger.info("Connector %s was removed during its sync; events discarded", connector_id)
+            return 0
+
         ingested = 0
+        refreshed = 0
+        seen_now = datetime.now(timezone.utc)
         for event in events:
             # Idempotency check (legacy telemetry table)
             existing = (
@@ -639,6 +677,21 @@ class ConnectorManager:
                 .first()
             )
             if existing:
+                # A finding, backup job or agent keeps the same id on every
+                # sync. Keep one row, but record that the source still reports
+                # it and store its current result; otherwise the row keeps its
+                # first result and leaves every 24-hour view a day later.
+                changed = existing.payload_hash != event.payload_hash
+                if changed:
+                    existing.payload = json.dumps(event.payload)
+                    existing.payload_hash = event.payload_hash
+                    existing.severity = event.severity
+                last = existing.last_seen_at
+                if last is not None and last.tzinfo is None:
+                    last = last.replace(tzinfo=timezone.utc)
+                if changed or last is None or seen_now - last >= _RESEEN_MIN_INTERVAL:
+                    existing.last_seen_at = seen_now
+                    refreshed += 1
                 continue
 
             record = TelemetryEvent(
@@ -654,11 +707,11 @@ class ConnectorManager:
             self.db.add(record)
             ingested += 1
 
-        if ingested > 0:
+        if ingested > 0 or refreshed > 0:
             self.db.commit()
             logger.info(
-                "Ingested %d events from connector %s (org=%s)",
-                ingested, connector_id, self.org_id,
+                "Ingested %d new and refreshed %d known events from connector %s (org=%s)",
+                ingested, refreshed, connector_id, self.org_id,
             )
 
         # ── Evidence Registry ingestion (ADR-009) ──────────────────
@@ -724,16 +777,7 @@ class ConnectorManager:
             except ValueError:
                 severity = EvidenceSeverity.INFO
 
-            # Parse the event timestamp; fall back to "now" if missing.
-            from datetime import datetime, timezone as _tz
-            ts: datetime
-            if event.timestamp:
-                try:
-                    ts = datetime.fromisoformat(event.timestamp.replace("Z", "+00:00"))
-                except (ValueError, TypeError):
-                    ts = datetime.now(_tz.utc)
-            else:
-                ts = datetime.now(_tz.utc)
+            ts = self._evidence_timestamp(event)
 
             evidence = NormalizedEvidence(
                 source_connector=event.source_system,
@@ -768,6 +812,70 @@ class ConnectorManager:
             summary.get("new", 0), summary.get("duplicates", 0),
             connector_id, self.org_id,
         )
+
+    # Payload fields holding the source system's own time for a record, most
+    # specific first (Security Hub: UpdatedAt / CreatedAt).
+    _PAYLOAD_TIME_KEYS = ("updated_at", "last_observed_at", "created_at", "first_observed_at")
+
+    @staticmethod
+    def _parse_time(value: Any) -> Optional[datetime]:
+        if isinstance(value, datetime):
+            parsed = value
+        elif isinstance(value, str) and value.strip():
+            try:
+                parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+            except ValueError:
+                return None
+        else:
+            return None
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+    def _evidence_timestamp(self, event) -> datetime:
+        """Timestamp bound into an event's evidence-ledger hash.
+
+        The ledger hash covers source + timestamp + payload, and the ledger
+        is de-duplicated on that hash. Stamping an event that carries no time
+        of its own with "now" gave an unchanged finding a new hash on every
+        sync, so each sync stored it again. The timestamp must therefore be
+        the same every time the same record is seen:
+
+          1. the event's own timestamp;
+          2. the source system's time inside the payload;
+          3. when this record (org + source system + native id) was first
+             stored in telemetry;
+          4. "now", only for a record that has never been stored.
+        """
+        parsed = self._parse_time(getattr(event, "timestamp", None))
+        if parsed is not None:
+            return parsed
+
+        payload = event.payload if isinstance(event.payload, dict) else {}
+        for key in self._PAYLOAD_TIME_KEYS:
+            parsed = self._parse_time(payload.get(key))
+            if parsed is not None:
+                return parsed
+
+        if getattr(event, "source_event_id", None):
+            from app.models.telemetry_event import TelemetryEvent
+
+            try:
+                first_stored = (
+                    self.db.query(TelemetryEvent.created_at)
+                    .filter(
+                        TelemetryEvent.org_id == self.org_id,
+                        TelemetryEvent.source_system == event.source_system,
+                        TelemetryEvent.source_event_id == event.source_event_id,
+                    )
+                    .order_by(TelemetryEvent.created_at.asc())
+                    .first()
+                )
+            except Exception:  # lookup is best-effort; never block ingestion
+                first_stored = None
+            parsed = self._parse_time(first_stored[0]) if first_stored else None
+            if parsed is not None:
+                return parsed
+
+        return datetime.now(timezone.utc)
 
     def _ensure_adapter_registered(self, events) -> None:
         """Register the appropriate ``EvidenceAdapter`` for the connector.
@@ -808,3 +916,42 @@ class ConnectorManager:
         # register lazily via a generic adapter once implemented; for
         # now the confidence endpoint will report them as 0, which is
         # the documented acceptable behaviour.
+
+
+def encrypt_plaintext_credentials(db: Session) -> int:
+    """Encrypt connector credentials that older code stored unencrypted.
+
+    Two legacy shapes exist: a plain JSON object, and (Splunk HEC) a bare
+    token string. Rows already holding an AES-GCM envelope are left alone.
+    Does nothing when no encryption key is configured. Returns rows upgraded.
+    """
+    from app.core.security.connector_encryption import (
+        _get_connector_encryption_service,
+        encrypt_value,
+    )
+    from app.models.connector import Connector
+
+    if not _get_connector_encryption_service().enabled:
+        return 0
+
+    upgraded = 0
+    for connector in db.query(Connector).filter(Connector.encrypted_credentials.isnot(None)).all():
+        stored = connector.encrypted_credentials
+        if not stored:
+            continue
+        try:
+            parsed = json.loads(stored)
+        except (json.JSONDecodeError, TypeError):
+            parsed = None
+        if isinstance(parsed, dict) and "encrypted_blob" in parsed:
+            continue  # already encrypted
+        if isinstance(parsed, dict):
+            plaintext = stored
+        else:
+            plaintext = json.dumps({"hec_token": stored})
+        connector.encrypted_credentials = encrypt_value(plaintext)
+        upgraded += 1
+    if upgraded:
+        db.commit()
+        logger.info("Encrypted %d connector credential rows that were stored unencrypted", upgraded)
+    return upgraded

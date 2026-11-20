@@ -759,7 +759,7 @@ export function EvidenceNetwork() {
                   <Badge variant={splunkConnected ? "ready" : 'outline'} className="rounded-xl px-2.5 py-1 font-bold">
                     {splunkConnected ? 'Findings Synced' : 'No Findings'}
                   </Badge>
-                  {!isReadOnly && (
+                  {!isReadOnly && isDemoMode && (
                     <>
                       <Button size="sm" className="rounded-xl font-extrabold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm" onClick={handleConnectSplunk} disabled={busy || !selectedOrgId}>
                         Seed Mock Findings

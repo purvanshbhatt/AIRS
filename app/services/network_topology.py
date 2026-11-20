@@ -1429,8 +1429,8 @@ def build_topology_for_org(db, org_id: str, *, demo: bool = False, lookback_days
             cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
             events = (
                 db.query(TelemetryEvent)
-                .filter(TelemetryEvent.org_id == org_id, TelemetryEvent.created_at >= cutoff)
-                .order_by(TelemetryEvent.created_at.desc())
+                .filter(TelemetryEvent.org_id == org_id, TelemetryEvent.seen_at_column() >= cutoff)
+                .order_by(TelemetryEvent.seen_at_column().desc())
                 .limit(1000)
                 .all()
             )
@@ -1442,10 +1442,10 @@ def build_topology_for_org(db, org_id: str, *, demo: bool = False, lookback_days
                 db.query(TelemetryEvent)
                 .filter(
                     TelemetryEvent.org_id == org_id,
-                    TelemetryEvent.created_at >= cutoff,
+                    TelemetryEvent.seen_at_column() >= cutoff,
                     TelemetryEvent.event_type.in_(STATE_EVENT_TYPES),
                 )
-                .order_by(TelemetryEvent.created_at.desc())
+                .order_by(TelemetryEvent.seen_at_column().desc())
                 .limit(_MAX_STATE_EVENTS)
                 .all()
             )
@@ -1548,7 +1548,7 @@ def _event_payload(event: Any) -> Dict[str, Any]:
 
 def _event_seen_at(event: Any, payload: Dict[str, Any]) -> Optional[str]:
     return _iso(
-        _get(event, "timestamp") or _get(event, "created_at")
+        _get(event, "timestamp") or _get(event, "seen_at") or _get(event, "created_at")
         or payload.get("updated_at") or payload.get("created_at")
     )
 

@@ -53,16 +53,20 @@ def build_readiness_report(db: Session, org_id: str, demo: Optional[bool] = None
     ``DailyReadinessReport`` plus the telemetry source label.
 
     This calls the exact service functions used by the readiness endpoint
-    (demo telemetry generator, persisted telemetry loader, provider
-    extraction, ``ClinicEvaluationEngine`` and ``ReadinessEngine``). Daily
+    (demo telemetry generator, persisted telemetry loader, evidence
+    collection, ``ClinicEvaluationEngine`` and ``ReadinessEngine``). Daily
     business-value metrics are read but NOT re-recorded, so generating a
     report never mutates the metrics ledger.
+
+    Returns ``(report, source, event_count, evidence_stats)``. Stored
+    telemetry holds many copies of the same user, device or alert (one per
+    connector sync); ``evaluate_events`` reads each entity once, from its
+    newest observation, and ``evidence_stats`` says how much it collapsed.
     """
     from app.api.clinic.router import _fetch_persisted_telemetry, get_demo_telemetry
-    from app.services.clinic_engine.v2.engine import ClinicEvaluationEngine
+    from app.services.clinic_engine.v2.evidence_collection import evaluate_events, new_stats
     from app.services.clinic_engine.v2.metrics_engine import MetricsEngine
     from app.services.clinic_engine.v2.pilot import PilotService
-    from app.services.clinic_engine.v2.providers import ProviderRegistry
     from app.services.clinic_engine.v2.readiness_engine import ReadinessEngine
 
     if demo is None:
@@ -80,11 +84,9 @@ def build_readiness_report(db: Session, org_id: str, demo: Optional[bool] = None
         source = "persisted_telemetry"
 
     moments = []
+    evidence_stats = new_stats()
     try:
-        evidence = []
-        for provider_cls in ProviderRegistry.list_all().values():
-            evidence.extend(provider_cls.extract(events))
-        moments = ClinicEvaluationEngine().evaluate(evidence)
+        moments, evidence_stats = evaluate_events(events)
     except Exception as exc:
         logger.warning("Evidence evaluation failed for org %s: %s", org_id, exc)
         moments = []
@@ -95,7 +97,7 @@ def build_readiness_report(db: Session, org_id: str, demo: Optional[bool] = None
     except Exception as exc:
         logger.debug("Value summary unavailable for %s: %s", org_id, exc)
 
-    return report, source, len(events)
+    return report, source, len(events), evidence_stats
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -289,7 +291,7 @@ def build_template_snapshot(
     if demo is None:
         demo = is_demo_org(db, org_id)
 
-    readiness_model, source, event_count = build_readiness_report(db, org_id, demo=demo)
+    readiness_model, source, event_count, evidence_stats = build_readiness_report(db, org_id, demo=demo)
     readiness = readiness_model.model_dump(mode="json")
 
     failed = readiness.get("failed_checks") or []
@@ -310,6 +312,9 @@ def build_template_snapshot(
         "organization": _org_block(org, org_id, demo),
         "data_source": source,
         "telemetry_event_count": event_count,
+        # How many stored copies of the same entity or finding were collapsed
+        # so each is listed once (see evidence_collection.py).
+        "evidence_dedup": evidence_stats,
         "readiness": readiness,
         "connectors": collect_connectors(db, org_id),
         "verification_results": collect_verification_results(db, org_id),

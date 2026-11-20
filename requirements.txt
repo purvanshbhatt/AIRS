@@ -20,6 +20,9 @@ slowapi>=0.1.9
 cryptography>=44.0.0
 google-cloud-firestore>=2.19.0
 google-auth>=2.28.1
+# AWS connector (Security Hub, GuardDuty, inventory, network map). Without it
+# the connector reports "AWS support is not installed on this server".
+boto3>=1.40.0
 
 opentelemetry-api>=1.24.0
 opentelemetry-sdk>=1.24.0

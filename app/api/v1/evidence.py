@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
-from app.core.auth import User, require_auth
+from app.core.auth import User, require_auth, require_org_access
 from app.db.database import get_db
 from app.services.monday_morning import MondayMorningService, MondayMorningProjection
 from app.models.evidence import EvidenceLedger
@@ -65,6 +65,7 @@ async def get_evidence_ledger(
     """
     Returns the evidence ledger (Audit Trail).
     """
+    require_org_access(db, user, org_id)
     ledgers = db.query(EvidenceLedger).filter(EvidenceLedger.org_id == org_id).order_by(EvidenceLedger.timestamp.desc()).limit(limit).all()
     return [{
         "id": l.id,
@@ -85,6 +86,7 @@ async def get_evidence_packages(
     """
     Returns the availability of evidence packages (Evidence Vault).
     """
+    require_org_access(db, user, org_id)
     # For now, we return mock availability data based on the ledger existence.
     has_evidence = db.query(EvidenceLedger).filter(EvidenceLedger.org_id == org_id).first() is not None
     return {

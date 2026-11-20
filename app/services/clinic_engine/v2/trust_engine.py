@@ -25,6 +25,8 @@ SOURCE_DISPLAY_NAMES = {
     "google_workspace": "Google Workspace",
     "crowdstrike": "CrowdStrike",
     "datto": "Datto Backup",
+    "aws": "Amazon Web Services",
+    "aws_security_hub": "AWS Security Hub",
 }
 
 class TrustEngine:
@@ -57,6 +59,13 @@ class TrustEngine:
             source_system = "wazuh"
         elif "recovery_readiness" in moment.capability_id or "verify_backup" in moment.capability_id:
             source_system = "veeam"
+        elif "cloud_posture" in moment.capability_id:
+            source_system = "aws"
+
+        # Cloud findings and cloud accounts are verified by the cloud connector,
+        # whatever capability raised them.
+        if moment.actions and str(moment.actions[0].action_id or "").startswith("review_cloud_"):
+            source_system = "aws"
             
         # Try to extract from moment's first action if available
         if moment.actions and moment.actions[0].automation_type:
@@ -80,6 +89,9 @@ class TrustEngine:
                 self._connector_cache[org_id] = {}
                 
         connector = self._connector_cache[org_id].get(source_system)
+        if connector is None and source_system == "aws":
+            # The AWS connector is registered under either name.
+            connector = self._connector_cache[org_id].get("aws_security_hub")
         
         confidence = 100
         verification_status = "unverified"
@@ -132,10 +144,9 @@ class TrustEngine:
             VerificationExplanation: The overall verification explanation.
         """
         try:
-            connectors = self.db.query(Connector).filter(
-                Connector.org_id == org_id,
-                Connector.status == ConnectorStatus.active
-            ).order_by(Connector.display_name).all()
+            # Includes a connector that is mid-sync and has synced before.
+            from app.services.clinic_engine.v2.coverage_engine import connected_connectors
+            connectors = connected_connectors(self.db, org_id)
         except Exception:
             connectors = []
         

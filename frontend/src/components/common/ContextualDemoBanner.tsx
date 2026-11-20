@@ -131,43 +131,27 @@ export function ContextualDemoBanner({
   return (
     <aside
       aria-label="Demo environment simulation notice"
-      className="mb-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-surface-container-high to-surface-container border border-amber-500/30 p-4 sm:p-5 shadow-lg shadow-black/20 animate-in fade-in duration-300"
+      className="mb-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-surface-container-high to-surface-container border border-amber-500/30 px-4 py-3 animate-in fade-in duration-300"
     >
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        {/* Left Icon & Text */}
-        <div className="flex items-start gap-3.5">
-          <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 mt-0.5 shadow-sm">
-            <Sparkles className="w-5 h-5" />
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase whitespace-nowrap bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              DEMO ENVIRONMENT (SIMULATED DATA)
+            </span>
+            <h3 className="text-sm font-bold text-on-surface">{headline}</h3>
+            <span className="sr-only">{guidance.tag}</span>
           </div>
 
-          <div>
-            <div className="flex flex-wrap items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                DEMO ENVIRONMENT (SIMULATED DATA)
-              </span>
-              <span className="text-[11px] font-mono text-on-surface-variant">
-                • {guidance.tag}
-              </span>
-            </div>
-
-            <h3 className="text-sm font-bold text-on-surface">
-              {headline}
-            </h3>
-
-            <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed max-w-3xl">
-              {description}
-            </p>
-
-            <p className="text-xs text-amber-600/95 dark:text-amber-400/95 font-medium mt-1 leading-relaxed max-w-3xl border-l-2 border-amber-500 pl-2">
+          <p className="text-xs text-on-surface-variant mt-1 leading-relaxed max-w-4xl">
+            {description}{' '}
+            <span className="text-amber-600 dark:text-amber-400 font-medium">
               This environment uses simulated security telemetry. Results shown here are not evidence from a connected customer environment.
-            </p>
+            </span>
+          </p>
 
-            <div className="mt-2 text-[11px] font-mono text-amber-500/90 flex items-center gap-1">
-              <span>💡</span>
-              <span>{guidance.tip}</span>
-            </div>
-          </div>
+          <p className="hidden xl:block mt-1 text-[11px] text-on-surface-variant/80">{guidance.tip}</p>
         </div>
 
         {/* Right CTA Actions */}

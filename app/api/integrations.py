@@ -181,6 +181,21 @@ async def seed_mock_splunk_findings(
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
 ):
+    # Sample findings are written into the evidence ledger. Outside local
+    # development that is only allowed for a demo workspace: a real
+    # organization's evidence must come from its own systems.
+    from app.core.config import settings as _settings
+    from app.services.clinic_engine.v2.pilot import PilotService, OrgMode
+    target = data.org_id or ""
+    is_demo_target = target.startswith("demo-") or (
+        bool(target) and PilotService(db).get_mode(target) == OrgMode.DEMO
+    )
+    if _settings.is_prod and not is_demo_target:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Sample findings can only be added to a demo workspace.",
+        )
+
     service = IntegrationService(db, owner_uid=user.uid)
     try:
         res = service.seed_mock_splunk_findings(org_id=data.org_id)
@@ -278,7 +293,11 @@ async def configure_splunk_hec(
         )
         db.add(conn)
         
-    conn.encrypted_credentials = data.hec_token
+    # Stored encrypted, in the same JSON shape the Splunk connector reads.
+    from app.services.connector_manager import ConnectorManager
+    conn.encrypted_credentials = ConnectorManager(db, org_id)._encrypt_credentials(
+        {"hec_token": data.hec_token}
+    )
     conn.config = {"base_url": data.base_url}
     db.commit()
     
@@ -561,6 +580,10 @@ async def get_splunk_config(
     user: User = Depends(require_auth),
 ):
     """Check if Splunk HEC is configured for an organization."""
+    from app.services.organization import OrganizationService
+    if not OrganizationService(db, owner_uid=user.uid).get(org_id):
+        raise HTTPException(status_code=404, detail="Organization not found")
+
     from app.models.connector import Connector, ConnectorType
     conn = db.query(Connector).filter(
         Connector.org_id == org_id,
@@ -585,12 +608,30 @@ async def remove_splunk_config(
     user: User = Depends(require_auth),
     _: None = Depends(require_writable),
 ):
+    from app.services.organization import OrganizationService
+    if not OrganizationService(db, owner_uid=user.uid).get(org_id):
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    # Erase the connector with its stored token, sync history, events and evidence.
+    from fastapi.concurrency import run_in_threadpool
     from app.models.connector import Connector, ConnectorType
-    db.query(Connector).filter(
-        Connector.org_id == org_id,
-        Connector.connector_type == ConnectorType.splunk
-    ).delete()
-    db.commit()
+    from app.services.data_erasure import ErasureError, erase_connector
+    connector_ids = [
+        row.id for row in db.query(Connector.id).filter(
+            Connector.org_id == org_id,
+            Connector.connector_type == ConnectorType.splunk,
+        ).all()
+    ]
+    try:
+        for connector_id in connector_ids:
+            await run_in_threadpool(erase_connector, db, org_id, connector_id)
+    except ErasureError:
+        raise HTTPException(
+            status_code=503,
+            detail="The Splunk connection could not be fully erased. Nothing was reported as deleted; try again.",
+        )
+    if connector_ids:
+        record_audit_event(db, org_id, "connector.splunk.deleted", user.uid)
 
     # Broadcast real-time GHI update over WebSockets
     from app.core.websocket_manager import telemetry_ws_manager

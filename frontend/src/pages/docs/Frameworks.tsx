@@ -338,7 +338,7 @@ export default function DocsFrameworks() {
                                 <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">EU Artificial Intelligence Act</h3>
                                 <span className="text-xs px-2.5 py-0.5 bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300 rounded-full font-bold">
-                                    Effective Aug 2025
+                                    Phased in, 2025 to 2028
                                 </span>
                             </div>
                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
@@ -348,7 +348,7 @@ export default function DocsFrameworks() {
                             </p>
 
                             <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                                Predicted Gap Areas for AIRS Organizations:
+                                Areas the Act asks about (ResilAI does not assess these yet):
                             </h4>
                             <div className="grid sm:grid-cols-2 gap-3 mb-4">
                                 {[

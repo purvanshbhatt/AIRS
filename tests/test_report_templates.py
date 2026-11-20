@@ -90,6 +90,29 @@ def test_generate_each_template_persists_report_and_downloads_pdf(db_session, cl
     assert _pdf_page_count(dl.content) >= 1
 
 
+def _pdf_text(data: bytes) -> str:
+    pypdf = pytest.importorskip("pypdf")
+    return "\n".join((page.extract_text() or "") for page in pypdf.PdfReader(io.BytesIO(data)).pages)
+
+
+def test_cyber_insurance_binder_names_no_insurer(db_session, client_with_org, entitled):
+    """The binder used to print section references for three named insurers with no
+    source behind them. It states the evidence and leaves the form matching to the applicant."""
+    resp = _generate(client_with_org, "cyber_insurance")
+    assert resp.status_code == 201, resp.text
+    dl = client_with_org.get(f"/api/reports/{resp.json()['id']}/download")
+    assert dl.status_code == 200, dl.text
+    text = " ".join(_pdf_text(dl.content).split())
+
+    for name in ("Coalition", "Chubb", "Travelers", "Questionnaire cross-reference", "CyberRisk", "Cyber ERM"):
+        assert name not in text, name
+    assert "Control evidence matrix" in text
+    assert "Application forms differ by insurer" in text
+    # Every control is still reported.
+    for control in ("Multi-factor authentication", "Timely removal of departed-staff access", "Email security"):
+        assert control in text, control
+
+
 def test_boss_report_is_exactly_one_page(db_session, client_with_org, entitled):
     resp = _generate(client_with_org, "boss_report", title="Monday Boss Report")
     assert resp.status_code == 201, resp.text

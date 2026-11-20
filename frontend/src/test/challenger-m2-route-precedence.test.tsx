@@ -122,7 +122,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       await waitFor(() => {
         expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent("If ransomware hits your clinic tomorrow morning, can you keep operating and prove you're ready?");
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('HIPAA Verified');
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Mapped to the HIPAA Security Rule');
         expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
@@ -137,7 +137,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       await waitFor(() => {
         expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent('If ransomware hits your firm tomorrow morning, can you keep operating and protect client data?');
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('ABA 477R Verified');
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Mapped to ABA Opinion 477R');
         expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
@@ -238,7 +238,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       await waitFor(() => {
         expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent('If ransomware hits your firm tomorrow morning, can you keep operating and protect client data?');
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('ABA 477R Verified');
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Mapped to ABA Opinion 477R');
         expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
@@ -338,7 +338,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       await waitFor(() => {
         expect(screen.getByTestId('landing-headline')).toHaveTextContent("clinic's ransomware readiness");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent(/ransomware hits your clinic/i);
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('HIPAA Verified');
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Mapped to the HIPAA Security Rule');
         expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
@@ -370,7 +370,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
       await waitFor(() => {
         expect(screen.getByTestId('landing-headline')).toHaveTextContent("firm's ransomware resilience");
         expect(screen.getByTestId('landing-core-question')).toHaveTextContent(/protect client data/i);
-        expect(screen.getByTestId('hero-badge')).toHaveTextContent('ABA 477R Verified');
+        expect(screen.getByTestId('hero-badge')).toHaveTextContent('Mapped to ABA Opinion 477R');
         expect(screen.getByTestId('hero-demo-cta')).toHaveTextContent(/Live Sandbox Demo/i);
       });
     });
@@ -610,7 +610,7 @@ describe('Challenger M2 Stress-Test: Route Resolution & Precedence', () => {
 
       await waitFor(() => {
         // report-preview section removed in landing overhaul; legal persona question is the vertical-specific equivalent
-        expect(screen.getByText(/What\ evidence\ proves\ ABA\ compliance\?/)).toBeInTheDocument();
+        expect(screen.getByText(/What\ evidence\ supports\ our\ ABA\ 477R\ safeguards\?/)).toBeInTheDocument();
       });
     });
   });

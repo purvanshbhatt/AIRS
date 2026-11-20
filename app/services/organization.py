@@ -188,9 +188,12 @@ class OrganizationService:
         if not org:
             return False
         
-        self.db.delete(org)
-        self.db.commit()
-        # Remove from Firestore too
+        # Erase the organization and every row that belongs to it, in SQL and
+        # in Firestore (connections with their keys, ingested events, evidence,
+        # assessments, reports). Raises ErasureError if a copy cannot be removed.
+        from app.services.data_erasure import erase_organization
+        erase_organization(self.db, org_id)
+        # Remove the organization document itself
         firestore_delete_org(org_id)
         return True
     

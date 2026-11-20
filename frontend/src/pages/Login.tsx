@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getOrganizations } from '../api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Input } from '../components/ui';
-import { Mail, Lock, Chrome, AlertCircle, Sparkles, KeyRound } from 'lucide-react';
+import { Mail, Lock, Chrome, AlertCircle, Sparkles } from 'lucide-react';
+import { readPreferences } from '../lib/preferences';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,7 +16,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const from = (location.state as { from?: string })?.from || '/morning-brief';
+  // A page they were heading for wins; otherwise the start page chosen in Settings > Preferences.
+  const from = (location.state as { from?: string })?.from || readPreferences().startPage;
 
   /**
    * After a real sign-in: no workspace yet goes to the one-screen setup,
@@ -52,20 +54,6 @@ export default function Login() {
     }
   };
 
-  const handleQuickStagingSignIn = async () => {
-    setSubmitting(true);
-    clearError();
-    setEmail('staging-tester@resilai.io');
-    setPassword('TestPassword123!');
-    try {
-      await signInWithEmail('staging-tester@resilai.io', 'TestPassword123!');
-      await goAfterAuth();
-    } catch {
-      // Handled by context
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleGoogleSignIn = async () => {
     setSubmitting(true);
@@ -228,26 +216,6 @@ export default function Login() {
               </Button>
             </form>
 
-            {/* 1-Click Staging Quick Sign-In Helper */}
-            {mode === 'signin' && (
-              <div className="p-3 bg-ready-emerald/10 border border-ready-emerald/30 rounded-xl flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <KeyRound className="w-4 h-4 text-ready-emerald shrink-0" />
-                  <div className="text-left">
-                    <p className="text-[11px] font-bold text-on-surface">Staging test account</p>
-                    <p className="text-[10px] text-on-surface-variant font-mono">staging-tester@resilai.io</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleQuickStagingSignIn}
-                  disabled={submitting}
-                  className="px-3 py-1.5 bg-ready-emerald text-on-primary-container text-[11px] font-bold rounded-lg hover:brightness-110 transition-all shrink-0 shadow-sm"
-                >
-                  Quick sign in
-                </button>
-              </div>
-            )}
 
             {/* Social Authentication */}
             <div className="relative pt-1">

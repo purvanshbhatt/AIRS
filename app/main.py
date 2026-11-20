@@ -125,6 +125,14 @@ def _auto_create_sqlite_tables():
         import app.models  # noqa: F401 — registers all models with Base
         Base.metadata.create_all(bind=engine)
         logger.info("SQLite auto-create: tables initialized")
+        # create_all never alters an existing table. A SQLite file created
+        # before this column existed (local development) gets it added here.
+        from sqlalchemy import inspect as _sa_inspect, text as _sa_text
+        columns = {c["name"] for c in _sa_inspect(engine).get_columns("telemetry_events")}
+        if "last_seen_at" not in columns:
+            with engine.begin() as conn:
+                conn.execute(_sa_text("ALTER TABLE telemetry_events ADD COLUMN last_seen_at DATETIME"))
+            logger.info("SQLite: added telemetry_events.last_seen_at")
 
 _auto_create_sqlite_tables()
 
@@ -168,6 +176,14 @@ def _restore_durable_mirror_on_startup():
         finally:
             db.close()
         register_durable_mirror()
+        # Upgrade credentials that older code stored unencrypted (after the
+        # mirror is registered, so the encrypted value is what gets mirrored).
+        from app.services.connector_manager import encrypt_plaintext_credentials
+        db = SessionLocal()
+        try:
+            encrypt_plaintext_credentials(db)
+        finally:
+            db.close()
     except Exception as e:
         logger.warning("Durable mirror startup skipped: %s", e)
 

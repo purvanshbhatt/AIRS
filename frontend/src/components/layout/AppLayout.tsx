@@ -1,10 +1,61 @@
-import { useState } from 'react';
+import { useState, Component, ErrorInfo, ReactNode } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { AppSidebar } from './AppSidebar';
 import { ReadinessHeader } from '../readiness/ReadinessHeader';
 import { useDemoMode } from '../../contexts/DemoModeContext';
 import { useToast } from '../ui';
-import { Sparkles, ArrowUp, Calendar, AlertTriangle, RotateCcw, Layers, X } from 'lucide-react';
+import { Sparkles, ArrowUp, Calendar, AlertTriangle, RotateCcw, Layers, X, RefreshCw } from 'lucide-react';
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+class DashboardErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('[DashboardErrorBoundary] Uncaught component error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center bg-surface-container-low rounded-2xl border border-outline-variant/60 my-6 max-w-xl mx-auto shadow-sm">
+          <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <h2 className="text-base font-bold text-on-surface mb-1">View Render Notice</h2>
+          <p className="text-xs text-on-surface-variant mb-4 leading-relaxed">
+            A temporary component error occurred while rendering this view. Your session data remains safe.
+          </p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false });
+              window.location.reload();
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-ready-emerald text-slate-950 text-xs font-bold rounded-xl hover:brightness-105 transition-all cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Reload Dashboard</span>
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,14 +78,17 @@ export default function AppLayout() {
       <AppSidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 md:ml-20 lg:ml-64 min-h-screen pb-20 md:pb-8 flex flex-col relative w-full overflow-x-hidden">
+      <div className="flex-1 md:ml-20 lg:ml-64 min-h-screen flex flex-col relative w-full overflow-x-hidden">
         <ReadinessHeader 
           isMspTenant={isMspTenant}
           onMenuClick={() => setMobileMenuOpen(true)} 
         />
         
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-3 sm:px-6 md:px-8 pt-3 sm:pt-4 pb-20 md:pb-12">
-          <Outlet />
+        {/* Main page container with generous bottom padding on mobile to prevent occlusion by bottom nav & FAB */}
+        <main className="flex-1 w-full max-w-[1200px] mx-auto px-3 sm:px-6 md:px-8 pt-3 sm:pt-4 pb-28 sm:pb-32 md:pb-12">
+          <DashboardErrorBoundary>
+            <Outlet />
+          </DashboardErrorBoundary>
         </main>
 
         {/* Desktop / Tablet Persistent Ask ResilAI Bar */}
@@ -62,11 +116,11 @@ export default function AppLayout() {
           </div>
         </div>
 
-        {/* Mobile Floating Action Button (Compact M3 Small FAB) */}
+        {/* Mobile Floating Action Button (Compact M3 Small FAB positioned above 56px bottom bar) */}
         {!mobileSearchOpen && (
           <button
             onClick={() => setMobileSearchOpen(true)}
-            className="md:hidden fixed bottom-16 right-3 z-40 flex items-center justify-center w-11 h-11 rounded-full bg-ready-emerald text-slate-950 shadow-lg shadow-ready-emerald/25 hover:shadow-ready-emerald/40 active:scale-95 transition-all cursor-pointer m3-state-layer m3-elevation-3"
+            className="md:hidden fixed bottom-18 right-3 z-40 flex items-center justify-center w-11 h-11 rounded-full bg-ready-emerald text-slate-950 shadow-lg shadow-ready-emerald/25 hover:shadow-ready-emerald/40 active:scale-95 transition-all cursor-pointer m3-state-layer m3-elevation-3"
             aria-label="Ask ResilAI"
             title="Ask ResilAI"
           >
@@ -173,7 +227,7 @@ export default function AppLayout() {
       {/* Mobile Bottom Navigation Bar - Material 3 NavigationBar */}
       <nav 
         className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-low/95 dark:bg-surface-container-low/95 backdrop-blur-xl border-t border-outline-variant/60 z-40 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.35)]"
-        style={{ bottom: 0, top: 'auto' }}
+        style={{ bottom: 0, top: 'auto', transform: 'translateZ(0)' }}
         aria-label="Mobile Bottom Navigation"
       >
         <ul className="flex justify-around items-center h-14 max-w-md mx-auto px-1">

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
+from app.core.auth import User, require_auth, require_org_access
 from app.db.database import get_db
 from app.core.middleware import RequestIdMiddleware # Using existing middleware pattern
 from app.models.telemetry_event import TelemetryEvent
@@ -16,11 +17,14 @@ from app.sentinel.board_intelligence.generator import generate_board_report
 
 router = APIRouter(tags=["Sentinel"])
 
-def get_current_org():
-    """Mock auth for the hackathon demo."""
-    # Returns a hardcoded org_id assuming one exists.
-    # In production, use existing X-AIRS-API-Key logic.
-    return "00000000-0000-0000-0000-000000000001"
+def get_current_org(
+    org_id: str = Query(..., description="Organization ID"),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_auth),
+) -> str:
+    """The caller must be signed in and own the organisation they ask about."""
+    require_org_access(db, user, org_id)
+    return org_id
 
 @router.get("/status")
 def get_sentinel_status(db: Session = Depends(get_db), org_id: str = Depends(get_current_org)):

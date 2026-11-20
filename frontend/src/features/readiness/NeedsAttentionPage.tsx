@@ -217,8 +217,10 @@ export default function NeedsAttentionPage() {
                     {action.explanation ? (
                       <ExecutiveExplanation
                         explanation={action.explanation}
-                        actionLabel="Fix Issue Now"
-                        onAction={() => handleFix(actionId)}
+                        // Only the demo simulates a fix. ResilAI reads a real
+                        // organisation's systems and cannot change them.
+                        actionLabel={isDemo ? 'Fix Issue Now' : undefined}
+                        onAction={isDemo ? () => handleFix(actionId) : undefined}
                         actionState={rState}
                       />
                     ) : (
@@ -259,7 +261,7 @@ export default function NeedsAttentionPage() {
                         <div className={`flex flex-col gap-2 bg-surface-container p-3 rounded-lg mt-1 border ${rState === 'unable_to_verify' ? 'border-drift-amber/30 bg-drift-amber/5' : 'border-outline-variant/30'}`}>
                           <div className="flex items-start gap-2 text-sm text-on-surface-variant">
                             <FileText className="w-4 h-4 text-ready-emerald shrink-0 mt-0.5" />
-                            <span><strong className="text-on-surface">What to do:</strong> {item.recommendation || "Use the Fix button, or send this item to your IT provider"}</span>
+                            <span><strong className="text-on-surface">What to do:</strong> {item.recommendation || (isDemo ? "Use the Fix button, or send this item to your IT provider" : "Send this item to your IT provider")}</span>
                           </div>
                           <div className="flex items-start gap-2 text-sm text-on-surface-variant pt-2 border-t border-outline-variant/30">
                             <CheckSquare className="w-4 h-4 text-ready-emerald shrink-0 mt-0.5" />
@@ -283,6 +285,11 @@ export default function NeedsAttentionPage() {
                           <span className="text-xs text-on-surface-variant font-mono">
                             {rState === 'unable_to_verify' ? 'Hand to IT / MSP' : guidance.plainCategory}
                           </span>
+                          {!isDemo ? (
+                            <span className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant font-semibold text-xs shrink-0">
+                              Needs IT / MSP
+                            </span>
+                          ) : (
                           <button
                             onClick={() => handleFix(actionId)}
                             disabled={rState === 'executing' || rState === 'verifying'}
@@ -297,6 +304,7 @@ export default function NeedsAttentionPage() {
                             {rState === 'verifying' && 'Checking it worked...'}
                             {rState === 'unable_to_verify' && 'Retry Verification'}
                           </button>
+                          )}
                         </div>
                       </article>
                     )}

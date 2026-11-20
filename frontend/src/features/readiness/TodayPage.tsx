@@ -768,8 +768,10 @@ export default function TodayPage() {
                     {action.explanation ? (
                       <ExecutiveExplanation
                         explanation={action.explanation}
-                        actionLabel={(action as { fix_now_available?: boolean }).fix_now_available === false ? 'Send to IT / MSP' : 'Fix Now'}
-                        onAction={() => handleFix(item.id)}
+                        // Only the demo simulates a fix. ResilAI reads a real
+                        // organisation's systems and cannot change them.
+                        actionLabel={!isDemo ? undefined : (action as { fix_now_available?: boolean }).fix_now_available === false ? 'Send to IT / MSP' : 'Fix Now'}
+                        onAction={isDemo ? () => handleFix(item.id) : undefined}
                         actionState={fixingId === item.id ? 'executing' : 'idle'}
                         sourceConnector={action.verification_method}
                         rawTelemetry={action.evidence}
@@ -808,7 +810,7 @@ export default function TodayPage() {
                           </div>
                         </div>
 
-                        {(action as { fix_now_available?: boolean }).fix_now_available !== false ? (
+                        {isDemo && (action as { fix_now_available?: boolean }).fix_now_available !== false ? (
                           <button
                             onClick={() => handleFix(item.id)}
                             disabled={fixingId === item.id}
@@ -1125,7 +1127,7 @@ export default function TodayPage() {
                         <div className="p-4 rounded-xl bg-surface-container border border-surface-bright/40">
                           <h5 className="font-bold text-on-surface text-sm mb-1">Regulators, auditors and insurers</h5>
                           <p className="text-xs text-on-surface-variant leading-relaxed">
-                            Every check is recorded with its proof as it runs, which is the audit trail HIPAA Security Rule § 164.308 asks for. No spreadsheets to fill in before an audit.
+                            Each check is recorded with its source and time as it runs. That record can support the audit trail the HIPAA Security Rule asks for.
                           </p>
                         </div>
                       </>
@@ -1138,11 +1140,20 @@ export default function TodayPage() {
                     <div className="text-on-surface-variant/80 uppercase text-[10px] pb-2 border-b border-surface-bright/40">
                       Proof details (for your IT provider)
                     </div>
-                    <div>STATUS: 200_OK_VERIFIED</div>
-                    <div>CONFIDENCE_ENGINE: DETERMINISTIC_MATHEMATICAL</div>
-                    <div>EVIDENCE_HASH: sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069</div>
-                    <div>CONNECTORS: Veeam_v12, Graph_v1.0, Falcon_v7</div>
-                    <div>VERIFIED_AT: {report.generated_at}</div>
+                    <div>STATUS: {String(report.status || 'unknown').toUpperCase()}</div>
+                    <div>SCORING: DETERMINISTIC (same evidence, same score)</div>
+                    <div>
+                      CONNECTED_SOURCES:{' '}
+                      {Array.from(
+                        new Set(
+                          [
+                            ...(((report as any).coverage?.monitored || []) as any[]).map((a) => a?.source),
+                            ...((report.connectors || []) as any[]).map((c) => c?.name),
+                          ].filter(Boolean)
+                        )
+                      ).join(', ') || 'none'}
+                    </div>
+                    <div>GENERATED_AT: {report.generated_at}</div>
                   </div>
                 </div>
               )}

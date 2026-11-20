@@ -15,6 +15,7 @@ import {
   type ThemeColors,
 } from './palette';
 import type { GraphHandle, GraphViewProps } from './Graph2D';
+import { motionReduced } from '../../../lib/preferences';
 
 /**
  * 3D infrastructure map, driven imperatively through `3d-force-graph`.
@@ -52,7 +53,7 @@ function endId(end: unknown): string {
 
 function prefersReducedMotion(): boolean {
   try {
-    return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+    return motionReduced();
   } catch {
     return false;
   }

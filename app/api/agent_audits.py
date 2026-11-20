@@ -428,116 +428,31 @@ def run_agent_audit_analysis(
         _dual_write_firestore(audit)
         return audit.to_dict()
 
-    # Deterministic findings calculation
-    findings: List[Dict[str, Any]] = [
-        {
-            "finding_id": "AGENT-001",
-            "title": "Unrestricted Tool Execution",
-            "severity": "critical",
-            "deterministic_reason": f"Agent '{audit.agent_name}' invoked un-sandboxed command execution tools.",
-            "evidence_ids": [f"ev-trace-{audit.id[:6]}-01"],
-            "evidence_source": audit.source_type,
-            "timestamp": now.isoformat(),
-            "affected_agent": audit.agent_name,
-            "affected_tool": "bash_shell",
-            "readiness_impact": 20.0,
-            "remediation": "Enforce sandbox isolation or whitelist constraints on agent command execution tools.",
-            "framework_references": {
-                "NIST AI RMF": ["GOVERN 1.2", "MANAGE 2.4"],
-                "OWASP LLM Top 10": ["LLM06: Excessive Agency"],
-                "NIST CSF 2.0": ["PR.AC-05", "PR.DS-01"],
-            },
-        },
-        {
-            "finding_id": "AGENT-003",
-            "title": "Sensitive Action Without Verified Authorization",
-            "severity": "high",
-            "deterministic_reason": "Mutating action lacks cryptographic or approval authorization token.",
-            "evidence_ids": [f"ev-trace-{audit.id[:6]}-02"],
-            "evidence_source": audit.source_type,
-            "timestamp": now.isoformat(),
-            "affected_agent": audit.agent_name,
-            "affected_tool": "payment_gateway",
-            "readiness_impact": 15.0,
-            "remediation": "Require signed tokens or mandatory human-in-the-loop approvals before sensitive mutations.",
-            "framework_references": {
-                "NIST AI RMF": ["GOVERN 1.1", "MANAGE 2.1"],
-                "OWASP LLM Top 10": ["LLM06: Excessive Agency"],
-                "NIST CSF 2.0": ["PR.AC-01", "PR.AC-07"],
-            },
-        },
-        {
-            "finding_id": "AGENT-005",
-            "title": "Incomplete Agent Activity Logging",
-            "severity": "low",
-            "deterministic_reason": "Tool calls lack complete I/O parameter trace for incident forensic replay.",
-            "evidence_ids": [f"ev-trace-{audit.id[:6]}-03"],
-            "evidence_source": audit.source_type,
-            "timestamp": now.isoformat(),
-            "affected_agent": audit.agent_name,
-            "affected_tool": "patient_lookup",
-            "readiness_impact": 5.0,
-            "remediation": "Capture sanitized parameter hashes and response summaries for full trace auditability.",
-            "framework_references": {
-                "NIST AI RMF": ["MEASURE 2.7"],
-                "OWASP LLM Top 10": ["LLM08: Insufficient Logging and Monitoring"],
-                "NIST CSF 2.0": ["DE.CM-09"],
-            },
-        },
-    ]
-
-    total_deduction = sum(f["readiness_impact"] for f in findings)
-    computed_score = max(0.0, min(100.0, 100.0 - total_deduction))
-
-    audit.readiness_score = computed_score
-    audit.status = "COMPLETE"
-    audit.evidence_confidence = "VERIFIED" if computed_score >= 80 else "PARTIALLY_VERIFIED"
-    audit.verified_action_count = int(audit.tool_action_count * (computed_score / 100.0))
-    audit.unverified_action_count = audit.tool_action_count - audit.verified_action_count
-    audit.findings = json.dumps(findings)
+    # The content of ingested events is not stored or evaluated yet: ingest
+    # keeps only a count. Until a real evaluation exists, a real organization
+    # gets no findings and no score, because any finding written here would be
+    # invented rather than read from the trace.
+    not_evaluated = {"status": "Not evaluated", "controls_evaluated": [], "controls_with_findings": []}
+    audit.status = "INSUFFICIENT_EVIDENCE"
+    audit.evidence_confidence = "UNVERIFIED"
+    audit.readiness_score = 0.0
+    audit.findings = json.dumps([])
     audit.framework_alignment = json.dumps({
-        "NIST AI RMF": {
-            "status": "AT_RISK",
-            "controls_evaluated": ["GOVERN 1.1", "GOVERN 1.2", "MANAGE 2.1", "MANAGE 2.4", "MEASURE 2.7"],
-            "controls_with_findings": ["GOVERN 1.1", "GOVERN 1.2", "MANAGE 2.1", "MANAGE 2.4", "MEASURE 2.7"],
-        },
-        "OWASP LLM Top 10": {
-            "status": "AT_RISK",
-            "controls_evaluated": ["LLM06: Excessive Agency", "LLM08: Insufficient Logging and Monitoring"],
-            "controls_with_findings": ["LLM06: Excessive Agency", "LLM08: Insufficient Logging and Monitoring"],
-        },
-        "NIST CSF 2.0": {
-            "status": "AT_RISK",
-            "controls_evaluated": ["PR.AC-01", "PR.AC-05", "PR.AC-07", "PR.DS-01", "DE.CM-09"],
-            "controls_with_findings": ["PR.AC-01", "PR.AC-05", "PR.AC-07", "PR.DS-01", "DE.CM-09"],
-        },
-        "SOC 2": {"status": "Mapping not yet verified", "details": "Requires specialized certification controls."},
-        "ISO 27001": {"status": "Mapping not yet verified", "details": "Requires specialized certification controls."},
-        "HIPAA": {"status": "Mapping not yet verified", "details": "Requires specialized certification controls."},
-        "EU AI Act": {"status": "Mapping not yet verified", "details": "Requires specialized certification controls."},
+        "NIST AI RMF": not_evaluated,
+        "OWASP LLM Top 10": not_evaluated,
+        "NIST CSF 2.0": not_evaluated,
     })
     audit.remediation_priorities = json.dumps([
         {
             "priority": 1,
-            "finding_id": "AGENT-001",
-            "title": "Unrestricted Tool Execution",
-            "action": "Enforce sandbox isolation or whitelist constraints on agent command execution tools.",
-            "impact": "Recovers +20.0 readiness points upon remediation.",
-        },
-        {
-            "priority": 2,
-            "finding_id": "AGENT-003",
-            "title": "Sensitive Action Without Verified Authorization",
-            "action": "Require signed tokens or mandatory human-in-the-loop approvals before sensitive mutations.",
-            "impact": "Recovers +15.0 readiness points upon remediation.",
-        },
-        {
-            "priority": 3,
-            "finding_id": "AGENT-005",
-            "title": "Incomplete Agent Activity Logging",
-            "action": "Capture sanitized parameter hashes and response summaries for full trace auditability.",
-            "impact": "Recovers +5.0 readiness points upon remediation.",
-        },
+            "finding_id": "NOT-ANALYSED",
+            "title": "Trace analysis is not available yet",
+            "action": (
+                f"{audit.telemetry_event_count} event(s) were received. ResilAI does not yet evaluate "
+                "the content of agent traces, so no findings and no score are shown."
+            ),
+            "impact": "Nothing is inferred from the number of events alone.",
+        }
     ])
     audit.completed_at = now
     db.commit()
@@ -572,33 +487,16 @@ def remediate_agent_audit_finding(
     if not audit:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Audit {audit_id} not found.")
 
-    findings = json.loads(audit.findings) if isinstance(audit.findings, str) else (audit.findings or [])
-    recovered_points = 0.0
-    for f in findings:
-        if f.get("finding_id") == finding_id:
-            f["status"] = "REMEDIATED"
-            f["remediated_at"] = datetime.now(timezone.utc).isoformat()
-            recovered_points = float(f.get("readiness_impact", 15.0))
-            break
-
-    if recovered_points == 0.0:
-        recovered_points = 15.0
-
-    audit.findings = json.dumps(findings)
-    audit.readiness_score = min(100.0, audit.readiness_score + recovered_points)
-    audit.verified_action_count = int(audit.tool_action_count * (audit.readiness_score / 100.0))
-    audit.unverified_action_count = max(0, audit.tool_action_count - audit.verified_action_count)
-    if audit.readiness_score >= 80:
-        audit.evidence_confidence = "VERIFIED"
-    db.commit()
-    db.refresh(audit)
-    _dual_write_firestore(audit)
-
-    return {
-        "status": "success",
-        "message": f"Finding {finding_id} remediated successfully.",
-        "audit": audit.to_dict(),
-    }
+    # ResilAI reads; it does not change an agent's configuration. Marking a
+    # finding as remediated here and raising the score would report a fix that
+    # nobody verified.
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=(
+            "ResilAI cannot remediate a finding: it does not change your systems. "
+            "Fix it in the agent's own configuration, then run the audit again."
+        ),
+    )
 
 
 @router.get("/{org_id}/agent-audits/{audit_id}/explanation")

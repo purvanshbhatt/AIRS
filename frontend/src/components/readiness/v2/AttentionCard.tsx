@@ -13,15 +13,18 @@ export function AttentionCard({
   index,
   fixing,
   onFix,
+  readOnly = false,
 }: {
   action: ActionCard;
   index: number;
   fixing: boolean;
   onFix: (id: string) => void;
+  /** ResilAI only reads a real organisation's systems, so it cannot fix anything there. */
+  readOnly?: boolean;
 }) {
   const item = normalizeAction(action, index);
   const guidance = guidanceForAction(item);
-  const canFixNow = (action as { fix_now_available?: boolean }).fix_now_available !== false;
+  const canFixNow = !readOnly && (action as { fix_now_available?: boolean }).fix_now_available !== false;
   const severity = String(item.severity || '').toLowerCase();
   const severityTone =
     severity === 'critical' || severity === 'high'

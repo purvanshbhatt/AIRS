@@ -1048,7 +1048,8 @@ def check_shadow_ai_risk(
 UPCOMING_REGULATIONS = [
     {
         "name": "EU AI Act — High-Risk AI Systems",
-        "effective_date": "2025-08-02",
+        # Stand-alone (Annex III) systems, as amended by the 2026 Digital Omnibus on AI.
+        "effective_date": "2027-12-02",
         "impact_weight": 0.25,
         "description": "Mandatory risk management, data governance, and transparency for high-risk AI.",
         "affects": ["uses_ai_in_production"],

@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Shield,
   ShieldCheck,
@@ -23,9 +24,19 @@ import {
   Server,
   ArrowRight,
   Sparkles,
+  Plug,
+  Settings as SettingsIcon,
 } from 'lucide-react';
-import { getApplicableFrameworks, getGovernanceHealthIndex, GHIResponse } from '../api';
-import { useActiveOrgId } from '../hooks/useActiveOrgId';
+import {
+  getApplicableFrameworks,
+  getFrameworkCoverage,
+  getGovernanceHealthIndex,
+  FrameworkCoverageItem,
+  GHIResponse,
+} from '../api';
+import { useActiveOrg } from '../hooks/useActiveOrg';
+import { LoadingState, ErrorState } from '../components/readiness/ReadinessStates';
+import type { ApplicableFramework } from '../types';
 import { DataState, UnavailableState } from '../components/evidence/EvidenceState';
 import { ContextualDemoBanner } from '../components/common/ContextualDemoBanner';
 
@@ -255,8 +266,23 @@ const CANONICAL_DRIFT_ROWS: DriftRow[] = [
   },
 ];
 
+/**
+ * Governance page.
+ *
+ * The demo workspace shows the bundled sample walkthrough (`GovernanceDemoView`),
+ * tagged "Sample data". A real organisation only ever sees what the backend
+ * returned for it (`GovernanceLiveView`), or a plain statement that nothing
+ * has been measured yet.
+ */
 export default function GovernancePage() {
-  const orgId = useActiveOrgId();
+  const { orgId, isDemo, loading } = useActiveOrg();
+  if (isDemo) return <GovernanceDemoView orgId={orgId} />;
+  if (loading) return <LoadingState message="Loading governance..." />;
+  return <GovernanceLiveView orgId={orgId} />;
+}
+
+/** Sample walkthrough. Demo workspace only: every figure below is illustrative. */
+function GovernanceDemoView({ orgId }: { orgId: string }) {
   const [loading, setLoading] = useState(true);
   const [governanceData, setGovernanceData] = useState<GHIResponse | null>(null);
   const [frameworks, setFrameworks] = useState<GovernanceFramework[]>(CANONICAL_FRAMEWORKS);
@@ -352,13 +378,19 @@ export default function GovernancePage() {
       {/* Page Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/30 pb-6">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight">
               Governance & Framework Alignment
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-ready-emerald/10 text-ready-emerald border border-ready-emerald/20 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-ready-emerald animate-pulse" />
               Continuous Telemetry
+            </span>
+            <span
+              data-testid="sample-data-tag"
+              className="px-2 py-0.5 rounded text-[10px] uppercase font-mono font-bold tracking-wider bg-drift-amber/10 text-drift-amber border border-drift-amber/30"
+            >
+              Sample data
             </span>
           </div>
           <p className="text-sm md:text-base text-on-surface-variant mt-1.5 max-w-3xl">
@@ -803,6 +835,445 @@ export default function GovernancePage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Live view: a real organisation                                              */
+/* -------------------------------------------------------------------------- */
+
+interface LiveGovernance {
+  ghi: GHIResponse | null;
+  frameworks: ApplicableFramework[];
+  coverage: FrameworkCoverageItem[];
+  /** True when at least one of the three requests failed. */
+  partial: boolean;
+}
+
+const EMPTY_LIVE_GOVERNANCE: LiveGovernance = { ghi: null, frameworks: [], coverage: [], partial: false };
+
+const finiteNumber = (value: unknown): number | null =>
+  typeof value === 'number' && Number.isFinite(value) ? value : null;
+
+const normaliseFrameworkName = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/** "NIST_AI_RMF" (coverage API) and "NIST AI RMF" (applicability API) are the same framework. */
+function coverageFor(name: string, coverage: FrameworkCoverageItem[]): FrameworkCoverageItem | undefined {
+  const key = normaliseFrameworkName(name);
+  if (!key) return undefined;
+  return coverage.find((item) => {
+    const candidate = normaliseFrameworkName(item.framework);
+    return candidate.length >= 4 && (candidate === key || key.startsWith(candidate));
+  });
+}
+
+interface MeasuredGhi {
+  value: number;
+  grade: string | null;
+  passed: boolean | null;
+  /** What the backend says the index was calculated from. */
+  inputs: string[];
+  issues: string[];
+}
+
+/**
+ * Read the governance health index out of `GET /api/governance/{org}/health-index`.
+ * Returns null when the backend sent no index, or when its own breakdown says
+ * nothing stands behind the number (no findings, no tracked components, no
+ * service-level tier, no applicable framework): the formula then returns its
+ * starting value, which is not a measurement of this organisation.
+ */
+function readGhi(ghi: GHIResponse | null): MeasuredGhi | null {
+  const value = finiteNumber(ghi?.ghi);
+  if (!ghi || value === null) return null;
+
+  const openFindings = finiteNumber(ghi.audit_readiness?.total_open);
+  const components = finiteNumber(ghi.lifecycle?.total_components);
+  const frameworks = finiteNumber(ghi.compliance?.total_frameworks);
+  const slaStatus = typeof ghi.sla?.status === 'string' ? ghi.sla.status : null;
+
+  if (openFindings === 0 && components === 0 && frameworks === 0 && slaStatus === 'not_configured') {
+    return null;
+  }
+
+  const inputs: string[] = [];
+  if (openFindings !== null) inputs.push(`${openFindings} open finding${openFindings === 1 ? '' : 's'}`);
+  if (components !== null) inputs.push(`${components} tracked technology component${components === 1 ? '' : 's'}`);
+  if (slaStatus !== null) {
+    inputs.push(slaStatus === 'not_configured' ? 'no service-level tier set' : `service-level status "${slaStatus.replace(/_/g, ' ')}"`);
+  }
+  if (frameworks !== null) inputs.push(`${frameworks} applicable framework${frameworks === 1 ? '' : 's'}`);
+
+  return {
+    value,
+    grade: typeof ghi.grade === 'string' && ghi.grade.trim() ? ghi.grade.trim() : null,
+    passed: typeof ghi.passed === 'boolean' ? ghi.passed : null,
+    inputs,
+    issues: Array.isArray(ghi.issues) ? ghi.issues.filter((issue) => typeof issue === 'string' && issue.trim()) : [],
+  };
+}
+
+function GovernanceLiveView({ orgId }: { orgId: string }) {
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [data, setData] = useState<LiveGovernance>(EMPTY_LIVE_GOVERNANCE);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const reload = useCallback(() => setReloadKey((key) => key + 1), []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!orgId) {
+      setData(EMPTY_LIVE_GOVERNANCE);
+      setStatus('ready');
+      return;
+    }
+
+    setStatus('loading');
+    (async () => {
+      const [ghiResult, frameworksResult, coverageResult] = await Promise.allSettled([
+        Promise.resolve().then(() => getGovernanceHealthIndex(orgId)),
+        Promise.resolve().then(() => getApplicableFrameworks(orgId)),
+        Promise.resolve().then(() => getFrameworkCoverage(orgId)),
+      ]);
+      if (!active) return;
+
+      const failures = [ghiResult, frameworksResult, coverageResult].filter((r) => r.status === 'rejected').length;
+      if (failures === 3) {
+        setStatus('error');
+        return;
+      }
+
+      const ghi = ghiResult.status === 'fulfilled' && ghiResult.value ? ghiResult.value : null;
+
+      const rawFrameworks = frameworksResult.status === 'fulfilled' ? frameworksResult.value?.frameworks : null;
+      const frameworks = Array.isArray(rawFrameworks)
+        ? rawFrameworks.filter((f) => f && typeof f.framework === 'string' && f.framework.trim())
+        : [];
+
+      const rawCoverage = coverageResult.status === 'fulfilled' ? coverageResult.value : null;
+      const coverage = Array.isArray(rawCoverage)
+        ? rawCoverage.filter(
+            (c) =>
+              c &&
+              typeof c.framework === 'string' &&
+              c.framework.trim() &&
+              finiteNumber(c.covered_controls) !== null &&
+              finiteNumber(c.total_controls) !== null &&
+              finiteNumber(c.coverage_percent) !== null
+          )
+        : [];
+
+      setData({ ghi, frameworks, coverage, partial: failures > 0 });
+      setStatus('ready');
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [orgId, reloadKey]);
+
+  const measured = useMemo(() => readGhi(data.ghi), [data.ghi]);
+
+  // Frameworks the backend says apply, each with its coverage row if one exists.
+  // Coverage rows for a framework that is not in the applicability list are
+  // shown only when the backend tracked at least one control for it.
+  const cards = useMemo(() => {
+    const applicable = data.frameworks.map((fw) => ({
+      key: `applicable-${fw.framework}`,
+      name: fw.framework,
+      reason: typeof fw.reason === 'string' ? fw.reason : '',
+      mandatory: typeof fw.mandatory === 'boolean' ? fw.mandatory : null,
+      referenceUrl:
+        typeof fw.reference_url === 'string' && fw.reference_url.startsWith('https://') ? fw.reference_url : null,
+      coverage: coverageFor(fw.framework, data.coverage) ?? null,
+    }));
+    const used = new Set(applicable.map((card) => card.coverage).filter(Boolean));
+    const tracked = data.coverage
+      .filter((item) => !used.has(item) && item.covered_controls > 0)
+      .map((item) => ({
+        key: `tracked-${item.framework}`,
+        name: item.framework.replace(/_/g, ' '),
+        reason: '',
+        mandatory: null as boolean | null,
+        referenceUrl: null as string | null,
+        coverage: item as FrameworkCoverageItem | null,
+      }));
+    return [...applicable, ...tracked];
+  }, [data.frameworks, data.coverage]);
+
+  const filteredCards = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return cards;
+    return cards.filter((card) => card.name.toLowerCase().includes(q) || card.reason.toLowerCase().includes(q));
+  }, [cards, searchQuery]);
+
+  if (status === 'loading') return <LoadingState message="Loading governance..." />;
+  if (status === 'error') {
+    return (
+      <ErrorState
+        error="We could not load governance data for your organisation. Please try again."
+        onRetry={reload}
+      />
+    );
+  }
+
+  const scoreTone = measured?.passed === false ? 'text-drift-amber' : 'text-ready-emerald';
+  const displayValue = measured ? (Number.isInteger(measured.value) ? String(measured.value) : measured.value.toFixed(1)) : null;
+
+  return (
+    <div className="space-y-8 animate-fade-up max-w-7xl mx-auto pb-16" data-testid="governance-live">
+      {/* Page Header */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/30 pb-6">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight">
+            Governance & Framework Alignment
+          </h1>
+          <p className="text-sm md:text-base text-on-surface-variant mt-1.5 max-w-3xl">
+            Which frameworks apply to your organisation, and what ResilAI has measured for it so far.
+          </p>
+        </div>
+
+        {cards.length > 0 && (
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search frameworks..."
+                className="bg-surface-container-low border border-outline-variant/40 rounded-xl pl-9 pr-3 py-2 text-xs text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-ready-emerald transition-all w-52 sm:w-64"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </header>
+
+      {data.partial && (
+        <div
+          role="status"
+          data-testid="governance-partial-notice"
+          className="p-4 bg-surface-container-low border border-drift-amber/30 rounded-xl text-xs text-on-surface flex items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-drift-amber shrink-0" />
+            <span>Some governance data could not be loaded, so this page may be incomplete.</span>
+          </div>
+          <button
+            onClick={reload}
+            className="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg border border-outline-variant/50 flex items-center gap-1.5 shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Try again</span>
+          </button>
+        </div>
+      )}
+
+      {/* Non-Certification Disclaimer */}
+      <aside
+        aria-label="Framework Alignment Disclaimer"
+        className="rounded-xl bg-surface-container-low border border-outline-variant/40 p-4 sm:p-5 flex items-start gap-3.5 shadow-sm"
+      >
+        <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0 mt-0.5">
+          <Info className="w-5 h-5" />
+        </div>
+        <div>
+          <h2 className="text-xs font-bold font-mono uppercase tracking-wider text-on-surface">
+            Readiness Evidence Mapping Disclaimer
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-1 leading-relaxed max-w-4xl">
+            Framework information on this page is readiness evidence. It does not constitute formal certification,
+            attestation, or third-party audit sign-off.
+          </p>
+        </div>
+      </aside>
+
+      {/* Governance Health */}
+      <section className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between shadow-sm relative overflow-hidden">
+        <div className="flex-1 space-y-3 relative z-10">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-on-surface-variant">
+            <Activity className="w-4 h-4" />
+            <span>Governance Health</span>
+          </div>
+
+          {measured ? (
+            <>
+              <h2 className="text-xl md:text-2xl font-bold text-on-surface leading-tight">
+                Governance health index: <span className={scoreTone}>{displayValue} out of 100</span>
+                {measured.grade ? `, grade ${measured.grade}` : ''}.
+              </h2>
+              {measured.inputs.length > 0 && (
+                <p className="text-xs md:text-sm text-on-surface-variant leading-relaxed max-w-3xl">
+                  Calculated by ResilAI from {measured.inputs.join(', ')}.
+                </p>
+              )}
+              {measured.issues.length > 0 && (
+                <ul className="pt-1 space-y-1.5 text-xs text-on-surface-variant max-w-3xl">
+                  {measured.issues.map((issue, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <AlertTriangle className="w-3.5 h-3.5 text-drift-amber shrink-0 mt-0.5" />
+                      <span>{issue}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl md:text-2xl font-bold text-on-surface leading-tight">
+                Governance health has not been measured yet.
+              </h2>
+              <p className="text-xs md:text-sm text-on-surface-variant leading-relaxed max-w-3xl">
+                ResilAI calculates this from your organisation profile, your assessment findings and the technology
+                it can see. Complete the organisation profile and connect a system, and the index appears here.
+              </p>
+            </>
+          )}
+        </div>
+
+        <div className="shrink-0 flex flex-col items-center justify-center p-6 bg-surface-container rounded-2xl border border-outline-variant/60 min-w-[200px] text-center shadow-lg relative z-10">
+          {measured ? (
+            <span className={`text-5xl font-bold tracking-tight font-mono ${scoreTone}`} data-testid="governance-ghi-value">
+              {displayValue}
+            </span>
+          ) : (
+            <span className="text-lg font-bold text-on-surface-variant" data-testid="governance-ghi-not-measured">
+              Not measured yet
+            </span>
+          )}
+          <span className="text-xs font-mono uppercase tracking-widest text-on-surface-variant mt-2 font-semibold">
+            Governance Health Index
+          </span>
+          {measured?.grade && (
+            <span className="text-[10px] font-mono text-on-surface-variant mt-1">Grade {measured.grade}</span>
+          )}
+        </div>
+      </section>
+
+      {/* Applicable Frameworks */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
+            <Gavel className="w-5 h-5 text-ready-emerald" />
+            <span>Frameworks That Apply to Your Organisation</span>
+          </h2>
+          {cards.length > 0 && (
+            <span className="text-xs font-mono text-on-surface-variant">
+              {filteredCards.length} of {cards.length} shown
+            </span>
+          )}
+        </div>
+
+        {cards.length === 0 ? (
+          <div
+            data-testid="governance-empty-state"
+            className="p-8 rounded-xl bg-surface-container-low border border-dashed border-surface-bright flex flex-col items-center justify-center text-center"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-drift-amber/10 border border-drift-amber/30 flex items-center justify-center text-drift-amber mb-3">
+              <Gavel className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-semibold text-on-surface">No frameworks to show yet.</h3>
+            <p className="text-xs text-on-surface-variant max-w-md mt-1 leading-relaxed">
+              ResilAI works out which frameworks apply from your organisation profile: the kind of data you handle
+              and the sector you work in. Complete the profile in Settings, then connect a system so there is
+              evidence to measure against them.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to="/settings"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 text-sm font-bold rounded-xl transition-all active:scale-[0.98]"
+              >
+                <SettingsIcon className="w-4 h-4" />
+                <span>Complete organisation profile</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                to="/connectors"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-surface-container hover:bg-surface-container-high border border-outline-variant/60 text-on-surface text-sm font-semibold rounded-xl transition-all active:scale-[0.98]"
+              >
+                <Plug className="w-4 h-4" />
+                <span>Connect a system</span>
+              </Link>
+            </div>
+          </div>
+        ) : filteredCards.length === 0 ? (
+          <p className="text-xs text-on-surface-variant">No framework matches your search.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCards.map((card) => (
+              <div
+                key={card.key}
+                data-testid="governance-framework-card"
+                className="bg-surface-container-low border border-outline-variant/60 rounded-2xl p-6 flex flex-col justify-between"
+              >
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="p-3 rounded-xl border bg-surface-container text-on-surface-variant border-outline-variant/40">
+                      <Gavel className="w-6 h-6" />
+                    </div>
+                    {card.mandatory !== null && (
+                      <span
+                        className={`px-3 py-1 text-xs font-mono font-bold rounded-full border ${
+                          card.mandatory
+                            ? 'bg-drift-amber/10 text-drift-amber border-drift-amber/30'
+                            : 'bg-surface-container text-on-surface-variant border-outline-variant/40'
+                        }`}
+                      >
+                        {card.mandatory ? 'Mandatory' : 'Recommended'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold text-on-surface">{card.name}</h3>
+                    {card.reason && (
+                      <p className="text-xs text-on-surface-variant leading-relaxed mt-2">{card.reason}</p>
+                    )}
+                    {card.referenceUrl && (
+                      <a
+                        href={card.referenceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-ready-emerald hover:underline"
+                      >
+                        <span>Official reference</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-outline-variant/60 text-xs">
+                  {card.coverage ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-mono text-[11px] text-on-surface-variant">
+                        {card.coverage.covered_controls} of {card.coverage.total_controls} controls tracked
+                      </span>
+                      <span className="text-sm font-bold font-mono text-on-surface">
+                        {card.coverage.coverage_percent}% coverage
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-mono text-[11px] text-on-surface-variant">Coverage not measured yet</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

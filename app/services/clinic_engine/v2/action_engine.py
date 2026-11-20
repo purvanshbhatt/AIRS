@@ -148,6 +148,37 @@ class ActionEngine:
                 success_message="Backup verified. Recovery is available."
             )
             
+        elif action_type.startswith("review_cloud_"):
+            if action_type == "review_cloud_account":
+                who = intent.automation_params.get("display_name") or "this user"
+                problem = "An AWS sign-in that nobody appears to use is still enabled."
+                why = "Anyone who holds its password or access key can get into your AWS account."
+                recommended = (
+                    f"In AWS IAM, remove the console password and access keys for {who}, "
+                    "or delete the user if nobody needs it."
+                )
+            else:
+                title = intent.automation_params.get("title") or "a security finding"
+                problem = f'AWS reports: "{title}".'
+                why = "A misconfigured or compromised cloud resource can expose data or let an attacker in."
+                recommended = (
+                    "Open AWS Security Hub, find this item and follow the remediation steps "
+                    "AWS lists for each affected resource."
+                )
+            return ActionCard(
+                action_id=intent.action_id,
+                problem=problem,
+                why_it_matters=why,
+                recommended_action=recommended,
+                can_be_undone=False,
+                estimated_time_minutes=intent.estimated_minutes,
+                fix_now_available=False,
+                category="cloud_security",
+                approval_needed=False,
+                required_permissions=["AWS administrator"],
+                success_message="Marked as reviewed."
+            )
+
         # Fallback card
         return ActionCard(
             action_id=intent.action_id,

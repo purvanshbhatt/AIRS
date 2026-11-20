@@ -7,7 +7,10 @@ without relying on external message queues (like Celery/Redis) to maintain
 simplicity in staging.
 """
 import asyncio
+import gc
 import logging
+import os
+import tempfile
 from typing import Callable, Coroutine, Dict, Any
 from datetime import datetime, timezone
 
@@ -20,15 +23,58 @@ logger = logging.getLogger("airs.scheduler")
 
 
 class TaskScheduler:
-    def __init__(self):
+    def __init__(self, lock_path: str | None = None):
         self.tasks: Dict[str, asyncio.Task] = {}
         self.running = False
-        
+        self._lock_path = lock_path or os.environ.get(
+            "SCHEDULER_LOCK_FILE", os.path.join(tempfile.gettempdir(), "resilai-scheduler.lock")
+        )
+        self._lock_handle = None
+
+    def _acquire_leadership(self) -> bool:
+        """Only one worker process in the container may run the background tasks.
+
+        The API runs several gunicorn workers. Without this, every worker ran
+        its own connector sweep at the same moment: each connector was synced
+        twice, and two copies of the AWS SDK's service models pushed the
+        container over its memory limit, which restarted it in a loop.
+
+        An exclusive, non-blocking lock on a file decides the leader. The lock
+        dies with the process, so a replacement worker takes over at start-up.
+        """
+        try:
+            import fcntl
+        except ImportError:  # Windows development machines: single process anyway
+            return True
+        handle = None
+        try:
+            handle = open(self._lock_path, "w")
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            if handle is not None:
+                handle.close()
+            return False
+        self._lock_handle = handle
+        return True
+
+    def _release_leadership(self) -> None:
+        if self._lock_handle is None:
+            return
+        try:
+            self._lock_handle.close()  # closing the file releases the lock
+        except OSError:
+            pass
+        self._lock_handle = None
+
     def start(self):
         """Start the background task scheduler."""
         if self.running:
             return
-            
+
+        if not self._acquire_leadership():
+            logger.info("Background tasks already run in another worker; this worker will not schedule them.")
+            return
+
         self.running = True
         logger.info("Starting background task scheduler...")
         
@@ -68,6 +114,8 @@ class TaskScheduler:
         for name, task in self.tasks.items():
             logger.info(f"Cancelling background task: {name}")
             task.cancel()
+        self.tasks = {}
+        self._release_leadership()
             
     async def _run_periodic(
         self, 
@@ -123,6 +171,10 @@ class TaskScheduler:
                     await mgr.sync_connector(connector.id)
                 except Exception as e:
                     logger.error(f"Error syncing connector {connector.id}: {e}", exc_info=True)
+                finally:
+                    # Cloud SDK clients hold large service models; hand that
+                    # memory back before the next connector starts.
+                    gc.collect()
         finally:
             db.close()
         logger.info("Connector sync sweep executed.")

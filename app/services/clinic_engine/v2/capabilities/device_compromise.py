@@ -104,9 +104,11 @@ class DeviceCompromiseCapability(BaseCapability):
         issues = details.get('issues', [])
         
         if 'active_alert' in issues:
-            what = f"{device_name} has {alert_count} active security warnings that need immediate attention."
+            noun = "warning that needs" if alert_count == 1 else "warnings that need"
+            what = f"{device_name} has {alert_count} active security {noun} immediate attention."
         elif 'unpatched_vulnerability' in issues:
-            what = f"{device_name} has {vulnerability_count} known security holes that hackers could exploit."
+            noun = "hole" if vulnerability_count == 1 else "holes"
+            what = f"{device_name} has {vulnerability_count} known security {noun} that hackers could exploit."
         else:
             what = f"{device_name} isn't meeting your security requirements and could be at risk."
             

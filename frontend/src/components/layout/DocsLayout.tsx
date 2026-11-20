@@ -213,7 +213,8 @@ export default function DocsLayout() {
             </aside>
 
             {/* Main content wrapper */}
-            <div className="flex-1 flex flex-col lg:ml-64">
+            {/* min-w-0: wide code samples scroll inside their own box instead of widening the page on phones */}
+            <div className="flex-1 min-w-0 flex flex-col lg:ml-64">
                 {/* Top header */}
                 <header className="sticky top-0 z-30 flex items-center h-16 px-4 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 lg:px-6 shrink-0 shadow-sm backdrop-blur-sm">
                     <button

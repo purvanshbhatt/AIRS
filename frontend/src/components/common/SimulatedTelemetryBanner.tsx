@@ -29,6 +29,9 @@ export function SimulatedTelemetryBanner({ domainName }: SimulatedTelemetryBanne
         <p className="mt-1 leading-relaxed text-drift-amber font-medium">
           This environment uses simulated security telemetry. Results shown here are not evidence from a connected customer environment.
         </p>
+        <p className="mt-1 leading-relaxed text-on-surface-variant" data-testid="sample-product-names-note">
+          Product names on this page are examples only. The Connectors page lists the systems ResilAI connects to.
+        </p>
       </div>
     </div>
   );

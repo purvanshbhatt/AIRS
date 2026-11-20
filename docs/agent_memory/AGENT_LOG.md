@@ -89,23 +89,36 @@ Changes Made:
   - Pushed codebase snapshot to remote `backup` branch, securing updates while preserving protected branch invariants with 0 modifications to `main` or `demo-stable`.
 
 Files Modified:
+Agent: ResilAI Growth & Product Marketing Agent
+Task: Embed Launch Teaser Video into Landing Page (/llm-council, /hallmark, /design-taste-frontend, /plan)
+Changes Made:
+* Evaluated embedding the 24.5-second product launch teaser video onto the ResilAI production landing page using 5 advisor perspectives (CISO, Web Performance, CRO, Hallmark Brand, Governance/Legal).
+* Recommended and implemented the Linear/Vercel hybrid pattern: zero autoplay above the fold, on-demand high-performance theater modal, and dedicated in-page showcase card.
+* Staged video assets in `frontend/public/videos/`:
+  - `resilai-launch-teaser.mp4` (1080p, 24.50s, 9.7MB H.264 / AAC).
+  - `resilai-launch-teaser-poster.jpg` (83KB settled frame thumbnail).
+* Developed `frontend/src/components/common/VideoModal.tsx`:
+  - Full ARIA compliance (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`, `aria-describedby`).
+  - Zero-CLS lazy-loaded HTML5 player with body scroll locking and Escape key dismiss.
+  - Hallmark Rule #2 honest copy scenario caption: "Illustrative scenario: Overnight continuous telemetry verification for a clinical practice."
+* Updated `frontend/src/pages/Landing.tsx`:
+  - Added `[▶ Watch 24s Teaser]` CTA button to the Hero action stack.
+  - Added dedicated showcase card in Problem to Solution section ("Continuous Telemetry in 24 Seconds").
+  - Wired `VideoModal` with automatic stop on close.
+* Deployed and verified on both Staging and Production:
+  - Staging: `https://staging.resilai.org` & `https://resilai-staging.web.app` (assets verified HTTP 200).
+  - Production: `https://resilai.org` & `https://resilai-marketing.web.app` (assets verified HTTP 200, bundle hash `index-CSPst8p2.js`).
+* Extended `frontend/src/test/landing-positioning.test.tsx` with 3 integration tests covering button rendering, dialog opening, Hallmark disclaimer check, and keyboard dismissal (30/30 passed).
+* Rebuilt knowledge graph via `graphify update .` (13,922 nodes, 32,762 edges).
+
+Files Modified:
+* `frontend/public/videos/resilai-launch-teaser.mp4`
+* `frontend/public/videos/resilai-launch-teaser-poster.jpg`
+* `frontend/src/components/common/VideoModal.tsx`
+* `frontend/src/pages/Landing.tsx`
+* `frontend/src/test/landing-positioning.test.tsx`
 * `docs/agent_memory/ACTIVE_CONTEXT.md`
 * `docs/agent_memory/AGENT_LOG.md`
-
-Dependencies Created/Updated:
-* None
-
-Business Impact:
-* Automated and manual snapshot disaster recovery pipeline verified and current. Codebase state secured on remote `backup` and `daily-sync` branches with strictly enforced protection invariants and full audit trail.
-
-Next Recommended Task:
-* Monitor scheduled daily cron execution at 04:00 UTC on GitHub Actions.
-
-Blocked By:
-* None
-
-Affected Teams:
-* DevOps, Engineering Leadership
 
 ---
 
@@ -3308,3 +3321,26 @@ Affected Teams:
 * Backend
 * Frontend
 
+
+---
+
+Date: 2026-11-16
+Agent: Claude Fable 5.2 (Claude Code)
+Task: Remove the built-in test login and its password from the sign-in page
+Changes Made:
+* Removed the "Staging test account" quick sign-in box and its handler; the email and password are no longer in page code.
+* Added a source check that fails if a sign-in call or the password field is given a literal value.
+* Confirmed staging no longer serves the account; production still does until it is redeployed.
+Files Modified:
+* frontend/src/pages/Login.tsx, frontend/src/test/login-no-test-account.test.tsx (new)
+Dependencies Created/Updated:
+* None
+Business Impact:
+* A visitor can no longer sign in to a shared test account from the public sign-in page on staging.
+Next Recommended Task:
+* Owner: disable the staging-tester account or change its password, then promote the fix to production.
+Blocked By:
+* Owner: decision on the account; production promotion.
+Affected Teams:
+* Frontend
+* Security

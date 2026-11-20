@@ -145,6 +145,33 @@ describe('Public Website Expansion & Google for Startups Review Readiness', () =
       const cta = screen.getByRole('link', { name: /Become a Design Partner/i });
       expect(cta).toHaveAttribute('href', '/contact?tier=design-partner');
     });
+
+    it('lists only what the product has: no SSO, team seats, unbuilt connectors or named insurers', () => {
+      renderPublicPage(<Pricing />);
+      const text = document.body.textContent || '';
+      for (const claim of [
+        /SSO|SAML|SCIM/,
+        /up to 5 administrators/i,
+        /Google Cloud/,
+        /CrowdStrike/,
+        /PowerShell|CloudFormation/,
+        /Containment Simulator/i,
+        /1-click remediation/i,
+        /Coalition|Chubb|Travelers/,
+        /uptime SLA/i,
+        /ISO 27001/,
+        /zero raw confidential telemetry/i,
+      ]) {
+        expect(text).not.toMatch(claim);
+      }
+    });
+
+    it('says plainly what is sent to the language model', () => {
+      renderPublicPage(<Pricing />);
+      const text = document.body.textContent || '';
+      expect(text).toMatch(/no language model produces or changes them/i);
+      expect(text).toMatch(/sends the model your organization's name, its scores/i);
+    });
   });
 
   describe('6. Contact Us Page (/contact)', () => {

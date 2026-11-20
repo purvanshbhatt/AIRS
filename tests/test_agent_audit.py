@@ -2,6 +2,7 @@
 Tests for 48-Hour Live AI Agent Blast-Radius Audit lifecycle and endpoints.
 """
 
+import json
 from datetime import datetime, timedelta, timezone
 import pytest
 from fastapi.testclient import TestClient
@@ -111,10 +112,15 @@ def test_create_and_run_agent_audit_lifecycle(client, test_org):
     run_res = client.post(f"/api/orgs/{test_org.id}/agent-audits/{audit_id}/run")
     assert run_res.status_code == 200
     run_data = run_res.json()
-    assert run_data["status"] == "COMPLETE"
-    assert run_data["readiness_score"] == 60.0  # 100 - (20 + 15 + 5)
-    assert len(run_data["findings"]) == 3
-    assert "NIST AI RMF" in run_data["framework_alignment"]
+    # The content of the events is not evaluated yet, so a real organization
+    # gets no findings and no score. Nothing is invented from the event count.
+    assert run_data["status"] == "INSUFFICIENT_EVIDENCE"
+    assert run_data["readiness_score"] == 0.0
+    assert run_data["findings"] == []
+    assert run_data["framework_alignment"]["NIST AI RMF"]["status"] == "Not evaluated"
+    assert run_data["remediation_priorities"][0]["finding_id"] == "NOT-ANALYSED"
+    assert "bash_shell" not in json.dumps(run_data)
+    assert "payment_gateway" not in json.dumps(run_data)
 
     # 4. Narrative Explanation
     exp_res = client.get(f"/api/orgs/{test_org.id}/agent-audits/{audit_id}/explanation")
@@ -164,36 +170,24 @@ def test_remediate_finding_demo_org(client):
     assert data["new_score"] == 80.0
 
 
-def test_remediate_finding_real_org(client, test_org):
-    """Remediating a finding on a real org audit persists to database and increases readiness score."""
-    # Create, ingest, run
+def test_remediate_finding_real_org_is_refused(client, test_org):
+    """ResilAI does not change systems: a real org cannot have a finding marked fixed."""
     create_res = client.post(
         f"/api/orgs/{test_org.id}/agent-audits",
         json={"audit_window": "48h", "source_type": "trace", "agent_name": "Ops Agent"},
     )
     audit_id = create_res.json()["id"]
-
-    # Ingest telemetry so audit has evidence
     client.post(
         f"/api/orgs/{test_org.id}/agent-audits/{audit_id}/telemetry",
         json={"events": [{"agent_id": "Ops Agent", "tool": "payment_gateway", "action": "pay"}]},
     )
     client.post(f"/api/orgs/{test_org.id}/agent-audits/{audit_id}/run")
 
-    # Remediate finding AGENT-003 (severity high, +15 points: 60 -> 75)
     rem_res = client.post(
         f"/api/orgs/{test_org.id}/agent-audits/{audit_id}/remediate/AGENT-003"
     )
-    assert rem_res.status_code == 200
-    rem_data = rem_res.json()
-    assert rem_data["status"] == "success"
-    assert rem_data["audit"]["readiness_score"] == 75.0
+    assert rem_res.status_code == 409
 
-    # Verify audit get reflects the remediation
-    get_res = client.get(f"/api/orgs/{test_org.id}/agent-audits/{audit_id}")
-    assert get_res.status_code == 200
-    audit_data = get_res.json()
-    assert audit_data["readiness_score"] == 75.0
-    finding3 = next(f for f in audit_data["findings"] if f["finding_id"] == "AGENT-003")
-    assert finding3["status"] == "REMEDIATED"
-
+    audit_data = client.get(f"/api/orgs/{test_org.id}/agent-audits/{audit_id}").json()
+    assert audit_data["readiness_score"] == 0.0
+    assert audit_data["findings"] == []

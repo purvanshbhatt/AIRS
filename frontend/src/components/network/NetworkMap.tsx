@@ -17,6 +17,8 @@ import {
   type NetworkZone,
 } from '../../api';
 import { Graph2D, type GraphHandle } from './map/Graph2D';
+import { Graph3DLite } from './map/Graph3DLite';
+import { readPreferences, usePreferences } from '../../lib/preferences';
 import { NodeDetailPanel } from './map/NodeDetailPanel';
 import {
   STATUS_DOT_CLASS,
@@ -36,12 +38,40 @@ import {
 const Graph3D = lazy(() => import('./map/Graph3D'));
 
 type ViewMode = '2d' | '3d';
+/** `webgl` is the full three.js scene; `lite` draws the same 3D building on a plain canvas. */
+type Renderer3D = 'webgl' | 'lite';
 
 /** How often the map asks the connected systems' latest telemetry for changes. */
 const LIVE_REFRESH_MS = 45_000;
 
+// 3D is the main view on anything wider than a phone. It no longer depends on
+// WebGL: browsers without it get the canvas-drawn 3D view.
 function prefers3D(): boolean {
-  return typeof window !== 'undefined' && window.innerWidth >= 768 && webglAvailable();
+  if (typeof window === 'undefined') return false;
+  // Settings > Preferences can pin the view; "auto" follows the screen size.
+  const choice = readPreferences().mapView;
+  if (choice !== 'auto') return choice === '3d';
+  return window.innerWidth >= 768;
+}
+
+/**
+ * If three.js cannot start (WebGL context refused or lost at start-up), fall
+ * back to the canvas-drawn 3D view instead of taking the page down.
+ */
+class WebglBoundary extends React.Component<{ onFail: () => void; children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onFail();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
 function webglAvailable(): boolean {
@@ -97,6 +127,7 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
   const activeOrgId = useActiveOrgId();
   const orgId = orgIdProp || activeOrgId;
   const theme = useThemeColors();
+  const [{ mapLiveRefresh: liveRefresh }] = usePreferences();
 
   const [data, setData] = useState<NetworkTopologyResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,7 +140,7 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
   const [fullscreen, setFullscreen] = useState(false);
   const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [webglMissing, setWebglMissing] = useState(false);
+  const [renderer3d, setRenderer3d] = useState<Renderer3D>(() => (webglAvailable() ? 'webgl' : 'lite'));
   const [zoneFilter, setZoneFilter] = useState<Set<NetworkZone>>(new Set());
   const [statusFilter, setStatusFilter] = useState<Set<NetworkNodeStatus>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -154,7 +185,8 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
   // Live: re-read quietly while the tab is visible. A failed poll keeps the
   // last good picture on screen instead of replacing it with an error.
   useEffect(() => {
-    if (!orgId || typeof window === 'undefined') return;
+    // Live refresh can be switched off in Settings > Preferences.
+    if (!orgId || typeof window === 'undefined' || !liveRefresh) return;
     let cancelled = false;
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'hidden') return;
@@ -172,7 +204,7 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [orgId]);
+  }, [orgId, liveRefresh]);
 
   // Escape leaves the full-screen map.
   useEffect(() => {
@@ -242,12 +274,9 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
     });
 
   const switchView = (mode: ViewMode) => {
-    if (mode === '3d' && !webglAvailable()) {
-      setWebglMissing(true);
-      setView('2d');
-      return;
-    }
-    setWebglMissing(false);
+    // Re-check on every switch: graphics acceleration can be turned on or off
+    // without the page reloading.
+    if (mode === '3d') setRenderer3d(webglAvailable() ? 'webgl' : 'lite');
     setView(mode);
   };
 
@@ -538,9 +567,14 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
         </div>
       </div>
 
-      {webglMissing && (
-        <p className="rounded-xl border border-drift-amber/40 bg-drift-amber/10 px-3 py-2 text-xs font-semibold text-drift-amber">
-          3D needs WebGL, which this browser or device does not offer. Showing the 2D map instead.
+      {view === '3d' && renderer3d === 'lite' && (
+        <p
+          data-testid="network-map-3d-lite-note"
+          className="rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-xs text-on-surface-variant"
+        >
+          <span className="font-bold text-on-surface">Lightweight 3D view.</span> Graphics acceleration is switched off
+          in this browser, so the map is drawn without it. Everything still turns, zooms and opens on click. For the
+          full 3D scene in Chrome: Settings, System, turn on "Use graphics acceleration when available", then relaunch.
         </p>
       )}
 
@@ -564,19 +598,23 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
           }}
           onMouseLeave={() => setHovered(null)}
         >
-          {view === '3d' ? (
-            <Suspense
-              fallback={
-                <div
-                  data-testid="network-map-3d-loading"
-                  className="flex h-full items-center justify-center text-sm text-on-surface-variant"
-                >
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading the 3D view…
-                </div>
-              }
-            >
-              <Graph3D ref={graphRef} {...graphProps} />
-            </Suspense>
+          {view === '3d' && renderer3d === 'lite' ? (
+            <Graph3DLite ref={graphRef} {...graphProps} />
+          ) : view === '3d' ? (
+            <WebglBoundary onFail={() => setRenderer3d('lite')}>
+              <Suspense
+                fallback={
+                  <div
+                    data-testid="network-map-3d-loading"
+                    className="flex h-full items-center justify-center text-sm text-on-surface-variant"
+                  >
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading the 3D view…
+                  </div>
+                }
+              >
+                <Graph3D ref={graphRef} {...graphProps} />
+              </Suspense>
+            </WebglBoundary>
           ) : (
             <Graph2D ref={graphRef} {...graphProps} />
           )}
@@ -633,7 +671,8 @@ export function NetworkMap({ orgId: orgIdProp }: NetworkMapProps) {
 
           {view === '3d' && (
             <p className="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-surface-container-low/80 px-2 py-1 text-[10px] text-on-surface-variant md:block">
-              Drag to turn · scroll to zoom · right-drag to move · click anything to open it
+              Drag to turn · scroll to zoom · {renderer3d === 'lite' ? 'shift-drag' : 'right-drag'} to move · click
+              anything to open it
             </p>
           )}
           {fullscreen && (

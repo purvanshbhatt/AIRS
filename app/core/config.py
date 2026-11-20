@@ -323,7 +323,20 @@ class Settings(BaseSettings):
                     f"ENCRYPTION_SECRET is required in {self.ENV.value}. "
                     "Set it via Secret Manager and bind it at deploy time."
                 )
-        
+            elif self.ENCRYPTION_SECRET:
+                # A key that is present but malformed used to switch encryption
+                # off silently, so data was stored as plaintext. Stop instead.
+                import base64
+                try:
+                    key_ok = len(base64.urlsafe_b64decode(self.ENCRYPTION_SECRET)) == 32
+                except Exception:
+                    key_ok = False
+                if not key_ok:
+                    errors.append(
+                        f"ENCRYPTION_SECRET in {self.ENV.value} is not a URL-safe base64 value "
+                        "that decodes to 32 bytes. Generate one with generate_encryption_key()."
+                    )
+
         # Demo mode warnings (local only)
         if self.DEMO_MODE:
             print(

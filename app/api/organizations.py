@@ -272,8 +272,19 @@ async def delete_organization(
     _: None = Depends(require_writable)
 ):
     """Delete an organization (must be owned by current user). Disabled in demo mode."""
+    from fastapi.concurrency import run_in_threadpool
+    from app.services.data_erasure import ErasureError
+
     service = get_org_service(db, user)
-    if not service.delete(org_id):
+    try:
+        deleted = await run_in_threadpool(service.delete, org_id)
+    except ErasureError as exc:
+        logger.error("Organization erasure failed for %s: %s", org_id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The organization could not be fully erased. Nothing was reported as deleted; try again.",
+        )
+    if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Organization not found: {org_id}"

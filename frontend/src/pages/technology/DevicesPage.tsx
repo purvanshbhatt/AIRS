@@ -56,8 +56,21 @@ const MOCK_INVENTORY = [
 ];
 
 import { SimulatedTelemetryBanner } from '../../components/common/SimulatedTelemetryBanner';
+import { DomainLiveView } from '../../components/technology/DomainLiveView';
+import { useActiveOrg } from '../../hooks/useActiveOrg';
 
+/**
+ * Real organisations see what their own connected systems report
+ * (`DomainLiveView`). The illustrative walkthrough below is shown only in the
+ * demo workspace, under its "Simulated Telemetry" banner.
+ */
 export function DevicesPage() {
+  const { isDemo } = useActiveOrg();
+  if (!isDemo) return <DomainLiveView domain="devices" icon={Laptop} />;
+  return <DevicesSample />;
+}
+
+function DevicesSample() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'issues' | 'inventory'>('overview');
 
   return (

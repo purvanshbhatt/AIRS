@@ -14,7 +14,7 @@ Templates:
   technical_telemetry Evidence ledger export (hash, connectors, verification)
   executive_pdf       Executive summary (readiness-based when no assessment)
   boss_report         ONE page, plain English, for a clinic director
-  cyber_insurance     Underwriter binder (Coalition / Chubb / Travelers)
+  cyber_insurance     Underwriter binder (control evidence for an application)
   msp_summary         1-2 page hand-off the MSP gives the clinic
 """
 from __future__ import annotations
@@ -225,6 +225,7 @@ OWNER_BY_CATEGORY = {
     "access_control": "IT administrator (identity platform)",
     "backup": "Backup operator / MSP",
     "device_security": "IT / endpoint owner",
+    "cloud_security": "AWS administrator",
     "general": "Practice manager",
 }
 
@@ -366,10 +367,33 @@ def _status_summary(snapshot: Dict[str, Any], st) -> List:
     return out
 
 
+def collapse_duplicate_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """One row per distinct finding.
+
+    Two rows that read the same in every printed column tell the reader
+    nothing the first did not. They are merged, and the merged row says how
+    many times the item was reported. Order is preserved.
+    """
+    merged: Dict[tuple, Dict[str, Any]] = {}
+    for r in rows:
+        key = (r.get("severity"), r.get("label"), r.get("detail"), r.get("owner"))
+        if key in merged:
+            merged[key]["occurrences"] += 1
+        else:
+            merged[key] = {**r, "occurrences": 1}
+    out = []
+    for r in merged.values():
+        if r["occurrences"] > 1:
+            r["label"] = f"{r['label']} (reported {r['occurrences']} times)"
+        out.append(r)
+    return out
+
+
 def _findings_table(rows: List[Dict[str, Any]], st, limit: Optional[int] = None,
                     with_owner: bool = True) -> Any:
     if not rows:
         return _p("No open items. Every evaluated check passed.", st["body"])
+    rows = collapse_duplicate_rows(rows)
     data = [[_p("Status", st["cellb"]), _p("Item", st["cellb"]), _p("Why it matters", st["cellb"])]]
     widths = [22 * mm, 68 * mm, 84 * mm]
     if with_owner:
@@ -606,7 +630,12 @@ def _build_monthly_ops(snapshot: Dict[str, Any], st) -> List:
     story.append(_p("Value delivered", st["h2"]))
     story.append(_value_table(snapshot, st))
 
-    timeline = readiness.get("timeline") or []
+    # The readiness-check table above already lists every open item. Timeline
+    # rows that only restate one of them would print the same findings twice,
+    # so the timeline keeps what the table does not show: passed checks and
+    # connector activity.
+    listed = {r["label"] for r in all_rows}
+    timeline = [t for t in (readiness.get("timeline") or []) if t.get("label") not in listed]
     if timeline:
         story.append(_p("Timeline", st["h2"]))
         story.append(_table([[_p("When", st["cellb"]), _p("Event", st["cellb"]), _p("Source", st["cellb"])]] + [
@@ -915,25 +944,19 @@ def _build_boss_report(snapshot: Dict[str, Any], st) -> List:
 
 
 INSURANCE_CONTROLS = [
-    # (control, area keys, categories, label keywords, Coalition, Chubb, Travelers)
+    # (control, area keys, categories, label keywords)
     ("Multi-factor authentication (email, remote access, privileged accounts)",
-     ["Multi-Factor"], [], MFA_LABEL_KEYS,
-     "Sec. 2: Email & Access Security - MFA", "Cyber ERM Application: Access Controls / MFA", "CyberRisk App Q: MFA for remote access & email"),
+     ["Multi-Factor"], [], MFA_LABEL_KEYS),
     ("Immutable / offline backups with tested restores",
-     ["Backup"], ["backup"], BACKUP_LABEL_KEYS,
-     "Sec. 4: Backups - offline/immutable copies, restore testing", "Cyber ERM: Business Continuity & Backups", "CyberRisk App Q: Backups segregated & tested"),
+     ["Backup"], ["backup"], BACKUP_LABEL_KEYS),
     ("Lateral movement containment (EDR, endpoint hardening, network logging)",
-     ["Endpoints", "Network Logs", "Devices"], ["device_security"], DEVICE_LABEL_KEYS,
-     "Sec. 3: Endpoint Detection & Response", "Cyber ERM: Network Security / EDR", "CyberRisk App Q: EDR deployed on all endpoints"),
+     ["Endpoints", "Network Logs", "Devices"], ["device_security"], DEVICE_LABEL_KEYS),
     ("Timely removal of departed-staff access",
-     ["Users"], ["access_control"], ACCESS_LABEL_KEYS,
-     "Sec. 2: Access management - account deprovisioning", "Cyber ERM: Access Controls - offboarding", "CyberRisk App Q: Privileged account hygiene"),
+     ["Users"], ["access_control"], ACCESS_LABEL_KEYS),
     ("Email security (filtering, authentication)",
-     ["Email"], [], EMAIL_LABEL_KEYS,
-     "Sec. 2: Email Security", "Cyber ERM: Email Security", "CyberRisk App Q: Email filtering & SPF/DKIM"),
+     ["Email"], [], EMAIL_LABEL_KEYS),
     ("Firewall / perimeter monitoring",
-     ["Firewall"], [], FIREWALL_LABEL_KEYS,
-     "Sec. 3: Network Security", "Cyber ERM: Network Security", "CyberRisk App Q: Firewall & logging"),
+     ["Firewall"], [], FIREWALL_LABEL_KEYS),
 ]
 
 
@@ -943,8 +966,8 @@ def _build_cyber_insurance(snapshot: Dict[str, Any], st) -> List:
     story += _status_summary(snapshot, st)
     story.append(_p("How to read this binder", st["h2"]))
     story.append(_p(
-        "Each control below is answered from telemetry observed by ResilAI at generation time and mapped to the "
-        "questionnaire sections commonly used by Coalition, Chubb and Travelers. 'Verified' means a passing "
+        "Each control below is answered from telemetry observed by ResilAI at generation time. Application forms "
+        "differ by insurer: match each control to the question on your own form. 'Verified' means a passing "
         "automated check exists; 'Monitored' means the area reports telemetry with no failing check; 'Gap found' "
         "means a failing check exists; 'Not yet verified' means no connected system covers the control and the "
         "applicant should answer from other evidence. ResilAI does not self-attest on the applicant's behalf.",
@@ -952,7 +975,7 @@ def _build_cyber_insurance(snapshot: Dict[str, Any], st) -> List:
 
     story.append(_p("Control evidence matrix", st["h2"]))
     rows = [[_p(h, st["cellb"]) for h in ("Control", "Evidence state", "Observed evidence", "Source / verified")]]
-    for control, areas, cats, keys, *_ in INSURANCE_CONTROLS:
+    for control, areas, cats, keys in INSURANCE_CONTROLS:
         s = _area_state(snapshot, areas, cats, keys)
         color = PASS_GREEN if s["state"] in ("pass", "monitored") else _status_color(s["state"])
         rows.append([
@@ -962,12 +985,6 @@ def _build_cyber_insurance(snapshot: Dict[str, Any], st) -> List:
             _p(((s["source"] + " / ") if s["source"] else "") + _fmt_ts(s["verified_at"] or None), st["cell"]),
         ])
     story.append(_table(rows, [52 * mm, 24 * mm, 58 * mm, 40 * mm]))
-
-    story.append(_p("Questionnaire cross-reference", st["h2"]))
-    rows = [[_p(h, st["cellb"]) for h in ("Control", "Coalition", "Chubb", "Travelers")]]
-    for control, _a, _c, _k, coalition, chubb, travelers in INSURANCE_CONTROLS:
-        rows.append([_p(control, st["cell"]), _p(coalition, st["cell"]), _p(chubb, st["cell"]), _p(travelers, st["cell"])])
-    story.append(_table(rows, [50 * mm, 42 * mm, 40 * mm, 42 * mm]))
 
     story.append(_p("Backup immutability and restore evidence", st["h2"]))
     b = _backup_status(snapshot)

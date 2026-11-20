@@ -26,6 +26,26 @@ vi.mock('../../api');
 vi.mock('../../hooks/useActiveOrg');
 vi.mock('../../contexts/AuthContext');
 
+/**
+ * The bundled sample content on the Documents and Governance pages is shown
+ * only in the demo workspace. A real organisation sees its own data
+ * (covered in governance-documents-live.test.tsx).
+ */
+function enterDemoWorkspace() {
+  vi.spyOn(useActiveOrgHook, 'useActiveOrg').mockReturnValue({
+    orgId: 'demo-health-org',
+    orgName: 'Acme Health Systems (Demo)',
+    org: null,
+    orgs: [],
+    isDemo: true,
+    hasOrg: true,
+    loading: false,
+    selectOrg: vi.fn(),
+    resetOrg: vi.fn(),
+    refresh: vi.fn(),
+  } as any);
+}
+
 describe('Tier 4: Real-World Scenarios & Persona Journeys', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -111,8 +131,7 @@ describe('Tier 4: Real-World Scenarios & Persona Journeys', () => {
   // =========================================================================
   // Journey 2: IT Operator Critical Triage, Progressive Disclosure, & 1-Click Remediation
   // =========================================================================
-  it('Journey 2: IT Operator Critical Triage, Progressive Disclosure, & 1-Click Remediation', async () => {
-    const user = userEvent.setup();
+  it('Journey 2: IT Operator Critical Triage, Progressive Disclosure, & Read-Only Hand-off', async () => {
     const action = createMockActionCard();
     const initialReport = createMockDailyReadinessReport({
       clinic_health_pct: 78,
@@ -146,17 +165,11 @@ describe('Tier 4: Real-World Scenarios & Persona Journeys', () => {
     const triageLink = screen.getByRole('link', { name: /View All Incident Risks/i });
     expect(triageLink).toHaveAttribute('href', '/needs-attention');
 
-    // Step 3: Trigger 1-Click Fix
-    const fixButton = screen.getByRole('button', { name: /Fix Now/i });
-    await user.click(fixButton);
-
-    expect(api.triggerProblemFix).toHaveBeenCalledWith('action-ehr-backup-001');
-
-    // Step 4: Verify reload reflects remediated healthy state
-    await waitFor(() => {
-      expect(screen.getByText('Stage 1 • READY FOR TODAY')).toBeInTheDocument();
-    });
-    expect(screen.getByText('No Critical Gaps Pending')).toBeInTheDocument();
+    // Step 3: ResilAI only reads a real organisation's systems, so it offers
+    // no fix button and sends nothing. The item stays until live data changes.
+    expect(screen.queryByRole('button', { name: /Fix Now/i })).not.toBeInTheDocument();
+    expect(api.triggerProblemFix).not.toHaveBeenCalled();
+    expect(screen.getByText(/Stage 3 • What Needs Attention/i)).toBeInTheDocument();
   });
 
   // =========================================================================
@@ -241,6 +254,7 @@ describe('Tier 4: Real-World Scenarios & Persona Journeys', () => {
   // Journey 5: Security Auditor Evidence Vault & Policy Drift Inspection
   // =========================================================================
   it('Journey 5: Security Auditor Evidence Vault & Policy Drift Inspection', async () => {
+    enterDemoWorkspace();
     const user = userEvent.setup();
     vi.mocked(api.getGovernanceHealthIndex).mockResolvedValue(createMockGovernanceData() as any);
     vi.mocked(api.getApplicableFrameworks).mockResolvedValue(createMockFrameworks() as any);
