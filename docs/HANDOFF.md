@@ -2,7 +2,8 @@
 _Updated by the last agent session. Keep under 40 lines._
 
 ## Current state
-- Branch `staging`. SEO work for the US, Europe, the Gulf and Australia is committed and pushed. Not yet deployed to production (`resilai.org`).
+- Branch `staging`. SEO work for the US, Europe, the Gulf and Australia is committed, pushed and live on `resilai.org` (deployed 2026-11-20).
+- Production frontend = commit `cd264ef` plus the SEO commit only, built in a throwaway worktree and deployed by hand with `firebase deploy --only hosting:marketing`. The other staging changes since 16 Nov are not in production.
 - Frontend: `tsc -b` clean, 559 vitest tests pass, `npm run build:production` works.
 
 ## What changed last session (2026-11-20)
@@ -16,7 +17,7 @@ _Updated by the last agent session. Keep under 40 lines._
 - OpenSEO plugin installed for Claude Code (user scope). Not signed in yet.
 
 ## Next steps
-1. Deploy production (`hosting:marketing`), then open `https://resilai.org/europe` and check "view source" shows the EU title.
+1. The GitHub pipeline cannot deploy: step "Governance CLI validation" has failed on every staging push since 2026-11-08. Fix it before relying on CI.
 2. Submit `https://resilai.org/sitemap.xml` in Google Search Console and Bing Webmaster Tools.
 3. Sign in to OpenSEO (`/mcp` → OpenSEO), then run `/openseo:seo-audit` and `/openseo:ai-visibility-audit` for real ranking data.
 4. `public/sitemap.xml` is generated. Refresh it with `node scripts/prerender-seo.mjs dist-production --public` after editing the JSON, and bump `lastmod` there.
