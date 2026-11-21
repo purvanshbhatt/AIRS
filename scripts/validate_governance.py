@@ -129,6 +129,24 @@ def print_validation(result, verbose: bool = True):
     print()
 
 
+def _ensure_sqlite_schema():
+    """Create the tables on a SQLite database that has none.
+
+    A fresh checkout (the CI gate) starts with an empty SQLite file, and the
+    first query then fails with "no such table: organizations". The app does
+    the same thing at startup. PostgreSQL is left to Alembic.
+    """
+    from app.core.config import settings
+
+    if not settings.DATABASE_URL.startswith("sqlite"):
+        return
+
+    import app.models  # noqa: F401 - registers every model with Base
+    from app.db.database import Base, engine
+
+    Base.metadata.create_all(bind=engine)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="IGVF CLI — Governance Integrity Verification",
@@ -155,6 +173,7 @@ Examples:
     )
     args = parser.parse_args()
 
+    _ensure_sqlite_schema()
     db = SessionLocal()
     try:
         if args.org:

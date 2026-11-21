@@ -27,7 +27,7 @@ export default function RegionLanding({ path }: RegionLandingProps) {
   const otherRegions = regionRoutes.filter((other) => other.path !== route.path);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-emerald-500/20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-ready-emerald/20">
       <SEOHead
         title={route.title}
         description={route.description}
@@ -39,9 +39,9 @@ export default function RegionLanding({ path }: RegionLandingProps) {
 
       <PublicNavbar />
 
-      <section className="pt-16 pb-16 border-b border-slate-200 dark:border-slate-800/80 bg-gradient-to-b from-white via-slate-50 to-emerald-50/20 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950">
+      <section className="pt-16 pb-16 border-b border-slate-200 dark:border-slate-800/80 bg-gradient-to-b from-white via-slate-50 to-slate-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-ready-emerald/15 text-on-surface border border-ready-emerald/40">
             <Globe2 className="w-3.5 h-3.5" aria-hidden="true" />
             <span>{region.eyebrow}</span>
           </div>
@@ -57,7 +57,7 @@ export default function RegionLanding({ path }: RegionLandingProps) {
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/pilot"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 transition-colors flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-sm bg-ready-emerald hover:bg-ready-emerald/90 text-slate-950 shadow-sm transition-colors flex items-center justify-center gap-2"
             >
               <span>Join the pilot</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -74,7 +74,7 @@ export default function RegionLanding({ path }: RegionLandingProps) {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-14 space-y-16 w-full">
         <section className="space-y-4" aria-labelledby="region-frameworks">
-          <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-ready-emerald text-xs font-mono font-bold uppercase tracking-wider">
             <Scale className="w-4 h-4" aria-hidden="true" />
             <span>Laws and frameworks</span>
           </div>
@@ -98,7 +98,7 @@ export default function RegionLanding({ path }: RegionLandingProps) {
           </ul>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             See the full list in the{' '}
-            <Link to="/docs/frameworks" className="font-medium text-emerald-700 dark:text-emerald-400 hover:underline">
+            <Link to="/docs/frameworks" className="font-medium text-ready-emerald hover:underline">
               framework mappings
             </Link>
             .
@@ -112,7 +112,7 @@ export default function RegionLanding({ path }: RegionLandingProps) {
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             {DAILY_CHECKS.map((check) => (
               <li key={check.title} className="flex gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
+                <CheckCircle2 className="w-5 h-5 text-ready-emerald shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{check.title}</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{check.text}</p>
@@ -122,7 +122,7 @@ export default function RegionLanding({ path }: RegionLandingProps) {
           </ul>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Read{' '}
-            <Link to="/trust/data-access" className="font-medium text-emerald-700 dark:text-emerald-400 hover:underline">
+            <Link to="/trust/data-access" className="font-medium text-ready-emerald hover:underline">
               what ResilAI reads and where it is kept
             </Link>
             .
