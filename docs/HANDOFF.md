@@ -16,7 +16,13 @@ _Updated by the last agent session. Keep under 40 lines._
 - `llms.txt` and `llms-full.txt` have a regional section. `robots.txt` names the AI search crawlers and no longer lists `llms.txt` as a sitemap.
 - OpenSEO plugin installed for Claude Code (user scope). Not signed in yet.
 
+## Marketing and fundraising (2026-11-27)
+- Drafts are in the untracked folders `docs/marketing/` (start at `00-stock-take.md`) and `docs/investor/`. Never `git add` them; they are not in `.gitignore`, so avoid `git add .`.
+- Nothing has been sent, posted or submitted. Founder blanks are marked `[OWNER]`.
+- Tracked public files contradict the pricing page and make unsupported claims: `BUSINESS_MODEL.md`, `EXECUTIVE_OVERVIEW.md`, `frontend/public/pricing.md` (insurer names), `llms.txt` (connector list). Not fixed.
+
 ## Next steps
+0. Run Microsoft 365 against a real tenant before any demo or outreach.
 1. The GitHub pipeline cannot deploy: step "Governance CLI validation" has failed on every staging push since 2026-11-08. Fix it before relying on CI.
 2. Submit `https://resilai.org/sitemap.xml` in Google Search Console and Bing Webmaster Tools.
 3. Sign in to OpenSEO (`/mcp` → OpenSEO), then run `/openseo:seo-audit` and `/openseo:ai-visibility-audit` for real ranking data.
