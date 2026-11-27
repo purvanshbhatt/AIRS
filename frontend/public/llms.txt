@@ -5,7 +5,7 @@
 ## Overview
 ResilAI solves the core breakdown in cybersecurity: security teams collect millions of logs and alerts, but leadership cannot answer the fundamental question: **"If an incident happens tomorrow morning, can we keep operating and prove we're ready?"**
 
-Unlike legacy periodic compliance audits or subjective questionnaires, ResilAI connects directly to operational infrastructure (Microsoft 365, Entra ID, AWS Security Hub, Veeam, CrowdStrike, Splunk, Sentinel, Okta) and continuously verifies control effectiveness using cryptographic SHA-256 evidence integrity and 100% deterministic scoring.
+Unlike legacy periodic compliance audits or subjective questionnaires, ResilAI connects directly to operational infrastructure (Microsoft 365, Entra ID, AWS Security Hub, Veeam, Cisco Duo, Splunk, Wazuh, custom JSON webhook) and continuously verifies control effectiveness using cryptographic SHA-256 evidence integrity and 100% deterministic scoring.
 
 ---
 

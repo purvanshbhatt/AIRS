@@ -250,7 +250,7 @@ export default function Pricing() {
     },
     {
       question: 'How does the Founding Sysadmin ($149/mo) program work?',
-      answer: 'We are locking in $149/month for life for our first 50 customers (regularly $199/month). In exchange, founding members agree to a single 20-minute onboarding screen-share with our engineers so we can observe telemetry ingestion and collect raw product feedback.',
+      answer: 'We are locking in $149/month for life for our first 50 customers (regularly $199/month). In exchange, founding members agree to a single 20-minute onboarding screen-share with the founder so we can observe telemetry ingestion and collect raw product feedback.',
     },
     {
       question: 'Do I have to install software agents on all company laptops?',
@@ -412,7 +412,7 @@ export default function Pricing() {
                     Founding Sysadmin Tier: $149/mo Locked for Life
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    Regularly $199/month. In exchange for locked-in $149/mo lifetime pricing, founding members agree to a single 20-minute onboarding screen-share with our engineering team to observe telemetry ingestion. No pushy sales calls, no lock-in, 100% agentless.
+                    Regularly $199/month. In exchange for locked-in $149/mo lifetime pricing, founding members agree to a single 20-minute onboarding screen-share with the founder to observe telemetry ingestion. No pushy sales calls, no lock-in, 100% agentless.
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0 w-full md:w-auto">

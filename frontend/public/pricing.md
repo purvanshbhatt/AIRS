@@ -1,6 +1,6 @@
 # Pricing — ResilAI
 
-Last updated: 2026-11-05. Canonical page: https://resilai.org/pricing. Billing through Stripe, USD, cancel anytime on self-serve tiers.
+Last updated: 2026-11-27. Canonical page: https://resilai.org/pricing. Billing through Stripe, USD, cancel anytime on self-serve tiers.
 
 ResilAI is an agentless incident-readiness platform for small healthcare clinics and law firms. It connects read-only to Microsoft 365 / Entra ID, AWS Security Hub, Splunk, Wazuh, Veeam, Cisco Duo and custom webhooks, then produces a deterministic readiness score, a 1-page executive "boss report", and a cyber-insurance evidence binder.
 
@@ -8,8 +8,8 @@ ResilAI is an agentless incident-readiness platform for small healthcare clinics
 - Price: $149/month, locked for life for the first 50 customers (regular price $199/month)
 - Billing: monthly, self-serve checkout
 - Limits: up to 250 network nodes and endpoints, 1 organization, 1 administrator
-- Includes: whole-network topology map and lateral-containment simulator, automated Monday-morning 1-page boss report, 1-click cyber-insurance underwriter binder (Coalition, Chubb, Travelers), 100% agentless ingestion (read-only PowerShell and AWS CloudFormation), continuous 24/7 deterministic scoring, direct founder channel, bi-weekly posture reviews
-- Condition: one 20-minute onboarding screen-share with ResilAI engineers
+- Includes: whole-network topology map and lateral-containment simulator, automated Monday-morning 1-page boss report, cyber-insurance answer pack (application questions answered from your evidence, with source and time), 100% agentless ingestion (read-only PowerShell and AWS CloudFormation), continuous 24/7 deterministic scoring, direct founder channel, bi-weekly posture reviews
+- Condition: one 20-minute onboarding screen-share with the founder
 - Start: https://resilai.org/pricing
 
 ## Growth

@@ -19,7 +19,8 @@ _Updated by the last agent session. Keep under 40 lines._
 ## Marketing and fundraising (2026-11-27)
 - Drafts are in the untracked folders `docs/marketing/` (start at `00-stock-take.md`) and `docs/investor/`. Never `git add` them; they are not in `.gitignore`, so avoid `git add .`.
 - Nothing has been sent, posted or submitted. Founder blanks are marked `[OWNER]`.
-- Tracked public files contradict the pricing page and make unsupported claims: `BUSINESS_MODEL.md`, `EXECUTIVE_OVERVIEW.md`, `frontend/public/pricing.md` (insurer names), `llms.txt` (connector list). Not fixed.
+- Fixed 27 Nov, not deployed: `BUSINESS_MODEL.md` prices match the pricing page; `EXECUTIVE_OVERVIEW.md` drops the "90%" and medical-device claims; `pricing.md` drops insurer names; `llms.txt` lists only connectors in `app/connectors/`; `Pricing.tsx` says "the founder", not "engineers".
+- Still unsupported in public copy: CrowdStrike and Okta in `frontend/src/seo/publicRoutes.json` (lines 70, 74, 96) and `llms-full.txt`; "led by security engineers" in `About.tsx`; "Case Studies" link label and AWS standby claim in `llms.txt`.
 
 ## Next steps
 0. Run Microsoft 365 against a real tenant before any demo or outreach.

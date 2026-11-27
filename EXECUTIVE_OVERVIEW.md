@@ -10,10 +10,10 @@ Modern cybersecurity and GRC fail because they rely on **static annual questionn
 
 ## 🔑 Key Value Drivers
 
-1. **Zero-Hallucination Resilience Scoring**: All scores are computed deterministically from raw API telemetry (M365, Veeam, Wazuh, Splunk, AWS SSM).
-2. **Clinic Operational Continuity**: Monitors medical device availability, EHR data stream integrity, and staff emergency readiness in real time.
+1. **Zero-Hallucination Resilience Scoring**: All scores are computed deterministically from raw API telemetry (Microsoft 365 / Entra ID, AWS Security Hub, Veeam, Cisco Duo, Wazuh, Splunk, custom webhook).
+2. **Clinic Operational Continuity**: Checks whether the safeguards a clinic relies on in an incident (multi-factor sign-in, backups, device protection) are working, using evidence from the connected systems. It does not monitor medical devices or EHR systems directly.
 3. **Board-Ready Communication**: Translates raw infrastructure telemetry into C-suite narrative reports using Gemini 3 Flash bound strictly to mathematical guardrails.
-4. **Instant Design Partner ROI**: MSPs and healthcare networks gain instant visibility into client posture, reducing audit prep time by 90%.
+4. **Design Partner Value**: MSPs and clinics see client posture in one place, with the evidence behind each finding. No time saving has been measured yet: the product has no customers so far.
 
 ---
 
